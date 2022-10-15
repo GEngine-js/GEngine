@@ -1,0 +1,21 @@
+* {
+    box-sizing: border-box;
+  }
+  
+  html {
+    background: #692a84;
+    background: linear-gradient(316deg, #0e0f2a, #060913);
+  }
+  
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #app {
+    height: 100%;
+    width: 100%;
+  }

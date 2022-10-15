@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webworkerTask</title>
+    <!-- <link rel="stylesheet" href="./index.scss" /> -->
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            background: #692a84;
+            background: linear-gradient(316deg, #0e0f2a, #060913);
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        #app {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script src="./../dist/calculate.js"></script>
+</head>
+
+<body>
+    <button id="btn">calculate</button>
+    <script>
+        document.getElementById("btn").onclick = () => {
+            const cal = new calculate();
+            const promise = cal.startTaskworker();
+            Promise.resolve(promise)
+                .then(function (result) {
+                    alert(result)
+                }).catch(function (error) {
+                    alert(error)
+                });
+        };
+    </script>
+</body>
+
+</html>
