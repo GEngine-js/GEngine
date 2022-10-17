@@ -1,12 +1,14 @@
 import Uri from "urijs";
-import {defined,destroyObject} from "../utils/ObjectUtils.js";
-import Event from "./Event.js";
-import {isCrossOriginUrl,buildWorkerUrl,requestWasmFile} from "../utils/UrlUtils.js";
+import defined from "../utils/defined";
+import Event from "./Event";
+import {isCrossOriginUrl,buildWorkerUrl} from "../utils/buildWorkerUrl";
+import {requestWasmFile} from '../utils/request'
 function canTransferArrayBuffer() {
   if (!defined(TaskProcessor._canTransferArrayBuffer)) {
     const worker = new Worker(
       getWorkerUrl("workers/TransferTypedArrayTest.js")
     );
+    //@ts-ignore
     worker.postMessage = worker.webkitPostMessage||worker.postMessage
 
     const value = 99;
@@ -95,11 +97,8 @@ function getWorkerUrl(moduleID) {
         type: "application/javascript",
       });
     } catch (e) {
-      const BlobBuilder =
-        window.BlobBuilder ||
-        window.WebKitBlobBuilder ||
-        window.MozBlobBuilder ||
-        window.MSBlobBuilder;
+    //@ts-ignore
+      const BlobBuilder =window.BlobBuilder ||window.WebKitBlobBuilder ||window.MozBlobBuilder ||window.MSBlobBuilder;
       const blobBuilder = new BlobBuilder();
       blobBuilder.append(script);
       blob = blobBuilder.getBlob("application/javascript");
@@ -121,10 +120,7 @@ function getBootstrapperUrl() {
 
 function createWorker(processor) {
   const worker = new Worker(getBootstrapperUrl());
-  // for (let i =0;  i< 300;i++) {
-  //   let worker1=new Worker(getBootstrapperUrl())
-    
-  // }
+  //@ts-ignore
   worker.postMessage =  worker.webkitPostMessage||worker.postMessage
   const bootstrapMessage = {
     loaderConfig: {

@@ -1,5 +1,5 @@
-import {defined} from "../utils/ObjectUtils.js";
-import createTaskProcessorWorker from './CreateTaskProcessorWorker.js'
+import defined from "../utils/defined";
+import createTaskProcessorWorker from './CreateTaskProcessorWorker'
 function createTestWorker(parameters, transferableObjects){
    if(defined(parameters)){
       return {name:'wangwu',age:21};

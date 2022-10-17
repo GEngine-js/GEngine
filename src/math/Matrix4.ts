@@ -1,12 +1,9 @@
-import Cartesian3 from "./Cartesian3.js";
-import Cartesian4 from "./Cartesian4.js";
-import Check from "./Check.js";
-import defaultValue from "./defaultValue.js";
-import defined from "./defined.js";
-import DeveloperError from "./DeveloperError.js";
-import CesiumMath from "./Math.js";
-import Matrix3 from "./Matrix3.js";
-import RuntimeError from "./RuntimeError.js";
+import Cartesian3 from "./Cartesian3";
+import Cartesian4 from "./Cartesian4";
+import defaultValue from "../utils/defaultValue";
+import defined from "../utils/defined";
+import CesiumMath from "./Math";
+import Matrix3 from "./Matrix3";
 
 /**
  * A 4x4 matrix, indexable as a column-major order array.
@@ -105,10 +102,6 @@ Matrix4.packedLength = 16;
  * @returns {Number[]} The array that was packed into
  */
 Matrix4.pack = function (value, array, startingIndex) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("value", value);
-  Check.defined("array", array);
-  //>>includeEnd('debug');
 
   startingIndex = defaultValue(startingIndex, 0);
 
@@ -141,9 +134,6 @@ Matrix4.pack = function (value, array, startingIndex) {
  * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
  */
 Matrix4.unpack = function (array, startingIndex, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.defined("array", array);
-  //>>includeEnd('debug');
 
   startingIndex = defaultValue(startingIndex, 0);
 
@@ -175,13 +165,10 @@ Matrix4.unpack = function (array, startingIndex, result) {
  * are stored in column-major order.
  *
  * @param {Matrix4[]} array The array of matrices to pack.
- * @param {Number[]} [result] The array onto which to store the result. If this is a typed array, it must have array.length * 16 components, else a {@link DeveloperError} will be thrown. If it is a regular array, it will be resized to have (array.length * 16) elements.
+ * @param {Number[]} [result] The array onto which to store the result. If this is a typed array, it must have array.length * 16 components, else a {@link Error} will be thrown. If it is a regular array, it will be resized to have (array.length * 16) elements.
  * @returns {Number[]} The packed array.
  */
 Matrix4.packArray = function (array, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.defined("array", array);
-  //>>includeEnd('debug');
 
   const length = array.length;
   const resultLength = length * 16;
@@ -189,7 +176,7 @@ Matrix4.packArray = function (array, result) {
     result = new Array(resultLength);
   } else if (!Array.isArray(result) && result.length !== resultLength) {
     //>>includeStart('debug', pragmas.debug);
-    throw new DeveloperError(
+    throw new Error(
       "If result is a typed array, it must have exactly array.length * 16 elements"
     );
     //>>includeEnd('debug');
@@ -211,13 +198,9 @@ Matrix4.packArray = function (array, result) {
  * @returns {Matrix4[]} The unpacked array.
  */
 Matrix4.unpackArray = function (array, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.defined("array", array);
-  Check.typeOf.number.greaterThanOrEquals("array.length", array.length, 16);
   if (array.length % 16 !== 0) {
-    throw new DeveloperError("array length must be a multiple of 16.");
+    throw new Error("array length must be a multiple of 16.");
   }
-  //>>includeEnd('debug');
 
   const length = array.length;
   if (!defined(result)) {
@@ -316,9 +299,6 @@ Matrix4.fromArray = Matrix4.unpack;
  * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
  */
 Matrix4.fromColumnMajorArray = function (values, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.defined("values", values);
-  //>>includeEnd('debug');
 
   return Matrix4.clone(values, result);
 };
@@ -332,9 +312,6 @@ Matrix4.fromColumnMajorArray = function (values, result) {
  * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
  */
 Matrix4.fromRowMajorArray = function (values, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.defined("values", values);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     return new Matrix4(
@@ -385,9 +362,6 @@ Matrix4.fromRowMajorArray = function (values, result) {
  * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
  */
 Matrix4.fromRotationTranslation = function (rotation, translation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("rotation", rotation);
-  //>>includeEnd('debug');
 
   translation = defaultValue(translation, Cartesian3.ZERO);
 
@@ -454,11 +428,6 @@ Matrix4.fromTranslationQuaternionRotationScale = function (
   scale,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("translation", translation);
-  Check.typeOf.object("rotation", rotation);
-  Check.typeOf.object("scale", scale);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     result = new Matrix4();
@@ -522,9 +491,6 @@ Matrix4.fromTranslationRotationScale = function (
   translationRotationScale,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("translationRotationScale", translationRotationScale);
-  //>>includeEnd('debug');
 
   return Matrix4.fromTranslationQuaternionRotationScale(
     translationRotationScale.translation,
@@ -544,9 +510,6 @@ Matrix4.fromTranslationRotationScale = function (
  * @see Matrix4.multiplyByTranslation
  */
 Matrix4.fromTranslation = function (translation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("translation", translation);
-  //>>includeEnd('debug');
 
   return Matrix4.fromRotationTranslation(Matrix3.IDENTITY, translation, result);
 };
@@ -567,9 +530,6 @@ Matrix4.fromTranslation = function (translation, result) {
  * const m = Cesium.Matrix4.fromScale(new Cesium.Cartesian3(7.0, 8.0, 9.0));
  */
 Matrix4.fromScale = function (scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("scale", scale);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     return new Matrix4(
@@ -627,9 +587,6 @@ Matrix4.fromScale = function (scale, result) {
  * const m = Cesium.Matrix4.fromUniformScale(2.0);
  */
 Matrix4.fromUniformScale = function (scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("scale", scale);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     return new Matrix4(
@@ -679,9 +636,6 @@ Matrix4.fromUniformScale = function (scale, result) {
  * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
  */
 Matrix4.fromRotation = function (rotation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("rotation", rotation);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     result = new Matrix4();
@@ -721,19 +675,10 @@ const fromCameraU = new Cartesian3();
  * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
  */
 Matrix4.fromCamera = function (camera, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("camera", camera);
-  //>>includeEnd('debug');
 
   const position = camera.position;
   const direction = camera.direction;
   const up = camera.up;
-
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("camera.position", position);
-  Check.typeOf.object("camera.direction", direction);
-  Check.typeOf.object("camera.up", up);
-  //>>includeEnd('debug');
 
   Cartesian3.normalize(direction, fromCameraF);
   Cartesian3.normalize(
@@ -825,10 +770,10 @@ Matrix4.fromCamera = function (camera, result) {
  * @param {Matrix4} result The object in which the result will be stored.
  * @returns {Matrix4} The modified result parameter.
  *
- * @exception {DeveloperError} fovY must be in (0, PI].
- * @exception {DeveloperError} aspectRatio must be greater than zero.
- * @exception {DeveloperError} near must be greater than zero.
- * @exception {DeveloperError} far must be greater than zero.
+ * @exception {Error} fovY must be in (0, PI].
+ * @exception {Error} aspectRatio must be greater than zero.
+ * @exception {Error} near must be greater than zero.
+ * @exception {Error} far must be greater than zero.
  */
 Matrix4.computePerspectiveFieldOfView = function (
   fovY,
@@ -837,13 +782,6 @@ Matrix4.computePerspectiveFieldOfView = function (
   far,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number.greaterThan("fovY", fovY, 0.0);
-  Check.typeOf.number.lessThan("fovY", fovY, Math.PI);
-  Check.typeOf.number.greaterThan("near", near, 0.0);
-  Check.typeOf.number.greaterThan("far", far, 0.0);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const bottom = Math.tan(fovY * 0.5);
 
@@ -892,15 +830,6 @@ Matrix4.computeOrthographicOffCenter = function (
   far,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("left", left);
-  Check.typeOf.number("right", right);
-  Check.typeOf.number("bottom", bottom);
-  Check.typeOf.number("top", top);
-  Check.typeOf.number("near", near);
-  Check.typeOf.number("far", far);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   let a = 1.0 / (right - left);
   let b = 1.0 / (top - bottom);
@@ -953,15 +882,6 @@ Matrix4.computePerspectiveOffCenter = function (
   far,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("left", left);
-  Check.typeOf.number("right", right);
-  Check.typeOf.number("bottom", bottom);
-  Check.typeOf.number("top", top);
-  Check.typeOf.number("near", near);
-  Check.typeOf.number("far", far);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const column0Row0 = (2.0 * near) / (right - left);
   const column1Row1 = (2.0 * near) / (top - bottom);
@@ -1009,14 +929,6 @@ Matrix4.computeInfinitePerspectiveOffCenter = function (
   near,
   result
 ) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("left", left);
-  Check.typeOf.number("right", right);
-  Check.typeOf.number("bottom", bottom);
-  Check.typeOf.number("top", top);
-  Check.typeOf.number("near", near);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const column0Row0 = (2.0 * near) / (right - left);
   const column1Row1 = (2.0 * near) / (top - bottom);
@@ -1124,13 +1036,6 @@ Matrix4.computeViewportTransformation = function (
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.computeView = function (position, direction, up, right, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("position", position);
-  Check.typeOf.object("direction", direction);
-  Check.typeOf.object("up", up);
-  Check.typeOf.object("right", right);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = right.x;
   result[1] = up.x;
@@ -1171,9 +1076,6 @@ Matrix4.computeView = function (position, direction, up, right, result) {
  * //creates a = [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
  */
 Matrix4.toArray = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  //>>includeEnd('debug');
 
   if (!defined(result)) {
     return [
@@ -1221,8 +1123,8 @@ Matrix4.toArray = function (matrix, result) {
  * @param {Number} column The zero-based index of the column.
  * @returns {Number} The index of the element at the provided row and column.
  *
- * @exception {DeveloperError} row must be 0, 1, 2, or 3.
- * @exception {DeveloperError} column must be 0, 1, 2, or 3.
+ * @exception {Error} row must be 0, 1, 2, or 3.
+ * @exception {Error} column must be 0, 1, 2, or 3.
  *
  * @example
  * const myMatrix = new Cesium.Matrix4();
@@ -1231,13 +1133,6 @@ Matrix4.toArray = function (matrix, result) {
  * myMatrix[column1Row0Index] = 10.0;
  */
 Matrix4.getElementIndex = function (column, row) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number.greaterThanOrEquals("row", row, 0);
-  Check.typeOf.number.lessThanOrEquals("row", row, 3);
-
-  Check.typeOf.number.greaterThanOrEquals("column", column, 0);
-  Check.typeOf.number.lessThanOrEquals("column", column, 3);
-  //>>includeEnd('debug');
 
   return column * 4 + row;
 };
@@ -1250,7 +1145,7 @@ Matrix4.getElementIndex = function (column, row) {
  * @param {Cartesian4} result The object onto which to store the result.
  * @returns {Cartesian4} The modified result parameter.
  *
- * @exception {DeveloperError} index must be 0, 1, 2, or 3.
+ * @exception {Error} index must be 0, 1, 2, or 3.
  *
  * @example
  * //returns a Cartesian4 instance with values from the specified column
@@ -1270,14 +1165,6 @@ Matrix4.getElementIndex = function (column, row) {
  * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
  */
 Matrix4.getColumn = function (matrix, index, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-
-  Check.typeOf.number.greaterThanOrEquals("index", index, 0);
-  Check.typeOf.number.lessThanOrEquals("index", index, 3);
-
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const startIndex = index * 4;
   const x = matrix[startIndex];
@@ -1301,7 +1188,7 @@ Matrix4.getColumn = function (matrix, index, result) {
  * @param {Matrix4} result The object onto which to store the result.
  * @returns {Matrix4} The modified result parameter.
  *
- * @exception {DeveloperError} index must be 0, 1, 2, or 3.
+ * @exception {Error} index must be 0, 1, 2, or 3.
  *
  * @example
  * //creates a new Matrix4 instance with new column values from the Cartesian4 instance
@@ -1319,15 +1206,6 @@ Matrix4.getColumn = function (matrix, index, result) {
  * //     [22.0, 23.0, 96.0, 25.0]
  */
 Matrix4.setColumn = function (matrix, index, cartesian, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-
-  Check.typeOf.number.greaterThanOrEquals("index", index, 0);
-  Check.typeOf.number.lessThanOrEquals("index", index, 3);
-
-  Check.typeOf.object("cartesian", cartesian);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result = Matrix4.clone(matrix, result);
   const startIndex = index * 4;
@@ -1346,7 +1224,7 @@ Matrix4.setColumn = function (matrix, index, cartesian, result) {
  * @param {Cartesian4} result The object onto which to store the result.
  * @returns {Cartesian4} The modified result parameter.
  *
- * @exception {DeveloperError} index must be 0, 1, 2, or 3.
+ * @exception {Error} index must be 0, 1, 2, or 3.
  *
  * @example
  * //returns a Cartesian4 instance with values from the specified column
@@ -1366,14 +1244,6 @@ Matrix4.setColumn = function (matrix, index, cartesian, result) {
  * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
  */
 Matrix4.getRow = function (matrix, index, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-
-  Check.typeOf.number.greaterThanOrEquals("index", index, 0);
-  Check.typeOf.number.lessThanOrEquals("index", index, 3);
-
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const x = matrix[index];
   const y = matrix[index + 4];
@@ -1396,7 +1266,7 @@ Matrix4.getRow = function (matrix, index, result) {
  * @param {Matrix4} result The object onto which to store the result.
  * @returns {Matrix4} The modified result parameter.
  *
- * @exception {DeveloperError} index must be 0, 1, 2, or 3.
+ * @exception {Error} index must be 0, 1, 2, or 3.
  *
  * @example
  * //create a new Matrix4 instance with new row values from the Cartesian4 instance
@@ -1414,15 +1284,6 @@ Matrix4.getRow = function (matrix, index, result) {
  * //     [22.0, 23.0, 24.0, 25.0]
  */
 Matrix4.setRow = function (matrix, index, cartesian, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-
-  Check.typeOf.number.greaterThanOrEquals("index", index, 0);
-  Check.typeOf.number.lessThanOrEquals("index", index, 3);
-
-  Check.typeOf.object("cartesian", cartesian);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result = Matrix4.clone(matrix, result);
   result[index] = cartesian.x;
@@ -1442,11 +1303,6 @@ Matrix4.setRow = function (matrix, index, cartesian, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.setTranslation = function (matrix, translation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("translation", translation);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = matrix[0];
   result[1] = matrix[1];
@@ -1490,11 +1346,6 @@ const scaleScratch1 = new Cartesian3();
  * @see Matrix4.getScale
  */
 Matrix4.setScale = function (matrix, scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("scale", scale);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const existingScale = Matrix4.getScale(matrix, scaleScratch1);
   const scaleRatioX = scale.x / existingScale.x;
@@ -1543,11 +1394,6 @@ const scaleScratch2 = new Cartesian3();
  * @see Matrix4.getScale
  */
 Matrix4.setUniformScale = function (matrix, scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.number("scale", scale);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const existingScale = Matrix4.getScale(matrix, scaleScratch2);
   const scaleRatioX = scale / existingScale.x;
@@ -1594,10 +1440,6 @@ const scratchColumn = new Cartesian3();
  * @see Matrix4.setUniformScale
  */
 Matrix4.getScale = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result.x = Cartesian3.magnitude(
     Cartesian3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
@@ -1639,10 +1481,6 @@ const scaleScratch4 = new Cartesian3();
  * @see Matrix4.getRotation
  */
 Matrix4.setRotation = function (matrix, rotation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const scale = Matrix4.getScale(matrix, scaleScratch4);
 
@@ -1682,10 +1520,6 @@ const scaleScratch5 = new Cartesian3();
  * @see Matrix4.fromRotation
  */
 Matrix4.getRotation = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const scale = Matrix4.getScale(matrix, scaleScratch5);
 
@@ -1713,11 +1547,6 @@ Matrix4.getRotation = function (matrix, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.multiply = function (left, right, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("left", left);
-  Check.typeOf.object("right", right);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const left0 = left[0];
   const left1 = left[1];
@@ -1817,11 +1646,6 @@ Matrix4.multiply = function (left, right, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.add = function (left, right, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("left", left);
-  Check.typeOf.object("right", right);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = left[0] + right[0];
   result[1] = left[1] + right[1];
@@ -1851,11 +1675,6 @@ Matrix4.add = function (left, right, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.subtract = function (left, right, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("left", left);
-  Check.typeOf.object("right", right);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = left[0] - right[0];
   result[1] = left[1] - right[1];
@@ -1896,11 +1715,6 @@ Matrix4.subtract = function (left, right, result) {
  * const m3 = Cesium.Matrix4.multiplyTransformation(m1, m2, new Cesium.Matrix4());
  */
 Matrix4.multiplyTransformation = function (left, right, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("left", left);
-  Check.typeOf.object("right", right);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const left0 = left[0];
   const left1 = left[1];
@@ -1981,11 +1795,6 @@ Matrix4.multiplyTransformation = function (left, right, result) {
  * Cesium.Matrix4.multiplyByMatrix3(m, rotation, m);
  */
 Matrix4.multiplyByMatrix3 = function (matrix, rotation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("rotation", rotation);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const left0 = matrix[0];
   const left1 = matrix[1];
@@ -2053,11 +1862,6 @@ Matrix4.multiplyByMatrix3 = function (matrix, rotation, result) {
  * Cesium.Matrix4.multiplyByTranslation(m, position, m);
  */
 Matrix4.multiplyByTranslation = function (matrix, translation, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("translation", translation);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const x = translation.x;
   const y = translation.y;
@@ -2111,11 +1915,6 @@ Matrix4.multiplyByTranslation = function (matrix, translation, result) {
  * @see Matrix4.getScale
  */
 Matrix4.multiplyByScale = function (matrix, scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("scale", scale);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const scaleX = scale.x;
   const scaleY = scale.y;
@@ -2169,11 +1968,6 @@ Matrix4.multiplyByScale = function (matrix, scale, result) {
  * @see Matrix4.getScale
  */
 Matrix4.multiplyByUniformScale = function (matrix, scale, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.number("scale", scale);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = matrix[0] * scale;
   result[1] = matrix[1] * scale;
@@ -2207,11 +2001,6 @@ Matrix4.multiplyByUniformScale = function (matrix, scale, result) {
  * @returns {Cartesian4} The modified result parameter.
  */
 Matrix4.multiplyByVector = function (matrix, cartesian, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("cartesian", cartesian);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const vX = cartesian.x;
   const vY = cartesian.y;
@@ -2247,11 +2036,6 @@ Matrix4.multiplyByVector = function (matrix, cartesian, result) {
  * //   Cesium.Matrix4.multiplyByVector(matrix, new Cesium.Cartesian4(p.x, p.y, p.z, 0.0), result);
  */
 Matrix4.multiplyByPointAsVector = function (matrix, cartesian, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("cartesian", cartesian);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const vX = cartesian.x;
   const vY = cartesian.y;
@@ -2281,11 +2065,6 @@ Matrix4.multiplyByPointAsVector = function (matrix, cartesian, result) {
  * const result = Cesium.Matrix4.multiplyByPoint(matrix, p, new Cesium.Cartesian3());
  */
 Matrix4.multiplyByPoint = function (matrix, cartesian, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("cartesian", cartesian);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const vX = cartesian.x;
   const vY = cartesian.y;
@@ -2325,11 +2104,6 @@ Matrix4.multiplyByPoint = function (matrix, cartesian, result) {
  * //     [-44.0, -46.0, -48.0, -50.0]
  */
 Matrix4.multiplyByScalar = function (matrix, scalar, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.number("scalar", scalar);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = matrix[0] * scalar;
   result[1] = matrix[1] * scalar;
@@ -2373,10 +2147,6 @@ Matrix4.multiplyByScalar = function (matrix, scalar, result) {
  * //     [-22.0, -23.0, -24.0, -25.0]
  */
 Matrix4.negate = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = -matrix[0];
   result[1] = -matrix[1];
@@ -2420,10 +2190,6 @@ Matrix4.negate = function (matrix, result) {
  * //     [13.0, 17.0, 21.0, 25.0]
  */
 Matrix4.transpose = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   const matrix1 = matrix[1];
   const matrix2 = matrix[2];
@@ -2459,10 +2225,6 @@ Matrix4.transpose = function (matrix, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.abs = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = Math.abs(matrix[0]);
   result[1] = Math.abs(matrix[1]);
@@ -2609,10 +2371,6 @@ Matrix4.equalsEpsilon = function (left, right, epsilon) {
  * @returns {Cartesian3} The modified result parameter.
  */
 Matrix4.getTranslation = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result.x = matrix[12];
   result.y = matrix[13];
@@ -2643,10 +2401,6 @@ Matrix4.getTranslation = function (matrix, result) {
  * //     [12.0, 16.0, 20.0]
  */
 Matrix4.getMatrix3 = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   result[0] = matrix[0];
   result[1] = matrix[1];
@@ -2675,13 +2429,9 @@ const scratchExpectedBottomRow = new Cartesian4(0.0, 0.0, 0.0, 1.0);
  * @param {Matrix4} result The object onto which to store the result.
  * @returns {Matrix4} The modified result parameter.
  *
- * @exception {RuntimeError} matrix is not invertible because its determinate is zero.
+ * @exception {Error} matrix is not invertible because its determinate is zero.
  */
 Matrix4.inverse = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
   //
   // Ported from:
   //   ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf
@@ -2851,7 +2601,7 @@ Matrix4.inverse = function (matrix, result) {
       return result;
     }
 
-    throw new RuntimeError(
+    throw new Error(
       "matrix is not invertible because its determinate is zero."
     );
   }
@@ -2892,10 +2642,6 @@ Matrix4.inverse = function (matrix, result) {
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.inverseTransformation = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   //This function is an optimized version of the below 4 lines.
   //const rT = Matrix3.transpose(Matrix4.getMatrix3(matrix));
@@ -2950,10 +2696,6 @@ const scratchTransposeMatrix = new Matrix4();
  * @returns {Matrix4} The modified result parameter.
  */
 Matrix4.inverseTranspose = function (matrix, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("matrix", matrix);
-  Check.typeOf.object("result", result);
-  //>>includeEnd('debug');
 
   return Matrix4.inverse(
     Matrix4.transpose(matrix, scratchTransposeMatrix),

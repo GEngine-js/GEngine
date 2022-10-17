@@ -1,8 +1,6 @@
 import MersenneTwister from "mersenne-twister";
-import Check from "./Check.js";
-import defaultValue from "./defaultValue.js";
-import defined from "./defined.js";
-import DeveloperError from "./DeveloperError.js";
+import defaultValue from "../utils/defaultValue";
+import defined from "../utils/defined";
 
 /**
  * Math functions.
@@ -441,7 +439,7 @@ CesiumMath.RADIANS_PER_ARCSECOND = CesiumMath.RADIANS_PER_DEGREE / 3600.0;
 CesiumMath.toRadians = function (degrees) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(degrees)) {
-    throw new DeveloperError("degrees is required.");
+    throw new Error("degrees is required.");
   }
   //>>includeEnd('debug');
   return degrees * CesiumMath.RADIANS_PER_DEGREE;
@@ -455,7 +453,7 @@ CesiumMath.toRadians = function (degrees) {
 CesiumMath.toDegrees = function (radians) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(radians)) {
-    throw new DeveloperError("radians is required.");
+    throw new Error("radians is required.");
   }
   //>>includeEnd('debug');
   return radians * CesiumMath.DEGREES_PER_RADIAN;
@@ -474,7 +472,7 @@ CesiumMath.toDegrees = function (radians) {
 CesiumMath.convertLongitudeRange = function (angle) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(angle)) {
-    throw new DeveloperError("angle is required.");
+    throw new Error("angle is required.");
   }
   //>>includeEnd('debug');
   const twoPi = CesiumMath.TWO_PI;
@@ -505,7 +503,7 @@ CesiumMath.convertLongitudeRange = function (angle) {
 CesiumMath.clampToLatitudeRange = function (angle) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(angle)) {
-    throw new DeveloperError("angle is required.");
+    throw new Error("angle is required.");
   }
   //>>includeEnd('debug');
 
@@ -525,7 +523,7 @@ CesiumMath.clampToLatitudeRange = function (angle) {
 CesiumMath.negativePiToPi = function (angle) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(angle)) {
-    throw new DeveloperError("angle is required.");
+    throw new Error("angle is required.");
   }
   //>>includeEnd('debug');
   if (angle >= -CesiumMath.PI && angle <= CesiumMath.PI) {
@@ -545,7 +543,7 @@ CesiumMath.negativePiToPi = function (angle) {
 CesiumMath.zeroToTwoPi = function (angle) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(angle)) {
-    throw new DeveloperError("angle is required.");
+    throw new Error("angle is required.");
   }
   //>>includeEnd('debug');
   if (angle >= 0 && angle <= CesiumMath.TWO_PI) {
@@ -573,13 +571,13 @@ CesiumMath.zeroToTwoPi = function (angle) {
 CesiumMath.mod = function (m, n) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(m)) {
-    throw new DeveloperError("m is required.");
+    throw new Error("m is required.");
   }
   if (!defined(n)) {
-    throw new DeveloperError("n is required.");
+    throw new Error("n is required.");
   }
   if (n === 0.0) {
-    throw new DeveloperError("divisor cannot be 0.");
+    throw new Error("divisor cannot be 0.");
   }
   //>>includeEnd('debug');
   if (CesiumMath.sign(m) === CesiumMath.sign(n) && Math.abs(m) < Math.abs(n)) {
@@ -617,10 +615,10 @@ CesiumMath.equalsEpsilon = function (
 ) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(left)) {
-    throw new DeveloperError("left is required.");
+    throw new Error("left is required.");
   }
   if (!defined(right)) {
-    throw new DeveloperError("right is required.");
+    throw new Error("right is required.");
   }
   //>>includeEnd('debug');
 
@@ -647,13 +645,13 @@ CesiumMath.equalsEpsilon = function (
 CesiumMath.lessThan = function (left, right, absoluteEpsilon) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(left)) {
-    throw new DeveloperError("first is required.");
+    throw new Error("first is required.");
   }
   if (!defined(right)) {
-    throw new DeveloperError("second is required.");
+    throw new Error("second is required.");
   }
   if (!defined(absoluteEpsilon)) {
-    throw new DeveloperError("absoluteEpsilon is required.");
+    throw new Error("absoluteEpsilon is required.");
   }
   //>>includeEnd('debug');
   return left - right < -absoluteEpsilon;
@@ -672,13 +670,13 @@ CesiumMath.lessThan = function (left, right, absoluteEpsilon) {
 CesiumMath.lessThanOrEquals = function (left, right, absoluteEpsilon) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(left)) {
-    throw new DeveloperError("first is required.");
+    throw new Error("first is required.");
   }
   if (!defined(right)) {
-    throw new DeveloperError("second is required.");
+    throw new Error("second is required.");
   }
   if (!defined(absoluteEpsilon)) {
-    throw new DeveloperError("absoluteEpsilon is required.");
+    throw new Error("absoluteEpsilon is required.");
   }
   //>>includeEnd('debug');
   return left - right < absoluteEpsilon;
@@ -698,13 +696,13 @@ CesiumMath.lessThanOrEquals = function (left, right, absoluteEpsilon) {
 CesiumMath.greaterThan = function (left, right, absoluteEpsilon) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(left)) {
-    throw new DeveloperError("first is required.");
+    throw new Error("first is required.");
   }
   if (!defined(right)) {
-    throw new DeveloperError("second is required.");
+    throw new Error("second is required.");
   }
   if (!defined(absoluteEpsilon)) {
-    throw new DeveloperError("absoluteEpsilon is required.");
+    throw new Error("absoluteEpsilon is required.");
   }
   //>>includeEnd('debug');
   return left - right > absoluteEpsilon;
@@ -723,13 +721,13 @@ CesiumMath.greaterThan = function (left, right, absoluteEpsilon) {
 CesiumMath.greaterThanOrEquals = function (left, right, absoluteEpsilon) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(left)) {
-    throw new DeveloperError("first is required.");
+    throw new Error("first is required.");
   }
   if (!defined(right)) {
-    throw new DeveloperError("second is required.");
+    throw new Error("second is required.");
   }
   if (!defined(absoluteEpsilon)) {
-    throw new DeveloperError("absoluteEpsilon is required.");
+    throw new Error("absoluteEpsilon is required.");
   }
   //>>includeEnd('debug');
   return left - right > -absoluteEpsilon;
@@ -743,7 +741,7 @@ const factorials = [1];
  * @param {Number} n The number whose factorial is to be computed.
  * @returns {Number} The factorial of the provided number or undefined if the number is less than 0.
  *
- * @exception {DeveloperError} A number greater than or equal to 0 is required.
+ * @exception {Error} A number greater than or equal to 0 is required.
  *
  *
  * @example
@@ -755,7 +753,7 @@ const factorials = [1];
 CesiumMath.factorial = function (n) {
   //>>includeStart('debug', pragmas.debug);
   if (typeof n !== "number" || n < 0) {
-    throw new DeveloperError(
+    throw new Error(
       "A number greater than or equal to 0 is required."
     );
   }
@@ -781,7 +779,7 @@ CesiumMath.factorial = function (n) {
  * @param {Number} [minimumValue=0.0] The number reset to after the maximum value has been exceeded.
  * @returns {Number} The incremented number.
  *
- * @exception {DeveloperError} Maximum value must be greater than minimum value.
+ * @exception {Error} Maximum value must be greater than minimum value.
  *
  * @example
  * const n = Cesium.Math.incrementWrap(5, 10, 0); // returns 6
@@ -792,10 +790,10 @@ CesiumMath.incrementWrap = function (n, maximumValue, minimumValue) {
 
   //>>includeStart('debug', pragmas.debug);
   if (!defined(n)) {
-    throw new DeveloperError("n is required.");
+    throw new Error("n is required.");
   }
   if (maximumValue <= minimumValue) {
-    throw new DeveloperError("maximumValue must be greater than minimumValue.");
+    throw new Error("maximumValue must be greater than minimumValue.");
   }
   //>>includeEnd('debug');
 
@@ -813,7 +811,7 @@ CesiumMath.incrementWrap = function (n, maximumValue, minimumValue) {
  * @param {Number} n The integer to test in the range [0, (2^32)-1].
  * @returns {Boolean} <code>true</code> if the number if a power of two; otherwise, <code>false</code>.
  *
- * @exception {DeveloperError} A number between 0 and (2^32)-1 is required.
+ * @exception {Error} A number between 0 and (2^32)-1 is required.
  *
  * @example
  * const t = Cesium.Math.isPowerOfTwo(16); // true
@@ -822,7 +820,7 @@ CesiumMath.incrementWrap = function (n, maximumValue, minimumValue) {
 CesiumMath.isPowerOfTwo = function (n) {
   //>>includeStart('debug', pragmas.debug);
   if (typeof n !== "number" || n < 0 || n > 4294967295) {
-    throw new DeveloperError("A number between 0 and (2^32)-1 is required.");
+    throw new Error("A number between 0 and (2^32)-1 is required.");
   }
   //>>includeEnd('debug');
 
@@ -836,7 +834,7 @@ CesiumMath.isPowerOfTwo = function (n) {
  * @param {Number} n The integer to test in the range [0, 2^31].
  * @returns {Number} The next power-of-two integer.
  *
- * @exception {DeveloperError} A number between 0 and 2^31 is required.
+ * @exception {Error} A number between 0 and 2^31 is required.
  *
  * @example
  * const n = Cesium.Math.nextPowerOfTwo(29); // 32
@@ -845,7 +843,7 @@ CesiumMath.isPowerOfTwo = function (n) {
 CesiumMath.nextPowerOfTwo = function (n) {
   //>>includeStart('debug', pragmas.debug);
   if (typeof n !== "number" || n < 0 || n > 2147483648) {
-    throw new DeveloperError("A number between 0 and 2^31 is required.");
+    throw new Error("A number between 0 and 2^31 is required.");
   }
   //>>includeEnd('debug');
 
@@ -868,7 +866,7 @@ CesiumMath.nextPowerOfTwo = function (n) {
  * @param {Number} n The integer to test in the range [0, (2^32)-1].
  * @returns {Number} The previous power-of-two integer.
  *
- * @exception {DeveloperError} A number between 0 and (2^32)-1 is required.
+ * @exception {Error} A number between 0 and (2^32)-1 is required.
  *
  * @example
  * const n = Cesium.Math.previousPowerOfTwo(29); // 16
@@ -877,7 +875,7 @@ CesiumMath.nextPowerOfTwo = function (n) {
 CesiumMath.previousPowerOfTwo = function (n) {
   //>>includeStart('debug', pragmas.debug);
   if (typeof n !== "number" || n < 0 || n > 4294967295) {
-    throw new DeveloperError("A number between 0 and (2^32)-1 is required.");
+    throw new Error("A number between 0 and (2^32)-1 is required.");
   }
   //>>includeEnd('debug');
 
@@ -903,12 +901,6 @@ CesiumMath.previousPowerOfTwo = function (n) {
  * @returns {Number} The clamped value such that min <= result <= max.
  */
 CesiumMath.clamp = function (value, min, max) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("value", value);
-  Check.typeOf.number("min", min);
-  Check.typeOf.number("max", max);
-  //>>includeEnd('debug');
-
   return value < min ? min : value > max ? max : value;
 };
 
@@ -923,7 +915,7 @@ let randomNumberGenerator = new MersenneTwister();
 CesiumMath.setRandomNumberSeed = function (seed) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(seed)) {
-    throw new DeveloperError("seed is required.");
+    throw new Error("seed is required.");
   }
   //>>includeEnd('debug');
 
@@ -965,7 +957,7 @@ CesiumMath.randomBetween = function (min, max) {
 CesiumMath.acosClamped = function (value) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(value)) {
-    throw new DeveloperError("value is required.");
+    throw new Error("value is required.");
   }
   //>>includeEnd('debug');
   return Math.acos(CesiumMath.clamp(value, -1.0, 1.0));
@@ -982,7 +974,7 @@ CesiumMath.acosClamped = function (value) {
 CesiumMath.asinClamped = function (value) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(value)) {
-    throw new DeveloperError("value is required.");
+    throw new Error("value is required.");
   }
   //>>includeEnd('debug');
   return Math.asin(CesiumMath.clamp(value, -1.0, 1.0));
@@ -998,10 +990,10 @@ CesiumMath.asinClamped = function (value) {
 CesiumMath.chordLength = function (angle, radius) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(angle)) {
-    throw new DeveloperError("angle is required.");
+    throw new Error("angle is required.");
   }
   if (!defined(radius)) {
-    throw new DeveloperError("radius is required.");
+    throw new Error("radius is required.");
   }
   //>>includeEnd('debug');
   return 2.0 * radius * Math.sin(angle * 0.5);
@@ -1017,10 +1009,10 @@ CesiumMath.chordLength = function (angle, radius) {
 CesiumMath.logBase = function (number, base) {
   //>>includeStart('debug', pragmas.debug);
   if (!defined(number)) {
-    throw new DeveloperError("number is required.");
+    throw new Error("number is required.");
   }
   if (!defined(base)) {
-    throw new DeveloperError("base is required.");
+    throw new Error("base is required.");
   }
   //>>includeEnd('debug');
   return Math.log(number) / Math.log(base);
@@ -1072,9 +1064,6 @@ CesiumMath.fog = function (distanceToCamera, density) {
  * @returns {Number} An approximation of atan(x)
  */
 CesiumMath.fastApproximateAtan = function (x) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("x", x);
-  //>>includeEnd('debug');
 
   return x * (-0.1784 * Math.abs(x) - 0.0663 * x * x + 1.0301);
 };
@@ -1089,10 +1078,6 @@ CesiumMath.fastApproximateAtan = function (x) {
  * @returns {Number} An approximation of atan2(x, y)
  */
 CesiumMath.fastApproximateAtan2 = function (x, y) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.number("x", x);
-  Check.typeOf.number("y", y);
-  //>>includeEnd('debug');
 
   // atan approximations are usually only reliable over [-1, 1]
   // So reduce the range by flipping whether x or y is on top based on which is bigger.
@@ -1105,7 +1090,7 @@ CesiumMath.fastApproximateAtan2 = function (x, y) {
   const oppositeOverAdjacent = opposite / adjacent;
   //>>includeStart('debug', pragmas.debug);
   if (isNaN(oppositeOverAdjacent)) {
-    throw new DeveloperError("either x or y must be nonzero");
+    throw new Error("either x or y must be nonzero");
   }
   //>>includeEnd('debug');
   t = CesiumMath.fastApproximateAtan(oppositeOverAdjacent);

@@ -1,12 +1,11 @@
-import {defined} from "./ObjectUtils.js";
+import defined from './defined.js'
 let a;
-
 /**
  * Given a URL, determine whether that URL is considered cross-origin to the current page.
  *
  * @private
  */
-function isCrossOriginUrl(url) {
+export function isCrossOriginUrl(url) {
   if (!defined(a)) {
     a = document.createElement("a");
   }
@@ -55,24 +54,18 @@ function getBaseUrlFromScript() {
     }
     throw new Error('engineName is not exist');;
 }
-function  buildWorkerUrl(relativeUrl){
+export function  buildWorkerUrl(relativeUrl){
+       //@ts-ignore
   if(!buildWorkerUrl.baseWorkerUrl) {
    let scriptBaseUrl=tryMakeAbsolute(getBaseUrlFromScript());
    const lastSplitIndex=scriptBaseUrl.lastIndexOf('/');
    scriptBaseUrl=scriptBaseUrl.slice(0,lastSplitIndex);
+       //@ts-ignore
    const baseUrl=window.workerBaseUrl?window.workerBaseUrl:scriptBaseUrl;
+       //@ts-ignore
     buildWorkerUrl.baseWorkerUrl=baseUrl.concat('/workers');
+        //@ts-ignore
     buildWorkerUrl.baseUrl=baseUrl;
   }
   return buildWorkerUrl.baseUrl.concat('/'+relativeUrl)
 }
-
-function requestWasmFile(url){
-  fetch(url,{
-      method: 'get',
-      responseType: 'arraybuffer'
-  }).then(res => {     
-      return res.arrayBuffer();
-  })  
-}
-export {isCrossOriginUrl,buildWorkerUrl,requestWasmFile};

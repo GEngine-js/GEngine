@@ -1,4 +1,4 @@
-import createTaskProcessorWorker from './CreateTaskProcessorWorker.js';
+import createTaskProcessorWorker from './CreateTaskProcessorWorker';
 import protobuf  from '../wokerUtils/protobuf.js';
 async function createParsePbWorker(parameters, transferableObjects){
         let testURl=CESIUM_BASE_URL+'workers/sim_world_proto_bundle.json';

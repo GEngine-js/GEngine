@@ -1,7 +1,6 @@
-import Cartesian3 from "./Cartesian3.js";
-import Check from "./Check.js";
-import defaultValue from "./defaultValue.js";
-import defined from "./defined.js";
+import Cartesian3 from "./Cartesian3";
+import defaultValue from "../utils/defaultValue";
+import defined from "../utils/defined";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
@@ -65,11 +64,6 @@ Ray.clone = function (ray, result) {
  * const point = Cesium.Ray.getPoint(ray, intersection.start);
  */
 Ray.getPoint = function (ray, t, result) {
-  //>>includeStart('debug', pragmas.debug);
-  Check.typeOf.object("ray", ray);
-  Check.typeOf.number("t", t);
-  //>>includeEnd('debug');
-
   if (!defined(result)) {
     result = new Cartesian3();
   }

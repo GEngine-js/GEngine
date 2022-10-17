@@ -1,5 +1,4 @@
-import {defined} from "../utils/ObjectUtils.js";
-import createTaskProcessorWorker from './CreateTaskProcessorWorker.js'
+import createTaskProcessorWorker from './CreateTaskProcessorWorker'
 function CreateCalculateWorker(parameters, transferableObjects){
     const value=parameters.data?parameters.data:10;
     let nums=0;

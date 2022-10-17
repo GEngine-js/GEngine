@@ -1,4 +1,4 @@
-import {defined} from "../utils/ObjectUtils.js";
+import defined from "../utils/defined";
 function formatError(object) {
   let result;
 
