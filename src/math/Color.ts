@@ -1,7 +1,6 @@
-
+// @ts-nocheck
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import FeatureDetection from "./FeatureDetection.js";
 import CesiumMath from "./Math";
 
 function hue2rgb(m1, m2, h) {

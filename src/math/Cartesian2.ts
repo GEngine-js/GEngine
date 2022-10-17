@@ -1,3 +1,4 @@
+// @ts-nocheck
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";

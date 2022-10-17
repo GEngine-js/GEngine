@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Cartesian3 from "./Cartesian3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";

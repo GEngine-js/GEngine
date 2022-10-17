@@ -1,3 +1,4 @@
+// @ts-nocheck
 import MersenneTwister from "mersenne-twister";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
