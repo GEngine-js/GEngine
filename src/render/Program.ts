@@ -1,5 +1,5 @@
 import Shader from "./Shader";
-import BindGroupLayout from "./BindGroupLayout.js";
+import BindGroupLayout from "./BindGroupLayoutCache.js";
 import Uniform from "./Uniform.js";
 import Struct from "./Struct.js";
 

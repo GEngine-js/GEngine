@@ -1,7 +1,7 @@
 import Pass from "./Pass.js";
 import Pipeline from "./Pipeline.js";
 import Buffer from "./Buffer.js";
-import BindGroup from "./BindGroup.js";
+import BindGroup from "./BindGroupCache.js";
 
 import { GPUIndexFormat } from "../constants.js";
 
