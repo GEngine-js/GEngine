@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "umd-build": "node build/build.js && vite build --config build/vite-lib.config.js"
+    "umd-build": "node build/build.js && vite build --config build/vite-lib.config.js",
+    "dev": "node build/build.js && vite --config build/vite.config.js",
+    "build": "tsc --noEmit && vite build"
+
   },
   "devDependencies": {
     "sass": "^1.54.9",
