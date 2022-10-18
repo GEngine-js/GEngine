@@ -1,16 +1,16 @@
 import { BindGroupEntity } from "./BindGroupEntity.js";
 class BindGroupCache {
-  cache:WeakMap<BindGroupEntity[],GPUBindGroup>
+  cache:Map<string,GPUBindGroup>
   constructor() {
-    this.cache=new WeakMap()
+    this.cache=new Map()
   }
   getBindGroupFromCache(device:GPUDevice,label:string,layout:GPUBindGroupLayout,entires:Array<BindGroupEntity>):GPUBindGroup{
-    if (this.cache.has(entires)) {
-      return this.cache.get(entires)
+    if (this.cache.has(label)) {
+      return this.cache.get(label)
     } else {
        //@ts-ignore
       const bindGroup= device.createBindGroup({ label:label,layout:layout, entires:entires});
-      this.cache.set(entires,bindGroup);
+      this.cache.set(label,bindGroup);
        return bindGroup;
     }
   }

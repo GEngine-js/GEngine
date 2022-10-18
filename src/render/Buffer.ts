@@ -1,44 +1,39 @@
-import State from "./State.js";
-import { GPUBufferUsage } from "../constants.js";
+import { BufferUsage } from "../core/WebGPUConstants";
 
 class Buffer {
   public gpuBuffer: GPUBuffer;
-
-  public create(
-    usage: GPUBufferUsageFlags,
-    data: ArrayBufferView | null,
-    size?: number
-  ): Buffer {
-    this.gpuBuffer = State.device.createBuffer({
+  device: GPUDevice;
+  usage: number;
+  data: ArrayBufferView;
+  size: number;
+  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data: ArrayBufferView | null,size?: number) {
+    this.device=device;
+    this.usage=usage;
+    this.data=data;
+    this.size=size;
+    this.gpuBuffer = device.createBuffer({
       size: size || data.byteLength,
       usage,
     });
     if (data) this.setSubData(0, data);
-
-    return this;
+  }
+  static createVertexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
+    return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data);
   }
 
-  public vertexBuffer(data: ArrayBufferView): Buffer {
-    return this.create(GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, data);
+  static createIndexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
+    return new Buffer(device,BufferUsage.Index | BufferUsage.CopyDst, data); 
   }
 
-  public indexBuffer(data: ArrayBufferView): Buffer {
-    return this.create(GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, data);
-  }
-
-  public uniformBuffer(size: number): Buffer {
-    return this.create(
-      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      null,
-      size
-    );
+  static createUniformBuffer(device:GPUDevice,size: number): Buffer {
+    return new Buffer(device,BufferUsage.Uniform | BufferUsage.CopyDst, null,size); 
   }
 
   // https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
   public setSubData(offset: number, data: ArrayBufferView): void {
     const srcArrayBuffer = data.buffer;
     const byteCount = srcArrayBuffer.byteLength;
-    const srcBuffer = State.device.createBuffer({
+    const srcBuffer = this.device.createBuffer({
       mappedAtCreation: true,
       size: byteCount,
       usage: GPUBufferUsage.COPY_SRC,
@@ -58,7 +53,7 @@ class Buffer {
     offset: number,
     byteCount: number
   ): void {
-    const commandEncoder = State.device.createCommandEncoder();
+    const commandEncoder = this.device.createCommandEncoder();
     commandEncoder.copyBufferToBuffer(
       srcBuffer,
       0,
@@ -66,7 +61,7 @@ class Buffer {
       offset,
       byteCount
     );
-    State.device.queue.submit([commandEncoder.finish()]);
+    this.device.queue.submit([commandEncoder.finish()]);
   }
 
   public copyToTexture(
@@ -75,7 +70,7 @@ class Buffer {
     destination: GPUImageCopyTexture,
     extent: GPUExtent3D
   ): void {
-    const commandEncoder = State.device.createCommandEncoder();
+    const commandEncoder = this.device.createCommandEncoder();
     commandEncoder.copyBufferToTexture(
       {
         buffer: this.gpuBuffer,
@@ -85,7 +80,7 @@ class Buffer {
       destination,
       extent
     );
-    State.device.queue.submit([commandEncoder.finish()]);
+    this.device.queue.submit([commandEncoder.finish()]);
   }
 
   public destroy(): void {

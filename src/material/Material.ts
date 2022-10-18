@@ -5,22 +5,29 @@ import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import Color from '../math/Color'
 import RenderState from "../render/RenderState";
 import createUniform from "../render/createUniform"
+import Sampler from "../render/Sampler";
+import Texture from "../render/Texture";
+import DataBuffer from "../core/DataBuffer";
 
 export class Material{
-    public bindGroup:BindGroup;
-    public bindGroupLayout:BindGroupLayout;
+    // public bindGroup:BindGroup;
+    // public bindGroupLayout:BindGroupLayout;
     public uniformBuffer:GPUBuffer;
-    private bindGroupEntities:Array<BindGroupEntity>;
-    private bindGroupLayoutEntries:Array<BindGroupLayoutEntry>;
+    // private bindGroupEntities:Array<BindGroupEntity>;
+    // private bindGroupLayoutEntries:Array<BindGroupLayoutEntry>;
     color: any;
     unifroms:{};
     renderState:RenderState;
-    baseSampler: any;
-    baseTexture: any;
+    baseSampler: Sampler;
+    baseTexture: Texture;
     alpha: any;
-    unifromArray: Array<number>;
+    unifromDataBuffer: DataBuffer;
+    type: string;
+    label: string;
     constructor(){
         //
+        this.label=undefined;
+        this.type=undefined;
         this.baseTexture=undefined;
         this.baseSampler=undefined;
         this.renderState=undefined;
@@ -30,13 +37,13 @@ export class Material{
         // this.bindGroup=undefined;
         // this.bindGroupLayout=undefined;
         this.uniformBuffer=undefined;
-        this.unifromArray=new Array()
+        this.unifromDataBuffer=new DataBuffer()
         // this.bindGroupEntities=new Array<BindGroupEntity>();
         // this.bindGroupLayoutEntries=new Array<BindGroupLayoutEntry>();
-        this.unifroms={}
+        this.unifroms=undefined;
     }
     update(){
-         
+         if(this.unifroms) this.createUniform();
     }
     public createUniform(){
        this.unifroms={
@@ -53,5 +60,16 @@ export class Material{
                 return this.baseSampler
             }
         }
+    }
+    public destory(){
+        this.label=undefined;
+        this.type=undefined;
+        this.baseTexture=undefined;
+        this.baseSampler=undefined;
+        this.renderState=undefined;
+        this.color=undefined;
+        this.alpha=undefined;
+        this.unifromDataBuffer=undefined
+        this.unifroms=undefined;
     }
 }

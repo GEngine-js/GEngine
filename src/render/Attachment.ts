@@ -1,4 +1,4 @@
-import { AttachmentOptions } from "../types.js";
+import { AttachmentOptions } from "../core/WebGPUTypes";
 
 class Attachment {
   public op: GPULoadOp = "clear";

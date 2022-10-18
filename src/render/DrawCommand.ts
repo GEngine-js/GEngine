@@ -3,15 +3,15 @@ import Pipeline from "./Pipeline.js";
 import Buffer from "./Buffer.js";
 import BindGroup from "./BindGroupCache.js";
 
-import { GPUIndexFormat } from "../constants.js";
+import { IndexFormat } from "../core/WebGPUConstants";
 
-class Command {
+class DrawCommand {
   public pass?: Pass;
   public pipeline?: Pipeline;
 
   public vertexBuffers?: Buffer[];
   public indexBuffer?: Buffer;
-  public indexFormat?: GPUIndexFormat = GPUIndexFormat.Uint32;
+  public indexFormat?: GPUIndexFormat = IndexFormat.Uint32;
   public bindGroups?: BindGroup[];
 
   public count?: number;
@@ -19,9 +19,9 @@ class Command {
 
   public dispatch?: number | [number, number?, number?];
 
-  constructor(options: Command) {
+  constructor(options: DrawCommand) {
     Object.assign(this, options);
   }
 }
 
-export default Command;
+export default DrawCommand;
