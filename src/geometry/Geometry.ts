@@ -1,36 +1,44 @@
 import DataBuffer from "../core/DataBuffer";
+import VertextBuffers from "../core/VertextBuffers";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 import GeometryHelper from "../utils/GeometryHelper";
-export default class Geometry{
-    public attributes:Attribute[];
+export default class Geometry {
+    public attributes: Attribute[];
     type: string;
-    private _vertDataBuffer: DataBuffer;
-    private _indiceDataBuffer: DataBuffer;
-    private _vertBuffer: Buffer;
-    private _indexBuffer: Buffer;
+    public vertexBuffers: VertextBuffers;
     dirty: boolean;
-    constructor(){
-        this.type='';
-        this.attributes=undefined;
-        this._vertBuffer=undefined;
-        this._indexBuffer=undefined;
-        this._vertDataBuffer=new DataBuffer();
-        this._indiceDataBuffer=new DataBuffer();
-        this.dirty=true;
+    indices: Array<number>;
+    boundingSphere: any;
+    constructor(options?:any) {
+        this.type = options.type||undefined;
+        this.vertexBuffers = options.vertexBuffers||undefined;
+        this.indices = options.indices||undefined;
+        this.boundingSphere = undefined;
+        this.dirty = false;
     }
-    update(){
-        if (this.dirty) {
-            this.dirty=false;
-            //更新databuffer
-            //更新Buffer
+    /**
+     * Interleave n typed arrays
+     * @alias module:interleaveTypedArray
+     * @param {TypedArray} ResultConstructor Returned typed array constructor
+     * @param {Array} elements Number of elements to group for each typed array
+     * @param {...TypedArray} arrays Arrays to interleave
+     * @returns {TypedArray}
+     */
+    interleaveTypedArray(ResultConstructor, elements, ...arrays) {
+        const totalLength = arrays.reduce((total, arr) => total + arr.length, 0);
+        const result = new ResultConstructor(totalLength);
+        const stride = elements.reduce((a, b) => a + b);
+
+        for (let i = 0; i < totalLength; i++) {
+            let offset = 0;
+            for (let j = 0; j < elements.length; j++) {
+                for (let k = 0; k < elements[j]; k++) {
+                    result[i * stride + offset] = arrays[j][elements[j] * i + k];
+                    offset++;
+                }
+            }
         }
-    }
-    private createBuffer(){
-        //创建顶点buffer
-        //创建索引buffer
-    }
-    private createAttributes(){
-        this.attributes=GeometryHelper.getGeoMetryAttributes(this.type)
+        return result;
     }
 }

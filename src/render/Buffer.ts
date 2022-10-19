@@ -1,4 +1,6 @@
+import GeometryAttribute from "../core/GeometryAttribute";
 import { BufferUsage } from "../core/WebGPUConstants";
+import Attribute from "./Attribute";
 
 class Buffer {
   public gpuBuffer: GPUBuffer;
@@ -6,7 +8,7 @@ class Buffer {
   usage: number;
   data: ArrayBufferView;
   size: number;
-  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data: ArrayBufferView | null,size?: number) {
+  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?: number,) {
     this.device=device;
     this.usage=usage;
     this.data=data;
@@ -18,7 +20,7 @@ class Buffer {
     if (data) this.setSubData(0, data);
   }
   static createVertexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
-    return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data);
+    return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data,data.byteLength);
   }
 
   static createIndexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {

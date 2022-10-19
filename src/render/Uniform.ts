@@ -14,44 +14,14 @@ import DataBuffer from '../core/DataBuffer';
  * @private
  * @constructor
  */
-function createUniform(uniformName, dataBuffer, offset, type) {
-  switch (type) {
-    case 'float':
-      return new UniformFloat(uniformName, dataBuffer, offset, type);
-    case 'vec2':
-      return new UniformFloatVec2(uniformName, dataBuffer, offset, type);
-    case 'vec3':
-      return new UniformFloatVec3(uniformName, dataBuffer, offset, type);
-    case 'vec4':
-      return new UniformFloatVec4(uniformName, dataBuffer, offset, type);
-    case 'mat2':
-      return new UniformMat2(uniformName, dataBuffer, offset, type);
-    case 'mat3':
-      return new UniformMat3(uniformName, dataBuffer, offset, type);
-    case 'mat4':
-      return new UniformMat4(uniformName, dataBuffer, offset, type);
-    default:
-      throw new RuntimeError(
-        `Unrecognized uniform type: ${type} for uniform "${uniformName}".`
-      );
-  }
-}
-
-/**
- * @private
- * @constructor
- */
-function UniformFloat(uniformName, dataBuffer, offset, type) {
-  /**
-   * @type {String}
-   * @readonly
-   */
+ export function UniformFloat(uniformName, dataBuffer, offset, type,cb) {
   this.name = uniformName;
   this.offset=offset;
   this.dataBuffer=dataBuffer;
-
   this.value = undefined;
+  this.type=type;
   this._value = 0.0;
+  this.cb
 }
 
 UniformFloat.prototype.set = function () {
@@ -67,7 +37,7 @@ UniformFloat.prototype.set = function () {
  * @private
  * @constructor
  */
-function UniformFloatVec2(uniformName, dataBuffer, offset, type) {
+ export function UniformFloatVec2(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -94,7 +64,7 @@ UniformFloatVec2.prototype.set = function () {
  * @private
  * @constructor
  */
-function UniformFloatVec3(uniformName, dataBuffer, offset, type) {
+ export function UniformFloatVec3(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -134,7 +104,7 @@ UniformFloatVec3.prototype.set = function () {
  * @private
  * @constructor
  */
-function UniformFloatVec4(uniformName, dataBuffer, offset, type) {
+ export function UniformFloatVec4(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -172,7 +142,7 @@ const scratchUniformArray = new Float32Array(4);
  * @private
  * @constructor
  */
-function UniformMat2(uniformName, dataBuffer, offset, type) {
+ export function UniformMat2(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -202,7 +172,7 @@ const scratchMat3Array = new Float32Array(9);
  * @private
  * @constructor
  */
-function UniformMat3(uniformName, dataBuffer, offset, type) {
+ export function UniformMat3(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -232,7 +202,7 @@ const scratchMat4Array = new Float32Array(16);
  * @private
  * @constructor
  */
-function UniformMat4(uniformName, dataBuffer, offset, type) {
+export function UniformMat4(uniformName, dataBuffer, offset, type,cb) {
   /**
    * @type {String}
    * @readonly
@@ -253,4 +223,3 @@ UniformMat4.prototype.set = function () {
     this.dataBuffer.setData(this);
   }
 };
-export default createUniform;
