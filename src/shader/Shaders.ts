@@ -5,7 +5,7 @@ function reduceComma(shader) {
 	return str;
 }
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
-const shaders = {
+export const shaders = {
 	prelude: {
 		fragmentSource: reduceComma(''),
 		vertexSource: reduceComma('')

@@ -1,12 +1,11 @@
-import State from "./State.js";
-
-import { BindingType } from "../core/WebGPUTypes";
+import { BufferBindingType } from "../core/WebGPUConstants";
 import { BindGroupLayoutEntry } from "../core/WebGPUTypes";
 const layoutCache = new Map()
 class BindGroupLayout {
   public gpuBindGroupLayout: GPUBindGroupLayout;
-
-  private constructor(device:GPUDevice,label:string,public entries: BindGroupLayoutEntry[] = []) {
+  index:number;
+  private constructor(device:GPUDevice,label:string,public entries: BindGroupLayoutEntry[] = [],index?:number) {
+    this.index=index||0
     this.gpuBindGroupLayout = device.createBindGroupLayout({
       label:label,
       entries: entries.map(
@@ -41,7 +40,7 @@ class BindGroupLayout {
 
       if (
         entry.buffer &&
-        (!entry.buffer.type || entry.buffer.type === BindingType.Uniform)
+        (!entry.buffer.type || entry.buffer.type === BufferBindingType.Uniform)
       ) {
         size += this.getBindingSize(entry);
       }
@@ -55,7 +54,7 @@ class BindGroupLayout {
 
     if (
       entry.buffer &&
-      (!entry.buffer.type || entry.buffer.type === BindingType.Uniform)
+      (!entry.buffer.type || entry.buffer.type === BufferBindingType.Uniform)
     ) {
       size += entry.uniforms
         .map(

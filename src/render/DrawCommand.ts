@@ -1,7 +1,7 @@
-import Pass from "./Pass.js";
-import Pipeline from "./Pipeline.js";
-import Buffer from "./Buffer.js";
-import BindGroup from "./BindGroupCache.js";
+import Pass from "./Pass";
+import Pipeline from "./Pipeline";
+import Buffer from "./Buffer";
+import BindGroup from "./BindGroup";
 
 import { IndexFormat } from "../core/WebGPUConstants";
 

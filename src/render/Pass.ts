@@ -11,7 +11,8 @@ class Pass {
     public type: PassType,
     public colorAttachments?: Attachment[],
     public depthAttachment?: Attachment,
-    public stencilAttachment?: Attachment
+    public stencilAttachment?: Attachment,
+    public querySet?:GPUQuerySet
   ) {}
   update(context:Context){
     if (this.type==='render') {

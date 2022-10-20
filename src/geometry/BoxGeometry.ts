@@ -1,8 +1,8 @@
 import Geometry from "./Geometry";
 import Attribute from "../render/Attribute";
 import {VertexFormat} from "../core/WebGPUConstants"
-import GeometryAttribute from "../core/GeometryAttribute";
-import VertextBuffers from "../core/VertextBuffers";
+import {VertextBuffers} from "../core/VertextBuffers";
+import Buffer from "../render/Buffer";
 export default class BoxGeometry extends Geometry{
     constructor(width,height,depth){
         super();
@@ -21,11 +21,14 @@ export default class BoxGeometry extends Geometry{
         const pat=new Attribute('position',VertexFormat.Float32x3,0,0);
         const uat=new Attribute('uv',VertexFormat.Float32x2,3*Float32Array.BYTES_PER_ELEMENT,1);
         const nat=new Attribute('position',VertexFormat.Float32x3,5*Float32Array.BYTES_PER_ELEMENT,2);
+        //buffer
+        const buffer=Buffer.createVertexBuffer(device,dataBuffer);
         // vertBuffer
         const vertBuffers=new VertextBuffers([
-            {   arrayStride: dataBuffer.byteLength,
+            {   
+                arrayStride: dataBuffer.byteLength,
                 stepMode: 'vertex',
-                buffers:dataBuffer,
+                buffer:buffer,
                 attributes:[pat,uat,nat]
             }
         ])

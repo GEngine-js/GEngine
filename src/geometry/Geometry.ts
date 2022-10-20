@@ -1,5 +1,6 @@
 import DataBuffer from "../core/DataBuffer";
-import VertextBuffers from "../core/VertextBuffers";
+import {VertextBuffers} from "../core/VertextBuffers";
+import { IndexFormat } from "../core/WebGPUConstants";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 import GeometryHelper from "../utils/GeometryHelper";
@@ -10,11 +11,15 @@ export default class Geometry {
     dirty: boolean;
     indices: Array<number>;
     boundingSphere: any;
+    stripIndexFormat: string;
+    topology: string;
     constructor(options?:any) {
         this.type = options.type||undefined;
         this.vertexBuffers = options.vertexBuffers||undefined;
         this.indices = options.indices||undefined;
         this.boundingSphere = undefined;
+        this.topology="triangle-list";
+        this.stripIndexFormat=IndexFormat.Uint16;
         this.dirty = false;
     }
     /**

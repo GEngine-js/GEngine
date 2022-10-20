@@ -1,10 +1,10 @@
-import BindGroup from "../render/BindGroupCache";
+import BindGroup from "../render/BindGroup";
 import { BindGroupEntity } from "../render/BindGroupEntity";
-import { BindGroupLayoutCache } from "../render/BindGroupLayoutCache";
+import  BindGroupLayout  from "../render/BindGroupLayout";
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import Color from '../math/Color'
 import RenderState from "../render/RenderState";
-import createUniform from "../render/Uniform"
+import {} from "../render/Uniform"
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import DataBuffer from "../core/DataBuffer";
@@ -25,6 +25,8 @@ export class Material{
     bindGroupEntities: BindGroupEntity[];
     bindGroupLayoutEntries: BindGroupLayoutEntry[];
     group
+    shaderSource: any;
+    groupLayouts: BindGroupLayout[];
     constructor(){
         //
         this.label=undefined;
@@ -40,6 +42,8 @@ export class Material{
         this.bindGroupEntities=new Array<BindGroupEntity>();
         this.bindGroupLayoutEntries=new Array<BindGroupLayoutEntry>();
         this.unifroms=undefined;
+        this.shaderSource=undefined;
+        this.groupLayouts=undefined;
     }
     onBeforeRender() {}
 

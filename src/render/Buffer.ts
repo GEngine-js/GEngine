@@ -1,4 +1,3 @@
-import GeometryAttribute from "../core/GeometryAttribute";
 import { BufferUsage } from "../core/WebGPUConstants";
 import Attribute from "./Attribute";
 
@@ -8,6 +7,11 @@ class Buffer {
   usage: number;
   data: ArrayBufferView;
   size: number;
+  layoutType?:{
+    type: string;//"uniform"
+    hasDynamicOffset: Boolean;
+    minBindingSize: number;
+  }
   constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?: number,) {
     this.device=device;
     this.usage=usage;
@@ -18,6 +22,9 @@ class Buffer {
       usage,
     });
     if (data) this.setSubData(0, data);
+  }
+  static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,){
+      return new Buffer(device,usage,data)
   }
   static createVertexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
     return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data,data.byteLength);
@@ -30,7 +37,19 @@ class Buffer {
   static createUniformBuffer(device:GPUDevice,size: number): Buffer {
     return new Buffer(device,BufferUsage.Uniform | BufferUsage.CopyDst, null,size); 
   }
-
+  static getBufferType(usage){
+    let result;
+      switch (usage) {
+         case BufferUsage.Uniform:
+          result="uniform"
+          break;
+          case BufferUsage.Storage:
+          result="storage"
+            break;
+        default:
+          break;
+      }
+  }
   // https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
   public setSubData(offset: number, data: ArrayBufferView): void {
     const srcArrayBuffer = data.buffer;

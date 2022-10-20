@@ -1,6 +1,6 @@
 
 import defaultValue from "../utils/defaultValue";
-import { defined } from "../utils/ObjectUtils";
+import defined  from "../utils/defined";
 import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp } from "../core/WebgpuConstants.js";
 
 
@@ -9,17 +9,17 @@ export default class RenderState {
   scissorTest: { x: Number, y: Number, width: Number, height: Number};
   viewport: { x: Number, y: Number, width: Number, height: Number, minDepth: Number, maxDepth: Number };
   stencilTest: { depthWriteEnabled: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
-  colorTarget: {};
+  targets: {};
   depthStencil: { format: any; depthWriteEnabled: any; depthCompare: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
   blendConstant: any;
   stencilReference: any;
-  multisampleState: any;
-  primitiveState: any;
+  multisample: any;
+  primitive: any;
   depthStencilAttachment: any;
   colorAttachment: any;
   constructor(renderState) {
     const rs = defaultValue(renderState, defaultValue.EMPTY_OBJECT);
-    const colorTarget = defaultValue(rs.colorTarget, defaultValue.EMPTY_OBJECT)
+    const targets = defaultValue(rs.targets, defaultValue.EMPTY_OBJECT)
     const blend = defaultValue(rs.blend, { color: {}, alpha: {} })
     const depthStencil = defaultValue(rs.depthStencil, defaultValue.EMPTY_OBJECT);
     const depthStencilFront = defaultValue(
@@ -55,7 +55,7 @@ export default class RenderState {
       height:viewport.height
     })
     //
-    this.multisampleState = defaultValue(rs.multisampleState, {
+    this.multisample = defaultValue(rs.multisampleState, {
       count: 1,
       mask: 0xFFFFFFFF,
       alphaToCoverageEnabled: false
@@ -63,8 +63,8 @@ export default class RenderState {
     //已完善
     this.blendConstant = defaultValue(rs.blendConstant, { r: 1, g: 1, b: 1, a: 1 })
     //已完善
-    this.colorTarget = {
-      format: defaultValue(colorTarget.format, TextureFormat.Depth24UnormStencil8),
+    this.targets =Array.isArray(targets)?targets: {
+      format: defaultValue(targets.format, TextureFormat.Depth24UnormStencil8),
       blend: {
         color: {
           operation: defaultValue(
@@ -95,7 +95,7 @@ export default class RenderState {
           ),
         },
       },
-      writeMask: defaultValue(colorTarget.writeMask, GPUColorWrite.All)
+      writeMask: defaultValue(targets.writeMask, GPUColorWrite.All)
     }
     //
     this.stencilReference = defaultValue(rs.stencilReference, 0)
@@ -123,7 +123,7 @@ export default class RenderState {
       depthBiasClamp: defaultValue(depthStencil.depthBiasClamp, 0)
     };
     //
-    this.primitiveState=defaultValue(rs.primitiveState,{
+    this.primitive=defaultValue(rs.primitive,{
       frontFace:FrontFace.CCW,
       cullMode:CullMode.None,
       unclippedDepth :false,
@@ -138,6 +138,7 @@ export default class RenderState {
         return renderStateCache.get(renderstate);
       }
       const newRenderState=new RenderState(renderstate)
-      renderStateCache.set(renderstate,Object.freeze(newRenderState))
+      renderStateCache.set(renderstate,Object.freeze(newRenderState));
+      return newRenderState;
   }
 }

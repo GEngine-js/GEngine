@@ -1,6 +1,6 @@
-import State from "./State.js";
-import Buffer from "./Buffer.js";
+import Buffer from "./Buffer";
 import { GPUTextureUsage, GPUBufferUsage } from "../constants.js";
+import Context from "./Context.js";
 
 const imageCanvas = document.createElement("canvas");
 const imageCanvasContext = imageCanvas.getContext("2d", {
@@ -11,16 +11,25 @@ const imageCanvasContext = imageCanvas.getContext("2d", {
 class Texture {
   public gpuTexture: GPUTexture;
   public mipLevelCount: number;
-
+  layoutType:{
+    sampleType: string,
+    viewDimension: string,
+    multisampled: Boolean
+  }
   constructor(
     public descriptor: GPUTextureDescriptor,
-    public image: HTMLImageElement
+    public image: HTMLImageElement,
+    public context:Context
   ) {
     this.mipLevelCount = image
       ? Math.floor(Math.log2(Math.max(image.width, image.height))) + 1
       : 1;
-
-    this.gpuTexture = State.device.createTexture({
+    this.layoutType={
+      sampleType: "float",
+      viewDimension: "2d",
+      multisampled: false
+    }   
+    this.gpuTexture = context.device.createTexture({
       dimension: "2d",
       format: "rgba8unorm",
       mipLevelCount: this.mipLevelCount,
@@ -85,8 +94,8 @@ class Texture {
       }
     }
 
-    const textureDataBuffer = new Buffer();
-    textureDataBuffer.create(
+    const textureDataBuffer = Buffer.create(
+      this.context.device,
       GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
       data
     );

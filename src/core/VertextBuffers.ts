@@ -1,26 +1,21 @@
-// const vertextBuffers=new VertextBuffers([
-//     { 
-//         buffers:dataArray
-//         attributes:{}
-
 import Attribute from "../render/Attribute";
-
-//     }
-// ])
-export type bufAttrType ={
-       arrayStride:number,
+import Buffer from '../render/Buffer';
+export type vertextBuffer ={
+        arrayStride:number,
         stepMode: string,
-        buffers:Float32Array|Float64Array|Int32Array|Int16Array,
-        attributes:Array<Attribute>
-    
+        buffer?:Buffer,
+        attributes:Array<Attribute>   
 }
 export  class VertextBuffers{
-    bufferAttributes:Array<bufAttrType>;
-    constructor(bufAttrArry:Array<bufAttrType>){
-        this.bufferAttributes=bufAttrArry;
+    list:Array<vertextBuffer>;
+    constructor(vertextBuffer:Array<vertextBuffer>){
+        this.list=vertextBuffer;
     }
     public getBufAttrsCount(){
-        return this.bufferAttributes.length;
+        return this.list.length;
+    }
+    public getBuffers(){
+         return this.list;
     }
     // public getAttributes(){
     //     const result=[];

@@ -1,4 +1,4 @@
-import {defined} from "../utils/ObjectUtils.js";
+import defined from "../utils/defined";
 
 /**
  * A generic utility class for managing subscribers for a particular event.

@@ -1,55 +1,6 @@
-import Variable from "./core/Variable.js";
-import Uniform from "./core/Uniform.js";
-import Attribute from "./core/Attribute.js";
-import Struct from "./core/Struct.js";
+import Uniform from "./core/Uniform";
 import BindGroupLayout from "./core/BindGroupLayout.js";
-
-// GLSL
-export type GLSLStorageQualifier =
-  | "const"
-  | "in"
-  | "out"
-  | "inout"
-  | "centroid"
-  | "patch"
-  | "sample"
-  | "uniform"
-  | "buffer"
-  | "shared"
-  | "coherent"
-  | "volatile"
-  | "restrict"
-  | "readonly"
-  | "writeonly";
-
-export type GLSLLayoutQualifier = "std140" | "std430";
-export type GLSLSamplerType =
-  | "1D"
-  | "2D"
-  | "3D"
-  | "Cube"
-  | "2DRect"
-  | "1DArray"
-  | "2DArray"
-  | "CubeArray"
-  | "Buffer"
-  | "2DMS"
-  | "2DMSArray";
-export type GLSLShadowSamplerType =
-  | "1DShadow"
-  | "2DShadow"
-  | "CubeShadow"
-  | "2DRectShadow"
-  | "1DArrayShadow"
-  | "2DArrayShadow"
-  | "CubeArrayShadow";
-export interface GLSLTypeQualifiers {
-  layout?: GLSLLayoutQualifier;
-  storage?: GLSLStorageQualifier;
-}
-
-// DGEL
-export type Language = "glsl" | "wgsl";
+import { BindGroupEntity } from "../render/BindGroupEntity.js";
 
 export interface ContextState {
   device: GPUDevice;
@@ -93,31 +44,6 @@ export type PipelineVertexBufferIns = {
   stepMode: GPUVertexStepMode;
   attributes: Attribute[];
 };
-
-export interface PipelineOptions
-  extends ShaderStageNameObjectKeys,
-    ShaderStageBodyNameObjectKeys {
-  bindGroupLayouts?: BindGroupLayout[];
-  ins?: Attribute[] | PipelineVertexBufferIns[];
-  outs?: Attribute[];
-  structs?: Struct[];
-  fragmentOuts?: Attribute[];
-  fragmentTargets?: GPUColorTargetState[];
-  descriptor?: Partial<GPURenderPipelineDescriptor>;
-  stepMode?: GPUVertexStepMode;
-  language?: Language;
-}
-
-export interface ShaderOptions {
-  type: GPUShaderStageFlags;
-  main: string;
-  body?: string;
-  ins?: Attribute[];
-  outs?: Attribute[];
-  structs?: Struct[];
-  language?: Language;
-}
-
 export interface AttachmentOptions {
   op?: GPUStoreOp;
   view?: GPUTextureView;
@@ -142,27 +68,28 @@ export type BindGroupLayoutEntryType={
     storageTexture?: GPUStorageTextureBindingLayout ;
     externalTexture?:GPUExternalTextureBindingLayout ;
 }
-// export type BufferBindingType={
-//     type:"uniform";
-//     hasDynamicOffset : false;
-//     minBindingSize:number;
-// } 
-// type FormatType =
-//   | "uchar" // unsigned 8-bit value
-//   | "char" // signed 8-bit value
-//   | "ushort" // unsigned 16-bit value
-//   | "short" // signed 16-bit value
-//   | "half" // half-precision 16-bit floating point value
-//   | "float" // 32-bit floating point value
-//   | "uint" // unsigned 32-bit integer value
-//   | "int"; // signed 32-bit integer value
-
-// type FormatValue = "" | "2" | "3" | "4";
-
-// interface Format {
-//   type: FormatType;
-//   value?: FormatValue;
-//   normalized?: boolean;
-// }
+export type BufferResourceType={
+  buffer:GPUBufferBindingType,
+  offset:number,
+  size:number
+}
+export type samplerBindEntityResourceType={
+  resource:GPUSampler
+}
+export type textureBindEntityResourceType={
+  resource:GPUTextureView
+}
+export type BindGroupEntityResourceType=BufferResourceType|samplerBindEntityResourceType|textureBindEntityResourceType
+export type BindGroupEntityOptions={
+  binding:number,
+  resource:GPUBindingResource
+}
+export type BindGroupCacheOptions={
+    device:GPUDevice,
+    label:string,
+    layout:GPUBindGroupLayout,
+    entires:GPUBindGroupEntry[],
+    index?:number
+}
 
 export default null;

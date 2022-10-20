@@ -1,9 +1,7 @@
-import State from "./State.js";
-
 class Sampler {
   public gpuSampler: GPUSampler;
   device: GPUDevice;
-
+  layoutType:string
   constructor(
     device:GPUDevice,
     descriptor: GPUSamplerDescriptor = {
@@ -12,7 +10,8 @@ class Sampler {
       mipmapFilter: "linear",
     }
   ) {
-    this.device=device
+    this.device=device;
+    this.layoutType="filtering";
     this.gpuSampler =device.createSampler(descriptor);
   }
   // public destroy(): void {

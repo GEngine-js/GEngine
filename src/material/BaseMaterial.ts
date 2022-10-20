@@ -1,10 +1,9 @@
 import { Material } from "./Material";
-import 
 import { BindGroupEntity } from '../render/BindGroupEntity'
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import { UniformFloat,UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4 } from "../render/Uniform";
 import BindGroupLayout from "../render/BindGroupLayout";
-import BindGroupCache from "../render/BindGroupCache";
+import BindGroup from "../render/BindGroup";
 export default class BaseMaterial extends Material {
     constructor() {
         super();
@@ -17,19 +16,33 @@ export default class BaseMaterial extends Material {
     update() { }
     // private createUniform() { }
     private createBindGroupEntity() {
-        const common=new BindGroupEntity(0,{
-            buffer: this.unifromDataBuffer,
-            offset: 0,
-            size: bindGroupLayout.getBindGroupSize()
+        const common=new BindGroupEntity({
+            binding:0,
+            resource:{
+                buffer: this.uniformBuffer.gpuBuffer,
+                offset: 0,
+                size: bindGroupLayout.getBindGroupSize()
+            }
+          });
+        const texture=new BindGroupEntity({
+            binding:1,
+            resource:this.baseTexture.gpuTexture.createView()
         });
-        const texture=new BindGroupEntity(1,this.baseTexture.createView());
-        const sampler=new BindGroupEntity(2,this.baseSampler);
+        const sampler=new BindGroupEntity({
+            binding:2,
+            resource:this.baseSampler.gpuSampler
+        });
        return [common,texture,sampler]
 
     }
     private createBindGroup(){
        const entities=this.createBindGroupEntity();
-       const groupEntity=BindGroupCache.
+       const bindGroup=BindGroup.getBindGroupFromCache({
+        label:'phong',
+        entires:entities,
+        device:device,
+        layout:bindGroupLayout
+       })
     }
     private createBindGroupLayout(device:GPUDevice){
         const layoutEntities=this.createBindGroupLayoutEntry();
@@ -38,15 +51,11 @@ export default class BaseMaterial extends Material {
     private createBindGroupLayoutEntry(): BindGroupLayoutEntry[]{
         const layoutEntity = new BindGroupLayoutEntry({
             binding: 0,
-            buffer: {
-                type: "uniform",
-                hasDynamicOffset: false,
-                minBindingSize: 0,
-            },
+            buffer:this.uniformBuffer.layoutType,
             visibility: GPUShaderStage.VERTEX,
             uniforms: [
-                new UniformMat4("modelMatrix",this.unifromDataBuffer,0,'float',()=>{}),
-                new UniformFloatVec4("color",this.unifromDataBuffer,16*4,'float',()=>{
+                new UniformMat4("modelMatrix",this.unifromDataBuffer,0,()=>{}),
+                new UniformFloatVec4("color",this.unifromDataBuffer,16*4,()=>{
                     return this.color;
                 })
 
@@ -55,17 +64,13 @@ export default class BaseMaterial extends Material {
         const textureLE = new BindGroupLayoutEntry({
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
-            texture: {
-                sampleType: "float",
-                viewDimension: "2d",
-                multisampled: false
-            }
+            texture:this.baseTexture.layoutType
         });
         const samplerLE = new BindGroupLayoutEntry({
             binding: 2,
             visibility: GPUShaderStage.FRAGMENT,
             sampler: {
-                type: "filtering",
+                type: this.baseSampler.layoutType,
             }
         });
         return [layoutEntity,textureLE,samplerLE]

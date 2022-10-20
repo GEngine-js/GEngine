@@ -3,8 +3,6 @@ import {
   GPUTextureUsage,
 } from "../core/WebGPUTypes";
 import { ContextOptions } from "../core/WebGPUTypes";
-import BindGroupCache from "./BindGroupCache.js";
-import { BindGroupLayoutCache } from "./BindGroupLayoutCache.js";
 import { RenderPipelineCache } from "./RenderPipelineCache.js";
 import DrawCommand from "./DrawCommand.js";
 
@@ -18,12 +16,7 @@ class Context {
 
   public commandEncoder: GPUCommandEncoder | null;
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
-
-  //cache
-  private bindGroupCache:BindGroupCache;
-
-  private bindGroupLayoutCache:BindGroupLayoutCache;
-  
+ 
   private renderPipelineCache:RenderPipelineCache;
   glslang: any;
 
@@ -34,8 +27,7 @@ class Context {
     this.context =
       context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
-    this.bindGroupCache=new BindGroupCache();
-    this.bindGroupLayoutCache=new BindGroupLayoutCache();
+
     this.renderPipelineCache=new RenderPipelineCache({});
     this.device=undefined;
   }
