@@ -747,7 +747,7 @@ class Matrix4 {
    *
    * @see Matrix4.multiplyByTranslation
    */
-  static fromTranslation = (translation, result) {
+  static fromTranslation (translation, result) {
 
     return Matrix4.fromRotationTranslation(Matrix3.IDENTITY, translation, result);
   };
@@ -767,7 +767,7 @@ class Matrix4 {
    * //   [0.0, 0.0, 0.0, 1.0]
    * const m = Cesium.Matrix4.fromScale(new Cesium.Cartesian3(7.0, 8.0, 9.0));
    */
-  static fromScale = (scale, result) {
+  static fromScale(scale, result) {
 
     if (!defined(result)) {
       return new Matrix4(
@@ -1311,7 +1311,7 @@ class Matrix4 {
    * // m remains the same
    * //creates a = [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
    */
-  static toArray = (matrix, result) {
+  static toArray(matrix, result) {
 
     if (!defined(result)) {
       return [
@@ -2456,7 +2456,7 @@ class Matrix4 {
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    */
-  static abs = (matrix, result) {
+  static abs(matrix, result) {
 
     result[0] = Math.abs(matrix[0]);
     result[1] = Math.abs(matrix[1]);
