@@ -1,7 +1,7 @@
 import Attachment from "./Attachment.js";
 import { PassType } from "../core/WebGPUTypes";
 import Context from "./Context.js";
-
+import QuerySet from "./QuerySet.js";
 class Pass {
   defaultCorlorAttachmentTexture:GPUTexture;
   defaultDepthStencilAttachmentTexture:GPUTexture;
@@ -12,7 +12,7 @@ class Pass {
     public colorAttachments?: Attachment[],
     public depthAttachment?: Attachment,
     public stencilAttachment?: Attachment,
-    public querySet?:GPUQuerySet
+    public querySet?:QuerySet
   ) {}
   update(context:Context){
     if (this.type==='render') {

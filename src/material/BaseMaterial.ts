@@ -15,7 +15,15 @@ export default class BaseMaterial extends Material {
     }
     update() { }
     // private createUniform() { }
-    private createBindGroupEntity() {
+    private createBindGroupAndLayout(device:GPUDevice){
+        const layouts=this.createBindGroupLayoutEntry();
+        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,'phong',layouts as Array<BindGroupLayoutEntry> );
+        const groupEntities=this.createBindGroupEntity(groupLayout);
+        const group=this.createBindGroup(device,groupEntities,groupLayout)
+        this.bindGroups.push(group);
+        this.groupLayouts.push(groupLayout)
+    }
+    private createBindGroupEntity(bindGroupLayout) {
         const common=new BindGroupEntity({
             binding:0,
             resource:{
@@ -35,45 +43,42 @@ export default class BaseMaterial extends Material {
        return [common,texture,sampler]
 
     }
-    private createBindGroup(){
-       const entities=this.createBindGroupEntity();
+    private createBindGroup(device,entities,bindGroupLayout){
        const bindGroup=BindGroup.getBindGroupFromCache({
         label:'phong',
         entires:entities,
         device:device,
         layout:bindGroupLayout
        })
+       return bindGroup;
     }
-    private createBindGroupLayout(device:GPUDevice){
-        const layoutEntities=this.createBindGroupLayoutEntry();
-        const bindGroupLayout= BindGroupLayout.getBindGroupFromCache(device,'phong',layoutEntities);
-    }
-    private createBindGroupLayoutEntry(): BindGroupLayoutEntry[]{
+    private createBindGroupLayoutEntry(){
+        const result=new Array<BindGroupLayoutEntry>;
         const layoutEntity = new BindGroupLayoutEntry({
             binding: 0,
-            buffer:this.uniformBuffer.layoutType,
+            buffer:this.uniformBuffer.layoutType as GPUBufferBindingLayout,
             visibility: GPUShaderStage.VERTEX,
             uniforms: [
                 new UniformMat4("modelMatrix",this.unifromDataBuffer,0,()=>{}),
                 new UniformFloatVec4("color",this.unifromDataBuffer,16*4,()=>{
                     return this.color;
                 })
-
             ],
         });
         const textureLE = new BindGroupLayoutEntry({
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
-            texture:this.baseTexture.layoutType
+            texture:this.baseTexture.layoutType as GPUTextureBindingLayout 
         });
         const samplerLE = new BindGroupLayoutEntry({
             binding: 2,
             visibility: GPUShaderStage.FRAGMENT,
             sampler: {
-                type: this.baseSampler.layoutType,
+                type: this.baseSampler.layoutType as GPUSamplerBindingType,
             }
         });
-        return [layoutEntity,textureLE,samplerLE]
+        result.push(...[layoutEntity,textureLE,samplerLE])
+        return result 
     }
     destory() {
 

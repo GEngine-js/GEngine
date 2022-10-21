@@ -2,7 +2,6 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";
-
 /**
  * A 2D Cartesian point.
  * @alias Cartesian2
@@ -15,23 +14,12 @@ import CesiumMath from "./Math";
  * @see Cartesian4
  * @see Packable
  */
-function Cartesian2(x:number=0.0, y:number=0.0) {
+class Cartesian2{
+  constructor(x:number=0.0, y:number=0.0){
+   this.x = x;
+   this.y =y;
+  }
   /**
-   * The X component.
-   * @type {Number}
-   * @default 0.0
-   */
-  this.x = x;
-
-  /**
-   * The Y component.
-   * @type {Number}
-   * @default 0.0
-   */
-  this.y =y;
-}
-
-/**
  * Creates a Cartesian2 instance from x and y coordinates.
  *
  * @param {Number} x The x coordinate.
@@ -39,7 +27,7 @@ function Cartesian2(x:number=0.0, y:number=0.0) {
  * @param {Cartesian2} [result] The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
  */
-Cartesian2.fromElements = function (x:number, y:number, result) {
+static fromElements(x:number, y:number, result) {
   if (!defined(result)) {
     return new Cartesian2(x, y);
   }
@@ -56,7 +44,7 @@ Cartesian2.fromElements = function (x:number, y:number, result) {
  * @param {Cartesian2} [result] The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided. (Returns undefined if cartesian is undefined)
  */
-Cartesian2.clone = function (cartesian, result) {
+ static clone (cartesian, result) {
   if (!defined(cartesian)) {
     return undefined;
   }
@@ -106,7 +94,7 @@ Cartesian2.packedLength = 2;
  *
  * @returns {Number[]} The array that was packed into
  */
-Cartesian2.pack = function (value, array, startingIndex) {
+ static pack (value, array, startingIndex) {
 
   startingIndex = defaultValue(startingIndex, 0);
 
@@ -124,7 +112,7 @@ Cartesian2.pack = function (value, array, startingIndex) {
  * @param {Cartesian2} [result] The object into which to store the result.
  * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
  */
-Cartesian2.unpack = function (array, startingIndex, result) {
+ static unpack (array, startingIndex, result) {
 
   startingIndex = defaultValue(startingIndex, 0);
 
@@ -143,7 +131,7 @@ Cartesian2.unpack = function (array, startingIndex, result) {
  * @param {Number[]} [result] The array onto which to store the result. If this is a typed array, it must have array.length * 2 components, else a {@link DeveloperError} will be thrown. If it is a regular array, it will be resized to have (array.length * 2) elements.
  * @returns {Number[]} The packed array.
  */
-Cartesian2.packArray = function (array, result) {
+ static packArray(array, result) {
 
   const length = array.length;
   const resultLength = length * 2;
@@ -172,7 +160,7 @@ Cartesian2.packArray = function (array, result) {
  * @param {Cartesian2[]} [result] The array onto which to store the result.
  * @returns {Cartesian2[]} The unpacked array.
  */
-Cartesian2.unpackArray = function (array, result) {
+ static unpackArray(array, result) {
   if (array.length % 2 !== 0) {
     throw new Error("array length must be a multiple of 2.");
   }
@@ -218,7 +206,7 @@ Cartesian2.fromArray = Cartesian2.unpack;
  * @param {Cartesian2} cartesian The cartesian to use.
  * @returns {Number} The value of the maximum component.
  */
-Cartesian2.maximumComponent = function (cartesian) {
+ static maximumComponent(cartesian) {
   return Math.max(cartesian.x, cartesian.y);
 };
 
@@ -228,7 +216,7 @@ Cartesian2.maximumComponent = function (cartesian) {
  * @param {Cartesian2} cartesian The cartesian to use.
  * @returns {Number} The value of the minimum component.
  */
-Cartesian2.minimumComponent = function (cartesian) {
+ static minimumComponent(cartesian) {
   return Math.min(cartesian.x, cartesian.y);
 };
 
@@ -240,7 +228,7 @@ Cartesian2.minimumComponent = function (cartesian) {
  * @param {Cartesian2} result The object into which to store the result.
  * @returns {Cartesian2} A cartesian with the minimum components.
  */
-Cartesian2.minimumByComponent = function (first, second, result) {
+ static minimumByComponent(first, second, result) {
 
   result.x = Math.min(first.x, second.x);
   result.y = Math.min(first.y, second.y);
@@ -256,7 +244,7 @@ Cartesian2.minimumByComponent = function (first, second, result) {
  * @param {Cartesian2} result The object into which to store the result.
  * @returns {Cartesian2} A cartesian with the maximum components.
  */
-Cartesian2.maximumByComponent = function (first, second, result) {
+ static maximumByComponent(first, second, result) {
 
   result.x = Math.max(first.x, second.x);
   result.y = Math.max(first.y, second.y);
@@ -623,6 +611,12 @@ Cartesian2.equalsEpsilon = function (
       ))
   );
 };
+
+}
+
+
+
+
 
 /**
  * An immutable Cartesian2 instance initialized to (0.0, 0.0).

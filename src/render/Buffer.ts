@@ -23,8 +23,8 @@ class Buffer {
     });
     if (data) this.setSubData(0, data);
   }
-  static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,){
-      return new Buffer(device,usage,data)
+  static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?:number){
+      return new Buffer(device,usage,data,size)
   }
   static createVertexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
     return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data,data.byteLength);

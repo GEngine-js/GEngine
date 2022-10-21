@@ -1,6 +1,5 @@
 // @ts-nocheck
 import Cartesian3 from "./Cartesian3";
-import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 
 /**
@@ -11,34 +10,18 @@ import defined from "../utils/defined";
  * @param {Cartesian3} [origin=Cartesian3.ZERO] The origin of the ray.
  * @param {Cartesian3} [direction=Cartesian3.ZERO] The direction of the ray.
  */
-function Ray(origin, direction) {
-  direction = Cartesian3.clone(defaultValue(direction, Cartesian3.ZERO));
-  if (!Cartesian3.equals(direction, Cartesian3.ZERO)) {
-    Cartesian3.normalize(direction, direction);
-  }
-
-  /**
-   * The origin of the ray.
-   * @type {Cartesian3}
-   * @default {@link Cartesian3.ZERO}
-   */
-  this.origin = Cartesian3.clone(defaultValue(origin, Cartesian3.ZERO));
-
-  /**
-   * The direction of the ray.
-   * @type {Cartesian3}
-   */
-  this.direction = direction;
-}
-
-/**
+export default class Ray{
+   constructor(public origin:Cartesian3=Cartesian3.ZERO, public direction:Cartesian3=Cartesian3.ZERO ){
+    
+   }
+   /**
  * Duplicates a Ray instance.
  *
  * @param {Ray} ray The ray to duplicate.
  * @param {Ray} [result] The object onto which to store the result.
  * @returns {Ray} The modified result parameter or a new Ray instance if one was not provided. (Returns undefined if ray is undefined)
  */
-Ray.clone = function (ray, result) {
+static clone(ray, result) {
   if (!defined(ray)) {
     return undefined;
   }
@@ -64,12 +47,13 @@ Ray.clone = function (ray, result) {
  * const intersection = Cesium.IntersectionTests.rayEllipsoid(ray, ellipsoid);
  * const point = Cesium.Ray.getPoint(ray, intersection.start);
  */
-Ray.getPoint = function (ray, t, result) {
+static getPoint(ray, t, result) {
   if (!defined(result)) {
     result = new Cartesian3();
   }
 
   result = Cartesian3.multiplyByScalar(ray.direction, t, result);
   return Cartesian3.add(ray.origin, result, result);
-};
-export default Ray;
+}; 
+}
+

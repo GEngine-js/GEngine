@@ -20,10 +20,7 @@ export interface ContextOptions {
 export interface BindGroupLayoutEntry extends GPUBindGroupLayoutEntry {
   name: string;
   uniforms?: Uniform[];
-  members?: (Variable | Struct)[];
   dimension?: GPUTextureDimension;
-  qualifiers?: GLSLTypeQualifiers;
-  samplerType?: GLSLSamplerType | GLSLShadowSamplerType;
 }
 
 export interface BindGroupOptions extends GPUBindGroupDescriptor {

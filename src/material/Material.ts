@@ -8,11 +8,10 @@ import {} from "../render/Uniform"
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import DataBuffer from "../core/DataBuffer";
-
+import Buffer from "../render/Buffer";
+import { ShaderSource } from "../shader/ShaderSource";
 export class Material{
-    // public bindGroup:BindGroup;
-    // public bindGroupLayout:BindGroupLayout;
-    public uniformBuffer:GPUBuffer;
+    public uniformBuffer:Buffer;
     color?: any;
     unifroms:{};
     renderState:RenderState;
@@ -22,11 +21,9 @@ export class Material{
     unifromDataBuffer: DataBuffer;
     type: string;
     label: string;
-    bindGroupEntities: BindGroupEntity[];
-    bindGroupLayoutEntries: BindGroupLayoutEntry[];
-    group
-    shaderSource: any;
+    shaderSource: ShaderSource;
     groupLayouts: BindGroupLayout[];
+    bindGroups?: BindGroup[];
     constructor(){
         //
         this.label=undefined;
@@ -39,8 +36,6 @@ export class Material{
 
         this.uniformBuffer=undefined;
         this.unifromDataBuffer=new DataBuffer()
-        this.bindGroupEntities=new Array<BindGroupEntity>();
-        this.bindGroupLayoutEntries=new Array<BindGroupLayoutEntry>();
         this.unifroms=undefined;
         this.shaderSource=undefined;
         this.groupLayouts=undefined;
