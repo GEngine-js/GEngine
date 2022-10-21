@@ -15,10 +15,98 @@ import CesiumMath from "./Math";
  * @see Packable
  */
 class Cartesian2{
+  /**
+ * An immutable Cartesian2 instance initialized to (0.0, 0.0).
+ *
+ * @type {Cartesian2}
+ * @constant
+ */
+public static ZERO = Object.freeze(new Cartesian2(0.0, 0.0));
+
+/**
+ * An immutable Cartesian2 instance initialized to (1.0, 1.0).
+ *
+ * @type {Cartesian2}
+ * @constant
+ */
+ public static ONE = Object.freeze(new Cartesian2(1.0, 1.0));
+
+/**
+ * An immutable Cartesian2 instance initialized to (1.0, 0.0).
+ *
+ * @type {Cartesian2}
+ * @constant
+ */
+ public static UNIT_X = Object.freeze(new Cartesian2(1.0, 0.0));
+
+/**
+ * An immutable Cartesian2 instance initialized to (0.0, 1.0).
+ *
+ * @type {Cartesian2}
+ * @constant
+ */
+ public static UNIT_Y = Object.freeze(new Cartesian2(0.0, 1.0));
+ /**
+ * The number of elements used to pack the object into an array.
+ * @type {Number}
+ */
+public static packedLength = 2;
   constructor(x:number=0.0, y:number=0.0){
    this.x = x;
    this.y =y;
   }
+  /**
+ * Duplicates this Cartesian2 instance.
+ *
+ * @param {Cartesian2} [result] The object onto which to store the result.
+ * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
+ */
+clone(result) {
+  return Cartesian2.clone(this, result);
+};
+
+/**
+ * Compares this Cartesian against the provided Cartesian componentwise and returns
+ * <code>true</code> if they are equal, <code>false</code> otherwise.
+ *
+ * @param {Cartesian2} [right] The right hand side Cartesian.
+ * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
+ */
+equals(right) {
+  return Cartesian2.equals(this, right);
+};
+
+/**
+ * Compares this Cartesian against the provided Cartesian componentwise and returns
+ * <code>true</code> if they pass an absolute or relative tolerance test,
+ * <code>false</code> otherwise.
+ *
+ * @param {Cartesian2} [right] The right hand side Cartesian.
+ * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
+ * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
+ * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
+ */
+equalsEpsilon (
+  right,
+  relativeEpsilon,
+  absoluteEpsilon
+) {
+  return Cartesian2.equalsEpsilon(
+    this,
+    right,
+    relativeEpsilon,
+    absoluteEpsilon
+  );
+};
+
+/**
+ * Creates a string representing this Cartesian in the format '(x, y)'.
+ *
+ * @returns {String} A string representing the provided Cartesian in the format '(x, y)'.
+ */
+toString() {
+  return `(${this.x}, ${this.y})`;
+};
   /**
  * Creates a Cartesian2 instance from x and y coordinates.
  *
@@ -56,34 +144,6 @@ static fromElements(x:number, y:number, result) {
   result.y = cartesian.y;
   return result;
 };
-
-/**
- * Creates a Cartesian2 instance from an existing Cartesian3.  This simply takes the
- * x and y properties of the Cartesian3 and drops z.
- * @function
- *
- * @param {Cartesian3} cartesian The Cartesian3 instance to create a Cartesian2 instance from.
- * @param {Cartesian2} [result] The object onto which to store the result.
- * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
- */
-Cartesian2.fromCartesian3 = Cartesian2.clone;
-
-/**
- * Creates a Cartesian2 instance from an existing Cartesian4.  This simply takes the
- * x and y properties of the Cartesian4 and drops z and w.
- * @function
- *
- * @param {Cartesian4} cartesian The Cartesian4 instance to create a Cartesian2 instance from.
- * @param {Cartesian2} [result] The object onto which to store the result.
- * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
- */
-Cartesian2.fromCartesian4 = Cartesian2.clone;
-
-/**
- * The number of elements used to pack the object into an array.
- * @type {Number}
- */
-Cartesian2.packedLength = 2;
 
 /**
  * Stores the provided instance into the provided array.
@@ -179,27 +239,6 @@ Cartesian2.packedLength = 2;
   }
   return result;
 };
-
-/**
- * Creates a Cartesian2 from two consecutive elements in an array.
- * @function
- *
- * @param {Number[]} array The array whose two consecutive elements correspond to the x and y components, respectively.
- * @param {Number} [startingIndex=0] The offset into the array of the first element, which corresponds to the x component.
- * @param {Cartesian2} [result] The object onto which to store the result.
- * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
- *
- * @example
- * // Create a Cartesian2 with (1.0, 2.0)
- * const v = [1.0, 2.0];
- * const p = Cesium.Cartesian2.fromArray(v);
- *
- * // Create a Cartesian2 with (1.0, 2.0) using an offset into an array
- * const v2 = [0.0, 0.0, 1.0, 2.0];
- * const p2 = Cesium.Cartesian2.fromArray(v2, 2);
- */
-Cartesian2.fromArray = Cartesian2.unpack;
-
 /**
  * Computes the value of the maximum component for the supplied Cartesian.
  *
@@ -260,7 +299,7 @@ Cartesian2.fromArray = Cartesian2.unpack;
  * @param {Cartesian2} result The object into which to store the result.
  * @returns {Cartesian2} The clamped value such that min <= result <= max.
  */
-Cartesian2.clamp = function (value, min, max, result) {
+ static clamp (value, min, max, result) {
 
   const x = CesiumMath.clamp(value.x, min.x, max.x);
   const y = CesiumMath.clamp(value.y, min.y, max.y);
@@ -277,7 +316,7 @@ Cartesian2.clamp = function (value, min, max, result) {
  * @param {Cartesian2} cartesian The Cartesian instance whose squared magnitude is to be computed.
  * @returns {Number} The squared magnitude.
  */
-Cartesian2.magnitudeSquared = function (cartesian) {
+ static magnitudeSquared(cartesian) {
 
   return cartesian.x * cartesian.x + cartesian.y * cartesian.y;
 };
@@ -288,11 +327,11 @@ Cartesian2.magnitudeSquared = function (cartesian) {
  * @param {Cartesian2} cartesian The Cartesian instance whose magnitude is to be computed.
  * @returns {Number} The magnitude.
  */
-Cartesian2.magnitude = function (cartesian) {
+ static magnitude(cartesian) {
   return Math.sqrt(Cartesian2.magnitudeSquared(cartesian));
 };
 
-const distanceScratch = new Cartesian2();
+
 
 /**
  * Computes the distance between two points.
@@ -305,7 +344,7 @@ const distanceScratch = new Cartesian2();
  * // Returns 1.0
  * const d = Cesium.Cartesian2.distance(new Cesium.Cartesian2(1.0, 0.0), new Cesium.Cartesian2(2.0, 0.0));
  */
-Cartesian2.distance = function (left, right) {
+ static distance(left, right) {
 
   Cartesian2.subtract(left, right, distanceScratch);
   return Cartesian2.magnitude(distanceScratch);
@@ -323,7 +362,7 @@ Cartesian2.distance = function (left, right) {
  * // Returns 4.0, not 2.0
  * const d = Cesium.Cartesian2.distance(new Cesium.Cartesian2(1.0, 0.0), new Cesium.Cartesian2(3.0, 0.0));
  */
-Cartesian2.distanceSquared = function (left, right) {
+ static distanceSquared(left, right) {
 
   Cartesian2.subtract(left, right, distanceScratch);
   return Cartesian2.magnitudeSquared(distanceScratch);
@@ -336,7 +375,7 @@ Cartesian2.distanceSquared = function (left, right) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.normalize = function (cartesian, result) {
+ static normalize(cartesian, result) {
 
   const magnitude = Cartesian2.magnitude(cartesian);
 
@@ -359,7 +398,7 @@ Cartesian2.normalize = function (cartesian, result) {
  * @param {Cartesian2} right The second Cartesian.
  * @returns {Number} The dot product.
  */
-Cartesian2.dot = function (left, right) {
+ static dot(left, right) {
 
   return left.x * right.x + left.y * right.y;
 };
@@ -371,7 +410,7 @@ Cartesian2.dot = function (left, right) {
  * @param {Cartesian2} right The second Cartesian.
  * @returns {Number} The cross product.
  */
-Cartesian2.cross = function (left, right) {
+ static cross(left, right) {
 
   return left.x * right.y - left.y * right.x;
 };
@@ -384,7 +423,7 @@ Cartesian2.cross = function (left, right) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.multiplyComponents = function (left, right, result) {
+ static multiplyComponents(left, right, result) {
 
   result.x = left.x * right.x;
   result.y = left.y * right.y;
@@ -399,7 +438,7 @@ Cartesian2.multiplyComponents = function (left, right, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.divideComponents = function (left, right, result) {
+ static divideComponents(left, right, result) {
 
   result.x = left.x / right.x;
   result.y = left.y / right.y;
@@ -414,7 +453,7 @@ Cartesian2.divideComponents = function (left, right, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.add = function (left, right, result) {
+ static add(left, right, result) {
 
   result.x = left.x + right.x;
   result.y = left.y + right.y;
@@ -429,7 +468,7 @@ Cartesian2.add = function (left, right, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.subtract = function (left, right, result) {
+ static subtract(left, right, result) {
 
   result.x = left.x - right.x;
   result.y = left.y - right.y;
@@ -444,7 +483,7 @@ Cartesian2.subtract = function (left, right, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.multiplyByScalar = function (cartesian, scalar, result) {
+ static multiplyByScalar(cartesian, scalar, result) {
 
   result.x = cartesian.x * scalar;
   result.y = cartesian.y * scalar;
@@ -459,7 +498,7 @@ Cartesian2.multiplyByScalar = function (cartesian, scalar, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.divideByScalar = function (cartesian, scalar, result) {
+ static divideByScalar(cartesian, scalar, result) {
 
   result.x = cartesian.x / scalar;
   result.y = cartesian.y / scalar;
@@ -473,7 +512,7 @@ Cartesian2.divideByScalar = function (cartesian, scalar, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.negate = function (cartesian, result) {
+ static negate(cartesian, result) {
 
   result.x = -cartesian.x;
   result.y = -cartesian.y;
@@ -487,14 +526,13 @@ Cartesian2.negate = function (cartesian, result) {
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.abs = function (cartesian, result) {
+ static abs(cartesian, result) {
 
   result.x = Math.abs(cartesian.x);
   result.y = Math.abs(cartesian.y);
   return result;
 };
 
-const lerpScratch = new Cartesian2();
 /**
  * Computes the linear interpolation or extrapolation at t using the provided cartesians.
  *
@@ -504,15 +542,13 @@ const lerpScratch = new Cartesian2();
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The modified result parameter.
  */
-Cartesian2.lerp = function (start, end, t, result) {
+ static lerp (start, end, t, result) {
 
   Cartesian2.multiplyByScalar(end, t, lerpScratch);
   result = Cartesian2.multiplyByScalar(start, 1.0 - t, result);
   return Cartesian2.add(lerpScratch, result, result);
 };
 
-const angleBetweenScratch = new Cartesian2();
-const angleBetweenScratch2 = new Cartesian2();
 /**
  * Returns the angle, in radians, between the provided Cartesians.
  *
@@ -520,7 +556,7 @@ const angleBetweenScratch2 = new Cartesian2();
  * @param {Cartesian2} right The second Cartesian.
  * @returns {Number} The angle between the Cartesians.
  */
-Cartesian2.angleBetween = function (left, right) {
+ static angleBetween(left, right) {
 
   Cartesian2.normalize(left, angleBetweenScratch);
   Cartesian2.normalize(right, angleBetweenScratch2);
@@ -529,7 +565,6 @@ Cartesian2.angleBetween = function (left, right) {
   );
 };
 
-const mostOrthogonalAxisScratch = new Cartesian2();
 /**
  * Returns the axis that is most orthogonal to the provided Cartesian.
  *
@@ -537,7 +572,7 @@ const mostOrthogonalAxisScratch = new Cartesian2();
  * @param {Cartesian2} result The object onto which to store the result.
  * @returns {Cartesian2} The most orthogonal axis.
  */
-Cartesian2.mostOrthogonalAxis = function (cartesian, result) {
+ static mostOrthogonalAxis(cartesian, result) {
 
   const f = Cartesian2.normalize(cartesian, mostOrthogonalAxisScratch);
   Cartesian2.abs(f, f);
@@ -559,7 +594,7 @@ Cartesian2.mostOrthogonalAxis = function (cartesian, result) {
  * @param {Cartesian2} [right] The second Cartesian.
  * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
  */
-Cartesian2.equals = function (left, right) {
+ static equals(left, right) {
   return (
     left === right ||
     (defined(left) &&
@@ -572,7 +607,7 @@ Cartesian2.equals = function (left, right) {
 /**
  * @private
  */
-Cartesian2.equalsArray = function (cartesian, array, offset) {
+ static equalsArray(cartesian, array, offset) {
   return cartesian.x === array[offset] && cartesian.y === array[offset + 1];
 };
 
@@ -587,7 +622,7 @@ Cartesian2.equalsArray = function (cartesian, array, offset) {
  * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
  * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
  */
-Cartesian2.equalsEpsilon = function (
+ static equalsEpsilon(
   left,
   right,
   relativeEpsilon,
@@ -613,93 +648,10 @@ Cartesian2.equalsEpsilon = function (
 };
 
 }
+const distanceScratch = new Cartesian2();
+const lerpScratch = new Cartesian2();
+const angleBetweenScratch = new Cartesian2();
+const angleBetweenScratch2 = new Cartesian2();
+const mostOrthogonalAxisScratch = new Cartesian2();
 
-
-
-
-
-/**
- * An immutable Cartesian2 instance initialized to (0.0, 0.0).
- *
- * @type {Cartesian2}
- * @constant
- */
-Cartesian2.ZERO = Object.freeze(new Cartesian2(0.0, 0.0));
-
-/**
- * An immutable Cartesian2 instance initialized to (1.0, 1.0).
- *
- * @type {Cartesian2}
- * @constant
- */
-Cartesian2.ONE = Object.freeze(new Cartesian2(1.0, 1.0));
-
-/**
- * An immutable Cartesian2 instance initialized to (1.0, 0.0).
- *
- * @type {Cartesian2}
- * @constant
- */
-Cartesian2.UNIT_X = Object.freeze(new Cartesian2(1.0, 0.0));
-
-/**
- * An immutable Cartesian2 instance initialized to (0.0, 1.0).
- *
- * @type {Cartesian2}
- * @constant
- */
-Cartesian2.UNIT_Y = Object.freeze(new Cartesian2(0.0, 1.0));
-
-/**
- * Duplicates this Cartesian2 instance.
- *
- * @param {Cartesian2} [result] The object onto which to store the result.
- * @returns {Cartesian2} The modified result parameter or a new Cartesian2 instance if one was not provided.
- */
-Cartesian2.prototype.clone = function (result) {
-  return Cartesian2.clone(this, result);
-};
-
-/**
- * Compares this Cartesian against the provided Cartesian componentwise and returns
- * <code>true</code> if they are equal, <code>false</code> otherwise.
- *
- * @param {Cartesian2} [right] The right hand side Cartesian.
- * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
- */
-Cartesian2.prototype.equals = function (right) {
-  return Cartesian2.equals(this, right);
-};
-
-/**
- * Compares this Cartesian against the provided Cartesian componentwise and returns
- * <code>true</code> if they pass an absolute or relative tolerance test,
- * <code>false</code> otherwise.
- *
- * @param {Cartesian2} [right] The right hand side Cartesian.
- * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
- * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
- * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
- */
-Cartesian2.prototype.equalsEpsilon = function (
-  right,
-  relativeEpsilon,
-  absoluteEpsilon
-) {
-  return Cartesian2.equalsEpsilon(
-    this,
-    right,
-    relativeEpsilon,
-    absoluteEpsilon
-  );
-};
-
-/**
- * Creates a string representing this Cartesian in the format '(x, y)'.
- *
- * @returns {String} A string representing the provided Cartesian in the format '(x, y)'.
- */
-Cartesian2.prototype.toString = function () {
-  return `(${this.x}, ${this.y})`;
-};
 export default Cartesian2;
