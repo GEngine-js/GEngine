@@ -1,7 +1,11 @@
-import Uniform from "./core/Uniform";
-import BindGroupLayout from "./core/BindGroupLayout.js";
-import { BindGroupEntity } from "../render/BindGroupEntity.js";
-
+import BindGroupLayout from "../render/BindGroupLayout";
+import { BindGroupEntity } from "../render/BindGroupEntity";
+export const GPUCanvasCompositingAlphaMode: {
+  [key: string]: GPUCanvasCompositingAlphaMode;
+} = {
+  Opaque: "opaque",
+  Premultiplied: "premultiplied",
+};
 export interface ContextState {
   device: GPUDevice;
   glslang: {
@@ -19,7 +23,7 @@ export interface ContextOptions {
 
 export interface BindGroupLayoutEntry extends GPUBindGroupLayoutEntry {
   name: string;
-  uniforms?: Uniform[];
+  uniforms?: any[];
   dimension?: GPUTextureDimension;
 }
 
@@ -35,11 +39,6 @@ export type ShaderStageNameObjectKeys = {
 export type ShaderStageBodyName = "vertexBody" | "fragmentBody" | "computeBody";
 export type ShaderStageBodyNameObjectKeys = {
   [key in ShaderStageBodyName]?: string;
-};
-
-export type PipelineVertexBufferIns = {
-  stepMode: GPUVertexStepMode;
-  attributes: Attribute[];
 };
 export interface AttachmentOptions {
   op?: GPUStoreOp;

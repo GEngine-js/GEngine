@@ -2930,7 +2930,7 @@ class Matrix4 {
   /**
  * @private
  */
-  private static equalsArray(matrix, array, offset) {
+static equalsArray(matrix, array, offset) {
     return (
       matrix[0] === array[offset] &&
       matrix[1] === array[offset + 1] &&

@@ -4,7 +4,7 @@ export type vertextBuffer ={
         arrayStride:number,
         stepMode: string,
         buffer?:Buffer,
-        attributes:Array<Attribute>   
+        attributes:Iterable<GPUVertexAttribute>  
 }
 export  class VertextBuffers{
     list:Array<vertextBuffer>;
@@ -15,7 +15,13 @@ export  class VertextBuffers{
         return this.list.length;
     }
     public getBuffers(){
-         return this.list;
+         return this.list.map((vertextBuffer)=>{
+            return {
+                arrayStride:vertextBuffer.arrayStride,
+                stepMode:vertextBuffer.stepMode,
+                attributes:vertextBuffer.attributes,
+            }
+         });
     }
     // public getAttributes(){
     //     const result=[];

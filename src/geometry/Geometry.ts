@@ -1,9 +1,8 @@
 import DataBuffer from "../core/DataBuffer";
 import {VertextBuffers} from "../core/VertextBuffers";
-import { IndexFormat } from "../core/WebGPUConstants";
+import { IndexFormat } from "../core/WebGPUConstant";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
-import GeometryHelper from "../utils/GeometryHelper";
 export default class Geometry {
     public attributes: Attribute[];
     type: string;

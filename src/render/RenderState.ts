@@ -1,7 +1,7 @@
 
 import defaultValue from "../utils/defaultValue";
 import defined  from "../utils/defined";
-import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp } from "../core/WebgpuConstants.js";
+import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp } from "../core/WebGPUConstant.js";
 
 
 const renderStateCache=new WeakMap();

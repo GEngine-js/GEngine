@@ -1,4 +1,4 @@
-import { BufferBindingType } from "../core/WebGPUConstants";
+import { BufferBindingType } from "../core/WebGPUConstant";
 import { BindGroupLayoutEntry } from "../core/WebGPUTypes";
 const layoutCache = new Map()
 class BindGroupLayout {
@@ -59,8 +59,7 @@ class BindGroupLayout {
       size += entry.uniforms
         .map(
           (uniform) =>
-            uniform.getSize(entry.qualifiers?.layout) *
-            (uniform.arrayCount || 1)
+          uniform.size
         )
         .reduce((a, b) => a + b, 0);
     }

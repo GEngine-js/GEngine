@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Cartesian2 from "../math/Cartesian2";
 import Cartesian3 from "../math/Cartesian3";
 import Cartesian4 from "../math/Cartesian4";
@@ -18,6 +19,7 @@ import DataBuffer from '../core/DataBuffer';
   this.dataBuffer=dataBuffer;
   this.value = undefined;
   this._value = 0.0;
+  this.size=4;
   this.cb
 }
 
@@ -45,6 +47,7 @@ UniformFloat.prototype.set = function () {
   this._value = new Cartesian2();
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*2;
 }
 
 UniformFloatVec2.prototype.set = function () {
@@ -73,6 +76,7 @@ UniformFloatVec2.prototype.set = function () {
 
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*3;
 }
 
 UniformFloatVec3.prototype.set = function () {
@@ -113,6 +117,7 @@ UniformFloatVec3.prototype.set = function () {
 
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*4;
 }
 
 UniformFloatVec4.prototype.set = function () {
@@ -151,6 +156,7 @@ const scratchUniformArray = new Float32Array(4);
 
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*4;
 }
 
 UniformMat2.prototype.set = function () {
@@ -181,6 +187,7 @@ const scratchMat3Array = new Float32Array(9);
 
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*9;
 }
 
 UniformMat3.prototype.set = function () {
@@ -210,6 +217,7 @@ export function UniformMat4(uniformName, dataBuffer, offset,cb) {
   this._value = new Matrix4();
   this.offset=offset;
   this.dataBuffer=dataBuffer;
+  this.size=4*16;
 }
 
 UniformMat4.prototype.set = function () {

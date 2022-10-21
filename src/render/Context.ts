@@ -1,7 +1,7 @@
 import {
   GPUCanvasCompositingAlphaMode,
-  GPUTextureUsage,
 } from "../core/WebGPUTypes";
+import{TextureUsage} from '../core/WebGPUConstant'
 import { ContextOptions } from "../core/WebGPUTypes";
 import { RenderPipelineCache } from "./RenderPipelineCache.js";
 import DrawCommand from "./DrawCommand.js";
@@ -28,7 +28,7 @@ class Context {
       context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
 
-    this.renderPipelineCache=new RenderPipelineCache({});
+    
     this.device=undefined;
   }
 
@@ -56,11 +56,11 @@ class Context {
       this.context.configure({
         device: this.device,
         format: navigator.gpu.getPreferredCanvasFormat(),
-        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        usage: TextureUsage.RenderAttachment,
         alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
         ...presentationContextDescriptor,
       });
-
+      this.renderPipelineCache=new RenderPipelineCache(this.device);
       this.glslang = await (
         await import(
           /* webpackIgnore: true */ glslangPath ||
@@ -89,7 +89,7 @@ class Context {
     this.context.configure({
       device: this.device,
       format: navigator.gpu.getPreferredCanvasFormat(),
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      usage: TextureUsage.RenderAttachment,
       alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
       ...presentationContextDescriptor,
     });
@@ -112,9 +112,9 @@ class Context {
     }
 
     if (command.pipeline) {
-      this.passEncoder.setPipeline(
-        command.pipeline.gpuPipeline as GPURenderPipeline & GPUComputePipeline
-      );
+      // this.passEncoder.setPipeline(
+      //   command.pipeline.gpuPipeline as GPURenderPipeline & GPUComputePipeline
+      // );
     }
 
     if (command.vertexBuffers) {

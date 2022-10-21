@@ -1,4 +1,4 @@
-import { BufferUsage } from "../core/WebGPUConstants";
+import { BufferUsage } from "../core/WebGPUConstant";
 import Attribute from "./Attribute";
 
 class Buffer {

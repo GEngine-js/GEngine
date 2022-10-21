@@ -1,6 +1,8 @@
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
+import { GPUShaderModuleObject } from "../shader/ShaderSource";
 import BindGroupLayout from "./BindGroupLayout";
+import { PipelineLayout } from "./PipelineLayout";
 import RenderState from "./RenderState";
 // Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
 function stringToHash(str){
@@ -55,30 +57,31 @@ export class RenderPipelineCache {
     }
     return pipeline;
   }
-  private getPipelineDescriptor(geometry:Geometry,material:Material):GPUPipelineDescriptorBase{
+  private getPipelineDescriptor(geometry:Geometry,material:Material):GPURenderPipelineDescriptor{
     const {vertexBuffers,topology,stripIndexFormat}=geometry;
     const {renderState,shaderSource,groupLayouts}=material;
-
-    const layout=groupLayouts.length>0?groupLayouts.map((layout)=>{return layout.gpuBindGroupLayout}): "auto";
+    const {vert,frag}=shaderSource.createShaderModule(this.device)as GPUShaderModuleObject
+    const primitiveState: GPUPrimitiveState = {
+      topology:topology as  GPUPrimitiveTopology,
+      frontFace:renderState.primitive.frontFace,
+      cullMode:renderState.primitive.cullMode,
+      stripIndexFormat: stripIndexFormat as GPUIndexFormat,
+    };
       return {
-        layout,   
+        //需要改动
+        layout:PipelineLayout.getPipelineLayoutFromCache(this.device,'test',groupLayouts).gpuPipelineLayout,   
         vertex: {
-          module: shaderSource.vert,
+          module:vert,
           entryPoint: shaderSource.vertEntryPoint,
-          buffers:vertexBuffers.getBuffers(),
+          buffers:vertexBuffers.getBuffers() as Iterable<GPUVertexBufferLayout>,
         },
-        primitive: {
-          topology,
-          stripIndexFormat,
-          frontFace:renderState.primitive.frontFace,
-          cullMode:renderState.primitive.cullMode,
-        },
+        primitive:primitiveState,
         depthStencil:renderState.depthStencil,
         multisample:renderState.multisample,
         fragment: {
-          module: shaderSource.frag,
+          module: frag,
           entryPoint: shaderSource.fragEntryPoint,
-          targets:renderState.targets
+          targets:renderState.targets as Iterable<GPUColorTargetState>
         },
       };
   }

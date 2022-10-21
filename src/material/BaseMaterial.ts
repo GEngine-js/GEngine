@@ -17,7 +17,7 @@ export default class BaseMaterial extends Material {
     // private createUniform() { }
     private createBindGroupAndLayout(device:GPUDevice){
         const layouts=this.createBindGroupLayoutEntry();
-        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,'phong',layouts as Array<BindGroupLayoutEntry> );
+        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,'phong',layouts);
         const groupEntities=this.createBindGroupEntity(groupLayout);
         const group=this.createBindGroup(device,groupEntities,groupLayout)
         this.bindGroups.push(group);

@@ -1,5 +1,5 @@
 import Buffer from "./Buffer";
-import { GPUTextureUsage, GPUBufferUsage } from "../constants.js";
+import { BufferUsage } from "../core/WebGPUConstant";
 import Context from "./Context.js";
 
 const imageCanvas = document.createElement("canvas");
@@ -38,7 +38,7 @@ class Texture {
         width: image?.width || (descriptor.size as GPUExtent3DDict)?.width,
         height: image?.height || (descriptor.size as GPUExtent3DDict)?.height,
       },
-      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.SAMPLED,
+      usage: BufferUsage.CopyDst,
       ...(descriptor || {}),
     });
 

@@ -3,7 +3,7 @@ import Pipeline from "./Pipeline";
 import Buffer from "./Buffer";
 import BindGroup from "./BindGroup";
 
-import { IndexFormat } from "../core/WebGPUConstants";
+import { IndexFormat } from "../core/WebGPUConstant";
 
 class DrawCommand {
   public pass?: Pass;
