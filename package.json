@@ -1,5 +1,5 @@
 {
-  "name": "webworkertask",
+  "name": "GEngine",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -23,12 +23,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hpugis/WebWorkertask.git"
+    "url": "https://github.com/hpugis/GEngine.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/hpugis/WebWorkertask/issues"
+    "url": "https://github.com/hpugis/GEngine/issues"
   },
-  "homepage": "https://github.com/hpugis/WebWorkertask#readme"
+  "homepage": "https://github.com/hpugis/GEngine/blob/main/README.md"
 }
