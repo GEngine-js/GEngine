@@ -269,7 +269,11 @@ class Matrix2 {
     result[3] = cosAngle;
     return result;
   };
-
+  toArray(){
+    const result=[];
+    Matrix2.toArray(this,result)
+    return result;
+  }
   /**
    * Creates an Array from the provided Matrix2 instance.
    * The array will be in column-major order.

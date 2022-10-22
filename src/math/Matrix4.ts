@@ -503,7 +503,7 @@ class Matrix4 {
     result[15] = matrix[15];
     return result;
   };
-
+  
   /**
    * Creates a Matrix4 from 16 consecutive elements in an array.
    * @function
@@ -1291,7 +1291,11 @@ class Matrix4 {
     result[15] = 1.0;
     return result;
   };
-
+  toArray(){
+    const result=[];
+    Matrix4.toArray(this,result)
+    return result;
+  }
   /**
    * Computes an Array from the provided Matrix4 instance.
    * The array will be in column-major order.

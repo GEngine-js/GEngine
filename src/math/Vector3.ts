@@ -64,6 +64,9 @@ class Vector3 {
     this.y =y;
     this.z =z;
   }
+  toArray(){
+    return [this.x,this.y,this.z]
+  }
   /**
  * Duplicates this Vector3 instance.
  *

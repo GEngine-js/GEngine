@@ -3,13 +3,16 @@ export  default class DataBuffer{
     constructor(){
       this.data=new Array();
     }
-    setData(uniform){
+    set(data){
         const preDataLength=this.data.length;
-        this.data=this.data.concat(uniform.data);
+        this.data=this.data.concat(data);
         return preDataLength
     }
-    deleteData(uniform){
-        this.data.splice(uniform.offset,uniform.length)
+    update(offset,data){
+      this.data.splice(offset,...data)
+    }
+    delete(offset,length){
+        this.data.splice(offset,length)
     }
     destory(){
         this.data=null;

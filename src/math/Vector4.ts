@@ -79,7 +79,9 @@ class Vector4 {
     this.z =z;
     this.w =w;
   }
-
+  toArray(){
+    return [this.x,this.y,this.z,this.w]
+  }
   /**
    * Duplicates this Vector4 instance.
    *

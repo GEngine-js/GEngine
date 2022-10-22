@@ -1,4 +1,5 @@
 import DataBuffer from "../core/DataBuffer";
+import { FrameState } from "../core/FrameState";
 import {VertextBuffers} from "../core/VertextBuffers";
 import { IndexFormat,PrimitiveTopology } from "../core/WebGPUConstant";
 import Attribute from "../render/Attribute";
@@ -21,7 +22,7 @@ export default class Geometry {
         this.stripIndexFormat=IndexFormat.Uint32;
         this.dirty = false;
     }
-    update(frameState){}
+    update(frameState:FrameState){}
     /**
      * Interleave n typed arrays
      * @alias module:interleaveTypedArray

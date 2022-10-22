@@ -56,6 +56,9 @@ public static packedLength = 2;
    this.x = x;
    this.y =y;
   }
+  toArray(){
+    return [this.x,this.y]
+  }
   /**
  * Duplicates this Vector2 instance.
  *

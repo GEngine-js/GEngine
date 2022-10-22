@@ -246,6 +246,7 @@ class Color {
    * @type {Color}
    */
   public static DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
+  
   constructor(red=1.0, green=1.0, blue=1.0, alpha=1.0) {
     /**
      * The red component.
@@ -271,6 +272,9 @@ class Color {
      * @default 1.0
      */
     this.alpha =alpha;
+  }
+  toArray(){
+    return [this.red,this.green,this.blue,this.alpha]
   }
   /**
  * Returns a duplicate of a Color instance.

@@ -581,7 +581,11 @@ class Matrix3 {
 
     return result;
   };
-
+  toArray(){
+    const result=[];
+    Matrix3.toArray(this,result)
+    return result;
+  }
   /**
    * Creates an Array from the provided Matrix3 instance.
    * The array will be in column-major order.
