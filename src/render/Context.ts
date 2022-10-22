@@ -116,13 +116,22 @@ class Context {
       //   command.pipeline.gpuPipeline as GPURenderPipeline & GPUComputePipeline
       // );
     }
-
+    if (command.renderState) {
+      const {blendConstant,stencilReference,viewport,scissorTest}=command.renderState;
+      (this.passEncoder as GPURenderPassEncoder).setBlendConstant(blendConstant);
+      (this.passEncoder as GPURenderPassEncoder).setStencilReference(stencilReference);
+      (this.passEncoder as GPURenderPassEncoder).setViewport(viewport.x,viewport.y,viewport.width,viewport.height,viewport.minDepth,viewport.maxDepth);
+      (this.passEncoder as GPURenderPassEncoder).setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
+    }
     if (command.vertexBuffers) {
       for (let i = 0; i < command.vertexBuffers.length; i++) {
-        (this.passEncoder as GPURenderPassEncoder).setVertexBuffer(
-          i,
-          command.vertexBuffers[i].gpuBuffer
-        );
+        const vertBuffer=command.vertexBuffers.getVertextBuffer(i);
+        if(vertBuffer){
+          (this.passEncoder as GPURenderPassEncoder).setVertexBuffer(
+            vertBuffer.index,
+            vertBuffer.buffer.gpuBuffer
+          );
+        }
       }
     }
 

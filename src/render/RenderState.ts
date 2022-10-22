@@ -1,13 +1,10 @@
-
 import defaultValue from "../utils/defaultValue";
 import defined  from "../utils/defined";
 import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp } from "../core/WebGPUConstant.js";
-
-
 const renderStateCache=new WeakMap();
 export default class RenderState {
-  scissorTest: { x: Number, y: Number, width: Number, height: Number};
-  viewport: { x: Number, y: Number, width: Number, height: Number, minDepth: Number, maxDepth: Number };
+  scissorTest: { x: number, y: number, width: number, height: number};
+  viewport: { x: number, y: number, width: number, height: number, minDepth: number, maxDepth: number };
   stencilTest: { depthWriteEnabled: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
   targets: {};
   depthStencil: { format: any; depthWriteEnabled: any; depthCompare: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };

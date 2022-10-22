@@ -1,6 +1,7 @@
 import Attribute from "../render/Attribute";
 import Buffer from '../render/Buffer';
 export type vertextBuffer ={
+        index:number,
         arrayStride:number,
         stepMode: string,
         buffer?:Buffer,
@@ -11,7 +12,7 @@ export  class VertextBuffers{
     constructor(vertextBuffer:Array<vertextBuffer>){
         this.list=vertextBuffer;
     }
-    public getBufAttrsCount(){
+    get length(){
         return this.list.length;
     }
     public getBuffers(){
@@ -22,6 +23,9 @@ export  class VertextBuffers{
                 attributes:vertextBuffer.attributes,
             }
          });
+    }
+    public getVertextBuffer(index){
+        return this.list[index];
     }
     // public getAttributes(){
     //     const result=[];

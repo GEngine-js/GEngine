@@ -42,13 +42,14 @@ export default class BoxGeometry extends Geometry{
         // vertBuffer
         const vertBuffers=new VertextBuffers([
             {   
+                index:0,
                 arrayStride: dataBuffer.byteLength,
                 stepMode: InputStepMode.Vertex,
                 buffer,
                 attributes:[pat,uat,nat],
             }
         ])
-        this.indiceBuffer=Buffer.createIndexBuffer(device,new Int32Array(this.indices.buffer))
+        this.indexBuffer=Buffer.createIndexBuffer(device,new Int32Array(this.indices.buffer))
         this.vertexBuffers=vertBuffers;
     }
 }

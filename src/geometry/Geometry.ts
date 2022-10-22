@@ -1,6 +1,6 @@
 import DataBuffer from "../core/DataBuffer";
 import {VertextBuffers} from "../core/VertextBuffers";
-import { IndexFormat } from "../core/WebGPUConstant";
+import { IndexFormat,PrimitiveTopology } from "../core/WebGPUConstant";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 export default class Geometry {
@@ -9,14 +9,16 @@ export default class Geometry {
     public vertexBuffers: VertextBuffers;
     dirty: boolean;
     boundingSphere: any;
-    stripIndexFormat: string;
+    stripIndexFormat: GPUIndexFormat;
     topology: string;
+    indexBuffer?:Buffer;
+    count:number;
     constructor(options?:any) {
         this.type = options.type||undefined;
         this.vertexBuffers = options.vertexBuffers||undefined;
         this.boundingSphere = undefined;
-        this.topology="triangle-list";
-        this.stripIndexFormat=IndexFormat.Uint16;
+        this.topology=PrimitiveTopology.TriangleList;
+        this.stripIndexFormat=IndexFormat.Uint32;
         this.dirty = false;
     }
     update(frameState){}

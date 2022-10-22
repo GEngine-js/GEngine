@@ -1,9 +1,12 @@
 import Buffer from "./Buffer";
+const queryIndex=0
 export default class QuerySet {
     gpuQuerySet: GPUQuerySet;
     queryBuffer: Buffer;
+    nextPickColor: Uint32Array;
     constructor(public device: GPUDevice, public querySetDescriptor: GPUQuerySetDescriptor) {
         this.device.createQuerySet(querySetDescriptor);
+        this.nextPickColor = new Uint32Array(1);
 
     }
     getQuerySetResult() {
@@ -20,7 +23,16 @@ export default class QuerySet {
 
     }
     endQuery(){
-        
+
+    }
+    getQueryIndex(){
+        ++this.nextPickColor[0];
+        const key = this.nextPickColor[0];
+        if (key === 0) {
+          // In case of overflow
+          throw new Error("Out of QueryIndex.");
+        }
+        return key;
     }
     //6、获取查询结果
 //     commandEncoder.resolveQuerySet(queryset,0, NUM_SPHERES, queryBuffer,0);

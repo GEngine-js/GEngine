@@ -24,6 +24,7 @@ export class Material{
     shaderSource: ShaderSource;
     groupLayouts: BindGroupLayout[];
     bindGroups?: BindGroup[];
+    transparent:Boolean;
     constructor(){
         //
         this.label=undefined;

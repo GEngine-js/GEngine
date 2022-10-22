@@ -5,6 +5,8 @@ import BindGroup from "./BindGroup";
 
 import { IndexFormat } from "../core/WebGPUConstant";
 import { VertextBuffers } from "../core/VertextBuffers";
+import RenderState from "./RenderState";
+import QuerySet from "./QuerySet";
 
 class DrawCommand {
   public pass?: Pass;
@@ -14,6 +16,9 @@ class DrawCommand {
   public indexBuffer?: Buffer;
   public indexFormat?: GPUIndexFormat = IndexFormat.Uint32;
   public bindGroups?: BindGroup[];
+  public renderState?:RenderState;
+  public querySet?:QuerySet;
+  public queryIndex?:number;
 
   public count?: number;
   public instances?: number;
