@@ -1,5 +1,5 @@
 // @ts-nocheck
-import Cartesian2 from "./Cartesian2";
+import Vector2 from "./Vector2";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 
@@ -193,7 +193,7 @@ class Matrix2 {
   /**
    * Computes a Matrix2 instance representing a non-uniform scale.
    *
-   * @param {Cartesian2} scale The x and y scale factors.
+   * @param {Vector2} scale The x and y scale factors.
    * @param {Matrix2} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix2} The modified result parameter, or a new Matrix2 instance if one was not provided.
    *
@@ -201,7 +201,7 @@ class Matrix2 {
    * // Creates
    * //   [7.0, 0.0]
    * //   [0.0, 8.0]
-   * const m = Cesium.Matrix2.fromScale(new Cesium.Cartesian2(7.0, 8.0));
+   * const m = Cesium.Matrix2.fromScale(new Cesium.Vector2(7.0, 8.0));
    */
   static fromScale(scale, result) {
 
@@ -251,9 +251,9 @@ class Matrix2 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise.
-   * const p = new Cesium.Cartesian2(5, 6);
+   * const p = new Cesium.Vector2(5, 6);
    * const m = Cesium.Matrix2.fromRotation(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix2.multiplyByVector(m, p, new Cesium.Cartesian2());
+   * const rotated = Cesium.Matrix2.multiplyByVector(m, p, new Cesium.Vector2());
    */
   static fromRotation(angle, result) {
 
@@ -312,12 +312,12 @@ class Matrix2 {
   };
 
   /**
-   * Retrieves a copy of the matrix column at the provided index as a Cartesian2 instance.
+   * Retrieves a copy of the matrix column at the provided index as a Vector2 instance.
    *
    * @param {Matrix2} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to retrieve.
-   * @param {Cartesian2} result The object onto which to store the result.
-   * @returns {Cartesian2} The modified result parameter.
+   * @param {Vector2} result The object onto which to store the result.
+   * @returns {Vector2} The modified result parameter.
    *
    * @exception {Error} index must be 0 or 1.
    */
@@ -333,12 +333,12 @@ class Matrix2 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Cartesian2 instance.
+   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector2 instance.
    *
    * @param {Matrix2} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to set.
-   * @param {Cartesian2} cartesian The Cartesian whose values will be assigned to the specified column.
-   * @param {Cartesian2} result The object onto which to store the result.
+   * @param {Vector2} cartesian The Cartesian whose values will be assigned to the specified column.
+   * @param {Vector2} result The object onto which to store the result.
    * @returns {Matrix2} The modified result parameter.
    *
    * @exception {Error} index must be 0 or 1.
@@ -353,12 +353,12 @@ class Matrix2 {
   };
 
   /**
-   * Retrieves a copy of the matrix row at the provided index as a Cartesian2 instance.
+   * Retrieves a copy of the matrix row at the provided index as a Vector2 instance.
    *
    * @param {Matrix2} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to retrieve.
-   * @param {Cartesian2} result The object onto which to store the result.
-   * @returns {Cartesian2} The modified result parameter.
+   * @param {Vector2} result The object onto which to store the result.
+   * @returns {Vector2} The modified result parameter.
    *
    * @exception {Error} index must be 0 or 1.
    */
@@ -373,11 +373,11 @@ class Matrix2 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Cartesian2 instance.
+   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector2 instance.
    *
    * @param {Matrix2} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to set.
-   * @param {Cartesian2} cartesian The Cartesian whose values will be assigned to the specified row.
+   * @param {Vector2} cartesian The Cartesian whose values will be assigned to the specified row.
    * @param {Matrix2} result The object onto which to store the result.
    * @returns {Matrix2} The modified result parameter.
    *
@@ -391,14 +391,14 @@ class Matrix2 {
     return result;
   };
 
-  const scaleScratch1 = new Cartesian2();
+  const scaleScratch1 = new Vector2();
 
   /**
    * Computes a new matrix that replaces the scale with the provided scale.
    * This assumes the matrix is an affine transformation.
    *
    * @param {Matrix2} matrix The matrix to use.
-   * @param {Cartesian2} scale The scale that replaces the scale of the provided matrix.
+   * @param {Vector2} scale The scale that replaces the scale of the provided matrix.
    * @param {Matrix2} result The object onto which to store the result.
    * @returns {Matrix2} The modified result parameter.
    *
@@ -423,7 +423,7 @@ class Matrix2 {
     return result;
   };
 
-  const scaleScratch2 = new Cartesian2();
+  const scaleScratch2 = new Vector2();
 
   /**
    * Computes a new matrix that replaces the scale with the provided uniform scale.
@@ -461,8 +461,8 @@ class Matrix2 {
    * Extracts the non-uniform scale assuming the matrix is an affine transformation.
    *
    * @param {Matrix2} matrix The matrix.
-   * @param {Cartesian2} result The object onto which to store the result.
-   * @returns {Cartesian2} The modified result parameter.
+   * @param {Vector2} result The object onto which to store the result.
+   * @returns {Vector2} The modified result parameter.
    *
    * @see Matrix2.multiplyByScale
    * @see Matrix2.multiplyByUniformScale
@@ -473,16 +473,16 @@ class Matrix2 {
    */
   static getScale(matrix, result) {
 
-    result.x = Cartesian2.magnitude(
-      Cartesian2.fromElements(matrix[0], matrix[1], scratchColumn)
+    result.x = Vector2.magnitude(
+      Vector2.fromElements(matrix[0], matrix[1], scratchColumn)
     );
-    result.y = Cartesian2.magnitude(
-      Cartesian2.fromElements(matrix[2], matrix[3], scratchColumn)
+    result.y = Vector2.magnitude(
+      Vector2.fromElements(matrix[2], matrix[3], scratchColumn)
     );
     return result;
   };
 
-  const scaleScratch3 = new Cartesian2();
+  const scaleScratch3 = new Vector2();
 
   /**
    * Computes the maximum scale assuming the matrix is an affine transformation.
@@ -493,10 +493,10 @@ class Matrix2 {
    */
   static getMaximumScale(matrix) {
     Matrix2.getScale(matrix, scaleScratch3);
-    return Cartesian2.maximumComponent(scaleScratch3);
+    return Vector2.maximumComponent(scaleScratch3);
   };
 
-  const scaleScratch4 = new Cartesian2();
+  const scaleScratch4 = new Vector2();
 
   /**
    * Sets the rotation assuming the matrix is an affine transformation.
@@ -604,9 +604,9 @@ class Matrix2 {
    * Computes the product of a matrix and a column vector.
    *
    * @param {Matrix2} matrix The matrix.
-   * @param {Cartesian2} cartesian The column.
-   * @param {Cartesian2} result The object onto which to store the result.
-   * @returns {Cartesian2} The modified result parameter.
+   * @param {Vector2} cartesian The column.
+   * @param {Vector2} result The object onto which to store the result.
+   * @returns {Vector2} The modified result parameter.
    */
   static multiplyByVector(matrix, cartesian, result) {
 
@@ -913,6 +913,6 @@ class Matrix2 {
   };
 }
 
-const scratchColumn = new Cartesian2();
-const scaleScratch5 = new Cartesian2();
+const scratchColumn = new Vector2();
+const scaleScratch5 = new Vector2();
 export default Matrix2;

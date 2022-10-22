@@ -1,5 +1,5 @@
 // @ts-nocheck
-import Cartesian3 from "./Cartesian3";
+import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";
@@ -91,15 +91,15 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
   /**
    * Computes a quaternion representing a rotation around an axis.
    *
-   * @param {Cartesian3} axis The axis of rotation.
+   * @param {Vector3} axis The axis of rotation.
    * @param {Number} angle The angle in radians to rotate around the axis.
    * @param {Quaternion} [result] The object onto which to store the result.
    * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
    */
-  static fromAxisAngle(axis: Cartesian3, angle: number): Quaternion {
+  static fromAxisAngle(axis: Vector3, angle: number): Quaternion {
     const halfAngle = angle / 2.0;
     const s = Math.sin(halfAngle);
-    fromAxisAngleScratch = Cartesian3.normalize(axis, fromAxisAngleScratch);
+    fromAxisAngleScratch = Vector3.normalize(axis, fromAxisAngleScratch);
 
     const x = fromAxisAngleScratch.x * s;
     const y = fromAxisAngleScratch.y * s;
@@ -207,12 +207,12 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
  */
   static fromHeadingPitchRoll(headingPitchRoll, result) {
     scratchRollQuaternion = Quaternion.fromAxisAngle(
-      Cartesian3.UNIT_X,
+      Vector3.UNIT_X,
       headingPitchRoll.roll,
       scratchHPRQuaternion
     );
     scratchPitchQuaternion = Quaternion.fromAxisAngle(
-      Cartesian3.UNIT_Y,
+      Vector3.UNIT_Y,
       -headingPitchRoll.pitch,
       result
     );
@@ -222,7 +222,7 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
       scratchPitchQuaternion
     );
     scratchHeadingQuaternion = Quaternion.fromAxisAngle(
-      Cartesian3.UNIT_Z,
+      Vector3.UNIT_Z,
       -headingPitchRoll.heading,
       scratchHPRQuaternion
     );
@@ -343,8 +343,8 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
     if (!defined(result)) {
       result = new Quaternion();
     }
-    Cartesian3.fromArray(array, 0, sampledQuaternionRotation);
-    const magnitude = Cartesian3.magnitude(sampledQuaternionRotation);
+    Vector3.fromArray(array, 0, sampledQuaternionRotation);
+    const magnitude = Vector3.magnitude(sampledQuaternionRotation);
 
     Quaternion.unpack(sourceArray, lastIndex * 4, sampledQuaternionQuaternion0);
 
@@ -593,8 +593,8 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
    * Computes the axis of rotation of the provided quaternion.
    *
    * @param {Quaternion} quaternion The quaternion to use.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static computeAxis(quaternion, result) {
 
@@ -708,9 +708,9 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
     Quaternion.multiply(qInv, q0, squadScratchQuaternion1);
     const cart1 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian1);
 
-    Cartesian3.add(cart0, cart1, cart0);
-    Cartesian3.multiplyByScalar(cart0, 0.25, cart0);
-    Cartesian3.negate(cart0, cart0);
+    Vector3.add(cart0, cart1, cart0);
+    Vector3.multiplyByScalar(cart0, 0.25, cart0);
+    Vector3.negate(cart0, cart0);
     Quaternion.exp(cart0, squadScratchQuaternion0);
 
     return Quaternion.multiply(q1, squadScratchQuaternion0, result);
@@ -887,8 +887,8 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
    * The logarithmic quaternion function.
    *
    * @param {Quaternion} quaternion The unit quaternion.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static log(quaternion, result) {
 
@@ -899,19 +899,19 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
       thetaOverSinTheta = theta / Math.sin(theta);
     }
 
-    return Cartesian3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
+    return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
   };
 
   /**
    * The exponential quaternion function.
    *
-   * @param {Cartesian3} cartesian The cartesian.
+   * @param {Vector3} cartesian The cartesian.
    * @param {Quaternion} result The object onto which to store the result.
    * @returns {Quaternion} The modified result parameter.
    */
   static exp(cartesian, result) {
 
-    const theta = Cartesian3.magnitude(cartesian);
+    const theta = Vector3.magnitude(cartesian);
     let sinThetaOverTheta = 0.0;
 
     if (theta !== 0.0) {
@@ -927,7 +927,7 @@ public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
   };
 }
 
-let fromAxisAngleScratch = new Cartesian3();
+let fromAxisAngleScratch = new Vector3();
 
 const fromRotationMatrixNext = [1, 2, 0];
 const fromRotationMatrixQuat = new Array(3);
@@ -938,8 +938,8 @@ let scratchHeadingQuaternion = new Quaternion();
 let scratchPitchQuaternion = new Quaternion();
 let scratchRollQuaternion = new Quaternion();
 
-const sampledQuaternionAxis = new Cartesian3();
-const sampledQuaternionRotation = new Cartesian3();
+const sampledQuaternionAxis = new Vector3();
+const sampledQuaternionRotation = new Vector3();
 const sampledQuaternionTempQuaternion = new Quaternion();
 const sampledQuaternionQuaternion0 = new Quaternion();
 const sampledQuaternionQuaternion0Conjugate = new Quaternion();
@@ -969,7 +969,7 @@ u[7] = opmu / (8.0 * 17.0);
 v[7] = (opmu * 8.0) / 17.0;
 
 
-const squadScratchCartesian0 = new Cartesian3();
-const squadScratchCartesian1 = new Cartesian3();
+const squadScratchCartesian0 = new Vector3();
+const squadScratchCartesian1 = new Vector3();
 const squadScratchQuaternion0 = new Quaternion();
 const squadScratchQuaternion1 = new Quaternion();

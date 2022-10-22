@@ -1,5 +1,5 @@
 // @ts-nocheck
-import Cartesian3 from "./Cartesian3";
+import Vector3 from "./Vector3";
 import defined from "../utils/defined";
 
 /**
@@ -7,11 +7,11 @@ import defined from "../utils/defined";
  * @alias Ray
  * @constructor
  *
- * @param {Cartesian3} [origin=Cartesian3.ZERO] The origin of the ray.
- * @param {Cartesian3} [direction=Cartesian3.ZERO] The direction of the ray.
+ * @param {Vector3} [origin=Vector3.ZERO] The origin of the ray.
+ * @param {Vector3} [direction=Vector3.ZERO] The direction of the ray.
  */
 export default class Ray{
-   constructor(public origin:Cartesian3=Cartesian3.ZERO, public direction:Cartesian3=Cartesian3.ZERO ){
+   constructor(public origin:Vector3=Vector3.ZERO, public direction:Vector3=Vector3.ZERO ){
     
    }
    /**
@@ -28,8 +28,8 @@ static clone(ray, result) {
   if (!defined(result)) {
     return new Ray(ray.origin, ray.direction);
   }
-  result.origin = Cartesian3.clone(ray.origin);
-  result.direction = Cartesian3.clone(ray.direction);
+  result.origin = Vector3.clone(ray.origin);
+  result.direction = Vector3.clone(ray.direction);
   return result;
 };
 
@@ -39,8 +39,8 @@ static clone(ray, result) {
  *
  * @param {Ray} ray The ray.
  * @param {Number} t A scalar value.
- * @param {Cartesian3} [result] The object in which the result will be stored.
- * @returns {Cartesian3} The modified result parameter, or a new instance if none was provided.
+ * @param {Vector3} [result] The object in which the result will be stored.
+ * @returns {Vector3} The modified result parameter, or a new instance if none was provided.
  *
  * @example
  * //Get the first intersection point of a ray and an ellipsoid.
@@ -49,11 +49,11 @@ static clone(ray, result) {
  */
 static getPoint(ray, t, result) {
   if (!defined(result)) {
-    result = new Cartesian3();
+    result = new Vector3();
   }
 
-  result = Cartesian3.multiplyByScalar(ray.direction, t, result);
-  return Cartesian3.add(ray.origin, result, result);
+  result = Vector3.multiplyByScalar(ray.direction, t, result);
+  return Vector3.add(ray.origin, result, result);
 }; 
 }
 

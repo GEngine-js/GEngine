@@ -1,6 +1,6 @@
 // @ts-nocheck
-import Cartesian3 from "./Cartesian3";
-import Cartesian4 from "./Cartesian4";
+import Vector3 from "./Vector3";
+import Vector4 from "./Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";
@@ -592,16 +592,16 @@ class Matrix4 {
 
   /**
    * Computes a Matrix4 instance from a Matrix3 representing the rotation
-   * and a Cartesian3 representing the translation.
+   * and a Vector3 representing the translation.
    *
    * @param {Matrix3} rotation The upper left portion of the matrix representing the rotation.
-   * @param {Cartesian3} [translation=Cartesian3.ZERO] The upper right portion of the matrix representing the translation.
+   * @param {Vector3} [translation=Vector3.ZERO] The upper right portion of the matrix representing the translation.
    * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
    */
   static fromRotationTranslation(rotation, translation, result) {
 
-    translation = defaultValue(translation, Cartesian3.ZERO);
+    translation = defaultValue(translation, Vector3.ZERO);
 
     if (!defined(result)) {
       return new Matrix4(
@@ -647,17 +647,17 @@ class Matrix4 {
    * Computes a Matrix4 instance from a translation, rotation, and scale (TRS)
    * representation with the rotation represented as a quaternion.
    *
-   * @param {Cartesian3} translation The translation transformation.
+   * @param {Vector3} translation The translation transformation.
    * @param {Quaternion} rotation The rotation transformation.
-   * @param {Cartesian3} scale The non-uniform scale transformation.
+   * @param {Vector3} scale The non-uniform scale transformation.
    * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
    *
    * @example
    * const result = Cesium.Matrix4.fromTranslationQuaternionRotationScale(
-   *   new Cesium.Cartesian3(1.0, 2.0, 3.0), // translation
+   *   new Cesium.Vector3(1.0, 2.0, 3.0), // translation
    *   Cesium.Quaternion.IDENTITY,           // rotation
-   *   new Cesium.Cartesian3(7.0, 8.0, 9.0), // scale
+   *   new Cesium.Vector3(7.0, 8.0, 9.0), // scale
    *   result);
    */
   static fromTranslationQuaternionRotationScale(
@@ -739,9 +739,9 @@ class Matrix4 {
   };
 
   /**
-   * Creates a Matrix4 instance from a Cartesian3 representing the translation.
+   * Creates a Matrix4 instance from a Vector3 representing the translation.
    *
-   * @param {Cartesian3} translation The upper right portion of the matrix representing the translation.
+   * @param {Vector3} translation The upper right portion of the matrix representing the translation.
    * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
    *
@@ -755,7 +755,7 @@ class Matrix4 {
   /**
    * Computes a Matrix4 instance representing a non-uniform scale.
    *
-   * @param {Cartesian3} scale The x, y, and z scale factors.
+   * @param {Vector3} scale The x, y, and z scale factors.
    * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
    *
@@ -765,7 +765,7 @@ class Matrix4 {
    * //   [0.0, 8.0, 0.0, 0.0]
    * //   [0.0, 0.0, 9.0, 0.0]
    * //   [0.0, 0.0, 0.0, 1.0]
-   * const m = Cesium.Matrix4.fromScale(new Cesium.Cartesian3(7.0, 8.0, 9.0));
+   * const m = Cesium.Matrix4.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
    */
   static fromScale(scale, result) {
 
@@ -916,13 +916,13 @@ class Matrix4 {
     const direction = camera.direction;
     const up = camera.up;
 
-    Cartesian3.normalize(direction, fromCameraF);
-    Cartesian3.normalize(
-      Cartesian3.cross(fromCameraF, up, fromCameraR),
+    Vector3.normalize(direction, fromCameraF);
+    Vector3.normalize(
+      Vector3.cross(fromCameraF, up, fromCameraR),
       fromCameraR
     );
-    Cartesian3.normalize(
-      Cartesian3.cross(fromCameraR, fromCameraF, fromCameraU),
+    Vector3.normalize(
+      Vector3.cross(fromCameraR, fromCameraF, fromCameraU),
       fromCameraU
     );
 
@@ -1264,10 +1264,10 @@ class Matrix4 {
   /**
    * Computes a Matrix4 instance that transforms from world space to view space.
    *
-   * @param {Cartesian3} position The position of the camera.
-   * @param {Cartesian3} direction The forward direction.
-   * @param {Cartesian3} up The up direction.
-   * @param {Cartesian3} right The right direction.
+   * @param {Vector3} position The position of the camera.
+   * @param {Vector3} direction The forward direction.
+   * @param {Vector3} up The up direction.
+   * @param {Vector3} right The right direction.
    * @param {Matrix4} result The object in which the result will be stored.
    * @returns {Matrix4} The modified result parameter.
    */
@@ -1285,9 +1285,9 @@ class Matrix4 {
     result[9] = up.z;
     result[10] = -direction.z;
     result[11] = 0.0;
-    result[12] = -Cartesian3.dot(right, position);
-    result[13] = -Cartesian3.dot(up, position);
-    result[14] = Cartesian3.dot(direction, position);
+    result[12] = -Vector3.dot(right, position);
+    result[13] = -Vector3.dot(up, position);
+    result[14] = Vector3.dot(direction, position);
     result[15] = 1.0;
     return result;
   };
@@ -1374,28 +1374,28 @@ class Matrix4 {
   };
 
   /**
-   * Retrieves a copy of the matrix column at the provided index as a Cartesian4 instance.
+   * Retrieves a copy of the matrix column at the provided index as a Vector4 instance.
    *
    * @param {Matrix4} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to retrieve.
-   * @param {Cartesian4} result The object onto which to store the result.
-   * @returns {Cartesian4} The modified result parameter.
+   * @param {Vector4} result The object onto which to store the result.
+   * @returns {Vector4} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, 2, or 3.
    *
    * @example
-   * //returns a Cartesian4 instance with values from the specified column
+   * //returns a Vector4 instance with values from the specified column
    * // m = [10.0, 11.0, 12.0, 13.0]
    * //     [14.0, 15.0, 16.0, 17.0]
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
    * //Example 1: Creates an instance of Cartesian
-   * const a = Cesium.Matrix4.getColumn(m, 2, new Cesium.Cartesian4());
+   * const a = Cesium.Matrix4.getColumn(m, 2, new Cesium.Vector4());
    *
    * @example
    * //Example 2: Sets values for Cartesian instance
-   * const a = new Cesium.Cartesian4();
+   * const a = new Cesium.Vector4();
    * Cesium.Matrix4.getColumn(m, 2, a);
    *
    * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
@@ -1416,24 +1416,24 @@ class Matrix4 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Cartesian4 instance.
+   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector4 instance.
    *
    * @param {Matrix4} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to set.
-   * @param {Cartesian4} cartesian The Cartesian whose values will be assigned to the specified column.
+   * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified column.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, 2, or 3.
    *
    * @example
-   * //creates a new Matrix4 instance with new column values from the Cartesian4 instance
+   * //creates a new Matrix4 instance with new column values from the Vector4 instance
    * // m = [10.0, 11.0, 12.0, 13.0]
    * //     [14.0, 15.0, 16.0, 17.0]
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.setColumn(m, 2, new Cesium.Cartesian4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+   * const a = Cesium.Matrix4.setColumn(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
    *
    * // m remains the same
    * // a = [10.0, 11.0, 99.0, 13.0]
@@ -1453,28 +1453,28 @@ class Matrix4 {
   };
 
   /**
-   * Retrieves a copy of the matrix row at the provided index as a Cartesian4 instance.
+   * Retrieves a copy of the matrix row at the provided index as a Vector4 instance.
    *
    * @param {Matrix4} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to retrieve.
-   * @param {Cartesian4} result The object onto which to store the result.
-   * @returns {Cartesian4} The modified result parameter.
+   * @param {Vector4} result The object onto which to store the result.
+   * @returns {Vector4} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, 2, or 3.
    *
    * @example
-   * //returns a Cartesian4 instance with values from the specified column
+   * //returns a Vector4 instance with values from the specified column
    * // m = [10.0, 11.0, 12.0, 13.0]
    * //     [14.0, 15.0, 16.0, 17.0]
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
    * //Example 1: Returns an instance of Cartesian
-   * const a = Cesium.Matrix4.getRow(m, 2, new Cesium.Cartesian4());
+   * const a = Cesium.Matrix4.getRow(m, 2, new Cesium.Vector4());
    *
    * @example
    * //Example 2: Sets values for a Cartesian instance
-   * const a = new Cesium.Cartesian4();
+   * const a = new Cesium.Vector4();
    * Cesium.Matrix4.getRow(m, 2, a);
    *
    * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
@@ -1494,24 +1494,24 @@ class Matrix4 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Cartesian4 instance.
+   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector4 instance.
    *
    * @param {Matrix4} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to set.
-   * @param {Cartesian4} cartesian The Cartesian whose values will be assigned to the specified row.
+   * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified row.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, 2, or 3.
    *
    * @example
-   * //create a new Matrix4 instance with new row values from the Cartesian4 instance
+   * //create a new Matrix4 instance with new row values from the Vector4 instance
    * // m = [10.0, 11.0, 12.0, 13.0]
    * //     [14.0, 15.0, 16.0, 17.0]
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.setRow(m, 2, new Cesium.Cartesian4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+   * const a = Cesium.Matrix4.setRow(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
    *
    * // m remains the same
    * // a = [10.0, 11.0, 12.0, 13.0]
@@ -1534,7 +1534,7 @@ class Matrix4 {
    * matrix with the provided translation. This assumes the matrix is an affine transformation.
    *
    * @param {Matrix4} matrix The matrix to use.
-   * @param {Cartesian3} translation The translation that replaces the translation of the provided matrix.
+   * @param {Vector3} translation The translation that replaces the translation of the provided matrix.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    */
@@ -1570,7 +1570,7 @@ class Matrix4 {
    * This assumes the matrix is an affine transformation.
    *
    * @param {Matrix4} matrix The matrix to use.
-   * @param {Cartesian3} scale The scale that replaces the scale of the provided matrix.
+   * @param {Vector3} scale The scale that replaces the scale of the provided matrix.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    *
@@ -1664,8 +1664,8 @@ class Matrix4 {
    * Extracts the non-uniform scale assuming the matrix is an affine transformation.
    *
    * @param {Matrix4} matrix The matrix.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter
    *
    * @see Matrix4.multiplyByScale
    * @see Matrix4.multiplyByUniformScale
@@ -1676,14 +1676,14 @@ class Matrix4 {
    */
   static getScale(matrix, result) {
 
-    result.x = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
+    result.x = Vector3.magnitude(
+      Vector3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
     );
-    result.y = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[4], matrix[5], matrix[6], scratchColumn)
+    result.y = Vector3.magnitude(
+      Vector3.fromElements(matrix[4], matrix[5], matrix[6], scratchColumn)
     );
-    result.z = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[8], matrix[9], matrix[10], scratchColumn)
+    result.z = Vector3.magnitude(
+      Vector3.fromElements(matrix[8], matrix[9], matrix[10], scratchColumn)
     );
     return result;
   };
@@ -1699,7 +1699,7 @@ class Matrix4 {
    */
   static getMaximumScale(matrix) {
     Matrix4.getScale(matrix, scaleScratch3);
-    return Cartesian3.maximumComponent(scaleScratch3);
+    return Vector3.maximumComponent(scaleScratch3);
   };
 
 
@@ -1943,7 +1943,7 @@ class Matrix4 {
    *
    * @example
    * const m1 = new Cesium.Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-   * const m2 = Cesium.Transforms.eastNorthUpToFixedFrame(new Cesium.Cartesian3(1.0, 1.0, 1.0));
+   * const m2 = Cesium.Transforms.eastNorthUpToFixedFrame(new Cesium.Vector3(1.0, 1.0, 1.0));
    * const m3 = Cesium.Matrix4.multiplyTransformation(m1, m2, new Cesium.Matrix4());
    */
   static multiplyTransformation(left, right, result) {
@@ -2081,11 +2081,11 @@ class Matrix4 {
 
   /**
    * Multiplies a transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-   * by an implicit translation matrix defined by a {@link Cartesian3}.  This is an optimization
+   * by an implicit translation matrix defined by a {@link Vector3}.  This is an optimization
    * for <code>Matrix4.multiply(m, Matrix4.fromTranslation(position), m);</code> with less allocations and arithmetic operations.
    *
    * @param {Matrix4} matrix The matrix on the left-hand side.
-   * @param {Cartesian3} translation The translation on the right-hand side.
+   * @param {Vector3} translation The translation on the right-hand side.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    *
@@ -2130,7 +2130,7 @@ class Matrix4 {
    * This function performs fewer allocations and arithmetic operations.
    *
    * @param {Matrix4} matrix The affine matrix on the left-hand side.
-   * @param {Cartesian3} scale The non-uniform scale on the right-hand side.
+   * @param {Vector3} scale The non-uniform scale on the right-hand side.
    * @param {Matrix4} result The object onto which to store the result.
    * @returns {Matrix4} The modified result parameter.
    *
@@ -2152,7 +2152,7 @@ class Matrix4 {
     const scaleY = scale.y;
     const scaleZ = scale.z;
 
-    // Faster than Cartesian3.equals
+    // Faster than Vector3.equals
     if (scaleX === 1.0 && scaleY === 1.0 && scaleZ === 1.0) {
       return Matrix4.clone(matrix, result);
     }
@@ -2228,9 +2228,9 @@ class Matrix4 {
    * Computes the product of a matrix and a column vector.
    *
    * @param {Matrix4} matrix The matrix.
-   * @param {Cartesian4} cartesian The vector.
-   * @param {Cartesian4} result The object onto which to store the result.
-   * @returns {Cartesian4} The modified result parameter.
+   * @param {Vector4} cartesian The vector.
+   * @param {Vector4} result The object onto which to store the result.
+   * @returns {Vector4} The modified result parameter.
    */
   static multiplyByVector(matrix, cartesian, result) {
 
@@ -2252,20 +2252,20 @@ class Matrix4 {
   };
 
   /**
-   * Computes the product of a matrix and a {@link Cartesian3}.  This is equivalent to calling {@link Matrix4.multiplyByVector}
-   * with a {@link Cartesian4} with a <code>w</code> component of zero.
+   * Computes the product of a matrix and a {@link Vector3}.  This is equivalent to calling {@link Matrix4.multiplyByVector}
+   * with a {@link Vector4} with a <code>w</code> component of zero.
    *
    * @param {Matrix4} matrix The matrix.
-   * @param {Cartesian3} cartesian The point.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The point.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    *
    * @example
-   * const p = new Cesium.Cartesian3(1.0, 2.0, 3.0);
-   * const result = Cesium.Matrix4.multiplyByPointAsVector(matrix, p, new Cesium.Cartesian3());
+   * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
+   * const result = Cesium.Matrix4.multiplyByPointAsVector(matrix, p, new Cesium.Vector3());
    * // A shortcut for
-   * //   Cartesian3 p = ...
-   * //   Cesium.Matrix4.multiplyByVector(matrix, new Cesium.Cartesian4(p.x, p.y, p.z, 0.0), result);
+   * //   Vector3 p = ...
+   * //   Cesium.Matrix4.multiplyByVector(matrix, new Cesium.Vector4(p.x, p.y, p.z, 0.0), result);
    */
   static multiplyByPointAsVector(matrix, cartesian, result) {
 
@@ -2284,17 +2284,17 @@ class Matrix4 {
   };
 
   /**
-   * Computes the product of a matrix and a {@link Cartesian3}. This is equivalent to calling {@link Matrix4.multiplyByVector}
-   * with a {@link Cartesian4} with a <code>w</code> component of 1, but returns a {@link Cartesian3} instead of a {@link Cartesian4}.
+   * Computes the product of a matrix and a {@link Vector3}. This is equivalent to calling {@link Matrix4.multiplyByVector}
+   * with a {@link Vector4} with a <code>w</code> component of 1, but returns a {@link Vector3} instead of a {@link Vector4}.
    *
    * @param {Matrix4} matrix The matrix.
-   * @param {Cartesian3} cartesian The point.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The point.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    *
    * @example
-   * const p = new Cesium.Cartesian3(1.0, 2.0, 3.0);
-   * const result = Cesium.Matrix4.multiplyByPoint(matrix, p, new Cesium.Cartesian3());
+   * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
+   * const result = Cesium.Matrix4.multiplyByPoint(matrix, p, new Cesium.Vector3());
    */
   static multiplyByPoint(matrix, cartesian, result) {
 
@@ -2599,8 +2599,8 @@ class Matrix4 {
    * Gets the translation portion of the provided matrix, assuming the matrix is an affine transformation matrix.
    *
    * @param {Matrix4} matrix The matrix to use.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static getTranslation(matrix, result) {
 
@@ -2805,7 +2805,7 @@ class Matrix4 {
           scratchMatrix3Zero,
           CesiumMath.EPSILON7
         ) &&
-        Cartesian4.equals(
+        Vector4.equals(
           Matrix4.getRow(matrix, 3, scratchBottomRow),
           scratchExpectedBottomRow
         )
@@ -2956,20 +2956,20 @@ static equalsArray(matrix, array, offset) {
 
 const scratchTransposeMatrix = new Matrix4();
 
-const fromCameraF = new Cartesian3();
-const fromCameraR = new Cartesian3();
-const fromCameraU = new Cartesian3();
+const fromCameraF = new Vector3();
+const fromCameraR = new Vector3();
+const fromCameraU = new Vector3();
 
-const scaleScratch1 = new Cartesian3();
+const scaleScratch1 = new Vector3();
 
-const scaleScratch2 = new Cartesian3();
-const scratchColumn = new Cartesian3();
-const scaleScratch3 = new Cartesian3();
-const scaleScratch4 = new Cartesian3();
-const scaleScratch5 = new Cartesian3();
+const scaleScratch2 = new Vector3();
+const scratchColumn = new Vector3();
+const scaleScratch3 = new Vector3();
+const scaleScratch4 = new Vector3();
+const scaleScratch5 = new Vector3();
 const scratchInverseRotation = new Matrix3();
 const scratchMatrix3Zero = new Matrix3();
-const scratchBottomRow = new Cartesian4();
-const scratchExpectedBottomRow = new Cartesian4(0.0, 0.0, 0.0, 1.0);
+const scratchBottomRow = new Vector4();
+const scratchExpectedBottomRow = new Vector4(0.0, 0.0, 0.0, 1.0);
 
 export default Matrix4;

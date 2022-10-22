@@ -1,11 +1,10 @@
-// @ts-nocheck
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";
 
 /**
  * A 3D Cartesian point.
- * @alias Cartesian3
+ * @alias Vector3
  * @constructor
  *
  * @param {Number} [x=0.0] The X component.
@@ -16,48 +15,51 @@ import CesiumMath from "./Math";
  * @see Cartesian4
  * @see Packable
  */
-class Cartesian3 {
+class Vector3 {
   /**
- * An immutable Cartesian3 instance initialized to (0.0, 0.0, 0.0).
+ * An immutable Vector3 instance initialized to (0.0, 0.0, 0.0).
  *
- * @type {Cartesian3}
+ * @type {Vector3}
  * @constant
  */
-  public static ZERO = Object.freeze(new Cartesian3(0.0, 0.0, 0.0));
+  public static ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
 
   /**
-   * An immutable Cartesian3 instance initialized to (1.0, 1.0, 1.0).
+   * An immutable Vector3 instance initialized to (1.0, 1.0, 1.0).
    *
-   * @type {Cartesian3}
+   * @type {Vector3}
    * @constant
    */
-  public static ONE = Object.freeze(new Cartesian3(1.0, 1.0, 1.0));
+  public static ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
 
   /**
-   * An immutable Cartesian3 instance initialized to (1.0, 0.0, 0.0).
+   * An immutable Vector3 instance initialized to (1.0, 0.0, 0.0).
    *
-   * @type {Cartesian3}
+   * @type {Vector3}
    * @constant
    */
-  public static UNIT_X = Object.freeze(new Cartesian3(1.0, 0.0, 0.0));
+  public static UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
 
   /**
-   * An immutable Cartesian3 instance initialized to (0.0, 1.0, 0.0).
+   * An immutable Vector3 instance initialized to (0.0, 1.0, 0.0).
    *
-   * @type {Cartesian3}
+   * @type {Vector3}
    * @constant
    */
-  public static UNIT_Y = Object.freeze(new Cartesian3(0.0, 1.0, 0.0));
+  public static UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
 
   /**
-   * An immutable Cartesian3 instance initialized to (0.0, 0.0, 1.0).
+   * An immutable Vector3 instance initialized to (0.0, 0.0, 1.0).
    *
-   * @type {Cartesian3}
+   * @type {Vector3}
    * @constant
    */
-  public static UNIT_Z = Object.freeze(new Cartesian3(0.0, 0.0, 1.0));
+  public static UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
+  x: any;
+  y: any;
+  z: any;
 
-  constructor(x, y, z) {
+  constructor(x:number=0, y:number=0, z:number=0) {
 
     this.x = defaultValue(x, 0.0);
 
@@ -68,24 +70,24 @@ class Cartesian3 {
     this.z = defaultValue(z, 0.0);
   }
   /**
- * Duplicates this Cartesian3 instance.
+ * Duplicates this Vector3 instance.
  *
- * @param {Cartesian3} [result] The object onto which to store the result.
- * @returns {Cartesian3} The modified result parameter or a new Cartesian3 instance if one was not provided.
+ * @param {Vector3} [result] The object onto which to store the result.
+ * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
  */
   clone(result) {
-    return Cartesian3.clone(this, result);
+    return Vector3.clone(this, result);
   };
 
   /**
    * Compares this Cartesian against the provided Cartesian componentwise and returns
    * <code>true</code> if they are equal, <code>false</code> otherwise.
    *
-   * @param {Cartesian3} [right] The right hand side Cartesian.
+   * @param {Vector3} [right] The right hand side Cartesian.
    * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
    */
   equals(right) {
-    return Cartesian3.equals(this, right);
+    return Vector3.equals(this, right);
   };
 
   /**
@@ -93,7 +95,7 @@ class Cartesian3 {
    * <code>true</code> if they pass an absolute or relative tolerance test,
    * <code>false</code> otherwise.
    *
-   * @param {Cartesian3} [right] The right hand side Cartesian.
+   * @param {Vector3} [right] The right hand side Cartesian.
    * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
    * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
    * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
@@ -103,7 +105,7 @@ class Cartesian3 {
     relativeEpsilon,
     absoluteEpsilon
   ) {
-    return Cartesian3.equalsEpsilon(
+    return Vector3.equalsEpsilon(
       this,
       right,
       relativeEpsilon,
@@ -120,16 +122,16 @@ class Cartesian3 {
     return `(${this.x}, ${this.y}, ${this.z})`;
   };
   /**
- * Converts the provided Spherical into Cartesian3 coordinates.
+ * Converts the provided Spherical into Vector3 coordinates.
  *
- * @param {Spherical} spherical The Spherical to be converted to Cartesian3.
- * @param {Cartesian3} [result] The object onto which to store the result.
- * @returns {Cartesian3} The modified result parameter or a new Cartesian3 instance if one was not provided.
+ * @param {Spherical} spherical The Spherical to be converted to Vector3.
+ * @param {Vector3} [result] The object onto which to store the result.
+ * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
  */
   static fromSpherical(spherical, result) {
 
     if (!defined(result)) {
-      result = new Cartesian3();
+      result = new Vector3();
     }
 
     const clock = spherical.clock;
@@ -143,17 +145,17 @@ class Cartesian3 {
   };
 
   /**
-   * Creates a Cartesian3 instance from x, y and z coordinates.
+   * Creates a Vector3 instance from x, y and z coordinates.
    *
    * @param {Number} x The x coordinate.
    * @param {Number} y The y coordinate.
    * @param {Number} z The z coordinate.
-   * @param {Cartesian3} [result] The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter or a new Cartesian3 instance if one was not provided.
+   * @param {Vector3} [result] The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
    */
   static fromElements(x, y, z, result) {
     if (!defined(result)) {
-      return new Cartesian3(x, y, z);
+      return new Vector3(x, y, z);
     }
 
     result.x = x;
@@ -163,18 +165,18 @@ class Cartesian3 {
   };
 
   /**
-   * Duplicates a Cartesian3 instance.
+   * Duplicates a Vector3 instance.
    *
-   * @param {Cartesian3} cartesian The Cartesian to duplicate.
-   * @param {Cartesian3} [result] The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter or a new Cartesian3 instance if one was not provided. (Returns undefined if cartesian is undefined)
+   * @param {Vector3} cartesian The Cartesian to duplicate.
+   * @param {Vector3} [result] The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided. (Returns undefined if cartesian is undefined)
    */
   static clone(cartesian, result) {
     if (!defined(cartesian)) {
       return undefined;
     }
     if (!defined(result)) {
-      return new Cartesian3(cartesian.x, cartesian.y, cartesian.z);
+      return new Vector3(cartesian.x, cartesian.y, cartesian.z);
     }
 
     result.x = cartesian.x;
@@ -186,7 +188,7 @@ class Cartesian3 {
   /**
    * Stores the provided instance into the provided array.
    *
-   * @param {Cartesian3} value The value to pack.
+   * @param {Vector3} value The value to pack.
    * @param {Number[]} array The array to pack into.
    * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
    *
@@ -208,15 +210,15 @@ class Cartesian3 {
    *
    * @param {Number[]} array The packed array.
    * @param {Number} [startingIndex=0] The starting index of the element to be unpacked.
-   * @param {Cartesian3} [result] The object into which to store the result.
-   * @returns {Cartesian3} The modified result parameter or a new Cartesian3 instance if one was not provided.
+   * @param {Vector3} [result] The object into which to store the result.
+   * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
    */
   static unpack(array, startingIndex, result) {
 
     startingIndex = defaultValue(startingIndex, 0);
 
     if (!defined(result)) {
-      result = new Cartesian3();
+      result = new Vector3();
     }
     result.x = array[startingIndex++];
     result.y = array[startingIndex++];
@@ -227,7 +229,7 @@ class Cartesian3 {
   /**
    * Flattens an array of Cartesian3s into an array of components.
    *
-   * @param {Cartesian3[]} array The array of cartesians to pack.
+   * @param {Vector3[]} array The array of cartesians to pack.
    * @param {Number[]} [result] The array onto which to store the result. If this is a typed array, it must have array.length * 3 components, else a {@link DeveloperError} will be thrown. If it is a regular array, it will be resized to have (array.length * 3) elements.
    * @returns {Number[]} The packed array.
    */
@@ -248,7 +250,7 @@ class Cartesian3 {
     }
 
     for (let i = 0; i < length; ++i) {
-      Cartesian3.pack(array[i], result, i * 3);
+      Vector3.pack(array[i], result, i * 3);
     }
     return result;
   };
@@ -257,8 +259,8 @@ class Cartesian3 {
    * Unpacks an array of cartesian components into an array of Cartesian3s.
    *
    * @param {Number[]} array The array of components to unpack.
-   * @param {Cartesian3[]} [result] The array onto which to store the result.
-   * @returns {Cartesian3[]} The unpacked array.
+   * @param {Vector3[]} [result] The array onto which to store the result.
+   * @returns {Vector3[]} The unpacked array.
    */
   static unpackArray(array, result) {
     if (array.length % 3 !== 0) {
@@ -275,7 +277,7 @@ class Cartesian3 {
 
     for (let i = 0; i < length; i += 3) {
       const index = i / 3;
-      result[index] = Cartesian3.unpack(array, i, result[index]);
+      result[index] = Vector3.unpack(array, i, result[index]);
     }
     return result;
   };
@@ -283,7 +285,7 @@ class Cartesian3 {
   /**
    * Computes the value of the maximum component for the supplied Cartesian.
    *
-   * @param {Cartesian3} cartesian The cartesian to use.
+   * @param {Vector3} cartesian The cartesian to use.
    * @returns {Number} The value of the maximum component.
    */
   static maximumComponent(cartesian) {
@@ -294,7 +296,7 @@ class Cartesian3 {
   /**
    * Computes the value of the minimum component for the supplied Cartesian.
    *
-   * @param {Cartesian3} cartesian The cartesian to use.
+   * @param {Vector3} cartesian The cartesian to use.
    * @returns {Number} The value of the minimum component.
    */
   static minimumComponent(cartesian) {
@@ -305,10 +307,10 @@ class Cartesian3 {
   /**
    * Compares two Cartesians and computes a Cartesian which contains the minimum components of the supplied Cartesians.
    *
-   * @param {Cartesian3} first A cartesian to compare.
-   * @param {Cartesian3} second A cartesian to compare.
-   * @param {Cartesian3} result The object into which to store the result.
-   * @returns {Cartesian3} A cartesian with the minimum components.
+   * @param {Vector3} first A cartesian to compare.
+   * @param {Vector3} second A cartesian to compare.
+   * @param {Vector3} result The object into which to store the result.
+   * @returns {Vector3} A cartesian with the minimum components.
    */
   static minimumByComponent(first, second, result) {
 
@@ -322,10 +324,10 @@ class Cartesian3 {
   /**
    * Compares two Cartesians and computes a Cartesian which contains the maximum components of the supplied Cartesians.
    *
-   * @param {Cartesian3} first A cartesian to compare.
-   * @param {Cartesian3} second A cartesian to compare.
-   * @param {Cartesian3} result The object into which to store the result.
-   * @returns {Cartesian3} A cartesian with the maximum components.
+   * @param {Vector3} first A cartesian to compare.
+   * @param {Vector3} second A cartesian to compare.
+   * @param {Vector3} result The object into which to store the result.
+   * @returns {Vector3} A cartesian with the maximum components.
    */
   static maximumByComponent(first, second, result) {
 
@@ -338,11 +340,11 @@ class Cartesian3 {
   /**
    * Constrain a value to lie between two values.
    *
-   * @param {Cartesian3} cartesian The value to clamp.
-   * @param {Cartesian3} min The minimum bound.
-   * @param {Cartesian3} max The maximum bound.
-   * @param {Cartesian3} result The object into which to store the result.
-   * @returns {Cartesian3} The clamped value such that min <= value <= max.
+   * @param {Vector3} cartesian The value to clamp.
+   * @param {Vector3} min The minimum bound.
+   * @param {Vector3} max The maximum bound.
+   * @param {Vector3} result The object into which to store the result.
+   * @returns {Vector3} The clamped value such that min <= value <= max.
    */
   static clamp(value, min, max, result) {
 
@@ -360,7 +362,7 @@ class Cartesian3 {
   /**
    * Computes the provided Cartesian's squared magnitude.
    *
-   * @param {Cartesian3} cartesian The Cartesian instance whose squared magnitude is to be computed.
+   * @param {Vector3} cartesian The Cartesian instance whose squared magnitude is to be computed.
    * @returns {Number} The squared magnitude.
    */
   static magnitudeSquared(cartesian) {
@@ -374,58 +376,58 @@ class Cartesian3 {
   /**
    * Computes the Cartesian's magnitude (length).
    *
-   * @param {Cartesian3} cartesian The Cartesian instance whose magnitude is to be computed.
+   * @param {Vector3} cartesian The Cartesian instance whose magnitude is to be computed.
    * @returns {Number} The magnitude.
    */
   static magnitude(cartesian) {
-    return Math.sqrt(Cartesian3.magnitudeSquared(cartesian));
+    return Math.sqrt(Vector3.magnitudeSquared(cartesian));
   };
 
   /**
    * Computes the distance between two points.
    *
-   * @param {Cartesian3} left The first point to compute the distance from.
-   * @param {Cartesian3} right The second point to compute the distance to.
+   * @param {Vector3} left The first point to compute the distance from.
+   * @param {Vector3} right The second point to compute the distance to.
    * @returns {Number} The distance between two points.
    *
    * @example
    * // Returns 1.0
-   * const d = Cesium.Cartesian3.distance(new Cesium.Cartesian3(1.0, 0.0, 0.0), new Cesium.Cartesian3(2.0, 0.0, 0.0));
+   * const d = Cesium.Vector3.distance(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(2.0, 0.0, 0.0));
    */
   static distance(left, right) {
 
-    Cartesian3.subtract(left, right, distanceScratch);
-    return Cartesian3.magnitude(distanceScratch);
+    Vector3.subtract(left, right, distanceScratch);
+    return Vector3.magnitude(distanceScratch);
   };
 
   /**
    * Computes the squared distance between two points.  Comparing squared distances
-   * using this function is more efficient than comparing distances using {@link Cartesian3#distance}.
+   * using this function is more efficient than comparing distances using {@link Vector3#distance}.
    *
-   * @param {Cartesian3} left The first point to compute the distance from.
-   * @param {Cartesian3} right The second point to compute the distance to.
+   * @param {Vector3} left The first point to compute the distance from.
+   * @param {Vector3} right The second point to compute the distance to.
    * @returns {Number} The distance between two points.
    *
    * @example
    * // Returns 4.0, not 2.0
-   * const d = Cesium.Cartesian3.distanceSquared(new Cesium.Cartesian3(1.0, 0.0, 0.0), new Cesium.Cartesian3(3.0, 0.0, 0.0));
+   * const d = Cesium.Vector3.distanceSquared(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(3.0, 0.0, 0.0));
    */
   static distanceSquared(left, right) {
 
-    Cartesian3.subtract(left, right, distanceScratch);
-    return Cartesian3.magnitudeSquared(distanceScratch);
+    Vector3.subtract(left, right, distanceScratch);
+    return Vector3.magnitudeSquared(distanceScratch);
   };
 
   /**
    * Computes the normalized form of the supplied Cartesian.
    *
-   * @param {Cartesian3} cartesian The Cartesian to be normalized.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The Cartesian to be normalized.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static normalize(cartesian, result) {
 
-    const magnitude = Cartesian3.magnitude(cartesian);
+    const magnitude = Vector3.magnitude(cartesian);
 
     result.x = cartesian.x / magnitude;
     result.y = cartesian.y / magnitude;
@@ -443,8 +445,8 @@ class Cartesian3 {
   /**
    * Computes the dot (scalar) product of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
    * @returns {Number} The dot product.
    */
   static dot(left, right) {
@@ -455,10 +457,10 @@ class Cartesian3 {
   /**
    * Computes the componentwise product of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static multiplyComponents(left, right, result) {
 
@@ -471,10 +473,10 @@ class Cartesian3 {
   /**
    * Computes the componentwise quotient of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static divideComponents(left, right, result) {
 
@@ -487,10 +489,10 @@ class Cartesian3 {
   /**
    * Computes the componentwise sum of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static add(left, right, result) {
 
@@ -503,10 +505,10 @@ class Cartesian3 {
   /**
    * Computes the componentwise difference of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static subtract(left, right, result) {
 
@@ -519,10 +521,10 @@ class Cartesian3 {
   /**
    * Multiplies the provided Cartesian componentwise by the provided scalar.
    *
-   * @param {Cartesian3} cartesian The Cartesian to be scaled.
+   * @param {Vector3} cartesian The Cartesian to be scaled.
    * @param {Number} scalar The scalar to multiply with.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static multiplyByScalar(cartesian, scalar, result) {
 
@@ -535,10 +537,10 @@ class Cartesian3 {
   /**
    * Divides the provided Cartesian componentwise by the provided scalar.
    *
-   * @param {Cartesian3} cartesian The Cartesian to be divided.
+   * @param {Vector3} cartesian The Cartesian to be divided.
    * @param {Number} scalar The scalar to divide by.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static divideByScalar(cartesian, scalar, result) {
 
@@ -551,9 +553,9 @@ class Cartesian3 {
   /**
    * Negates the provided Cartesian.
    *
-   * @param {Cartesian3} cartesian The Cartesian to be negated.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The Cartesian to be negated.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static negate(cartesian, result) {
 
@@ -566,9 +568,9 @@ class Cartesian3 {
   /**
    * Computes the absolute value of the provided Cartesian.
    *
-   * @param {Cartesian3} cartesian The Cartesian whose absolute value is to be computed.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The Cartesian whose absolute value is to be computed.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static abs(cartesian, result) {
 
@@ -581,31 +583,31 @@ class Cartesian3 {
   /**
    * Computes the linear interpolation or extrapolation at t using the provided cartesians.
    *
-   * @param {Cartesian3} start The value corresponding to t at 0.0.
-   * @param {Cartesian3} end The value corresponding to t at 1.0.
+   * @param {Vector3} start The value corresponding to t at 0.0.
+   * @param {Vector3} end The value corresponding to t at 1.0.
    * @param {Number} t The point along t at which to interpolate.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static lerp (start, end, t, result) {
-    Cartesian3.multiplyByScalar(end, t, lerpScratch);
-    result = Cartesian3.multiplyByScalar(start, 1.0 - t, result);
-    return Cartesian3.add(lerpScratch, result, result);
+    Vector3.multiplyByScalar(end, t, lerpScratch);
+    result = Vector3.multiplyByScalar(start, 1.0 - t, result);
+    return Vector3.add(lerpScratch, result, result);
   };
   /**
    * Returns the angle, in radians, between the provided Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
    * @returns {Number} The angle between the Cartesians.
    */
   static angleBetween(left, right) {
 
-    Cartesian3.normalize(left, angleBetweenScratch);
-    Cartesian3.normalize(right, angleBetweenScratch2);
-    const cosine = Cartesian3.dot(angleBetweenScratch, angleBetweenScratch2);
-    const sine = Cartesian3.magnitude(
-      Cartesian3.cross(
+    Vector3.normalize(left, angleBetweenScratch);
+    Vector3.normalize(right, angleBetweenScratch2);
+    const cosine = Vector3.dot(angleBetweenScratch, angleBetweenScratch2);
+    const sine = Vector3.magnitude(
+      Vector3.cross(
         angleBetweenScratch,
         angleBetweenScratch2,
         angleBetweenScratch
@@ -617,25 +619,25 @@ class Cartesian3 {
   /**
    * Returns the axis that is most orthogonal to the provided Cartesian.
    *
-   * @param {Cartesian3} cartesian The Cartesian on which to find the most orthogonal axis.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The most orthogonal axis.
+   * @param {Vector3} cartesian The Cartesian on which to find the most orthogonal axis.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The most orthogonal axis.
    */
   static mostOrthogonalAxis(cartesian, result) {
 
-    const f = Cartesian3.normalize(cartesian, mostOrthogonalAxisScratch);
-    Cartesian3.abs(f, f);
+    const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch);
+    Vector3.abs(f, f);
 
     if (f.x <= f.y) {
       if (f.x <= f.z) {
-        result = Cartesian3.clone(Cartesian3.UNIT_X, result);
+        result = Vector3.clone(Vector3.UNIT_X, result);
       } else {
-        result = Cartesian3.clone(Cartesian3.UNIT_Z, result);
+        result = Vector3.clone(Vector3.UNIT_Z, result);
       }
     } else if (f.y <= f.z) {
-      result = Cartesian3.clone(Cartesian3.UNIT_Y, result);
+      result = Vector3.clone(Vector3.UNIT_Y, result);
     } else {
-      result = Cartesian3.clone(Cartesian3.UNIT_Z, result);
+      result = Vector3.clone(Vector3.UNIT_Z, result);
     }
 
     return result;
@@ -643,23 +645,23 @@ class Cartesian3 {
 
   /**
    * Projects vector a onto vector b
-   * @param {Cartesian3} a The vector that needs projecting
-   * @param {Cartesian3} b The vector to project onto
-   * @param {Cartesian3} result The result cartesian
-   * @returns {Cartesian3} The modified result parameter
+   * @param {Vector3} a The vector that needs projecting
+   * @param {Vector3} b The vector to project onto
+   * @param {Vector3} result The result cartesian
+   * @returns {Vector3} The modified result parameter
    */
   static projectVector(a, b, result) {
 
-    const scalar = Cartesian3.dot(a, b) / Cartesian3.dot(b, b);
-    return Cartesian3.multiplyByScalar(b, scalar, result);
+    const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
+    return Vector3.multiplyByScalar(b, scalar, result);
   };
 
   /**
    * Compares the provided Cartesians componentwise and returns
    * <code>true</code> if they are equal, <code>false</code> otherwise.
    *
-   * @param {Cartesian3} [left] The first Cartesian.
-   * @param {Cartesian3} [right] The second Cartesian.
+   * @param {Vector3} [left] The first Cartesian.
+   * @param {Vector3} [right] The second Cartesian.
    * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
    */
   static equals(left, right) {
@@ -689,8 +691,8 @@ class Cartesian3 {
    * <code>true</code> if they pass an absolute or relative tolerance test,
    * <code>false</code> otherwise.
    *
-   * @param {Cartesian3} [left] The first Cartesian.
-   * @param {Cartesian3} [right] The second Cartesian.
+   * @param {Vector3} [left] The first Cartesian.
+   * @param {Vector3} [right] The second Cartesian.
    * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
    * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
    * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
@@ -729,10 +731,10 @@ class Cartesian3 {
   /**
    * Computes the cross (outer) product of two Cartesians.
    *
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The cross product.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The cross product.
    */
   static cross(left, right, result) {
 
@@ -755,10 +757,10 @@ class Cartesian3 {
 
   /**
    * Computes the midpoint between the right and left Cartesian.
-   * @param {Cartesian3} left The first Cartesian.
-   * @param {Cartesian3} right The second Cartesian.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The midpoint.
+   * @param {Vector3} left The first Cartesian.
+   * @param {Vector3} right The second Cartesian.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The midpoint.
    */
   static midpoint = function (left, right, result) {
 
@@ -770,17 +772,17 @@ class Cartesian3 {
   };
 
   /**
-   * Returns a Cartesian3 position from longitude and latitude values given in degrees.
+   * Returns a Vector3 position from longitude and latitude values given in degrees.
    *
    * @param {Number} longitude The longitude, in degrees
    * @param {Number} latitude The latitude, in degrees
    * @param {Number} [height=0.0] The height, in meters, above the ellipsoid.
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Cartesian3} [result] The object onto which to store the result.
-   * @returns {Cartesian3} The position
+   * @param {Vector3} [result] The object onto which to store the result.
+   * @returns {Vector3} The position
    *
    * @example
-   * const position = Cesium.Cartesian3.fromDegrees(-115.0, 37.0);
+   * const position = Cesium.Vector3.fromDegrees(-115.0, 37.0);
    */
   static fromDegrees(
     longitude,
@@ -792,21 +794,21 @@ class Cartesian3 {
 
     longitude = CesiumMath.toRadians(longitude);
     latitude = CesiumMath.toRadians(latitude);
-    return Cartesian3.fromRadians(longitude, latitude, height, ellipsoid, result);
+    return Vector3.fromRadians(longitude, latitude, height, ellipsoid, result);
   };
 
   /**
-   * Returns a Cartesian3 position from longitude and latitude values given in radians.
+   * Returns a Vector3 position from longitude and latitude values given in radians.
    *
    * @param {Number} longitude The longitude, in radians
    * @param {Number} latitude The latitude, in radians
    * @param {Number} [height=0.0] The height, in meters, above the ellipsoid.
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Cartesian3} [result] The object onto which to store the result.
-   * @returns {Cartesian3} The position
+   * @param {Vector3} [result] The object onto which to store the result.
+   * @returns {Vector3} The position
    *
    * @example
-   * const position = Cesium.Cartesian3.fromRadians(-2.007, 0.645);
+   * const position = Cesium.Vector3.fromRadians(-2.007, 0.645);
    */
   static fromRadians(
     longitude,
@@ -825,29 +827,29 @@ class Cartesian3 {
     scratchN.x = cosLatitude * Math.cos(longitude);
     scratchN.y = cosLatitude * Math.sin(longitude);
     scratchN.z = Math.sin(latitude);
-    scratchN = Cartesian3.normalize(scratchN, scratchN);
+    scratchN = Vector3.normalize(scratchN, scratchN);
 
-    Cartesian3.multiplyComponents(radiiSquared, scratchN, scratchK);
-    const gamma = Math.sqrt(Cartesian3.dot(scratchN, scratchK));
-    scratchK = Cartesian3.divideByScalar(scratchK, gamma, scratchK);
-    scratchN = Cartesian3.multiplyByScalar(scratchN, height, scratchN);
+    Vector3.multiplyComponents(radiiSquared, scratchN, scratchK);
+    const gamma = Math.sqrt(Vector3.dot(scratchN, scratchK));
+    scratchK = Vector3.divideByScalar(scratchK, gamma, scratchK);
+    scratchN = Vector3.multiplyByScalar(scratchN, height, scratchN);
 
     if (!defined(result)) {
-      result = new Cartesian3();
+      result = new Vector3();
     }
-    return Cartesian3.add(scratchK, scratchN, result);
+    return Vector3.add(scratchK, scratchN, result);
   };
 
   /**
-   * Returns an array of Cartesian3 positions given an array of longitude and latitude values given in degrees.
+   * Returns an array of Vector3 positions given an array of longitude and latitude values given in degrees.
    *
    * @param {Number[]} coordinates A list of longitude and latitude values. Values alternate [longitude, latitude, longitude, latitude...].
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the coordinates lie.
-   * @param {Cartesian3[]} [result] An array of Cartesian3 objects to store the result.
-   * @returns {Cartesian3[]} The array of positions.
+   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
+   * @returns {Vector3[]} The array of positions.
    *
    * @example
-   * const positions = Cesium.Cartesian3.fromDegreesArray([-115.0, 37.0, -107.0, 33.0]);
+   * const positions = Cesium.Vector3.fromDegreesArray([-115.0, 37.0, -107.0, 33.0]);
    */
   static fromDegreesArray(coordinates, ellipsoid, result) {
     if (coordinates.length < 2 || coordinates.length % 2 !== 0) {
@@ -867,7 +869,7 @@ class Cartesian3 {
       const longitude = coordinates[i];
       const latitude = coordinates[i + 1];
       const index = i / 2;
-      result[index] = Cartesian3.fromDegrees(
+      result[index] = Vector3.fromDegrees(
         longitude,
         latitude,
         0,
@@ -880,15 +882,15 @@ class Cartesian3 {
   };
 
   /**
-   * Returns an array of Cartesian3 positions given an array of longitude and latitude values given in radians.
+   * Returns an array of Vector3 positions given an array of longitude and latitude values given in radians.
    *
    * @param {Number[]} coordinates A list of longitude and latitude values. Values alternate [longitude, latitude, longitude, latitude...].
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the coordinates lie.
-   * @param {Cartesian3[]} [result] An array of Cartesian3 objects to store the result.
-   * @returns {Cartesian3[]} The array of positions.
+   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
+   * @returns {Vector3[]} The array of positions.
    *
    * @example
-   * const positions = Cesium.Cartesian3.fromRadiansArray([-2.007, 0.645, -1.867, .575]);
+   * const positions = Cesium.Vector3.fromRadiansArray([-2.007, 0.645, -1.867, .575]);
    */
   static fromRadiansArray(coordinates, ellipsoid, result) {
 
@@ -903,7 +905,7 @@ class Cartesian3 {
       const longitude = coordinates[i];
       const latitude = coordinates[i + 1];
       const index = i / 2;
-      result[index] = Cartesian3.fromRadians(
+      result[index] = Vector3.fromRadians(
         longitude,
         latitude,
         0,
@@ -916,15 +918,15 @@ class Cartesian3 {
   };
 
   /**
-   * Returns an array of Cartesian3 positions given an array of longitude, latitude and height values where longitude and latitude are given in degrees.
+   * Returns an array of Vector3 positions given an array of longitude, latitude and height values where longitude and latitude are given in degrees.
    *
    * @param {Number[]} coordinates A list of longitude, latitude and height values. Values alternate [longitude, latitude, height, longitude, latitude, height...].
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Cartesian3[]} [result] An array of Cartesian3 objects to store the result.
-   * @returns {Cartesian3[]} The array of positions.
+   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
+   * @returns {Vector3[]} The array of positions.
    *
    * @example
-   * const positions = Cesium.Cartesian3.fromDegreesArrayHeights([-115.0, 37.0, 100000.0, -107.0, 33.0, 150000.0]);
+   * const positions = Cesium.Vector3.fromDegreesArrayHeights([-115.0, 37.0, 100000.0, -107.0, 33.0, 150000.0]);
    */
   static fromDegreesArrayHeights(coordinates, ellipsoid, result) {
     if (coordinates.length < 3 || coordinates.length % 3 !== 0) {
@@ -945,7 +947,7 @@ class Cartesian3 {
       const latitude = coordinates[i + 1];
       const height = coordinates[i + 2];
       const index = i / 3;
-      result[index] = Cartesian3.fromDegrees(
+      result[index] = Vector3.fromDegrees(
         longitude,
         latitude,
         height,
@@ -958,15 +960,15 @@ class Cartesian3 {
   };
 
   /**
-   * Returns an array of Cartesian3 positions given an array of longitude, latitude and height values where longitude and latitude are given in radians.
+   * Returns an array of Vector3 positions given an array of longitude, latitude and height values where longitude and latitude are given in radians.
    *
    * @param {Number[]} coordinates A list of longitude, latitude and height values. Values alternate [longitude, latitude, height, longitude, latitude, height...].
    * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Cartesian3[]} [result] An array of Cartesian3 objects to store the result.
-   * @returns {Cartesian3[]} The array of positions.
+   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
+   * @returns {Vector3[]} The array of positions.
    *
    * @example
-   * const positions = Cesium.Cartesian3.fromRadiansArrayHeights([-2.007, 0.645, 100000.0, -1.867, .575, 150000.0]);
+   * const positions = Cesium.Vector3.fromRadiansArrayHeights([-2.007, 0.645, 100000.0, -1.867, .575, 150000.0]);
    */
   static fromRadiansArrayHeights(coordinates, ellipsoid, result) {
     if (coordinates.length < 3 || coordinates.length % 3 !== 0) {
@@ -987,7 +989,7 @@ class Cartesian3 {
       const latitude = coordinates[i + 1];
       const height = coordinates[i + 2];
       const index = i / 3;
-      result[index] = Cartesian3.fromRadians(
+      result[index] = Vector3.fromRadians(
         longitude,
         latitude,
         height,
@@ -999,17 +1001,17 @@ class Cartesian3 {
     return result;
   };
 }
-const distanceScratch = new Cartesian3();
-const lerpScratch = new Cartesian3();
-const angleBetweenScratch = new Cartesian3();
-const angleBetweenScratch2 = new Cartesian3();
-const mostOrthogonalAxisScratch = new Cartesian3();
-let scratchN = new Cartesian3();
-let scratchK = new Cartesian3();
-const wgs84RadiiSquared = new Cartesian3(
+const distanceScratch = new Vector3();
+const lerpScratch = new Vector3();
+const angleBetweenScratch = new Vector3();
+const angleBetweenScratch2 = new Vector3();
+const mostOrthogonalAxisScratch = new Vector3();
+let scratchN = new Vector3();
+let scratchK = new Vector3();
+const wgs84RadiiSquared = new Vector3(
   6378137.0 * 6378137.0,
   6378137.0 * 6378137.0,
   6356752.3142451793 * 6356752.3142451793
 );
-export default Cartesian3;
+export default Vector3;
 

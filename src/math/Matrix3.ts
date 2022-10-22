@@ -1,9 +1,8 @@
 // @ts-nocheck
-import Cartesian3 from "./Cartesian3";
+import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import CesiumMath from "./Math";
-
 /**
  * A 3x3 matrix, indexable as a column-major order array.
  * Constructor parameters are in row-major order for code readability.
@@ -345,7 +344,7 @@ class Matrix3 {
   /**
    * Computes a Matrix3 instance representing a non-uniform scale.
    *
-   * @param {Cartesian3} scale The x, y, and z scale factors.
+   * @param {Vector3} scale The x, y, and z scale factors.
    * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
    *
@@ -354,7 +353,7 @@ class Matrix3 {
    * //   [7.0, 0.0, 0.0]
    * //   [0.0, 8.0, 0.0]
    * //   [0.0, 0.0, 9.0]
-   * const m = Cesium.Matrix3.fromScale(new Cesium.Cartesian3(7.0, 8.0, 9.0));
+   * const m = Cesium.Matrix3.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
    */
   static fromScale(scale, result) {
 
@@ -407,9 +406,9 @@ class Matrix3 {
   };
 
   /**
-   * Computes a Matrix3 instance representing the cross product equivalent matrix of a Cartesian3 vector.
+   * Computes a Matrix3 instance representing the cross product equivalent matrix of a Vector3 vector.
    *
-   * @param {Cartesian3} vector the vector on the left hand side of the cross product operation.
+   * @param {Vector3} vector the vector on the left hand side of the cross product operation.
    * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
    *
@@ -418,7 +417,7 @@ class Matrix3 {
    * //   [0.0, -9.0,  8.0]
    * //   [9.0,  0.0, -7.0]
    * //   [-8.0, 7.0,  0.0]
-   * const m = Cesium.Matrix3.fromCrossProduct(new Cesium.Cartesian3(7.0, 8.0, 9.0));
+   * const m = Cesium.Matrix3.fromCrossProduct(new Cesium.Vector3(7.0, 8.0, 9.0));
    */
   static fromCrossProduct(vector, result) {
 
@@ -457,9 +456,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the x-axis.
-   * const p = new Cesium.Cartesian3(5, 6, 7);
+   * const p = new Cesium.Vector3(5, 6, 7);
    * const m = Cesium.Matrix3.fromRotationX(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Cartesian3());
+   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
    */
   static fromRotationX(angle, result) {
 
@@ -502,9 +501,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the y-axis.
-   * const p = new Cesium.Cartesian3(5, 6, 7);
+   * const p = new Cesium.Vector3(5, 6, 7);
    * const m = Cesium.Matrix3.fromRotationY(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Cartesian3());
+   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
    */
   static fromRotationY(angle, result) {
 
@@ -547,9 +546,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the z-axis.
-   * const p = new Cesium.Cartesian3(5, 6, 7);
+   * const p = new Cesium.Vector3(5, 6, 7);
    * const m = Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Cartesian3());
+   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
    */
   static fromRotationZstatic(angle, result) {
 
@@ -640,12 +639,12 @@ class Matrix3 {
   };
 
   /**
-   * Retrieves a copy of the matrix column at the provided index as a Cartesian3 instance.
+   * Retrieves a copy of the matrix column at the provided index as a Vector3 instance.
    *
    * @param {Matrix3} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to retrieve.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, or 2.
    */
@@ -663,11 +662,11 @@ class Matrix3 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Cartesian3 instance.
+   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector3 instance.
    *
    * @param {Matrix3} matrix The matrix to use.
    * @param {Number} index The zero-based index of the column to set.
-   * @param {Cartesian3} cartesian The Cartesian whose values will be assigned to the specified column.
+   * @param {Vector3} cartesian The Cartesian whose values will be assigned to the specified column.
    * @param {Matrix3} result The object onto which to store the result.
    * @returns {Matrix3} The modified result parameter.
    *
@@ -684,12 +683,12 @@ class Matrix3 {
   };
 
   /**
-   * Retrieves a copy of the matrix row at the provided index as a Cartesian3 instance.
+   * Retrieves a copy of the matrix row at the provided index as a Vector3 instance.
    *
    * @param {Matrix3} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to retrieve.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    *
    * @exception {Error} index must be 0, 1, or 2.
    */
@@ -706,11 +705,11 @@ class Matrix3 {
   };
 
   /**
-   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Cartesian3 instance.
+   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector3 instance.
    *
    * @param {Matrix3} matrix The matrix to use.
    * @param {Number} index The zero-based index of the row to set.
-   * @param {Cartesian3} cartesian The Cartesian whose values will be assigned to the specified row.
+   * @param {Vector3} cartesian The Cartesian whose values will be assigned to the specified row.
    * @param {Matrix3} result The object onto which to store the result.
    * @returns {Matrix3} The modified result parameter.
    *
@@ -732,7 +731,7 @@ class Matrix3 {
    * This assumes the matrix is an affine transformation.
    *
    * @param {Matrix3} matrix The matrix to use.
-   * @param {Cartesian3} scale The scale that replaces the scale of the provided matrix.
+   * @param {Vector3} scale The scale that replaces the scale of the provided matrix.
    * @param {Matrix3} result The object onto which to store the result.
    * @returns {Matrix3} The modified result parameter.
    *
@@ -807,8 +806,8 @@ class Matrix3 {
    * Extracts the non-uniform scale assuming the matrix is an affine transformation.
    *
    * @param {Matrix3} matrix The matrix.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    *
    * @see Matrix3.multiplyByScale
    * @see Matrix3.multiplyByUniformScale
@@ -819,14 +818,14 @@ class Matrix3 {
    */
   static getScale(matrix, result) {
 
-    result.x = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
+    result.x = Vector3.magnitude(
+      Vector3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
     );
-    result.y = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[3], matrix[4], matrix[5], scratchColumn)
+    result.y = Vector3.magnitude(
+      Vector3.fromElements(matrix[3], matrix[4], matrix[5], scratchColumn)
     );
-    result.z = Cartesian3.magnitude(
-      Cartesian3.fromElements(matrix[6], matrix[7], matrix[8], scratchColumn)
+    result.z = Vector3.magnitude(
+      Vector3.fromElements(matrix[6], matrix[7], matrix[8], scratchColumn)
     );
     return result;
   };
@@ -841,7 +840,7 @@ class Matrix3 {
    */
   static getMaximumScale(matrix) {
     Matrix3.getScale(matrix, scaleScratch3);
-    return Cartesian3.maximumComponent(scaleScratch3);
+    return Vector3.maximumComponent(scaleScratch3);
   };
   /**
    * Sets the rotation assuming the matrix is an affine transformation.
@@ -985,9 +984,9 @@ class Matrix3 {
    * Computes the product of a matrix and a column vector.
    *
    * @param {Matrix3} matrix The matrix.
-   * @param {Cartesian3} cartesian The column.
-   * @param {Cartesian3} result The object onto which to store the result.
-   * @returns {Cartesian3} The modified result parameter.
+   * @param {Vector3} cartesian The column.
+   * @param {Vector3} result The object onto which to store the result.
+   * @returns {Vector3} The modified result parameter.
    */
   static multiplyByVector(matrix, cartesian, result) {
 
@@ -1174,9 +1173,9 @@ class Matrix3 {
    * const b = Cesium.Matrix3.multiply(result.unitary, result.diagonal, new Cesium.Matrix3());
    * Cesium.Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
    *
-   * const lambda = Cesium.Matrix3.getColumn(result.diagonal, 0, new Cesium.Cartesian3()).x;  // first eigenvalue
-   * const v = Cesium.Matrix3.getColumn(result.unitary, 0, new Cesium.Cartesian3());          // first eigenvector
-   * const c = Cesium.Cartesian3.multiplyByScalar(v, lambda, new Cesium.Cartesian3());        // equal to Cesium.Matrix3.multiplyByVector(a, v)
+   * const lambda = Cesium.Matrix3.getColumn(result.diagonal, 0, new Cesium.Vector3()).x;  // first eigenvalue
+   * const v = Cesium.Matrix3.getColumn(result.unitary, 0, new Cesium.Vector3());          // first eigenvector
+   * const c = Cesium.Vector3.multiplyByScalar(v, lambda, new Cesium.Vector3());        // equal to Cesium.Matrix3.multiplyByVector(a, v)
    */
   static computeEigenDecomposition(matrix, result) {
 
@@ -1536,12 +1535,12 @@ class Matrix3 {
   };
 }
 
-const scaleScratch1 = new Cartesian3();
-const scaleScratch2 = new Cartesian3();
-const scratchColumn = new Cartesian3();
-const scaleScratch3 = new Cartesian3();
-const scaleScratch4 = new Cartesian3();
-const scaleScratch5 = new Cartesian3();
+const scaleScratch1 = new Vector3();
+const scaleScratch2 = new Vector3();
+const scratchColumn = new Vector3();
+const scaleScratch3 = new Vector3();
+const scaleScratch4 = new Vector3();
+const scaleScratch5 = new Vector3();
 
 function computeFrobeniusNorm(matrix) {
   let norm = 0.0;
