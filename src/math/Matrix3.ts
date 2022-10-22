@@ -36,25 +36,25 @@ import CesiumMath from "./Math";
  */
 class Matrix3 {
   constructor(
-    column0Row0,
-    column1Row0,
-    column2Row0,
-    column0Row1,
-    column1Row1,
-    column2Row1,
-    column0Row2,
-    column1Row2,
-    column2Row2
+    column0Row0=0,
+    column1Row0=0,
+    column2Row0=0,
+    column0Row1=0,
+    column1Row1=0,
+    column2Row1=0,
+    column0Row2=0,
+    column1Row2=0,
+    column2Row2=0
   ) {
-    this[0] = defaultValue(column0Row0, 0.0);
-    this[1] = defaultValue(column0Row1, 0.0);
-    this[2] = defaultValue(column0Row2, 0.0);
-    this[3] = defaultValue(column1Row0, 0.0);
-    this[4] = defaultValue(column1Row1, 0.0);
-    this[5] = defaultValue(column1Row2, 0.0);
-    this[6] = defaultValue(column2Row0, 0.0);
-    this[7] = defaultValue(column2Row1, 0.0);
-    this[8] = defaultValue(column2Row2, 0.0);
+    this[0] = column0Row0;
+    this[1] = column0Row1;
+    this[2] = column0Row2;
+    this[3] = column1Row0;
+    this[4] = column1Row1;
+    this[5] = column1Row2;
+    this[6] = column2Row0;
+    this[7] = column2Row1;
+    this[8] = column2Row2;
   }
 
   /**

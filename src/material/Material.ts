@@ -44,7 +44,7 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(context:Context){
+    update(frameState){
          if(this.unifroms) this.createUniform();
     }
     public createUniform(){

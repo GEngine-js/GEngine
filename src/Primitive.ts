@@ -1,38 +1,42 @@
+import { FrameState } from "./core/FrameState";
+import Geometry from "./geometry/Geometry";
+import { Material } from "./material/Material";
 import Matrix4 from "./math/Matrix4";
 import DrawCommand from "./render/DrawCommand";
+import { RenderPipelineCache } from "./render/RenderPipelineCache";
 export class Primitive{
-    modelMatrix: any;
-    geometry: any;
-    material: any;
+    modelMatrix: Matrix4;
+    geometry: Geometry;
+    material: Material;
     constructor(options:{modelMatrix,geometry,material}){
        this.modelMatrix=options.modelMatrix;
        this.geometry=options.geometry;
        this.material=options.material;
     }
-    update(frameState){
+    update(frameState:FrameState){
         //create 
-    }
-    private createIndexBuffer(){
+        this.geometry.update(frameState);
+        this.material.update(frameState);
+        this.createCommand(frameState)
 
     }
-    private createBindGroup(){
+    private createCommand(frameState:FrameState){
+        //create renderPipeline
+        const pipeline=frameState.context.renderPipelineCache.getRenderPipelineFromCache(this.geometry,this.material)
+        const drawCommond=new DrawCommand({
+            pipeline,
+
+            vertexBuffers:this.geometry.vertexBuffers;
+            indexBuffer: this.geometry.in;
+            indexFormat:this.geometry.stripIndexFormat,
+            bindGroups:this.material.bindGroups,
+          
+            // public count?: number;
+            // public instances?: number
+        }) 
 
     }
-    private createBindGroupLayout(){
-
-    }
-    private createVertBuffers(){
-
-    }
-    private createRenderPipeline(){
-
-    }
-    private createBindGroupEntity(){
-        const mat=this.material;
-        
-
-    }
-    private createBindGroupLayoutEntry(){
-
+    private createRenderPipeline(frameState:FrameState){
+       
     }
 }

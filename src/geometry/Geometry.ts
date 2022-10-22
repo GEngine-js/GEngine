@@ -19,6 +19,7 @@ export default class Geometry {
         this.stripIndexFormat=IndexFormat.Uint16;
         this.dirty = false;
     }
+    update(frameState){}
     /**
      * Interleave n typed arrays
      * @alias module:interleaveTypedArray

@@ -55,19 +55,14 @@ class Vector3 {
    * @constant
    */
   public static UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
-  x: any;
-  y: any;
-  z: any;
+  x: number;
+  y: number;
+  z: number;
 
   constructor(x:number=0, y:number=0, z:number=0) {
-
-    this.x = defaultValue(x, 0.0);
-
-
-    this.y = defaultValue(y, 0.0);
-
-
-    this.z = defaultValue(z, 0.0);
+    this.x =x;
+    this.y =y;
+    this.z =z;
   }
   /**
  * Duplicates this Vector3 instance.

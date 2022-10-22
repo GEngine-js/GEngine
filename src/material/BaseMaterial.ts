@@ -14,8 +14,9 @@ export default class BaseMaterial extends Material {
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
-    update(context:Context) { 
-        
+    update(frameState) { 
+        const {device}=frameState.context;
+        this.createBindGroupAndLayout(device)
     }
     private createBindGroupAndLayout(device:GPUDevice){
         const layouts=this.createBindGroupLayoutEntry();

@@ -25,8 +25,8 @@ export default class BoxGeometry extends Geometry{
         // this.normal=geometry.normals;
         // this.indices=geometry.normals;
     }
-    public update(context){
-      const {device}=context;
+    public update(frameState){
+      const {device}=frameState.context;
       this.createVertBufferAndIndices(device);
     }
     private createVertBufferAndIndices(device:GPUDevice){

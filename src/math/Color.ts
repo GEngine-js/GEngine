@@ -246,31 +246,31 @@ class Color {
    * @type {Color}
    */
   public static DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
-  constructor(red, green, blue, alpha) {
+  constructor(red=1.0, green=1.0, blue=1.0, alpha=1.0) {
     /**
      * The red component.
      * @type {Number}
      * @default 1.0
      */
-    this.red = defaultValue(red, 1.0);
+    this.red = red;
     /**
      * The green component.
      * @type {Number}
      * @default 1.0
      */
-    this.green = defaultValue(green, 1.0);
+    this.green = green;
     /**
      * The blue component.
      * @type {Number}
      * @default 1.0
      */
-    this.blue = defaultValue(blue, 1.0);
+    this.blue =blue;
     /**
      * The alpha component.
      * @type {Number}
      * @default 1.0
      */
-    this.alpha = defaultValue(alpha, 1.0);
+    this.alpha =alpha;
   }
   /**
  * Returns a duplicate of a Color instance.

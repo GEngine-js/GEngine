@@ -4,12 +4,13 @@ import Buffer from "./Buffer";
 import BindGroup from "./BindGroup";
 
 import { IndexFormat } from "../core/WebGPUConstant";
+import { VertextBuffers } from "../core/VertextBuffers";
 
 class DrawCommand {
   public pass?: Pass;
   public pipeline?: Pipeline;
 
-  public vertexBuffers?: Buffer[];
+  public vertexBuffers?: VertextBuffers;
   public indexBuffer?: Buffer;
   public indexFormat?: GPUIndexFormat = IndexFormat.Uint32;
   public bindGroups?: BindGroup[];

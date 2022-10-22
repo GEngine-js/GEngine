@@ -17,7 +17,7 @@ class Context {
   public commandEncoder: GPUCommandEncoder | null;
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
  
-  private renderPipelineCache:RenderPipelineCache;
+  public renderPipelineCache:RenderPipelineCache;
   glslang: any;
 
 

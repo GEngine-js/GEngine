@@ -1,4 +1,5 @@
 import DataBuffer from '../core/DataBuffer';
+import Color from '../math/Color';
 import Matrix2 from '../math/Matrix2';
 import Matrix3 from '../math/Matrix3';
 import Matrix4 from '../math/Matrix4';
@@ -32,7 +33,7 @@ export class UniformVec extends Uniform<number>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value = 0;
         this.size=4;
     }
     set () {
@@ -46,7 +47,7 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value = new Vector2();
         this.size=8;
     }
     set () {
@@ -61,7 +62,7 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value =new Vector3();
         this.size=12;
     }
     set () {
@@ -76,7 +77,7 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value =new Vector4();
         this.size=16;
     }
     set () {
@@ -87,12 +88,27 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
         }
       };
 }
+export class UniformColor extends Uniform<Color>{
+    constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
+        super(uniformName,dataBuffer,offset,cb);
+        this.value = undefined;
+        this._value =new Color();
+        this.size=16;
+    }
+    set () {
+        const v = this.value;
+        if (!Color.equals(v, this._value)) {
+            Color.clone(v, this._value);
+          this.dataBuffer.setData(this);
+        }
+      };
+}
 
 export class UniformMat2 extends Uniform<Matrix2>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value =new Matrix2();
         this.size=12;
     }
     set () {
@@ -107,7 +123,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
+        this._value = new Matrix3();
         this.size=36;
     }
     set () {
@@ -122,8 +138,8 @@ export class UniformMat4 extends Uniform<Matrix4>{
     constructor(uniformName:string, dataBuffer:DataBuffer, offset:number,cb:Function) {
         super(uniformName,dataBuffer,offset,cb);
         this.value = undefined;
-        this._value = undefined;
-        this.size=36;
+        this._value = new Matrix4();
+        this.size=64;
     }
     set () {
         const v = this.value;

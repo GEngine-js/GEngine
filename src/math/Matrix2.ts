@@ -30,11 +30,11 @@ class Matrix2 {
  * @type {Number}
  */
   public static packedLength = 4;
-  constructor(column0Row0, column1Row0, column0Row1, column1Row1) {
-    this[0] = defaultValue(column0Row0, 0.0);
-    this[1] = defaultValue(column0Row1, 0.0);
-    this[2] = defaultValue(column1Row0, 0.0);
-    this[3] = defaultValue(column1Row1, 0.0);
+  constructor(column0Row0=0, column1Row0=0, column0Row1=0, column1Row1=0) {
+    this[0] = column0Row0;
+    this[1] = column0Row1;
+    this[2] = column1Row0;
+    this[3] = column1Row1;
   }
   /**
    * Stores the provided instance into the provided array.
