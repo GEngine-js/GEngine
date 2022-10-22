@@ -4,12 +4,12 @@ import  BindGroupLayout  from "../render/BindGroupLayout";
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import Color from '../math/Color'
 import RenderState from "../render/RenderState";
-import {} from "../render/Uniform"
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import DataBuffer from "../core/DataBuffer";
 import Buffer from "../render/Buffer";
 import { ShaderSource } from "../shader/ShaderSource";
+import Context from "../render/Context";
 export class Material{
     public uniformBuffer:Buffer;
     color?: any;
@@ -44,7 +44,7 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(){
+    update(context:Context){
          if(this.unifroms) this.createUniform();
     }
     public createUniform(){

@@ -1,5 +1,5 @@
 import { BufferBindingType } from "../core/WebGPUConstant";
-import { BindGroupLayoutEntry } from "../core/WebGPUTypes";
+import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
 const layoutCache = new Map()
 class BindGroupLayout {
   public gpuBindGroupLayout: GPUBindGroupLayout;

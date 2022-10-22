@@ -8,14 +8,12 @@ export default class Geometry {
     type: string;
     public vertexBuffers: VertextBuffers;
     dirty: boolean;
-    indices: Array<number>;
     boundingSphere: any;
     stripIndexFormat: string;
     topology: string;
     constructor(options?:any) {
         this.type = options.type||undefined;
         this.vertexBuffers = options.vertexBuffers||undefined;
-        this.indices = options.indices||undefined;
         this.boundingSphere = undefined;
         this.topology="triangle-list";
         this.stripIndexFormat=IndexFormat.Uint16;

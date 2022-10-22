@@ -4,7 +4,7 @@ export type vertextBuffer ={
         arrayStride:number,
         stepMode: string,
         buffer?:Buffer,
-        attributes:Iterable<GPUVertexAttribute>  
+        attributes:Array<Attribute>  
 }
 export  class VertextBuffers{
     list:Array<vertextBuffer>;

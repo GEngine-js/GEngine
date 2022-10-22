@@ -69,7 +69,7 @@ export class RenderPipelineCache {
     };
       return {
         //需要改动
-        layout:PipelineLayout.getPipelineLayoutFromCache(this.device,'test',groupLayouts).gpuPipelineLayout,   
+        layout:PipelineLayout.getPipelineLayoutFromCache(this.device,material.type,groupLayouts).gpuPipelineLayout,   
         vertex: {
           module:vert,
           entryPoint: shaderSource.vertEntryPoint,
