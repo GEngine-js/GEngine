@@ -142,7 +142,7 @@ class Context {
 
     if (command.bindGroups) {
       for (let i = 0; i < command.bindGroups.length; i++) {
-        this.passEncoder.setBindGroup(i, command.bindGroups[i].gpuBindGroup);
+        this.passEncoder.setBindGroup(command.bindGroups[i].index, command.bindGroups[i].gpuBindGroup);
       }
     }
 

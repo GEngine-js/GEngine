@@ -609,10 +609,10 @@ class GMath{
   * const d = Cesium.Math.equalsEpsilon(3699175.1634344, 3699175.2, Cesium.Math.EPSILON9); // false
   */
   static equalsEpsilon (
-   left,
-   right,
-   relativeEpsilon,
-   absoluteEpsilon
+   left:number,
+   right:number,
+   relativeEpsilon:number,
+   absoluteEpsilon?:number=relativeEpsilon
  ) {
    //>>includeStart('debug', pragmas.debug);
    if (!defined(left)) {

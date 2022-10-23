@@ -119,6 +119,11 @@ class Vector3 {
   toString() {
     return `(${this.x}, ${this.y}, ${this.z})`;
   };
+  static fromVector4(vec4, result){
+     result.x=vec4.x;
+     result.y=vec4.y;
+     result.z=vec4.z;
+  }
   /**
  * Converts the provided Spherical into Vector3 coordinates.
  *
@@ -169,7 +174,7 @@ class Vector3 {
    * @param {Vector3} [result] The object onto which to store the result.
    * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided. (Returns undefined if cartesian is undefined)
    */
-  static clone(cartesian, result) {
+  static clone(cartesian, result:Vector3=new Vector3()) {
     if (!defined(cartesian)) {
       return undefined;
     }
