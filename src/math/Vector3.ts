@@ -64,6 +64,11 @@ class Vector3 {
     this.y =y;
     this.z =z;
   }
+  set(x:number, y:number, z:number){
+    this.x =x;
+    this.y =y;
+    this.z =z;
+  }
   toArray(){
     return [this.x,this.y,this.z]
   }

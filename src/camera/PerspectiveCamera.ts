@@ -9,8 +9,8 @@ export default class PerspectiveCamera extends Camera{
      xOffset: number;
      fovy: number;
      yOffset: number;
-    cullingVolume: any;
-     constructor(public fov = 50, public aspect = 1, public near = 0.1, public far = 2000 ){
+     cullingVolume: any;
+     constructor(public fov = 50, public aspect = 1, public near = 0.1, public far = 2000){
        super()
        this.xOffset=0;
        this.yOffset=0;
@@ -36,7 +36,7 @@ export default class PerspectiveCamera extends Camera{
             this.near,
             this.far,
             tempPerspectiveMatrix
-          );
+        );
     }
     /**
      * Creates a culling volume for this frustum.

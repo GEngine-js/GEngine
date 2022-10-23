@@ -33,15 +33,15 @@ export class Quaternion {
  * @type {Quaternion}
  * @constant
  */
-public static ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
+  public static ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
 
-/**
- * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 1.0).
- *
- * @type {Quaternion}
- * @constant
- */
-public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
+  /**
+   * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 1.0).
+   *
+   * @type {Quaternion}
+   * @constant
+   */
+  public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
 
   constructor(public x: number = 0, public y: number = 0, public z: number = 0, public w: number = 0) {
 

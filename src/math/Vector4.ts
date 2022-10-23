@@ -79,6 +79,12 @@ class Vector4 {
     this.z =z;
     this.w =w;
   }
+  set(x:number, y:number, z:number,w:number){
+    this.x =x;
+    this.y =y;
+    this.z =z;
+    this.w =w;
+  }
   toArray(){
     return [this.x,this.y,this.z,this.w]
   }

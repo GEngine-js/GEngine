@@ -1,4 +1,5 @@
 import Matrix4 from "../math/Matrix4";
+import Vector3 from "../math/Vector3";
 
 export default class Camera{
     projectionMatrix: Matrix4;
@@ -8,6 +9,9 @@ export default class Camera{
     left: number;
     near: number;
     far: number;
+    // up:Vector3;
+    // direction:Vector3;
+    // right:Vector3;
     constructor(){
         this.projectionMatrix=new Matrix4();
         this.top=0;

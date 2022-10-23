@@ -1,19 +1,18 @@
 import { FrameState } from "../core/FrameState";
+import RenderObject from "../core/RenderObject";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
-import Matrix4 from "../math/Matrix4";
 import DrawCommand from "../render/DrawCommand";
-export class Primitive {
-    modelMatrix: Matrix4;
+export class Primitive extends RenderObject{
     geometry: Geometry;
     material: Material;
     instances?: number;
-    drawCommand:DrawCommand
-    constructor(options: { modelMatrix, geometry, material }) {
-        this.modelMatrix = options.modelMatrix;
-        this.geometry = options.geometry;
-        this.material = options.material;
-    }
+    drawCommand:DrawCommand;
+    constructor(geometry, material ) {
+        super();
+        this.geometry = geometry;
+        this.material = material;
+    }   
     update(frameState: FrameState) {
         //create 
         this.geometry.update(frameState);
@@ -40,6 +39,7 @@ export class Primitive {
         }
         this.drawCommand=drawCommond;     
     }
+
     destory(){
 
     }
