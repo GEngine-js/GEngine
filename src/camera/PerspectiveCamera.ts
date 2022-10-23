@@ -14,18 +14,34 @@ export default class PerspectiveCamera extends Camera{
        super()
        this.xOffset=0;
        this.yOffset=0;
-       this.fovy=this.aspect <= 1
-       ? this.fov
-       : Math.atan(Math.tan(this.fov * 0.5) / this.aspect) * 2.0;
-       //+this.yOffset
-       this.top=this.near * Math.tan(0.5 * this.fovy);
-         //+this.yOffset
-       this.bottom = -this.top+this.yOffset;
-       //this.xOffset;
-       this.right = this.aspect * this.top+this.xOffset;
-       //this.xOffset;
-       this.left = -this.right+this.xOffset;
+       this.updateCameraParms();
        this.cullingVolume = new CullingVolume();
+     }
+     lookAt(target:Vector3){
+        Vector3.subtract(this.position,target,this.cameraDirection);
+        
+        Vector3.normalize(this.cameraDirection,this.cameraDirection);
+        
+        Vector3.cross(this.cameraUp,this.cameraDirection,this.cameraRight);
+
+        Vector3.normalize(this.cameraRight,this.cameraRight);
+
+        Vector3.cross(this.cameraDirection,this.cameraRight,this.cameraUp);
+
+        Matrix4.computeView(this.position,this.cameraDirection,this.cameraRight,this.cameraUp,this.viewMatrix);
+     }
+     updateCameraParms(){
+        this.fovy=this.aspect <= 1
+        ? this.fov
+        : Math.atan(Math.tan(this.fov * 0.5) / this.aspect) * 2.0;
+        //+this.yOffset
+        this.top=this.near * Math.tan(0.5 * this.fovy);
+          //+this.yOffset
+        this.bottom = -this.top+this.yOffset;
+        //this.xOffset;
+        this.right = this.aspect * this.top+this.xOffset;
+        //this.xOffset;
+        this.left = -this.right+this.xOffset;
      }
      updateProjectionMatrix(){
        this.projectionMatrix=Matrix4.computePerspectiveOffCenter(
@@ -37,7 +53,10 @@ export default class PerspectiveCamera extends Camera{
             this.far,
             tempPerspectiveMatrix
         );
-    }
+     }
+     updateViewMatrix(){
+
+     }
     /**
      * Creates a culling volume for this frustum.
      *
