@@ -1,4 +1,4 @@
-import DataBuffer from '../core/DataBuffer';
+import DataBuffer from '../utils/DataBuffer';
 import Color from '../math/Color';
 import Matrix2 from '../math/Matrix2';
 import Matrix3 from '../math/Matrix3';
@@ -16,9 +16,7 @@ export class Uniform<T> {
 
     constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function) {
         this.name = uniformName;
-        // this.offset=offset;
-        this.dataBuffer=dataBuffer;
-        // this.dataBuffer
+        this.dataBuffer=dataBuffer;      
     }
     set(){}
 }
@@ -36,6 +34,7 @@ export class UniformVec extends Uniform<number>{
         this.value = undefined;
         this.offset=
         this._value = 0;
+        this.offset=this.dataBuffer.set(this._value);
         this.size=4;
     }
     set () {
@@ -50,6 +49,7 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Vector2();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=8;
     }
     set () {
@@ -65,6 +65,7 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Vector3();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=12;
     }
     set () {
@@ -80,6 +81,7 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Vector4();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=16;
     }
     set () {
@@ -95,6 +97,7 @@ export class UniformColor extends Uniform<Color>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Color();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=16;
     }
     set () {
@@ -111,6 +114,7 @@ export class UniformMat2 extends Uniform<Matrix2>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Matrix2();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=12;
     }
     set () {
@@ -126,6 +130,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Matrix3();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=36;
     }
     set () {
@@ -141,6 +146,7 @@ export class UniformMat4 extends Uniform<Matrix4>{
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Matrix4();
+        this.offset=this.dataBuffer.set(this._value.toArray());
         this.size=64;
     }
     set () {

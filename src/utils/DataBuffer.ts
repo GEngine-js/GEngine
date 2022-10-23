@@ -1,7 +1,10 @@
 export  default class DataBuffer{
-    data: any[];
+    data: number[];
     constructor(){
       this.data=new Array();
+    }
+    get length(){
+        return this.data.length;
     }
     set(data){
         const preDataLength=this.data.length;

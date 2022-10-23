@@ -1,4 +1,3 @@
-import DataBuffer from "../core/DataBuffer";
 import { FrameState } from "../core/FrameState";
 import {VertextBuffers} from "../core/VertextBuffers";
 import { IndexFormat,PrimitiveTopology } from "../core/WebGPUConstant";

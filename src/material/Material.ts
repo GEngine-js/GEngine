@@ -6,7 +6,7 @@ import Color from '../math/Color'
 import RenderState from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import DataBuffer from "../core/DataBuffer";
+import DataBuffer from "../utils/DataBuffer";
 import Buffer from "../render/Buffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import Context from "../render/Context";
