@@ -20,8 +20,8 @@ function stringToHash(str){
 // pipeline descriptors.
 export class RenderPipelineCache {
   device: any;
-  renderPipelines: Map<number, GPUPipelineBase>;
-  computePipelines:Map<number,GPUPipelineBase>;
+  renderPipelines: Map<number, GPURenderPipeline>;
+  computePipelines:Map<number,GPUComputePipeline>;
   constructor(device:GPUDevice) {
     this.device = device;
     this.renderPipelines = new Map();
@@ -53,7 +53,7 @@ export class RenderPipelineCache {
           entryPoint: shaderSource.computeMain,
         },
       });
-      this.renderPipelines.set(hashId, pipeline);
+      this.computePipelines.set(hashId, pipeline);
     }
     return pipeline;
   }
