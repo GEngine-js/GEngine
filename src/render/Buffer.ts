@@ -1,5 +1,5 @@
 import { BufferUsage } from "../core/WebGPUConstant";
-import Attribute from "./Attribute";
+// import Attribute from "./Attribute";
 
 class Buffer {
   public gpuBuffer: GPUBuffer;
