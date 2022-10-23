@@ -10,10 +10,11 @@ import DataBuffer from "../utils/DataBuffer";
 import Buffer from "../render/Buffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import Context from "../render/Context";
+import { Uniform } from "../render/Uniforms";
 export class Material{
     public uniformBuffer:Buffer;
     color?: any;
-    unifroms:{};
+    unifroms:any[];
     renderState:RenderState;
     baseSampler?: Sampler;
     baseTexture?: Texture;
@@ -34,8 +35,9 @@ export class Material{
         this.renderState=undefined;
         this.color=undefined;
         this.alpha=undefined;
-
+        //Buffer
         this.uniformBuffer=undefined;
+        //DataBuffer
         this.unifromDataBuffer=new DataBuffer()
         this.unifroms=undefined;
         this.shaderSource=undefined;
@@ -46,23 +48,13 @@ export class Material{
 	onBeforeCompile() {}
 
     update(frameState){
-         if(this.unifroms) this.createUniform();
+        
     }
-    public createUniform(){
-       this.unifroms={
-            color:()=>{
-                return this.color;
-            },
-            alpha:()=>{
-                return this.alpha;
-            },
-            baseTexture:()=>{
-                return this.baseTexture
-            },
-            baseSampler:()=>{
-                return this.baseSampler
-            }
-        }
+    updateUniform(){
+        this.unifroms.forEach((uniform)=>{
+            uniform.set();
+        });
+        this.uniformBuffer.setSubData(0,this.unifromDataBuffer.toFloat32Array())
     }
     public destory(){
         this.label=undefined;

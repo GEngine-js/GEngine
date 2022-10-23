@@ -6,6 +6,9 @@ export  default class DataBuffer{
     get length(){
         return this.data.length;
     }
+    toFloat32Array(){
+        return new Float32Array(this.data)
+    }
     set(data){
         const preDataLength=this.data.length;
         this.data=this.data.concat(data);

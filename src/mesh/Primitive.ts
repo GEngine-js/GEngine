@@ -1,8 +1,8 @@
-import { FrameState } from "./core/FrameState";
-import Geometry from "./geometry/Geometry";
-import { Material } from "./material/Material";
-import Matrix4 from "./math/Matrix4";
-import DrawCommand from "./render/DrawCommand";
+import { FrameState } from "../core/FrameState";
+import Geometry from "../geometry/Geometry";
+import { Material } from "../material/Material";
+import Matrix4 from "../math/Matrix4";
+import DrawCommand from "../render/DrawCommand";
 export class Primitive {
     modelMatrix: Matrix4;
     geometry: Geometry;
@@ -25,7 +25,7 @@ export class Primitive {
         //create renderPipeline
         const pipeline = frameState.context.renderPipelineCache.getRenderPipelineFromCache(this.geometry, this.material);
         const drawCommond = new DrawCommand({
-            pipeline,
+            pipeline:pipeline,
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,

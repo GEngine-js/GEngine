@@ -112,9 +112,7 @@ class Context {
     }
 
     if (command.pipeline) {
-      // this.passEncoder.setPipeline(
-      //   command.pipeline.gpuPipeline as GPURenderPipeline & GPUComputePipeline
-      // );
+      this.passEncoder.setPipeline(command.pipeline as never);
     }
     if (command.renderState) {
       const {blendConstant,stencilReference,viewport,scissorTest}=command.renderState;

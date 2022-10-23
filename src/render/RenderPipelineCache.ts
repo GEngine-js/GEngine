@@ -26,7 +26,7 @@ export class RenderPipelineCache {
     this.device = device;
     this.renderPipelines = new Map();
   }
-  getRenderPipelineFromCache(geometry:Geometry,material:Material){ 
+  getRenderPipelineFromCache(geometry:Geometry,material:Material):GPURenderPipeline{ 
     const {renderState}=material; 
     const rsStr=JSON.stringify(RenderState.getFromRenderStateCache(renderState));
     const combineStr=material.type.concat(rsStr);
@@ -39,7 +39,7 @@ export class RenderPipelineCache {
     }
     return pipeline;
   }
-  getComputePipelineFromCache(material:Material){
+  getComputePipelineFromCache(material:Material):GPUComputePipeline{
     
     const hashId= stringToHash(material.type);
     let pipeline = this.computePipelines.get(hashId);

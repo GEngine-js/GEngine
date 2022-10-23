@@ -10,7 +10,7 @@ import QuerySet from "./QuerySet";
 
 class DrawCommand {
   public pass?: Pass;
-  public pipeline?: Pipeline;
+  public pipeline?: GPURenderPipeline|GPUComputePipeline;
 
   public vertexBuffers?: VertextBuffers;
   public indexBuffer?: Buffer;

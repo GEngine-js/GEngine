@@ -34,7 +34,6 @@ class BindGroupLayout {
   }
   public getBindGroupSize(): number {
     let size = 0;
-
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];
 

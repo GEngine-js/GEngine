@@ -5,18 +5,26 @@ import { UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4 } from "
 import BindGroupLayout from "../render/BindGroupLayout";
 import BindGroup from "../render/BindGroup";
 import Context from "../render/Context";
+import { ShaderSource } from "../shader/ShaderSource";
 export default class BaseMaterial extends Material {
     constructor() {
         super();
         this.type = 'baseMaterial'
         this.color = undefined;
         this.alpha = undefined;
+        this.shaderSource=new ShaderSource({
+            type:this.type
+        })
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
     update(frameState) { 
         const {device}=frameState.context;
-        this.createBindGroupAndLayout(device)
+        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
+        this.updateUniform();
+    }
+    private createTextureAndSampler(){
+        
     }
     private createBindGroupAndLayout(device:GPUDevice){
         const layouts=this.createBindGroupLayoutEntry();
@@ -55,18 +63,21 @@ export default class BaseMaterial extends Material {
        })
        return bindGroup;
     }
+    private createUniforms(){
+        this.unifroms=[
+            new UniformMat4("modelMatrix",this.unifromDataBuffer,()=>{}),
+            new UniformFloatVec4("color",this.unifromDataBuffer,()=>{
+                return this.color;
+            })
+        ]
+     }
     private createBindGroupLayoutEntry(){
-        const result=new Array<BindGroupLayoutEntry>;
+        this.createUniforms()
         const uniformBuffer = new BindGroupLayoutEntry({
             binding: 0,
             buffer:this.uniformBuffer.layoutType as GPUBufferBindingLayout,
             visibility: GPUShaderStage.VERTEX,
-            uniforms: [
-                new UniformMat4("modelMatrix",this.unifromDataBuffer,0,()=>{}),
-                new UniformFloatVec4("color",this.unifromDataBuffer,16*4,()=>{
-                    return this.color;
-                })
-            ],
+            uniforms: this.unifroms,
         });
         const texture = new BindGroupLayoutEntry({
             binding: 1,
@@ -80,8 +91,7 @@ export default class BaseMaterial extends Material {
                 type: this.baseSampler.layoutType as GPUSamplerBindingType,
             }
         });
-        result.push(...[uniformBuffer,texture,sampler])
-        return result 
+        return [uniformBuffer,texture,sampler];
     }
     destory() {
 
