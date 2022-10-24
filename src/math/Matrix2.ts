@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Vector2 from "./Vector2";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
@@ -388,15 +387,11 @@ class Matrix2 {
    * @exception {Error} index must be 0 or 1.
    */
   static setRow(matrix, index, cartesian, result) {
-
     result = Matrix2.clone(matrix, result);
     result[index] = cartesian.x;
     result[index + 2] = cartesian.y;
     return result;
   };
-
-  const scaleScratch1 = new Vector2();
-
   /**
    * Computes a new matrix that replaces the scale with the provided scale.
    * This assumes the matrix is an affine transformation.
@@ -426,9 +421,6 @@ class Matrix2 {
 
     return result;
   };
-
-  const scaleScratch2 = new Vector2();
-
   /**
    * Computes a new matrix that replaces the scale with the provided uniform scale.
    * This assumes the matrix is an affine transformation.
@@ -485,9 +477,6 @@ class Matrix2 {
     );
     return result;
   };
-
-  const scaleScratch3 = new Vector2();
-
   /**
    * Computes the maximum scale assuming the matrix is an affine transformation.
    * The maximum scale is the maximum length of the column vectors.
@@ -499,9 +488,6 @@ class Matrix2 {
     Matrix2.getScale(matrix, scaleScratch3);
     return Vector2.maximumComponent(scaleScratch3);
   };
-
-  const scaleScratch4 = new Vector2();
-
   /**
    * Sets the rotation assuming the matrix is an affine transformation.
    *
@@ -916,7 +902,10 @@ class Matrix2 {
     return `(${this[0]}, ${this[2]})\n` + `(${this[1]}, ${this[3]})`;
   };
 }
-
+const scaleScratch1 = new Vector2();
+const scaleScratch2 = new Vector2();
+const scaleScratch3 = new Vector2();
+const scaleScratch4 = new Vector2();
 const scratchColumn = new Vector2();
 const scaleScratch5 = new Vector2();
 export default Matrix2;

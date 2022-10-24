@@ -1,7 +1,6 @@
-// @ts-nocheck
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 
 function hue2rgb(m1, m2, h) {
   if (h < 0) {
@@ -246,7 +245,11 @@ class Color {
    * @type {Color}
    */
   public static DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
-  
+  green: number;
+  red: number;
+  blue: number;
+  alpha: number;
+
   constructor(red=1.0, green=1.0, blue=1.0, alpha=1.0) {
     /**
      * The red component.
@@ -615,7 +618,7 @@ class Color {
 
   /**
    * Creates a random color using the provided options. For reproducible random colors, you should
-   * call {@link CesiumMath#setRandomNumberSeed} once at the beginning of your application.
+   * call {@link GMath#setRandomNumberSeed} once at the beginning of your application.
    *
    * @param {Object} [options] Object with the following properties:
    * @param {Number} [options.red] If specified, the red component to use instead of a randomized value.
@@ -666,7 +669,7 @@ class Color {
       const maximumRed = defaultValue(options.maximumRed, 1.0);
 
       red =
-        minimumRed + CesiumMath.nextRandomNumber() * (maximumRed - minimumRed);
+        minimumRed + GMath.nextRandomNumber() * (maximumRed - minimumRed);
     }
 
     let green = options.green;
@@ -676,7 +679,7 @@ class Color {
 
       green =
         minimumGreen +
-        CesiumMath.nextRandomNumber() * (maximumGreen - minimumGreen);
+        GMath.nextRandomNumber() * (maximumGreen - minimumGreen);
     }
 
     let blue = options.blue;
@@ -685,7 +688,7 @@ class Color {
       const maximumBlue = defaultValue(options.maximumBlue, 1.0);
 
       blue =
-        minimumBlue + CesiumMath.nextRandomNumber() * (maximumBlue - minimumBlue);
+        minimumBlue + GMath.nextRandomNumber() * (maximumBlue - minimumBlue);
     }
 
     let alpha = options.alpha;
@@ -695,7 +698,7 @@ class Color {
 
       alpha =
         minimumAlpha +
-        CesiumMath.nextRandomNumber() * (maximumAlpha - minimumAlpha);
+        GMath.nextRandomNumber() * (maximumAlpha - minimumAlpha);
     }
 
     if (!defined(result)) {
@@ -723,12 +726,7 @@ class Color {
    *
    * @see {@link http://www.w3.org/TR/css3-color|CSS color values}
    */
-  static fromCssColorString(color, result) {
-
-    if (!defined(result)) {
-      result = new Color();
-    }
-
+  static fromCssColorString(color, result=new Color()) {
     // Remove all whitespaces from the color string
     color = color.replace(/\s/g, "");
 
@@ -994,10 +992,10 @@ class Color {
    */
   static lerp(start, end, t, result) {
 
-    result.red = CesiumMath.lerp(start.red, end.red, t);
-    result.green = CesiumMath.lerp(start.green, end.green, t);
-    result.blue = CesiumMath.lerp(start.blue, end.blue, t);
-    result.alpha = CesiumMath.lerp(start.alpha, end.alpha, t);
+    result.red = GMath.lerp(start.red, end.red, t);
+    result.green = GMath.lerp(start.green, end.green, t);
+    result.blue = GMath.lerp(start.blue, end.blue, t);
+    result.alpha = GMath.lerp(start.alpha, end.alpha, t);
     return result;
   };
 

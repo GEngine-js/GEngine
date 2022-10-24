@@ -1,4 +1,3 @@
-// @ts-nocheck
 import MersenneTwister from "mersenne-twister";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
@@ -10,7 +9,6 @@ import defined from "../utils/defined";
  * @alias Math
  */
 class GMath{
-
 /**
  * 0.1
  * @type {Number}
@@ -216,7 +214,7 @@ class GMath{
  
  /**
   * Returns 1.0 if the given value is positive or zero, and -1.0 if it is negative.
-  * This is similar to {@link CesiumMath#sign} except that returns 1.0 instead of
+  * This is similar to {@link GMath#sign} except that returns 1.0 instead of
   * 0.0 when the input value is 0.0.
   * @param {Number} value The value to return the sign of.
   * @returns {Number} The sign of value.
@@ -231,12 +229,12 @@ class GMath{
   * @param {Number} [rangeMaximum=255] The maximum value in the mapped range, 255 by default.
   * @returns {Number} A SNORM value, where 0 maps to -1.0 and rangeMaximum maps to 1.0.
   *
-  * @see CesiumMath.fromSNorm
+  * @see GMath.fromSNorm
   */
   static toSNorm (value, rangeMaximum) {
    rangeMaximum = defaultValue(rangeMaximum, 255);
    return Math.round(
-     (CesiumMath.clamp(value, -1.0, 1.0) * 0.5 + 0.5) * rangeMaximum
+     (GMath.clamp(value, -1.0, 1.0) * 0.5 + 0.5) * rangeMaximum
    );
  };
  
@@ -246,12 +244,12 @@ class GMath{
   * @param {Number} [rangeMaximum=255] The maximum value in the SNORM range, 255 by default.
   * @returns {Number} Scalar in the range [-1.0, 1.0].
   *
-  * @see CesiumMath.toSNorm
+  * @see GMath.toSNorm
   */
   static fromSNorm(value, rangeMaximum) {
    rangeMaximum = defaultValue(rangeMaximum, 255);
    return (
-     (CesiumMath.clamp(value, 0.0, rangeMaximum) / rangeMaximum) * 2.0 - 1.0
+     (GMath.clamp(value, 0.0, rangeMaximum) / rangeMaximum) * 2.0 - 1.0
    );
  };
  
@@ -266,7 +264,7 @@ class GMath{
    rangeMaximum = Math.max(rangeMaximum - rangeMinimum, 0.0);
    return rangeMaximum === 0.0
      ? 0.0
-     : CesiumMath.clamp((value - rangeMinimum) / rangeMaximum, 0.0, 1.0);
+     : GMath.clamp((value - rangeMinimum) / rangeMaximum, 0.0, 1.0);
  };
  
  /**
@@ -430,7 +428,7 @@ class GMath{
   * @type {Number}
   * @constant
   */
-  static RADIANS_PER_ARCSECOND = CesiumMath.RADIANS_PER_DEGREE / 3600.0;
+  static RADIANS_PER_ARCSECOND = GMath.RADIANS_PER_DEGREE / 3600.0;
  
  /**
   * Converts degrees to radians.
@@ -443,7 +441,7 @@ class GMath{
      throw new Error("degrees is required.");
    }
    //>>includeEnd('debug');
-   return degrees * CesiumMath.RADIANS_PER_DEGREE;
+   return degrees * GMath.RADIANS_PER_DEGREE;
  };
  
  /**
@@ -457,7 +455,7 @@ class GMath{
      throw new Error("radians is required.");
    }
    //>>includeEnd('debug');
-   return radians * CesiumMath.DEGREES_PER_RADIAN;
+   return radians * GMath.DEGREES_PER_RADIAN;
  };
  
  /**
@@ -476,7 +474,7 @@ class GMath{
      throw new Error("angle is required.");
    }
    //>>includeEnd('debug');
-   const twoPi = CesiumMath.TWO_PI;
+   const twoPi = GMath.TWO_PI;
  
    const simplified = angle - Math.floor(angle / twoPi) * twoPi;
  
@@ -508,10 +506,10 @@ class GMath{
    }
    //>>includeEnd('debug');
  
-   return CesiumMath.clamp(
+   return GMath.clamp(
      angle,
-     -1 * CesiumMath.PI_OVER_TWO,
-     CesiumMath.PI_OVER_TWO
+     -1 * GMath.PI_OVER_TWO,
+     GMath.PI_OVER_TWO
    );
  };
  
@@ -519,7 +517,7 @@ class GMath{
   * Produces an angle in the range -Pi <= angle <= Pi which is equivalent to the provided angle.
   *
   * @param {Number} angle in radians
-  * @returns {Number} The angle in the range [<code>-CesiumMath.PI</code>, <code>CesiumMath.PI</code>].
+  * @returns {Number} The angle in the range [<code>-GMath.PI</code>, <code>GMath.PI</code>].
   */
   static negativePiToPi(angle) {
    //>>includeStart('debug', pragmas.debug);
@@ -527,19 +525,19 @@ class GMath{
      throw new Error("angle is required.");
    }
    //>>includeEnd('debug');
-   if (angle >= -CesiumMath.PI && angle <= CesiumMath.PI) {
+   if (angle >= -GMath.PI && angle <= GMath.PI) {
      // Early exit if the input is already inside the range. This avoids
      // unnecessary math which could introduce floating point error.
      return angle;
    }
-   return CesiumMath.zeroToTwoPi(angle + CesiumMath.PI) - CesiumMath.PI;
+   return GMath.zeroToTwoPi(angle + GMath.PI) - GMath.PI;
  };
  
  /**
   * Produces an angle in the range 0 <= angle <= 2Pi which is equivalent to the provided angle.
   *
   * @param {Number} angle in radians
-  * @returns {Number} The angle in the range [0, <code>CesiumMath.TWO_PI</code>].
+  * @returns {Number} The angle in the range [0, <code>GMath.TWO_PI</code>].
   */
   static zeroToTwoPi(angle) {
    //>>includeStart('debug', pragmas.debug);
@@ -547,17 +545,17 @@ class GMath{
      throw new Error("angle is required.");
    }
    //>>includeEnd('debug');
-   if (angle >= 0 && angle <= CesiumMath.TWO_PI) {
+   if (angle >= 0 && angle <= GMath.TWO_PI) {
      // Early exit if the input is already inside the range. This avoids
      // unnecessary math which could introduce floating point error.
      return angle;
    }
-   const mod = CesiumMath.mod(angle, CesiumMath.TWO_PI);
+   const mod = GMath.mod(angle, GMath.TWO_PI);
    if (
-     Math.abs(mod) < CesiumMath.EPSILON14 &&
-     Math.abs(angle) > CesiumMath.EPSILON14
+     Math.abs(mod) < GMath.EPSILON14 &&
+     Math.abs(angle) > GMath.EPSILON14
    ) {
-     return CesiumMath.TWO_PI;
+     return GMath.TWO_PI;
    }
    return mod;
  };
@@ -581,7 +579,7 @@ class GMath{
      throw new Error("divisor cannot be 0.");
    }
    //>>includeEnd('debug');
-   if (CesiumMath.sign(m) === CesiumMath.sign(n) && Math.abs(m) < Math.abs(n)) {
+   if (GMath.sign(m) === GMath.sign(n) && Math.abs(m) < Math.abs(n)) {
      // Early exit if the input does not need to be modded. This avoids
      // unnecessary math which could introduce floating point error.
      return m;
@@ -612,7 +610,7 @@ class GMath{
    left:number,
    right:number,
    relativeEpsilon:number,
-   absoluteEpsilon?:number=relativeEpsilon
+   absoluteEpsilon:number=relativeEpsilon
  ) {
    //>>includeStart('debug', pragmas.debug);
    if (!defined(left)) {
@@ -733,9 +731,6 @@ class GMath{
    //>>includeEnd('debug');
    return left - right > -absoluteEpsilon;
  };
- 
- const factorials = [1];
- 
  /**
   * Computes the factorial of the provided number.
   *
@@ -909,7 +904,7 @@ class GMath{
  
  /**
   * Sets the seed used by the random number generator
-  * in {@link CesiumMath#nextRandomNumber}.
+  * in {@link GMath#nextRandomNumber}.
   *
   * @param {Number} seed An integer used as the seed.
   */
@@ -929,7 +924,7 @@ class GMath{
   *
   * @returns {Number} A random number in the range of [0.0, 1.0).
   *
-  * @see CesiumMath.setRandomNumberSeed
+  * @see GMath.setRandomNumberSeed
   * @see {@link http://en.wikipedia.org/wiki/Mersenne_twister|Mersenne twister on Wikipedia}
   */
   static nextRandomNumber = function () {
@@ -944,7 +939,7 @@ class GMath{
   * @returns {Number} A random number between the min and max.
   */
   static randomBetween = function (min, max) {
-   return CesiumMath.nextRandomNumber() * (max - min) + min;
+   return GMath.nextRandomNumber() * (max - min) + min;
  };
  
  /**
@@ -961,7 +956,7 @@ class GMath{
      throw new Error("value is required.");
    }
    //>>includeEnd('debug');
-   return Math.acos(CesiumMath.clamp(value, -1.0, 1.0));
+   return Math.acos(GMath.clamp(value, -1.0, 1.0));
  };
  
  /**
@@ -978,7 +973,7 @@ class GMath{
      throw new Error("value is required.");
    }
    //>>includeEnd('debug');
-   return Math.asin(CesiumMath.clamp(value, -1.0, 1.0));
+   return Math.asin(GMath.clamp(value, -1.0, 1.0));
  };
  
  /**
@@ -1094,14 +1089,15 @@ class GMath{
      throw new Error("either x or y must be nonzero");
    }
    //>>includeEnd('debug');
-   t = CesiumMath.fastApproximateAtan(oppositeOverAdjacent);
+   t = GMath.fastApproximateAtan(oppositeOverAdjacent);
  
    // Undo range reduction
-   t = Math.abs(y) > Math.abs(x) ? CesiumMath.PI_OVER_TWO - t : t;
-   t = x < 0.0 ? CesiumMath.PI - t : t;
+   t = Math.abs(y) > Math.abs(x) ? GMath.PI_OVER_TWO - t : t;
+   t = x < 0.0 ? GMath.PI - t : t;
    t = y < 0.0 ? -t : t;
    return t;
  };
 }
 let randomNumberGenerator = new MersenneTwister();
+const factorials = [1];
 export default GMath;

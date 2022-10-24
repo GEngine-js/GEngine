@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";

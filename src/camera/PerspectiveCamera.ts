@@ -19,7 +19,7 @@ export default class PerspectiveCamera extends Camera{
      }
      lookAt(target:Vector3){
         Vector3.subtract(this.position,target,this.cameraDirection);
-        
+
         Vector3.normalize(this.cameraDirection,this.cameraDirection);
         
         Vector3.cross(this.cameraUp,this.cameraDirection,this.cameraRight);
@@ -55,7 +55,7 @@ export default class PerspectiveCamera extends Camera{
         );
      }
      updateViewMatrix(){
-
+        
      }
     /**
      * Creates a culling volume for this frustum.
