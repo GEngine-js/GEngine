@@ -6,9 +6,12 @@ export class DirtectLight extends Light{
     intensity: number;
     dirtect: Vector3;
     constructor(color:Color, intensity:number,dirtect :Vector3=new Vector3(1,1,0)){
-        super(color);
+        super(color,intensity);
         this.intensity=intensity;
         this.type='dirtect';
         this.dirtect=dirtect;
     }
 }
+//uniform
+// direction: {},
+// color: {}

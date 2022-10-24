@@ -8,3 +8,4 @@ export class AmbientLight extends Light {
         this.type='ambient';
     }
 }
+//light.color ).multiplyScalar( light.intensity * scaleFactor );

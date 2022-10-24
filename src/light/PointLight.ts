@@ -11,3 +11,8 @@ export class PointLight extends Light{
         this.type='point'
     }
 }
+//uniform
+// color: {},
+// position: {},
+// decay: {},
+// distance: {}
