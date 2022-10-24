@@ -1,5 +1,5 @@
 import { Material } from "./Material";
-import { BindGroupEntity } from '../render/BindGroupEntity'
+import BindGroupEntity  from '../render/BindGroupEntity'
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import { UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4 } from "../render/Uniforms";
 import BindGroupLayout from "../render/BindGroupLayout";
@@ -24,7 +24,7 @@ export default class BaseMaterial extends Material {
         this.updateUniform();
     }
     private createTextureAndSampler(){
-        
+
     }
     private createBindGroupAndLayout(device:GPUDevice){
         const layouts=this.createBindGroupLayoutEntry();

@@ -1,5 +1,5 @@
 import {BindGroupEntityOptions,BindGroupEntityResourceType} from '../core/WebGPUTypes'
-export class BindGroupEntity{
+export default class BindGroupEntity{
     binding: number;
     resource: GPUBindingResource;
     constructor(options:BindGroupEntityOptions){
