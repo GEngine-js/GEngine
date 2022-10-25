@@ -1,5 +1,5 @@
 import BindGroupLayout from "../render/BindGroupLayout";
-import { BindGroupEntity } from "../render/BindGroupEntity";
+import  BindGroupEntity  from "../render/BindGroupEntity";
 export const GPUCanvasCompositingAlphaMode: {
   [key: string]: GPUCanvasCompositingAlphaMode;
 } = {

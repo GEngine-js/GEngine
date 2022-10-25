@@ -36,7 +36,7 @@ class Context {
     requestAdapter = {},
     deviceDescriptor = {},
     presentationContextDescriptor = {},
-    glslangPath: string
+    // glslangPath: string
   ): Promise<boolean> {
     try {
       if (!this.context) {
@@ -61,12 +61,12 @@ class Context {
         ...presentationContextDescriptor,
       });
       this.renderPipelineCache=new RenderPipelineCache(this.device);
-      this.glslang = await (
-        await import(
-          /* webpackIgnore: true */ glslangPath ||
-            "@webgpu/glslang/dist/web-devel/glslang.js"
-        )
-      ).default();
+      // this.glslang = await (
+      //   await import(
+      //     /* webpackIgnore: true */ glslangPath ||
+      //       "@webgpu/glslang/dist/web-devel/glslang.js"
+      //   )
+      // ).default();
     } catch (error) {
       console.error(error);
       return false;
