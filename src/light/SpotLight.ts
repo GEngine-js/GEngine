@@ -1,3 +1,4 @@
+import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
 
 export class SpotLight extends Light{
@@ -7,13 +8,21 @@ export class SpotLight extends Light{
     decay: number;
     coneCos: number;
     penumbraCos: number;
+    public target: Vector3;
     constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0, decay = 1){
         super(color, intensity);
         this.distance=distance;
         this._angle=angle;
         this._penumbra=penumbra;
         this.decay=decay;
+        this.type='spot';
+        this.target=new Vector3(0,0,0);
         this.updateConeCosOrPenumbraCos()
+    }
+    get dirtect(){
+        const result=new Vector3()
+         Vector3.subtract(this.position,this.target,result);
+         return result;
     }
     get angle(){
         return this._angle;

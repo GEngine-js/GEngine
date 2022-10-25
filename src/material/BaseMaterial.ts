@@ -1,10 +1,5 @@
 import { Material } from "./Material";
-import BindGroupEntity  from '../render/BindGroupEntity'
-import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import { UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
-import BindGroupLayout from "../render/BindGroupLayout";
-import BindGroup from "../render/BindGroup";
-import Context from "../render/Context";
 import { ShaderSource } from "../shader/ShaderSource";
 export default class BaseMaterial extends Material {
     constructor() {
@@ -25,7 +20,7 @@ export default class BaseMaterial extends Material {
         this.updateUniform();
     }
     private createBindGroupAndLayout(device:GPUDevice){
-      const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type);
+      const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }

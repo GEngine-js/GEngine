@@ -4,7 +4,7 @@ const layoutCache = new Map()
 class BindGroupLayout {
   public gpuBindGroupLayout: GPUBindGroupLayout;
   index:number;
-  private constructor(device:GPUDevice,label:string,public entries: BindGroupLayoutEntry[] = [],index?:number) {
+  private constructor(device:GPUDevice,label:string,public entries: BindGroupLayoutEntry[] = [],index:number=0) {
     this.index=index||0
     this.gpuBindGroupLayout = device.createBindGroupLayout({
       label:label,
@@ -23,11 +23,11 @@ class BindGroupLayout {
       ),
     });
   }
-  static getBindGroupFromCache(device:GPUDevice,label:string,entires:BindGroupLayoutEntry[] ):BindGroupLayout{
+  static getBindGroupFromCache(device:GPUDevice,label:string,entires:BindGroupLayoutEntry[],index):BindGroupLayout{
     if (layoutCache.has(label)) {
       return layoutCache.get(label)
     } else {
-      const bindGroupLayout= new BindGroupLayout(device,label,entires)
+      const bindGroupLayout= new BindGroupLayout(device,label,entires,index)
       layoutCache.set(label,bindGroupLayout);
        return bindGroupLayout;
     }

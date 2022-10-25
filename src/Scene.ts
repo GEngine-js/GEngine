@@ -1,16 +1,20 @@
 import Camera from "./camera/Camera";
 import { EventDispatcher } from "./core/EventDispatcher";
+import LightManger from "./core/LightManger";
+import PrimitiveManger from "./core/PrimitiveManger";
 
 export class Scene extends EventDispatcher{
-    lightCollection:[];
-    primitiveCollection:[];
+    lightManger:LightManger;
+    primitiveManger:PrimitiveManger;
     camera:Camera;
     constructor(){
-        super();       
+        super();
+        this.lightManger=new LightManger();
+        this.primitiveManger=new PrimitiveManger();       
     }
     add(primitive){
-        if (primitive.type='primitive'&&this.primitiveCollection.includes(primitive)) {
-            
+        if (primitive.type='primitive'&&!this.primitiveManger.contains(primitive)) {
+            this.primitiveManger.add(primitive)
         }
     }
     remove(){

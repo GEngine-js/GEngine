@@ -9,6 +9,8 @@ import Vector4 from '../math/Vector4';
 import { ShaderStage } from '../core/WebGPUConstant';
 import Texture from './Texture';
 import Sampler from './Sampler';
+import { Light } from '../light/Light';
+import Buffer from './Buffer';
 export class Uniform<T> {
     _value: T;
     name: string;
@@ -21,11 +23,11 @@ export class Uniform<T> {
     visibility?:number;
     type?:string;
 
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         this.name = uniformName;
         this.dataBuffer=dataBuffer;
         this.cb=cb;
-        this.binding=0;
+        this.binding=binding||0;
         this.visibility=ShaderStage.Vertex;
         this.type='number'      
     }
@@ -60,7 +62,7 @@ export class UniformVec extends Uniform<number>{
     dataBuffer: DataBuffer;
     size: number;
 
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = 0;
@@ -76,7 +78,7 @@ export class UniformVec extends Uniform<number>{
       };
 }
 export class UniformFloatVec2 extends Uniform<Vector2>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Vector2();
@@ -93,7 +95,7 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
       };
 }
 export class UniformFloatVec3 extends Uniform<Vector3>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Vector3();
@@ -110,7 +112,7 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
       };
 }
 export class UniformFloatVec4 extends Uniform<Vector4>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Vector4();
@@ -127,7 +129,7 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
       };
 }
 export class UniformColor extends Uniform<Color>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Color();
@@ -145,7 +147,7 @@ export class UniformColor extends Uniform<Color>{
 }
 
 export class UniformMat2 extends Uniform<Matrix2>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value =new Matrix2();
@@ -162,7 +164,7 @@ export class UniformMat2 extends Uniform<Matrix2>{
       };
 }
 export class UniformMat3 extends Uniform<Matrix3>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Matrix3();
@@ -179,7 +181,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
       };
 }
 export class UniformMat4 extends Uniform<Matrix4>{
-    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object) {
+    constructor(uniformName:string, dataBuffer:DataBuffer,cb:Function|number|Object,binding?:number) {
         super(uniformName,dataBuffer,cb);
         this.value = undefined;
         this._value = new Matrix4();
@@ -212,5 +214,17 @@ export class UniformSampler extends Uniform<Sampler>{
         this.binding=binding;
         this.type='sampler';
         this.visibility=ShaderStage.Fragment;
+    }
+}
+export class UniformLight extends Uniform<Light>{
+    bufferSize: number;
+    buffer: Buffer;
+    constructor(uniformName:string,binding:number,cb:Function|number|Object,size:number) {
+        super(uniformName,null,cb);
+        this.buffer =this.getValue();
+        this.binding=binding;
+        // this.type='light';
+        this.visibility=ShaderStage.Fragment;
+        this.bufferSize=size;
     }
 }

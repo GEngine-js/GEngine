@@ -4,6 +4,7 @@ import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
 export class Primitive extends RenderObject{
+    [x: string]: any;
     geometry: Geometry;
     material: Material;
     instances?: number;

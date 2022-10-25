@@ -56,15 +56,16 @@ export class Material{
         });
         this.uniformBuffer.setSubData(0,this.uniformsDataBuffer.toFloat32Array())
     }
-    static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string){
+    static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string,index:number){
         const layoutEntities=Material.createBindGroupLayoutEntry(uniforms,uniformBuffer);
-        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,label,layoutEntities);
+        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,label,layoutEntities,index);
         const groupEntities=Material.createBindGroupEntity(uniforms,uniformBuffer);
         const bindGroup=BindGroup.getBindGroupFromCache({
-            label:'baseMaterial',
+            label:label,
             entires:groupEntities,
             device:device,
-            layout:groupLayout
+            layout:groupLayout,
+            index:index
            });
        return {groupLayout,bindGroup}
     }
@@ -101,7 +102,7 @@ export class Material{
         if(uniform.type==='number'){
             layoutEntity= new BindGroupLayoutEntry({
                 binding: uniform.binding,
-                buffer:uniformBuffer.layoutType as GPUBufferBindingLayout,
+                buffer:uniform?.buffer||uniformBuffer.layoutType,
                 visibility: uniform.visibility,
                 // uniforms: this.uniforms,
             });
@@ -109,14 +110,14 @@ export class Material{
             layoutEntity = new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 visibility: uniform.visibility,
-                texture:uniform.value.layoutType as GPUTextureBindingLayout 
+                texture:uniform.value.layoutType
             });
         } else if(uniform.type==='sampler'){
             layoutEntity= new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 visibility: uniform.visibility,
                 sampler: {
-                    type:uniform.value.layoutType as GPUSamplerBindingType,
+                    type:uniform.value.layoutType,
                 }
             });
         }
@@ -128,9 +129,10 @@ export class Material{
             groupEntity=new BindGroupEntity({
                 binding:uniform.binding,
                 resource:{
-                    buffer: uniformBuffer.gpuBuffer,
+                    buffer:uniform?.buffer.gpuBuffer||uniformBuffer.gpuBuffer,
                     offset: 0,
-                    size:Material.getBindingSize(uniforms)
+                    //兼容灯光
+                    size:uniform.bufferSize||Material.getBindingSize(uniforms)
                 }
               });
         } else if(uniform.type==='texture'){
