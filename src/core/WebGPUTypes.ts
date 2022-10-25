@@ -83,8 +83,8 @@ export type BindGroupEntityOptions={
 export type BindGroupCacheOptions={
     device:GPUDevice,
     label:string,
-    layout:GPUBindGroupLayout,
-    entires:GPUBindGroupEntry[],
+    layout:BindGroupLayout,
+    entires:BindGroupEntity[],
     index?:number
 }
 

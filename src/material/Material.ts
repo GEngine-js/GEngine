@@ -1,5 +1,5 @@
 import BindGroup from "../render/BindGroup";
-import { BindGroupEntity } from "../render/BindGroupEntity";
+import  BindGroupEntity  from "../render/BindGroupEntity";
 import  BindGroupLayout  from "../render/BindGroupLayout";
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
 import Color from '../math/Color'
@@ -13,13 +13,13 @@ import Context from "../render/Context";
 import { Uniform } from "../render/Uniforms";
 export class Material{
     public uniformBuffer:Buffer;
-    color?: any;
-    unifroms:any[];
+    color?: number;
+    uniforms:any[];
     renderState:RenderState;
     baseSampler?: Sampler;
     baseTexture?: Texture;
-    alpha?: any;
-    unifromDataBuffer: DataBuffer;
+    alpha?: number;
+    uniformsDataBuffer: DataBuffer;
     type: string;
     label: string;
     shaderSource: ShaderSource;
@@ -38,8 +38,8 @@ export class Material{
         //Buffer
         this.uniformBuffer=undefined;
         //DataBuffer
-        this.unifromDataBuffer=new DataBuffer()
-        this.unifroms=undefined;
+        this.uniformsDataBuffer=new DataBuffer()
+        this.uniforms=undefined;
         this.shaderSource=undefined;
         this.groupLayouts=undefined;
     }
@@ -51,10 +51,106 @@ export class Material{
         
     }
     updateUniform(){
-        this.unifroms.forEach((uniform)=>{
+        this.uniforms.forEach((uniform)=>{
             uniform.set();
         });
-        this.uniformBuffer.setSubData(0,this.unifromDataBuffer.toFloat32Array())
+        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer.toFloat32Array())
+    }
+    static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string){
+        const layoutEntities=Material.createBindGroupLayoutEntry(uniforms,uniformBuffer);
+        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,label,layoutEntities);
+        const groupEntities=Material.createBindGroupEntity(uniforms,uniformBuffer);
+        const bindGroup=BindGroup.getBindGroupFromCache({
+            label:'baseMaterial',
+            entires:groupEntities,
+            device:device,
+            layout:groupLayout
+           });
+       return {groupLayout,bindGroup}
+    }
+    static createBindGroupLayoutEntry(uniforms,uniformBuffer){
+        const result=new Map()
+        uniforms.forEach((uniform)=>{
+          if(!result.has(uniform.binding)){
+               result.set(uniform.binding,Material.createOneLayoutEntry(uniform,uniformBuffer))
+          }
+        })
+        const lauoutEntityArray=[]
+        result.forEach((value)=>{
+            lauoutEntityArray.push(value)
+        })
+    
+       return lauoutEntityArray;
+    }
+    static createBindGroupEntity(uniforms,uniformBuffer) {
+        const result=new Map()
+        uniforms.forEach((uniform)=>{
+          if(!result.has(uniform.binding)){
+               result.set(uniform.binding,Material.creayeOneGroupEntity(uniform,uniformBuffer,uniforms))
+          }
+        })
+        const groupEntityArray=[]
+        result.forEach((value)=>{
+            groupEntityArray.push(value)
+        })
+    
+       return groupEntityArray;
+    }
+    static createOneLayoutEntry(uniform,uniformBuffer){
+        let layoutEntity;
+        if(uniform.type==='number'){
+            layoutEntity= new BindGroupLayoutEntry({
+                binding: uniform.binding,
+                buffer:uniformBuffer.layoutType as GPUBufferBindingLayout,
+                visibility: uniform.visibility,
+                // uniforms: this.uniforms,
+            });
+        } else if(uniform.type==='texture'){
+            layoutEntity = new BindGroupLayoutEntry({
+                binding: uniform.binding,
+                visibility: uniform.visibility,
+                texture:uniform.value.layoutType as GPUTextureBindingLayout 
+            });
+        } else if(uniform.type==='sampler'){
+            layoutEntity= new BindGroupLayoutEntry({
+                binding: uniform.binding,
+                visibility: uniform.visibility,
+                sampler: {
+                    type:uniform.value.layoutType as GPUSamplerBindingType,
+                }
+            });
+        }
+       return layoutEntity;
+    }
+    static creayeOneGroupEntity(uniform,uniformBuffer,uniforms){
+        let groupEntity;
+        if(uniform.type==='number'){
+            groupEntity=new BindGroupEntity({
+                binding:uniform.binding,
+                resource:{
+                    buffer: uniformBuffer.gpuBuffer,
+                    offset: 0,
+                    size:Material.getBindingSize(uniforms)
+                }
+              });
+        } else if(uniform.type==='texture'){
+            groupEntity = new BindGroupEntity({
+                binding:uniform.binding,
+                resource:uniform.value.gpuTexture.createView()
+            });
+        } else if(uniform.type==='sampler'){
+            groupEntity= new BindGroupEntity({
+                binding:uniform.binding,
+                resource:uniform.value.baseSampler.gpuSampler
+            });
+        }
+       return groupEntity;
+    }
+    static getBindingSize(uniforms){
+        let size= uniforms
+        .map((uniform) =>{ if(uniform.type==='number') { return uniform.size}})
+        .reduce((a, b) => a + b, 0);
+        return size;
     }
     public destory(){
         this.label=undefined;
@@ -64,7 +160,7 @@ export class Material{
         this.renderState=undefined;
         this.color=undefined;
         this.alpha=undefined;
-        this.unifromDataBuffer=undefined
-        this.unifroms=undefined;
+        this.uniformsDataBuffer=undefined
+        this.uniforms=undefined;
     }
 }

@@ -47,7 +47,6 @@ class BindGroupLayout {
 
     return size;
   }
-
   public getBindingSize(entry: BindGroupLayoutEntry): number {
     let size = 0;
 
@@ -56,10 +55,7 @@ class BindGroupLayout {
       (!entry.buffer.type || entry.buffer.type === BufferBindingType.Uniform)
     ) {
       size += entry.uniforms
-        .map(
-          (uniform) =>
-          uniform.size
-        )
+        .map((uniform) =>{ if(uniform.type==='number') { return uniform.size}})
         .reduce((a, b) => a + b, 0);
     }
 

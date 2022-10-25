@@ -1,16 +1,15 @@
 import {BindGroupCacheOptions} from "../core/WebGPUTypes";
 const bindGroupCache=new Map
-class BindGroup implements GPUBindGroup {
+class BindGroup{
   device:GPUDevice
   gpuBindGroup:GPUBindGroup
-  __brand: "GPUBindGroup";
   label: string;
   index:number
   constructor(options:BindGroupCacheOptions) {
     this.index=options.index||0;
     this.gpuBindGroup=options.device.createBindGroup({
       label: options.label,
-      layout: options.layout,
+      layout: options.layout.gpuBindGroupLayout,
       entires: options.entires
     } as unknown as GPUBindGroupDescriptor );
   }
