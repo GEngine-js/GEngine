@@ -1,6 +1,8 @@
+import BoundingSphere from "../core/BoundingSphere";
 import { FrameState } from "../core/FrameState";
 import {VertextBuffers} from "../core/VertextBuffers";
 import { IndexFormat,PrimitiveTopology } from "../core/WebGPUConstant";
+import Vector3 from "../math/Vector3";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 export default class Geometry {
@@ -8,11 +10,11 @@ export default class Geometry {
     type: string;
     public vertexBuffers: VertextBuffers;
     dirty: boolean;
-    boundingSphere: any;
     stripIndexFormat: GPUIndexFormat;
     topology: string;
     indexBuffer?:Buffer;
     count:number;
+    boundingSphere:BoundingSphere
     constructor(options?:any) {
         this.type = options.type||undefined;
         this.vertexBuffers = options.vertexBuffers||undefined;
@@ -46,4 +48,8 @@ export default class Geometry {
         }
         return result;
     }
+    computeBoundingSphere(positions){
+        this.boundingSphere=BoundingSphere.fromVertices(positions,new Vector3(0,0,0),3)
+    }
+    destory(){}
 }

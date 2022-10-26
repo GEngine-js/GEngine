@@ -1,6 +1,7 @@
 import { Primitive } from "../mesh/Primitive";
 import createGuid from "../utils/createGuid";
 import defined from "../utils/defined";
+import { FrameState } from "./FrameState";
 import Manger from "./Manger";
 
 export default class PrimitiveManger extends Manger{
@@ -13,6 +14,11 @@ export default class PrimitiveManger extends Manger{
     }
     get length() {
         return this._list.length;
+    }
+    update(frameState:FrameState){
+        this._list.forEach((primitive)=>{
+            primitive.update(frameState);
+        });
     }
     add(instance:Primitive, index?:number) {
         const hasIndex = defined(index);

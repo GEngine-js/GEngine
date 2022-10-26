@@ -29,6 +29,7 @@ export default class BoxGeometry extends Geometry{
 		createPlane( 'x', 'z', 'y', 1, - 1, this.width, this.depth, - this.height, widthSegments, depthSegments, this ); // ny
 		createPlane( 'x', 'y', 'z', 1, - 1, this.width, this.height, this.depth, widthSegments, heightSegments, this ); // pz
 		createPlane( 'x', 'y', 'z', - 1, - 1, this.width, this.height, - this.depth, widthSegments, heightSegments, this ); // nz
+        this.computeBoundingSphere(this.position);
     }
     public update(frameState){
       const {device}=frameState.context;
@@ -57,4 +58,5 @@ export default class BoxGeometry extends Geometry{
         this.indexBuffer=Buffer.createIndexBuffer(device,new Int32Array(this.indices))
         this.vertexBuffers=vertBuffers;
     }
+    destory(){}
 }
