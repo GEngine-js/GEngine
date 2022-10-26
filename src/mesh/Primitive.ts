@@ -53,7 +53,7 @@ export class Primitive extends RenderObject {
         this.drawCommand = drawCommond;
     }
     destory() {
-        this.geometry.destoty();
-        this.material.destoty();
+        this.geometry.destory();
+        this.material.destory();
     }
 }
