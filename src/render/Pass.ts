@@ -28,9 +28,9 @@ class Pass {
   }
   private excuteCommand(command,frameState){
     //systemGroupLayouts 怎么传值
-    const {context,pass,systemGroupLayouts}=frameState;
+    const {context,pass,systemGroupLayouts,systemBindGroups}=frameState;
     context.currentRenderTarget=pass.renderTarget;
-    context.render(command,systemGroupLayouts);
+    context.render(command,systemGroupLayouts,systemBindGroups);
     context.currentRenderTarget=null;
   }
 }

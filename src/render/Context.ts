@@ -8,6 +8,7 @@ import DrawCommand from "./DrawCommand.js";
 import RenderTarget from "./RenderTarget";
 import RenderState from "./RenderState";
 import BindGroupLayout from "./BindGroupLayout";
+import BindGroup from "./BindGroup";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -94,7 +95,7 @@ class Context {
     });
   }
 
-  private submit(command: DrawCommand, systemGroupLayouts: BindGroupLayout[],subcommand?: () => unknown): void {
+  private submit(command: DrawCommand, systemGroupLayouts: BindGroupLayout[],systemBindGroups:BindGroup[],subcommand?: () => unknown): void {
     if (!this.commandEncoder) {
       console.warn("You need to submit commands inside the render callback.");
       return;
@@ -143,6 +144,7 @@ class Context {
     }
 
     if (command.bindGroups) {
+      const combineBindGroups=command.bindGroups.concat(systemBindGroups).sort((group1,group2)=>group1.index-group2.index)
       for (let i = 0; i < command.bindGroups.length; i++) {
         this.passEncoder.setBindGroup(command.bindGroups[i].index, command.bindGroups[i].gpuBindGroup);
       }
@@ -175,10 +177,10 @@ class Context {
       this.passEncoder?.end();
       this.passEncoder = null;
   }
-  public render(drawCommand:DrawCommand,systemGroupLayouts: BindGroupLayout[]): void {
+  public render(drawCommand:DrawCommand,systemGroupLayouts: BindGroupLayout[],systemBindGroups:BindGroup[]): void {
     this.commandEncoder = this.device.createCommandEncoder();
     // Submit commands
-    this.submit(drawCommand,systemGroupLayouts);
+    this.submit(drawCommand,systemGroupLayouts,systemBindGroups);
     this.device.queue.submit([this.commandEncoder.finish()]);
     this.commandEncoder = null;
   }
