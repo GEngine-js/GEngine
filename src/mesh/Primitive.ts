@@ -39,16 +39,20 @@ export class Primitive extends RenderObject {
         }
     }
     private createCommand(frameState: FrameState) {
-        //create renderPipeline
-        const pipeline = frameState.context.renderPipelineCache.getRenderPipelineFromCache(this.geometry, this.material);
         const drawCommond = new DrawCommand({
-            pipeline: pipeline,
+            //pipeline: pipeline,
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,
             bindGroups: this.material.bindGroups,
             instances: this.instances,
-            count: this.geometry.count
+            count: this.geometry.count,
+            renderState:this.material.renderState,
+            topology:this.geometry.topology as GPUPrimitiveTopology,
+            shaderSource:this.material.shaderSource,
+            groupLayouts:this.materialgroupLayouts,
+            uuid:this.material.type,
+            type:'render'      
         });
         this.drawCommand = drawCommond;
     }

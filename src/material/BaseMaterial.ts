@@ -16,6 +16,7 @@ export default class BaseMaterial extends Material {
     update(frameState) { 
         const {device}=frameState.context;
         if(!this.uniforms) this.createUniforms();
+        if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
         this.updateUniform();
     }
@@ -29,7 +30,7 @@ export default class BaseMaterial extends Material {
             new UniformMat4("modelMatrix",this.uniformsDataBuffer,()=>{}),
             new UniformFloatVec4("color",this.uniformsDataBuffer,this),
             new UniformTexture('baseTexture',null,1,this),
-            new UniformSampler('baseTexture',null,2,this)
+            new UniformSampler('baseSampler',null,2,this)
         ]
      }
     destory() {

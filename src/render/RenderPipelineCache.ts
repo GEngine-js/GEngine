@@ -1,7 +1,8 @@
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
-import { GPUShaderModuleObject } from "../shader/ShaderSource";
+import { GPUShaderModuleObject, ShaderSource } from "../shader/ShaderSource";
 import BindGroupLayout from "./BindGroupLayout";
+import DrawCommand from "./DrawCommand";
 import { PipelineLayout } from "./PipelineLayout";
 import RenderState from "./RenderState";
 // Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
@@ -26,25 +27,27 @@ export class RenderPipelineCache {
     this.device = device;
     this.renderPipelines = new Map();
   }
-  getRenderPipelineFromCache(geometry:Geometry,material:Material):GPURenderPipeline{ 
-    const {renderState}=material; 
-    const rsStr=JSON.stringify(RenderState.getFromRenderStateCache(renderState));
-    const combineStr=material.type.concat(rsStr);
+  getRenderPipelineFromCache(drawComand:DrawCommand,systemGroupLayouts:BindGroupLayout[]):GPURenderPipeline{ 
+    const {renderState,uuid,groupLayouts}=drawComand; 
+    const rs=RenderState.getFromRenderStateCache(renderState)
+    const rsStr=JSON.stringify(rs);
+    const combineStr=uuid.concat(rsStr);
     const hashId= stringToHash(combineStr);
+    const combineLayouts=groupLayouts.concat(systemGroupLayouts).sort((layout1,layout2)=>layout1.index-layout2.index)
     let pipeline = this.renderPipelines.get(hashId);
     if(!pipeline){
-      const descriptor=this.getPipelineDescriptor(geometry,material);
+      const descriptor=this.getPipelineDescriptor(drawComand,rs,combineLayouts,hashId.toString());
       pipeline = this.device.createRenderPipeline(descriptor);
       this.renderPipelines.set(hashId, pipeline);
     }
     return pipeline;
   }
-  getComputePipelineFromCache(material:Material):GPUComputePipeline{
+  getComputePipelineFromCache(drawComand:DrawCommand):GPUComputePipeline{
     
-    const hashId= stringToHash(material.type);
+    const hashId= stringToHash(drawComand.uuid);
     let pipeline = this.computePipelines.get(hashId);
     if(!pipeline){
-      const {shaderSource,groupLayouts}=material;
+      const {shaderSource,groupLayouts}=drawComand;
       const layout=groupLayouts.length>0?groupLayouts.map((layout)=>{return layout.gpuBindGroupLayout}): "auto";
       pipeline =this.device.createComputePipeline({
         layout,
@@ -57,19 +60,18 @@ export class RenderPipelineCache {
     }
     return pipeline;
   }
-  private getPipelineDescriptor(geometry:Geometry,material:Material):GPURenderPipelineDescriptor{
-    const {vertexBuffers,topology,stripIndexFormat}=geometry;
-    const {renderState,shaderSource,groupLayouts}=material;
+  private getPipelineDescriptor(drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
+    const {vertexBuffers,topology,indexFormat,shaderSource}=drawComand;
     const {vert,frag}=shaderSource.createShaderModule(this.device)as GPUShaderModuleObject
     const primitiveState: GPUPrimitiveState = {
       topology:topology as  GPUPrimitiveTopology,
       frontFace:renderState.primitive.frontFace,
       cullMode:renderState.primitive.cullMode,
-      stripIndexFormat: stripIndexFormat as GPUIndexFormat,
+      stripIndexFormat: indexFormat as GPUIndexFormat,
     };
       return {
         //需要改动
-        layout:PipelineLayout.getPipelineLayoutFromCache(this.device,material.type,groupLayouts).gpuPipelineLayout,   
+        layout:PipelineLayout.getPipelineLayoutFromCache(this.device,hashId,groupLayouts).gpuPipelineLayout,   
         vertex: {
           module:vert,
           entryPoint: shaderSource.vertEntryPoint,

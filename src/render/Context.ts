@@ -5,6 +5,9 @@ import{TextureUsage} from '../core/WebGPUConstant'
 import { ContextOptions } from "../core/WebGPUTypes";
 import { RenderPipelineCache } from "./RenderPipelineCache.js";
 import DrawCommand from "./DrawCommand.js";
+import RenderTarget from "./RenderTarget";
+import RenderState from "./RenderState";
+import BindGroupLayout from "./BindGroupLayout";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -18,7 +21,8 @@ class Context {
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
  
   public renderPipelineCache:RenderPipelineCache;
-  glslang: any;
+  
+  public currentRenderTarget:RenderTarget;
 
 
 
@@ -61,12 +65,7 @@ class Context {
         ...presentationContextDescriptor,
       });
       this.renderPipelineCache=new RenderPipelineCache(this.device);
-      // this.glslang = await (
-      //   await import(
-      //     /* webpackIgnore: true */ glslangPath ||
-      //       "@webgpu/glslang/dist/web-devel/glslang.js"
-      //   )
-      // ).default();
+      
     } catch (error) {
       console.error(error);
       return false;
@@ -95,27 +94,30 @@ class Context {
     });
   }
 
-  private submit(command: DrawCommand, subcommand?: () => unknown): void {
+  private submit(command: DrawCommand, systemGroupLayouts: BindGroupLayout[],subcommand?: () => unknown): void {
     if (!this.commandEncoder) {
       console.warn("You need to submit commands inside the render callback.");
       return;
     }
+      let pipeline;
+      if (command.type === "render") {
+        pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,systemGroupLayouts)
 
-    const currentTexture = this.context.getCurrentTexture();
+        this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
 
-    if (command.pass) {
-      if (command.pass.type === "render") {
-        this.passEncoder = command.pass.passEncoder;
-      } else if (command.pass.type === "compute") {
+      } else if (command.type === "compute") {
+
+        pipeline=this.renderPipelineCache.getComputePipelineFromCache(command)
+
         this.passEncoder = this.commandEncoder.beginComputePass();
       }
-    }
-
-    if (command.pipeline) {
-      this.passEncoder.setPipeline(command.pipeline as never);
-    }
+    
+    
+    //if (command.pipeline) {
+      this.passEncoder.setPipeline(pipeline);
+    //}
     if (command.renderState) {
-      const {blendConstant,stencilReference,viewport,scissorTest}=command.renderState;
+      const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(command.renderState);
       (this.passEncoder as GPURenderPassEncoder).setBlendConstant(blendConstant);
       (this.passEncoder as GPURenderPassEncoder).setStencilReference(stencilReference);
       (this.passEncoder as GPURenderPassEncoder).setViewport(viewport.x,viewport.y,viewport.width,viewport.height,viewport.minDepth,viewport.maxDepth);
@@ -170,18 +172,13 @@ class Context {
     }
 
     if (subcommand) subcommand();
-
-    if (command.pass) {
-      this.passEncoder.end();
+      this.passEncoder?.end();
       this.passEncoder = null;
-    }
   }
-
-  public render(drawCommand:DrawCommand): void {
+  public render(drawCommand:DrawCommand,systemGroupLayouts: BindGroupLayout[]): void {
     this.commandEncoder = this.device.createCommandEncoder();
     // Submit commands
-    this.submit(drawCommand);
-
+    this.submit(drawCommand,systemGroupLayouts);
     this.device.queue.submit([this.commandEncoder.finish()]);
     this.commandEncoder = null;
   }

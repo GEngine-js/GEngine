@@ -11,21 +11,51 @@ import Buffer from "../render/Buffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import Context from "../render/Context";
 import { Uniform } from "../render/Uniforms";
+import combine from "../utils/combine";
+import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode, FrontFace, StencilOperation, TextureFormat } from "../core/WebGPUConstant";
+import defaultValue from "../utils/defaultValue";
+import { FrameState } from "../core/FrameState";
 export class Material{
     public uniformBuffer:Buffer;
     color?: number;
+
     uniforms:any[];
+
     renderState:{};
+
     baseSampler?: Sampler;
+
     baseTexture?: Texture;
+
     alpha?: number;
+
     uniformsDataBuffer: DataBuffer;
+
     type: string;
+
     label: string;
+
     shaderSource: ShaderSource;
+
     groupLayouts: BindGroupLayout[];
+
     bindGroups?: BindGroup[];
-    transparent:Boolean;
+
+    transparent:boolean;
+    renderStateDirty:boolean;
+
+    _blendConstant:{};
+
+    _targets:{};
+
+    _multisample:{}
+    
+    _primitiveState:{}
+
+    _stencilReference:{};
+
+    _depthStencil:{};
+
     constructor(){
         //
         this.label=undefined;
@@ -42,19 +72,117 @@ export class Material{
         this.uniforms=undefined;
         this.shaderSource=undefined;
         this.groupLayouts=undefined;
+        this.renderStateDirty=true;
+    }
+    get blendConstant(){
+        return this._blendConstant;
+    }
+    set blendConstant(value){
+        this.renderStateDirty=true;
+        this._blendConstant=combine(value,this._blendConstant,false);
+    }
+    get targets(){
+        return this._targets;
+    }
+    set targets(value){
+        this.renderStateDirty=true;
+        this._targets=combine(value,this._targets,false);
+    }
+    get multisample(){
+        return this._multisample;
+    }
+    set multisample(value){
+        this.renderStateDirty=true;
+        this._multisample=combine(value,this._multisample,false);
+    }
+    get primitiveState(){
+        return this._primitiveState;
+    }
+    set primitiveState(value){
+        this.renderStateDirty=true;
+        this._primitiveState=combine(value,this._primitiveState,false);
+    }
+    get stencilReference(){
+        return this._stencilReference;
+    }
+    set stencilReference(value){
+        this.renderStateDirty=true;
+        this._stencilReference=value;
+    }
+    get depthStencil(){
+        return this._depthStencil;
+    }
+    set depthStencil(value){
+        this.renderStateDirty=true;
+        this._depthStencil=combine(value,this._depthStencil,false);
     }
     onBeforeRender() {}
 
 	onBeforeCompile() {}
 
     update(frameState){
-        
+       
     }
     updateUniform(){
         this.uniforms.forEach((uniform)=>{
             uniform.set();
         });
         this.uniformBuffer.setSubData(0,this.uniformsDataBuffer.toFloat32Array())
+    }
+    createRenderState(frameState:FrameState){
+        let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
+        depthStencil=defaultValue(this.depthStencil,{
+            format: TextureFormat.Depth24UnormStencil8,
+            depthWriteEnabled:  false,
+            depthCompare:CompareFunction.Always,
+            stencilReadMask: 0xFFFFFFFF,
+            stencilWriteMask:0xFFFFFFFF,
+            stencilFront: {
+                compare: CompareFunction.Always,
+                failOp: StencilOperation.Keep,
+                depthFailOp:StencilOperation.Keep,
+                passOp:StencilOperation.Keep,
+            },
+            stencilBack: {
+                compare: CompareFunction.Always,
+                failOp: StencilOperation.Keep,
+                depthFailOp: StencilOperation.Keep,
+                passOp: StencilOperation.Keep,
+            },
+            depthBias:0,
+            depthBiasSlopeScale:  0,
+            depthBiasClamp: 0
+        });
+        primitive=defaultValue(this.primitiveState,{
+            frontFace:FrontFace.CCW,
+            cullMode:CullMode.None,
+            unclippedDepth :false,
+        });
+        multisample=defaultValue(this.multisample,{
+            count: 1,
+            mask: 0xFFFFFFFF,
+            alphaToCoverageEnabled: false
+        });
+        stencilReference=defaultValue(this.stencilReference,0);
+        blendConstant=defaultValue(this.blendConstant,{ r: 1, g: 1, b: 1, a: 1 });
+        viewport=frameState.viewport; 
+        targets=frameState?.pass?.colorTargets!=undefined?frameState?.pass?.colorTargets:{
+            format:  TextureFormat.Depth24UnormStencil8,
+            blend: {
+                color: {
+                operation: BlendOperation.Add,
+                srcFactor: BlendFactor.One,
+                dstFactor: BlendFactor.Zero
+                },
+                alpha: {
+                operation: BlendOperation.Add,
+                srcFactor: BlendFactor.One,
+                dstFactor:BlendFactor.Zero,
+                },
+            },
+            writeMask: ColorWriteFlags.All
+        }
+        this.renderState={depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant}
     }
     static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string,index:number){
         const layoutEntities=Material.createBindGroupLayoutEntry(uniforms,uniformBuffer);
