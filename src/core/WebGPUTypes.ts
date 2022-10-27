@@ -87,5 +87,28 @@ export type BindGroupCacheOptions={
     entires:BindGroupEntity[],
     index?:number
 }
+export type WebGPUTextureProps ={
 
+  size: extent3DDict;
+
+  format: string;
+
+  usage: number;
+
+  data?:ImageBitmap
+
+  mipLevelCount?: number;
+
+  sampleCount?: number;
+
+  dimension?: dimension;
+
+  viewFormats?: string;
+};
+export type extent3DDict= {
+  width:number;
+  height:number;
+  depth:number;
+}
+export type dimension= "1d" | "2d" | "3d"
 export default null;

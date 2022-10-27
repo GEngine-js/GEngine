@@ -1,11 +1,12 @@
 import { AttachmentOptions } from "../core/WebGPUTypes";
+import Texture from "./Texture";
 
 class Attachment {
   public op: GPULoadOp = "clear";
   public storeOp: GPUStoreOp = "store";
 
-  public view?: GPUTextureView;
-  public resolveTarget?: GPUTextureView;
+  public texture?: Texture;
+  public resolveTarget?: Texture;
 
   constructor(
     public value: GPUColorDict | GPUColor | number,

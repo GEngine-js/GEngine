@@ -7,9 +7,15 @@ class Pass {
   ) {
 
   }
-  beforRender(){}
-  render(){}
-  afterRender(){}
+  beforRender(){
+    
+  }
+  render(){
+
+  }
+  afterRender(){
+
+  }
 }
 
 export default Pass;

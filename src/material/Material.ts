@@ -15,7 +15,7 @@ export class Material{
     public uniformBuffer:Buffer;
     color?: number;
     uniforms:any[];
-    renderState:RenderState;
+    renderState:{};
     baseSampler?: Sampler;
     baseTexture?: Texture;
     alpha?: number;
