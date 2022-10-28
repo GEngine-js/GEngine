@@ -9,6 +9,7 @@ import RenderTarget from "./RenderTarget";
 import RenderState from "./RenderState";
 import BindGroupLayout from "./BindGroupLayout";
 import BindGroup from "./BindGroup";
+import SystemRenderResource from "../core/SystemRenderResource";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -25,16 +26,24 @@ class Context {
   
   public currentRenderTarget:RenderTarget;
 
+  public systemRenderResource:SystemRenderResource;
 
+  public presentationSize:{width:number, height:number, depth:number};
+  
+  public presentationFormat :GPUTextureFormat
 
   constructor({ canvas, context, pixelRatio }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
     this.context =
       context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
-    this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
-
-    
+    this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;   
     this.device=undefined;
+    this.presentationSize = {
+      width:this.canvas.clientWidth * this.pixelRatio,
+      height:this.canvas.clientHeight * this.pixelRatio,
+      depth:0
+    };
+    this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   }
 
   public async init(
@@ -60,12 +69,14 @@ class Context {
 
       this.context.configure({
         device: this.device,
-        format: navigator.gpu.getPreferredCanvasFormat(),
+       // format: navigator.gpu.getPreferredCanvasFormat(),
+        format:this.presentationFormat,
         usage: TextureUsage.RenderAttachment,
         alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
         ...presentationContextDescriptor,
       });
       this.renderPipelineCache=new RenderPipelineCache(this.device);
+      this.systemRenderResource=new SystemRenderResource();
       
     } catch (error) {
       console.error(error);
@@ -95,14 +106,14 @@ class Context {
     });
   }
 
-  private submit(command: DrawCommand, systemGroupLayouts: BindGroupLayout[],systemBindGroups:BindGroup[],subcommand?: () => unknown): void {
+  private submit(command: DrawCommand,subcommand?: () => unknown): void {
     if (!this.commandEncoder) {
       console.warn("You need to submit commands inside the render callback.");
       return;
     }
       let pipeline;
       if (command.type === "render") {
-        pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,systemGroupLayouts)
+        pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,this.systemRenderResource.layouts)
 
         this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
 
@@ -144,9 +155,9 @@ class Context {
     }
 
     if (command.bindGroups) {
-      const combineBindGroups=command.bindGroups.concat(systemBindGroups).sort((group1,group2)=>group1.index-group2.index)
-      for (let i = 0; i < command.bindGroups.length; i++) {
-        this.passEncoder.setBindGroup(command.bindGroups[i].index, command.bindGroups[i].gpuBindGroup);
+      const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups).sort((group1,group2)=>group1.index-group2.index)
+      for (let i = 0; i < combineBindGroups.length; i++) {
+        this.passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
       }
     }
 
@@ -177,10 +188,10 @@ class Context {
       this.passEncoder?.end();
       this.passEncoder = null;
   }
-  public render(drawCommand:DrawCommand,systemGroupLayouts: BindGroupLayout[],systemBindGroups:BindGroup[]): void {
+  public render(drawCommand:DrawCommand): void {
     this.commandEncoder = this.device.createCommandEncoder();
     // Submit commands
-    this.submit(drawCommand,systemGroupLayouts,systemBindGroups);
+    this.submit(drawCommand);
     this.device.queue.submit([this.commandEncoder.finish()]);
     this.commandEncoder = null;
   }

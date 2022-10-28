@@ -1,6 +1,6 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 
 /**
  * A 3D Cartesian point.
@@ -356,9 +356,9 @@ class Vector3 {
    */
   static clamp(value, min, max, result) {
 
-    const x = CesiumMath.clamp(value.x, min.x, max.x);
-    const y = CesiumMath.clamp(value.y, min.y, max.y);
-    const z = CesiumMath.clamp(value.z, min.z, max.z);
+    const x = GMath.clamp(value.x, min.x, max.x);
+    const y = GMath.clamp(value.y, min.y, max.y);
+    const z = GMath.clamp(value.z, min.z, max.z);
 
     result.x = x;
     result.y = y;
@@ -441,11 +441,9 @@ class Vector3 {
     result.y = cartesian.y / magnitude;
     result.z = cartesian.z / magnitude;
 
-    //>>includeStart('debug', pragmas.debug);
     if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z)) {
       throw new Error("normalized result is not a number");
     }
-    //>>includeEnd('debug');
 
     return result;
   };
@@ -715,19 +713,19 @@ class Vector3 {
       left === right ||
       (defined(left) &&
         defined(right) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.x,
           right.x,
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.y,
           right.y,
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.z,
           right.z,
           relativeEpsilon,
@@ -778,236 +776,6 @@ class Vector3 {
 
     return result;
   };
-
-  /**
-   * Returns a Vector3 position from longitude and latitude values given in degrees.
-   *
-   * @param {Number} longitude The longitude, in degrees
-   * @param {Number} latitude The latitude, in degrees
-   * @param {Number} [height=0.0] The height, in meters, above the ellipsoid.
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Vector3} [result] The object onto which to store the result.
-   * @returns {Vector3} The position
-   *
-   * @example
-   * const position = Cesium.Vector3.fromDegrees(-115.0, 37.0);
-   */
-  static fromDegrees(
-    longitude,
-    latitude,
-    height,
-    ellipsoid,
-    result
-  ) {
-
-    longitude = CesiumMath.toRadians(longitude);
-    latitude = CesiumMath.toRadians(latitude);
-    return Vector3.fromRadians(longitude, latitude, height, ellipsoid, result);
-  };
-
-  /**
-   * Returns a Vector3 position from longitude and latitude values given in radians.
-   *
-   * @param {Number} longitude The longitude, in radians
-   * @param {Number} latitude The latitude, in radians
-   * @param {Number} [height=0.0] The height, in meters, above the ellipsoid.
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Vector3} [result] The object onto which to store the result.
-   * @returns {Vector3} The position
-   *
-   * @example
-   * const position = Cesium.Vector3.fromRadians(-2.007, 0.645);
-   */
-  static fromRadians(
-    longitude,
-    latitude,
-    height,
-    ellipsoid,
-    result
-  ) {
-
-    height = defaultValue(height, 0.0);
-    const radiiSquared = defined(ellipsoid)
-      ? ellipsoid.radiiSquared
-      : wgs84RadiiSquared;
-
-    const cosLatitude = Math.cos(latitude);
-    scratchN.x = cosLatitude * Math.cos(longitude);
-    scratchN.y = cosLatitude * Math.sin(longitude);
-    scratchN.z = Math.sin(latitude);
-    scratchN = Vector3.normalize(scratchN, scratchN);
-
-    Vector3.multiplyComponents(radiiSquared, scratchN, scratchK);
-    const gamma = Math.sqrt(Vector3.dot(scratchN, scratchK));
-    scratchK = Vector3.divideByScalar(scratchK, gamma, scratchK);
-    scratchN = Vector3.multiplyByScalar(scratchN, height, scratchN);
-
-    if (!defined(result)) {
-      result = new Vector3();
-    }
-    return Vector3.add(scratchK, scratchN, result);
-  };
-
-  /**
-   * Returns an array of Vector3 positions given an array of longitude and latitude values given in degrees.
-   *
-   * @param {Number[]} coordinates A list of longitude and latitude values. Values alternate [longitude, latitude, longitude, latitude...].
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the coordinates lie.
-   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
-   * @returns {Vector3[]} The array of positions.
-   *
-   * @example
-   * const positions = Cesium.Vector3.fromDegreesArray([-115.0, 37.0, -107.0, 33.0]);
-   */
-  static fromDegreesArray(coordinates, ellipsoid, result) {
-    if (coordinates.length < 2 || coordinates.length % 2 !== 0) {
-      throw new Error(
-        "the number of coordinates must be a multiple of 2 and at least 2"
-      );
-    }
-
-    const length = coordinates.length;
-    if (!defined(result)) {
-      result = new Array(length / 2);
-    } else {
-      result.length = length / 2;
-    }
-
-    for (let i = 0; i < length; i += 2) {
-      const longitude = coordinates[i];
-      const latitude = coordinates[i + 1];
-      const index = i / 2;
-      result[index] = Vector3.fromDegrees(
-        longitude,
-        latitude,
-        0,
-        ellipsoid,
-        result[index]
-      );
-    }
-
-    return result;
-  };
-
-  /**
-   * Returns an array of Vector3 positions given an array of longitude and latitude values given in radians.
-   *
-   * @param {Number[]} coordinates A list of longitude and latitude values. Values alternate [longitude, latitude, longitude, latitude...].
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the coordinates lie.
-   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
-   * @returns {Vector3[]} The array of positions.
-   *
-   * @example
-   * const positions = Cesium.Vector3.fromRadiansArray([-2.007, 0.645, -1.867, .575]);
-   */
-  static fromRadiansArray(coordinates, ellipsoid, result) {
-
-    const length = coordinates.length;
-    if (!defined(result)) {
-      result = new Array(length / 2);
-    } else {
-      result.length = length / 2;
-    }
-
-    for (let i = 0; i < length; i += 2) {
-      const longitude = coordinates[i];
-      const latitude = coordinates[i + 1];
-      const index = i / 2;
-      result[index] = Vector3.fromRadians(
-        longitude,
-        latitude,
-        0,
-        ellipsoid,
-        result[index]
-      );
-    }
-
-    return result;
-  };
-
-  /**
-   * Returns an array of Vector3 positions given an array of longitude, latitude and height values where longitude and latitude are given in degrees.
-   *
-   * @param {Number[]} coordinates A list of longitude, latitude and height values. Values alternate [longitude, latitude, height, longitude, latitude, height...].
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
-   * @returns {Vector3[]} The array of positions.
-   *
-   * @example
-   * const positions = Cesium.Vector3.fromDegreesArrayHeights([-115.0, 37.0, 100000.0, -107.0, 33.0, 150000.0]);
-   */
-  static fromDegreesArrayHeights(coordinates, ellipsoid, result) {
-    if (coordinates.length < 3 || coordinates.length % 3 !== 0) {
-      throw new Error(
-        "the number of coordinates must be a multiple of 3 and at least 3"
-      );
-    }
-
-    const length = coordinates.length;
-    if (!defined(result)) {
-      result = new Array(length / 3);
-    } else {
-      result.length = length / 3;
-    }
-
-    for (let i = 0; i < length; i += 3) {
-      const longitude = coordinates[i];
-      const latitude = coordinates[i + 1];
-      const height = coordinates[i + 2];
-      const index = i / 3;
-      result[index] = Vector3.fromDegrees(
-        longitude,
-        latitude,
-        height,
-        ellipsoid,
-        result[index]
-      );
-    }
-
-    return result;
-  };
-
-  /**
-   * Returns an array of Vector3 positions given an array of longitude, latitude and height values where longitude and latitude are given in radians.
-   *
-   * @param {Number[]} coordinates A list of longitude, latitude and height values. Values alternate [longitude, latitude, height, longitude, latitude, height...].
-   * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the position lies.
-   * @param {Vector3[]} [result] An array of Vector3 objects to store the result.
-   * @returns {Vector3[]} The array of positions.
-   *
-   * @example
-   * const positions = Cesium.Vector3.fromRadiansArrayHeights([-2.007, 0.645, 100000.0, -1.867, .575, 150000.0]);
-   */
-  static fromRadiansArrayHeights(coordinates, ellipsoid, result) {
-    if (coordinates.length < 3 || coordinates.length % 3 !== 0) {
-      throw new Error(
-        "the number of coordinates must be a multiple of 3 and at least 3"
-      );
-    }
-
-    const length = coordinates.length;
-    if (!defined(result)) {
-      result = new Array(length / 3);
-    } else {
-      result.length = length / 3;
-    }
-
-    for (let i = 0; i < length; i += 3) {
-      const longitude = coordinates[i];
-      const latitude = coordinates[i + 1];
-      const height = coordinates[i + 2];
-      const index = i / 3;
-      result[index] = Vector3.fromRadians(
-        longitude,
-        latitude,
-        height,
-        ellipsoid,
-        result[index]
-      );
-    }
-
-    return result;
-  };
 }
 const distanceScratch = new Vector3();
 const lerpScratch = new Vector3();
@@ -1016,10 +784,5 @@ const angleBetweenScratch2 = new Vector3();
 const mostOrthogonalAxisScratch = new Vector3();
 let scratchN = new Vector3();
 let scratchK = new Vector3();
-const wgs84RadiiSquared = new Vector3(
-  6378137.0 * 6378137.0,
-  6378137.0 * 6378137.0,
-  6356752.3142451793 * 6356752.3142451793
-);
 export default Vector3;
 

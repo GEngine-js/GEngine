@@ -5,6 +5,8 @@ import { FrameState } from "./core/FrameState";
 import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
 import Context from "./render/Context";
+import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
+import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 
 export class Scene extends EventDispatcher {
     lightManger: LightManger;
@@ -16,6 +18,7 @@ export class Scene extends EventDispatcher {
     presentationContextDescriptor: {};
     container: HTMLCanvasElement
     frameState: FrameState;
+    currentRenderPipeline:IBaseRenderLine;
     constructor(options) {
         super();
         this.container = options.container
@@ -31,6 +34,7 @@ export class Scene extends EventDispatcher {
         if (!(await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor))) {
             throw new Error("Your browser doesn't support WebGPU.");
         } else {
+            this.currentRenderPipeline=new ForwardRenderLine(this.context)
             this.frameState = new FrameState(this.context)
         }
     }
@@ -58,11 +62,21 @@ export class Scene extends EventDispatcher {
     }
     private update() {
         //更新灯光
-        this.lightManger.update(this.frameState);
+        this.lightManger.update();
         //更新相机
         this.frameState.update(this.camera);
+
+        this.context.systemRenderResource.update(this.frameState,this)
+
         //update primitive and select
         this.primitiveManger.update(this.frameState)
+        
+        //selct renderPipeline
+        this.currentRenderPipeline.setRenderList({
+            opaque:this.frameState.commandList.opaque,
+            transparent:this.frameState.commandList.transparent
+        });
+        this.currentRenderPipeline.render();
     }
 
 }

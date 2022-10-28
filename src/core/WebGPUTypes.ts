@@ -1,5 +1,6 @@
 import BindGroupLayout from "../render/BindGroupLayout";
 import  BindGroupEntity  from "../render/BindGroupEntity";
+import Texture from "../render/Texture";
 export const GPUCanvasCompositingAlphaMode: {
   [key: string]: GPUCanvasCompositingAlphaMode;
 } = {
@@ -42,8 +43,8 @@ export type ShaderStageBodyNameObjectKeys = {
 };
 export interface AttachmentOptions {
   op?: GPUStoreOp;
-  view?: GPUTextureView;
-  resolveTarget?: GPUTextureView;
+  texture?: Texture;
+  resolveTarget?: Texture;
 }
 
 export type PassType = "render" | "compute";

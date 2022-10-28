@@ -15,15 +15,13 @@ export class FrameState{
     public frameNumber:number;
     cullingVolume:CullingVolume;
     viewport:Vector4;
-    systemGroupLayouts:BindGroupLayout[]
     constructor(public context:Context){
        this.commandList=new CommandList();
        this.geometryMemory=0;
        this.textureMemory=0;
        this.frameNumber=0;
     }
-    update(camera:PerspectiveCamera,pass:Pass){
-        this.pass=pass;
+    update(camera:PerspectiveCamera){
         this.camera=camera;
         this.commandList.reset();
         this.cullingVolume=this.camera.computeCullingVolume(this.camera.position,this.camera.cameraDirection,this.camera.cameraUp);

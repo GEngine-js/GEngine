@@ -1,37 +1,35 @@
 import RenderTarget from "./RenderTarget.js";
 import { Material } from "../material/Material.js";
-import { FrontFace } from "../core/WebGPUConstant.js";
-import { FrameState } from "../core/FrameState.js";
 import CommandList from "../core/CommandList.js";
+import Context from "./Context.js";
+import DrawCommand from "./DrawCommand.js";
 class Pass {
+  public renderTarget: RenderTarget;
+  public context:Context;
+  public overrideMaterial?:Material;
+  public colorTargets?:{}
   constructor(
-    public renderTarget: RenderTarget,
-    public overrideMaterial?:Material,
-    public colorTargets?:{}
+    context:Context
   ) {
-
+     this.context=context;
   }
   beforRender(){
 
   }
-  render(frameState:FrameState){
-   this.beforRender();
-   const commandList=frameState.commandList;
-  
-   this.afterRender();
+  render(opaque,transparent){;
   }
   afterRender(){
 
   }
-  private excuteCommands(commandList:CommandList){
-      const {opaque,transparent}=commandList;
+  protected excuteCommands(commands:DrawCommand[]){
+    commands.forEach((command)=>{
+      this.excuteCommand(command);
+    });
   }
-  private excuteCommand(command,frameState){
-    //systemGroupLayouts 怎么传值
-    const {context,pass,systemGroupLayouts,systemBindGroups}=frameState;
-    context.currentRenderTarget=pass.renderTarget;
-    context.render(command,systemGroupLayouts,systemBindGroups);
-    context.currentRenderTarget=null;
+  protected excuteCommand(command){
+    this.context.currentRenderTarget=this.renderTarget;
+    this.context.render(command);
+    this.context.currentRenderTarget=null;
   }
 }
 

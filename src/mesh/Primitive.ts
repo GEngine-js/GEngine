@@ -22,10 +22,14 @@ export class Primitive extends RenderObject {
         this.updateMatrix();
         //create 
         this.geometry.update(frameState);
+        
         this.material.update(frameState);
+
         // update boundingSphere
         this.geometry.boundingSphere.update(this.modelMatrix);
-        this.distanceToCamera=this.geometry.boundingSphere.distanceToCamera(frameState)
+
+        this.distanceToCamera=this.geometry.boundingSphere.distanceToCamera(frameState);
+
         const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
         //视锥剔除
         if (visibility === Intersect.INTERSECTING) {
