@@ -16,9 +16,10 @@ import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode
 import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
 import { Primitive } from "../mesh/Primitive";
+import Vector3 from "../math/Vector3";
 export class Material{
     public uniformBuffer:Buffer;
-    color?: number;
+    color?: Vector3;
 
     uniforms:any[];
 

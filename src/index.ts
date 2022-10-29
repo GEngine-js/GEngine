@@ -13,3 +13,16 @@ export { default as BindGroup } from "./render/BindGroup";
 export { default as BindGroupEntity } from "./render/BindGroupEntity";
 //utils
 export { default as DataBuffer } from "./utils/DataBuffer";
+//mesh
+export {Primitive} from "./mesh/Primitive";
+
+//geometry
+export {default as BoxGeometry} from "./geometry/BoxGeometry";
+
+//Material
+export {default as PhongMaterial} from "./material/PhongMaterial";
+
+export {Scene} from './Scene';
+
+//camera
+export {default as PerspectiveCamera} from './camera/PerspectiveCamera'

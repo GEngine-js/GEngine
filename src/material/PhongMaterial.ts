@@ -3,20 +3,29 @@ import Buffer from '../render/Buffer';
 import {UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Primitive } from "../mesh/Primitive";
+import Sampler from "../render/Sampler";
+import Texture from "../render/Texture";
+import Context from "../render/Context";
+import Vector3 from "../math/Vector3";
 export default class BaseMaterial extends Material {
-    constructor() {
+    imageBitmap: ImageBitmap;
+    constructor(imageBitmap:ImageBitmap) {
         super();
-        this.type = 'phong'
-        this.color = undefined;
+        this.type = 'phong';
+        this.imageBitmap=imageBitmap;
+        this.color = new Vector3(1.0,0.0,0.0);
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
             type:this.type
-        })
+        });
+
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
     update(frameState,primitive:Primitive) { 
         const {device}=frameState.context;
+        if(!this.renderState)this.createRenderState(frameState)
+        if(!this.baseSampler) this.ceateTextureAndSampler(frameState.context);
         if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
@@ -43,6 +52,21 @@ export default class BaseMaterial extends Material {
      }
      private createUniformBuffer(device:GPUDevice){
          this.uniformBuffer=Buffer.createUniformBuffer(device,Material.getBindingSize(this.uniforms))
+     }
+     private ceateTextureAndSampler(context:Context){
+        this.baseSampler=new Sampler(context.device,{
+            magFilter: 'linear',
+            minFilter: 'linear',
+          });
+        this.baseTexture=new Texture(context,{
+            size: {width:this.imageBitmap.width, height:this.imageBitmap.height, depth:1},
+            data:this.imageBitmap,
+            format: 'rgba8unorm',
+            usage:
+              GPUTextureUsage.TEXTURE_BINDING |
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.RENDER_ATTACHMENT,
+          })
      }
     destory() {
 
