@@ -11,8 +11,8 @@ export default class BoxGeometry extends Geometry{
     position: number[];
     indiceBuffer:Buffer;
     indices: number[];
-    constructor(public width:number,public height:number,public depth:number){
-        super();
+    constructor(public width:number=10,public height:number=10,public depth:number=10){
+        super({});
         this.type='box';
         this.topology=PrimitiveTopology.TriangleList;
         this.stripIndexFormat=IndexFormat.Uint16; 
@@ -23,12 +23,23 @@ export default class BoxGeometry extends Geometry{
         const depthSegments=1;
         const heightSegments=1;
         const widthSegments=1;
-        createPlane( 'z', 'y', 'x', - 1, - 1, this.depth, this.height, this.width, depthSegments, heightSegments, this ); // px
-		createPlane( 'z', 'y', 'x', 1, - 1, this.depth, this.height, - this.width, depthSegments, heightSegments, this ); // nx
-		createPlane( 'x', 'z', 'y', 1, 1, this.width, this.depth, this.height, widthSegments, depthSegments, this ); // py
-		createPlane( 'x', 'z', 'y', 1, - 1, this.width, this.depth, - this.height, widthSegments, depthSegments, this ); // ny
-		createPlane( 'x', 'y', 'z', 1, - 1, this.width, this.height, this.depth, widthSegments, heightSegments, this ); // pz
-		createPlane( 'x', 'y', 'z', - 1, - 1, this.width, this.height, - this.depth, widthSegments, heightSegments, this ); // nz
+        const data={
+            uvs:[],
+            normals:[],
+            vertices:[],
+            indices:[],
+            numberOfVertices:0
+        }
+        createPlane( 'z', 'y', 'x', - 1, - 1, this.depth, this.height, this.width, depthSegments, heightSegments, data ); // px
+		createPlane( 'z', 'y', 'x', 1, - 1, this.depth, this.height, - this.width, depthSegments, heightSegments, data ); // nx
+		createPlane( 'x', 'z', 'y', 1, 1, this.width, this.depth, this.height, widthSegments, depthSegments, data ); // py
+		createPlane( 'x', 'z', 'y', 1, - 1, this.width, this.depth, - this.height, widthSegments, depthSegments, data ); // ny
+		createPlane( 'x', 'y', 'z', 1, - 1, this.width, this.height, this.depth, widthSegments, heightSegments, data ); // pz
+		createPlane( 'x', 'y', 'z', - 1, - 1, this.width, this.height, - this.depth, widthSegments, heightSegments, data ); // nz
+        this.position=data.vertices;
+        this.normal=data.normals;
+        this.uv=data.uvs;
+        this.indices=data.indices;
         this.computeBoundingSphere(this.position);
     }
     public update(frameState){

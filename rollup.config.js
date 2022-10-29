@@ -11,7 +11,7 @@ export default {
   output: {
     file: path.resolve(__dirname, "./dist/index.js"),
     sourcemap: false,
-    format: "umd",
+    format: "es",
     name:'index' 
   },
  

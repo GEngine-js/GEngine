@@ -9,7 +9,7 @@ import Intersect from "./Intersect";
 export default class BoundingSphere {
   radius: number;
   center: Vector3;
-  constructor(center: Vector3 = Vector3.ZERO, radius = 0) {
+  constructor(center: Vector3 = new Vector3(0,0,0), radius = 0) {
     this.center = center;
     this.radius = radius;
   }/**

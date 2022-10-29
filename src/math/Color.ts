@@ -1,7 +1,18 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
+let scratchArrayBuffer = new ArrayBuffer(4);
+let scratchUint32Array = new Uint32Array(scratchArrayBuffer);
+let scratchUint8Array = new Uint8Array(scratchArrayBuffer);
 
+//#rgba
+const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
+//#rrggbbaa
+const rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
+//rgb(), rgba(), or rgb%()
+const rgbParenthesesMatcher = /^rgba?\(\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
+//hsl() or hsla()
+const hslParenthesesMatcher = /^hsla?\(\s*([0-9.]+)\s*,\s*([0-9.]+%)\s*,\s*([0-9.]+%)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
 function hue2rgb(m1, m2, h) {
   if (h < 0) {
     h += 1;
@@ -1034,16 +1045,4 @@ class Color {
   };
 
 }
-let scratchArrayBuffer = new ArrayBuffer(4);
-let scratchUint32Array = new Uint32Array(scratchArrayBuffer);
-let scratchUint8Array = new Uint8Array(scratchArrayBuffer);
-
-//#rgba
-const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
-//#rrggbbaa
-const rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
-//rgb(), rgba(), or rgb%()
-const rgbParenthesesMatcher = /^rgba?\(\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
-//hsl() or hsla()
-const hslParenthesesMatcher = /^hsla?\(\s*([0-9.]+)\s*,\s*([0-9.]+%)\s*,\s*([0-9.]+%)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
 export default Color;

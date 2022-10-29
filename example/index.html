@@ -29,22 +29,16 @@
             width: 100%;
         }
     </style>
-    <script src="./../dist/calculate.js"></script>
+    <!-- <script type="module" src="../dist/index.js"></script> -->
 </head>
 
 <body>
     <button id="btn">calculate</button>
-    <script>
-        document.getElementById("btn").onclick = () => {
-            const cal = new calculate();
-            const promise = cal.startTaskworker();
-            Promise.resolve(promise)
-                .then(function (result) {
-                    alert(result)
-                }).catch(function (error) {
-                    alert(error)
-                });
-        };
+    <script type="module">
+     import {BoxGeometry,Primitive, PerspectiveCamera,Scene,PhongMaterial} from '../dist/index.js';
+     const geometry=new BoxGeometry(10,10,10);
+     debugger
+
     </script>
 </body>
 
