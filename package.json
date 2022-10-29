@@ -12,13 +12,14 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
+    "@rollup/plugin-commonjs": "^23.0.2",
     "@types/gl-matrix": "^2.4.5",
     "@webgpu/glslang": "0.0.15",
     "@webgpu/types": "0.1.20",
+    "cross-env": "^7.0.3",
     "glob": "^8.0.3",
     "mersenne-twister": "^1.1.0",
     "primitive-geometry": "^2.9.0",
-    "cross-env": "^7.0.3",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-replace": "^2.2.0",
