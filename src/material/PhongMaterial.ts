@@ -1,11 +1,12 @@
 import { Material } from "./Material";
-import { UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
+import Buffer from '../render/Buffer';
+import {UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Primitive } from "../mesh/Primitive";
 export default class BaseMaterial extends Material {
     constructor() {
         super();
-        this.type = 'baseMaterial'
+        this.type = 'phong'
         this.color = undefined;
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
@@ -22,6 +23,7 @@ export default class BaseMaterial extends Material {
         this.updateUniform();
     }
     private createBindGroupAndLayout(device:GPUDevice){
+      this.createUniformBuffer(device);
       const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
@@ -39,8 +41,8 @@ export default class BaseMaterial extends Material {
             new UniformSampler('baseSampler',null,2,this)
         ]
      }
-     private createUniformBuffer(){
-
+     private createUniformBuffer(device:GPUDevice){
+         this.uniformBuffer=Buffer.createUniformBuffer(device,Material.getBindingSize(this.uniforms))
      }
     destory() {
 

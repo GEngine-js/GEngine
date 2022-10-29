@@ -25,7 +25,7 @@ export class Primitive extends RenderObject {
         //create 
         this.geometry.update(frameState);
 
-        this.material.update(frameState);
+        this.material.update(frameState,this);
 
         // update boundingSphere
         this.geometry.boundingSphere.update(this.modelMatrix);

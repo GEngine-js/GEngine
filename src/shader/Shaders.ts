@@ -1,4 +1,6 @@
 import {ShaderChunk} from './shaderChunk/ShaderChunk';
+import phongVert from './material/phongVert';
+import phongFrag from './material/phongFrag';
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -6,9 +8,9 @@ function reduceComma(shader) {
 }
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
 export const shaders = {
-	prelude: {
-		fragmentSource: reduceComma(''),
-		vertexSource: reduceComma('')
+	phong: {
+		fragmentSource: reduceComma(phongFrag),
+		vertexSource: reduceComma(phongVert)
 	},
 
 }
