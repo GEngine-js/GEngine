@@ -13,7 +13,7 @@ export default class LightManger extends Manger{
 
     spotLights:SpotLight[];
 
-    dirtectLight:DirtectLight;
+    dirtectLights:DirtectLight[];
 
     ambientLight:AmbientLight;
 
@@ -21,7 +21,9 @@ export default class LightManger extends Manger{
 
     spotLightDataBuffer:DataBuffer;
 
-    dirAndambLightDataBuffer:DataBuffer;
+    dirtectLightDataBuffer:DataBuffer;
+
+    ambientLightDataBuffer:DataBuffer;
 
     lightCountDataBuffer:DataBuffer;
 
@@ -33,7 +35,9 @@ export default class LightManger extends Manger{
 
     pointDirty:boolean;
 
-    ambAndDirDirty:boolean;
+    dirtectDirty:boolean;
+
+    ambientDirty:boolean;
 
     lightCountDirty:boolean;
 
@@ -41,11 +45,13 @@ export default class LightManger extends Manger{
         super();
         this.spotLightDataBuffer=new DataBuffer();
         this.pointLightDataBuffer=new DataBuffer();
-        this.dirAndambLightDataBuffer=new DataBuffer();
+        this.dirtectLightDataBuffer=new DataBuffer();
+        this.ambientLightDataBuffer=new DataBuffer()
         this.lightCountDataBuffer=new DataBuffer();
         this.spotDirty=true;
         this.pointDirty=true;
-        this.ambAndDirDirty=true;
+        this.ambientDirty=true;
+        this.dirtectDirty=true;
     }
     update(){
         this.updateLight()
@@ -55,7 +61,7 @@ export default class LightManger extends Manger{
         if (light.type='ambient') {
             this.ambientLight=light;
         }else if(light.type='dirtect'){
-            this.dirtectLight=light;
+            this.dirtectLights.push(light);
         } else if(light.type='point'){
             this.spotLights.push(light);
         }else if(light.type='spot'){
@@ -64,10 +70,11 @@ export default class LightManger extends Manger{
     }
     remove(){}
     private updateLight(){
-        if(this.spotDirty||this.pointDirty||this.pointDirty) this.updateLightCount()
+        if(this.spotDirty||this.pointDirty||this.pointDirty||this.dirtectDirty||this.ambientDirty) this.updateLightCount()
         if(this.spotDirty)this.updateSpotLight();
         if(this.pointDirty)this.updatePointLight();
-        if(this.ambAndDirDirty) this.updateDirAndAmbLight();       
+        if(this.dirtectDirty) this.updateDirtectLight(); 
+        if(this.ambientDirty)  this.updateAmbientLight();    
     }
     private updateSpotLight(){
         //uniform
@@ -101,16 +108,22 @@ export default class LightManger extends Manger{
         });
         this.pointLightDataBuffer.update(0,data);
     }
-    private updateDirAndAmbLight(){
-        let data=this.ambientLight.lightColor.toArray()
-         .concat(this.dirtectLight.lightColor.toArray())
-         .concat(this.dirtectLight.dirtect.toArray());
-        this.dirAndambLightDataBuffer.update(0,data);
+    private updateAmbientLight(){
+        let data=this.ambientLight.lightColor.toArray();
+        this.ambientLightDataBuffer.update(0,data);
+    }
+    private updateDirtectLight(){
+        let data;
+        this.dirtectLights.forEach((light)=>{
+            data=light.lightColor.toArray().concat(light.dirtect.toArray());
+        });
+        this.dirtectLightDataBuffer.update(0,data);
+        
     }
     private updateLightCount(){
         this.lightCountDataBuffer.update(0,this.spotLights.length);
         this.lightCountDataBuffer.update(1,this.pointLights.length);
-        this.lightCountDataBuffer.update(2,(this.dirtectLight!=undefined?1:0));
+        this.lightCountDataBuffer.update(2,(this.dirtectLights.length));
         this.lightCountDataBuffer.update(3,(this.ambientLight!=undefined?1:0));
     }
     

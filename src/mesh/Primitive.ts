@@ -20,9 +20,11 @@ export class Primitive extends RenderObject {
     update(frameState: FrameState) {
         //update matrix
         this.updateMatrix();
+
+        this.updateNormalMatrix(frameState.camera)
         //create 
         this.geometry.update(frameState);
-        
+
         this.material.update(frameState);
 
         // update boundingSphere

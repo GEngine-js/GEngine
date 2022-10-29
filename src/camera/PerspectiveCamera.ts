@@ -14,6 +14,7 @@ export default class PerspectiveCamera extends Camera {
     private _fov: number;
     private _projectionMatrix: Matrix4;
     private _viewMatrix: Matrix4;
+    private _inverseViewMatrix: Matrix4;
     constructor(fov: number = 50, aspect: number = 1, near: number = 0.1, far: number = 2000) {
         super()
         this.aspect = aspect;
@@ -23,6 +24,7 @@ export default class PerspectiveCamera extends Camera {
         this.xOffset = 0;
         this.yOffset = 0;
         this._projectionMatrix=new Matrix4();
+        this._inverseViewMatrix=new Matrix4();
         this._viewMatrix=new Matrix4();
         this.cullingVolume = new CullingVolume();
     }
@@ -35,6 +37,16 @@ export default class PerspectiveCamera extends Camera {
     set projectionMatrix(v: Matrix4) {
         this._projectionMatrix = v;
     }
+    
+    get inverseViewMatrix() : Matrix4 {
+        this.updateInverseViewMatrix();
+        return this._inverseViewMatrix
+    }
+    
+    // set inverseViewMatrix (v : Matrix4) {
+    //     this._inverseViewMatrix = v;
+    // }
+    
     get viewMatrix(): Matrix4 {
         this.updateViewMatrix();
         return this._viewMatrix;
@@ -62,7 +74,7 @@ export default class PerspectiveCamera extends Camera {
     lookAt(target: Vector3) {
         //暂时这么写
         this.target=target
-        
+
         Vector3.subtract(this.position, target, this.cameraDirection);
 
         Vector3.normalize(this.cameraDirection, this.cameraDirection);
@@ -72,6 +84,10 @@ export default class PerspectiveCamera extends Camera {
         Vector3.normalize(this.cameraRight, this.cameraRight);
 
         Vector3.cross(this.cameraDirection, this.cameraRight, this.cameraUp);
+    }
+    private updateInverseViewMatrix(){
+        this.updateViewMatrix();
+        Matrix4.inverseTransformation(this._viewMatrix, this._inverseViewMatrix);
     }
     private updateCameraParms() {
         this.fovy = this.aspect <= 1
@@ -102,8 +118,11 @@ export default class PerspectiveCamera extends Camera {
         }
     }
     private updateViewMatrix() {
-        if (this.dirUpRightDirty) Matrix4.computeView(this.position, this.cameraDirection, this.cameraRight, this.cameraUp, this.viewMatrix);
+        if (this.dirUpRightDirty){
+            this.dirUpRightDirty=false
+            Matrix4.computeView(this.position, this.cameraDirection, this.cameraRight, this.cameraUp, this.viewMatrix);
 
+        }
     }
     /**
      * Creates a culling volume for this frustum.

@@ -1,7 +1,7 @@
 import { Material } from "../material/Material";
 import BindGroup from "../render/BindGroup";
 import BindGroupLayout from "../render/BindGroupLayout";
-import { UniformLight, UniformMat4 } from "../render/Uniforms";
+import { UniformFloatVec3, UniformLight, UniformMat4 } from "../render/Uniforms";
 import { Scene } from "../Scene";
 import { FrameState } from "./FrameState";
 import LightManger from "./LightManger";
@@ -24,11 +24,13 @@ export default class SystemRenderResource{
 
     lightUniforms: any[];
 
-    matrixUniforms:any[];
+    systemUniforms:any[];
 
     spotLightBuffer: Buffer;
 
-    dirAndambLightBuffer: Buffer;
+    dirtectLightBuffer: Buffer;
+
+    ambientLightBuffer:Buffer;
 
     pointLightBuffer: Buffer;
 
@@ -36,10 +38,10 @@ export default class SystemRenderResource{
     
     matrixBuffer:Buffer;
 
-    matrixDataBuffer:DataBuffer;
+    systemDataBuffer:DataBuffer;
 
     constructor(){
-        this.matrixDataBuffer=new DataBuffer();
+        this.systemDataBuffer=new DataBuffer();
     }
     get layouts():BindGroupLayout[]{
         return [this.matrixLayout,this.lightLayout]
@@ -58,28 +60,34 @@ export default class SystemRenderResource{
     // camera
 
     private updateCamera(device:GPUDevice,camera:PerspectiveCamera){
-        if(!this.matrixBuffer)this.createMatrixBindGroupAndLayout(device,camera);
-        this.matrixUniforms.forEach((uniform)=>{
+        if(!this.matrixBuffer)this.createSystemBindGroupAndLayout(device,camera);
+        this.systemUniforms.forEach((uniform)=>{
             uniform.set();
         });
     }
-    private createMatrixUniforms(camera:PerspectiveCamera){
-        this.matrixUniforms=[
-            new UniformMat4('viewMatrix',this.matrixDataBuffer,()=>{
+    private createSystemUniforms(camera:PerspectiveCamera){
+        this.systemUniforms=[
+            new UniformMat4('viewMatrix',this.systemDataBuffer,()=>{
                 return camera.viewMatrix
             }),
-            new UniformMat4('projectionMatrix',this.matrixDataBuffer,()=>{
+            new UniformMat4('projectionMatrix',this.systemDataBuffer,()=>{
                 return camera.projectionMatrix
             }),
+            new UniformMat4('inverseViewMatrix',this.systemDataBuffer,()=>{
+                return camera.inverseViewMatrix
+            }),
+            new UniformFloatVec3('position',this.systemDataBuffer,()=>{
+                return camera.position
+            })
         ]
     }
-    private createMatrixUniformBuffer(device:GPUDevice,){
-        this.matrixBuffer=Buffer.createUniformBuffer(device,this.matrixUniforms.length*16*4);
+    private createSystemUniformBuffer(device:GPUDevice,){
+        this.matrixBuffer=Buffer.createUniformBuffer(device,Material.getBindingSize(this.systemUniforms));
     }
-    private createMatrixBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
-        this.createMatrixUniforms(camera);
-        this.createMatrixUniformBuffer(device);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.matrixUniforms,this.matrixBuffer,'matrix',1);
+    private createSystemBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
+        this.createSystemUniforms(camera);
+        this.createSystemUniformBuffer(device);
+        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.systemUniforms,this.matrixBuffer,'system',1);
         this.matrixGroup=bindGroup;
         this.matrixLayout=groupLayout;
     }
@@ -98,9 +106,12 @@ export default class SystemRenderResource{
             this.lightCountBuffer.setSubData(0,lightManger.lightCountDataBuffer.toFloat32Array());
             lightManger.lightCountDirty=false;
         }
-        if(lightManger.ambAndDirDirty){
-            this.dirAndambLightBuffer.setSubData(0,lightManger.dirAndambLightDataBuffer.toFloat32Array());
-            lightManger.ambAndDirDirty=false;
+        if(lightManger.dirtectDirty){
+            this.dirtectLightBuffer.setSubData(0,lightManger.dirtectLightDataBuffer.toFloat32Array());
+            lightManger.dirtectDirty=false;
+        }
+        if(lightManger.ambientDirty){
+            this.ambientLightBuffer.setSubData(0,lightManger.ambientLightDataBuffer.toFloat32Array())
         }
         if (lightManger.spotDirty) {
             this.spotLightBuffer.setSubData(0,lightManger.spotLightDataBuffer.toFloat32Array());
@@ -123,14 +134,16 @@ export default class SystemRenderResource{
        this.lightUniforms=[
          new UniformLight('spotLightBuffer',0,lightManger,lightManger.spotLights.length*52),
          new UniformLight('pointLightBuffer',1,lightManger,lightManger.pointLights.length*32),
-         new UniformLight('dirAndambLightBuffer',2,lightManger,36),
-         new UniformLight('lightCountBuffer',3,lightManger,16)
+         new UniformLight('dirtectLightBuffer',2,lightManger,24),
+         new UniformLight('ambientLightBuffer',3,lightManger,12),
+         new UniformLight('lightCountBuffer',4,lightManger,16)
        ]
     }
     private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
         this.spotLightBuffer=Buffer.createUniformBuffer(device,lightManger.spotLights.length*52);
         this.pointLightBuffer=Buffer.createUniformBuffer(device,lightManger.pointLights.length*32);
-        this.dirAndambLightBuffer=Buffer.createUniformBuffer(device,36);
+        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,24);
+        this.ambientLightBuffer=Buffer.createUniformBuffer(device,12)
         this.lightCountBuffer=Buffer.createUniformBuffer(device,12);
     }
     destory(){

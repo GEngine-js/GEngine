@@ -1,37 +1,40 @@
+struct VertexOutput {
+  @builtin(position) position : vec4<f32>,
+  @location(0) worldPos : vec3<f32>,
+  @location(1) view : vec3<f32>, // Vector from vertex to camera.
+  @location(2) vUv : vec2<f32>,
+  @location(3) color : vec4<f32>,
+  @location(4) normal : vec3<f32>,
+};
+struct SelfUniform {
+    modelMatrix : mat4x4<f32>,
+    normalMatrix:mat3x3<f32>,
+    color:vec3<f32>
+}
 struct SystemUniform {
-    projectionMatrix: mat4x4<f32>,
-    viewMatrix: mat4x4<f32>,
-    inverseViewMatrix: mat4x4<f32>,
-    cameraPosition: vec3<f32>,
-    time: f32,
-  }; 
-  @group(0) @binding(0) var<uniform> system: SystemUniform; 
- struct MeshUniform {
-   modelMatrix: mat4x4<f32>,
-   normalMatrix: mat3x3<f32>,
- };
- 
- @group(1) @binding(0) var<uniform> mesh: MeshUniform;
- 
- struct Output {
-   @builtin(position) position: vec4<f32>,
-   @location(0) vPositionWorld: vec3<f32>,
-   @location(1) vPositionView: vec3<f32>,
-   @location(2) vNormalView: vec3<f32>,
-   @location(3) vNormalWorld: vec3<f32>,
- };
+  projectionMatrix: mat4x4<f32>,
+  viewMatrix: mat4x4<f32>,
+  inverseViewMatrix: mat4x4<f32>,
+  cameraPosition: vec3<f32>,
+}; 
+@binding(0) @group(0) var<uniform> selfUniform : SelfUniform;
+@binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+// @binding(1) @group(1) var<uniform> projectUniform : ProjectUniform;
 
- @vertex
- fn main(
+struct VertexInput{
    @location(0) position: vec3<f32>,
    @location(1) normal: vec3<f32>,
    @location(2) uv: vec2<f32>
- ) -> Output {
-   var output: Output;
-   output.vPositionWorld = (mesh.modelMatrix * vec4<f32>(position, 1.0)).xyz;
-   output.vPositionView = (system.viewMatrix * vec4<f32>(output.vPositionWorld, 1.0)).xyz; 
-   output.vNormalView = mesh.normalMatrix * normal;
-   output.vNormalWorld = normalize((system.inverseViewMatrix * vec4<f32>(output.vNormalView, 0.0)).xyz);
-   output.position = system.projectionMatrix * vec4<f32>(output.vPositionView, 1.0); 
+}
+ @vertex
+ fn main(input:VertexInput) -> VertexOutput {
+   var output: VertexOutput;
+    output.vUv = input.uv;
+    let modelPos = selfUniform.modelMatrix * vec4<f32>(input.position, 1.0);
+    output.worldPos = modelPos.xyz;
+    let vNormalView = selfUniform.normalMatrix * input.normal;
+    output.normal=normalize((systemUniform.inverseViewMatrix * vec4<f32>(vNormalView, 0.0)).xyz);
+    output.view = systemUniform.cameraPosition - modelPos.xyz;
+    output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelPos;
    return output;
  }

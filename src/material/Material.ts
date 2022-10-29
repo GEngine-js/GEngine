@@ -15,6 +15,7 @@ import combine from "../utils/combine";
 import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode, FrontFace, StencilOperation, TextureFormat } from "../core/WebGPUConstant";
 import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
+import { Primitive } from "../mesh/Primitive";
 export class Material{
     public uniformBuffer:Buffer;
     color?: number;
@@ -120,7 +121,7 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(frameState){
+    update(frameState:FrameState,primitive:Primitive){
        
     }
     updateUniform(){

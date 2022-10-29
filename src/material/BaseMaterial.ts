@@ -1,6 +1,7 @@
 import { Material } from "./Material";
 import { UniformFloatVec2,UniformFloatVec3,UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
+import { Primitive } from "../mesh/Primitive";
 export default class BaseMaterial extends Material {
     constructor() {
         super();
@@ -13,9 +14,9 @@ export default class BaseMaterial extends Material {
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
-    update(frameState) { 
+    update(frameState,primitive:Primitive) { 
         const {device}=frameState.context;
-        if(!this.uniforms) this.createUniforms();
+        if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
         this.updateUniform();
@@ -25,13 +26,21 @@ export default class BaseMaterial extends Material {
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }
-    private createUniforms(){
+    private createUniforms(primitive:Primitive){
         this.uniforms=[
-            new UniformMat4("modelMatrix",this.uniformsDataBuffer,()=>{}),
+            new UniformMat4("modelMatrix",this.uniformsDataBuffer,()=>{
+                return primitive.modelMatrix;
+            }),
+            new UniformMat4("normalMtrix",this.uniformsDataBuffer,()=>{
+                return primitive.normalMatrix;
+            }),
             new UniformFloatVec4("color",this.uniformsDataBuffer,this),
             new UniformTexture('baseTexture',null,1,this),
             new UniformSampler('baseSampler',null,2,this)
         ]
+     }
+     private createUniformBuffer(){
+
      }
     destory() {
 
