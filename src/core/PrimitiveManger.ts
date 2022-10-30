@@ -35,20 +35,20 @@ export default class PrimitiveManger extends Manger{
                     "index must be less than or equal to the number of primitives."
                 );
             }
-            const external = (instance._external = instance._external || {});
-            const composites = (external._composites = external._composites || {});
-            composites[this._guid] = {
-                collection: this,
-            };
-
-            if (!hasIndex) {
-                this._list.push(instance);
-            } else {
-                this._list.splice(index, 0, instance);
-            }
-
-            return instance;
         };
+        const external = (instance._external = instance._external || {});
+        const composites = (external._composites = external._composites || {});
+        composites[this._guid] = {
+            collection: this,
+        };
+
+        if (!hasIndex) {
+            this._list.push(instance);
+        } else {
+            this._list.splice(index, 0, instance);
+        }
+
+        return instance;
     }
     remove(instance) {
         // PERFORMANCE_IDEA:  We can obviously make this a lot faster.

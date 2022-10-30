@@ -20,6 +20,7 @@ export default class Camera {
         this.bottom = 0;
         this.right = 0;
         this.left = 0;
+        this.position=new Vector3(0,0,0)
         this._cameraUp = new Vector3(0, 1, 0);
         this._cameraDirection = new Vector3(0, 0, 1);
         this._cameraRight = new Vector3(1, 0, 0);

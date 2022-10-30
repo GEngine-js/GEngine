@@ -73,6 +73,7 @@ export default class PerspectiveCamera extends Camera {
     }
     lookAt(target: Vector3) {
         //暂时这么写
+        this.dirUpRightDirty=true;
         this.target=target
 
         Vector3.subtract(this.position, target, this.cameraDirection);

@@ -25,8 +25,8 @@ export class Scene extends EventDispatcher {
         this.lightManger = new LightManger();
         this.primitiveManger = new PrimitiveManger();
         this.context = new Context({ canvas: this.container });
-        this.requestAdapter = options.requestAdapter;
-        this.deviceDescriptor = options.deviceDescriptor;
+        this.requestAdapter = options.requestAdapter||{};
+        this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;
         this.init();
     }
@@ -39,7 +39,7 @@ export class Scene extends EventDispatcher {
         }
     }
     add(instance) {
-        if (instance.type = 'primitive' && !this.primitiveManger.contains(instance)) {
+        if (instance.type === 'primitive' && !this.primitiveManger.contains(instance)) {
             this.primitiveManger.add(instance)
         }
     }
@@ -50,7 +50,7 @@ export class Scene extends EventDispatcher {
         this.camera = camera;
     }
     remove(instance) {
-        if (instance.type = 'primitive' && !this.primitiveManger.contains(instance)) {
+        if (instance.type === 'primitive' && !this.primitiveManger.contains(instance)) {
             this.primitiveManger.remove(instance)
         }
     }

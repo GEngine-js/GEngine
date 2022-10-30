@@ -48,6 +48,10 @@ export default class LightManger extends Manger{
         this.dirtectLightDataBuffer=new DataBuffer();
         this.ambientLightDataBuffer=new DataBuffer()
         this.lightCountDataBuffer=new DataBuffer();
+        this.spotLights=[];
+        this.pointLights=[];
+        this.dirtectLights=[];
+        this.ambientLight=undefined;
         this.spotDirty=true;
         this.pointDirty=true;
         this.ambientDirty=true;
@@ -58,13 +62,13 @@ export default class LightManger extends Manger{
     }
     add(light){
         this.lightCountDirty=true;
-        if (light.type='ambient') {
+        if (light.type=='ambient') {
             this.ambientLight=light;
-        }else if(light.type='dirtect'){
+        }else if(light.type=='dirtect'){
             this.dirtectLights.push(light);
-        } else if(light.type='point'){
-            this.spotLights.push(light);
-        }else if(light.type='spot'){
+        } else if(light.type=='point'){
+            this.pointLights.push(light);
+        }else if(light.type=='spot'){
             this.spotLights.push(light);
         }
     }

@@ -25,4 +25,12 @@ export {default as PhongMaterial} from "./material/PhongMaterial";
 export {Scene} from './Scene';
 
 //camera
-export {default as PerspectiveCamera} from './camera/PerspectiveCamera'
+export {default as PerspectiveCamera} from './camera/PerspectiveCamera';
+
+//math
+export {default as Vector3} from './math/Vector3';
+export {default as Color} from './math/Color';
+
+//light
+export {SpotLight} from './light/SpotLight';
+ 
