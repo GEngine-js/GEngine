@@ -111,5 +111,10 @@ export type extent3DDict= {
   height:number;
   depth:number;
 }
-export type dimension= "1d" | "2d" | "3d"
+export type dimension= "1d" | "2d" | "3d";
+export type bufferLayoutType={
+  type: string;//"uniform"
+  hasDynamicOffset: Boolean;
+  minBindingSize: number;
+}
 export default null;

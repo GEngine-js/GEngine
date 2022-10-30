@@ -10,15 +10,15 @@ class BindGroup{
     this.gpuBindGroup=options.device.createBindGroup({
       label: options.label,
       layout: options.layout.gpuBindGroupLayout,
-      entires: options.entires
-    } as unknown as GPUBindGroupDescriptor );
+      entries:options.entires.map((entity)=>({binding:entity.binding, resource:entity.resource})),
+    });
   }
   static getBindGroupFromCache(options:BindGroupCacheOptions):BindGroup{
     if (bindGroupCache.has(options.label)) {
       return bindGroupCache.get(options.label)
     } else {
        //@ts-ignore
-      const bindGroup=new BindGroup();
+      const bindGroup=new BindGroup(options);
       bindGroupCache.set(options.label,bindGroup);
        return bindGroup;
     }

@@ -41,7 +41,7 @@ export class Material{
 
     groupLayouts: BindGroupLayout[];
 
-    bindGroups?: BindGroup[];
+    bindGroups: BindGroup[];
 
     transparent:boolean;
     renderStateDirty:boolean;
@@ -75,6 +75,8 @@ export class Material{
         this.shaderSource=undefined;
         this.groupLayouts=undefined;
         this.renderStateDirty=true;
+        this.groupLayouts=[];
+        this.bindGroups=[];
     }
     get blendConstant(){
         return this._blendConstant;
@@ -232,7 +234,7 @@ export class Material{
         if(uniform.type==='number'){
             layoutEntity= new BindGroupLayoutEntry({
                 binding: uniform.binding,
-                buffer:uniform?.buffer||uniformBuffer.layoutType,
+                buffer:uniform?.buffer.layoutType||uniformBuffer.layoutType,
                 visibility: uniform.visibility,
                 // uniforms: this.uniforms,
             });
@@ -262,7 +264,7 @@ export class Material{
                     buffer:uniform?.buffer.gpuBuffer||uniformBuffer.gpuBuffer,
                     offset: 0,
                     //兼容灯光
-                    size:uniform.bufferSize||Material.getBindingSize(uniforms)
+                    size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
                 }
               });
         } else if(uniform.type==='texture'){

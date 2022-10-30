@@ -4,7 +4,7 @@ import Context from "./Context";
 export default class Texture{
     public gpuTexture: GPUTexture;
     public mipLevelCount: number;
-    layoutType:{
+    public layoutType:{
       sampleType: string,
       viewDimension: string,
       multisampled: boolean

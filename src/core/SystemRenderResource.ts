@@ -123,26 +123,26 @@ export default class SystemRenderResource{
     }
     private createLightBindGroupAndLayout(device:GPUDevice,lightManger:LightManger){
         lightManger.lightCountDirty=false;
-        this.createLightUniforms(lightManger);
         this.createLightUniformBuffer(device,lightManger);
+        this.createLightUniforms(lightManger);
         const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.lightUniforms,null,'light',2);
         this.lightLayout=groupLayout;
         this.lightGroup=bindGroup;
     }
     private createLightUniforms(lightManger:LightManger){
        this.lightUniforms=[
-         new UniformLight('spotLightBuffer',0,lightManger,lightManger.spotLights.length*52),
-         new UniformLight('pointLightBuffer',1,lightManger,lightManger.pointLights.length*32),
-         new UniformLight('dirtectLightBuffer',2,lightManger,24),
-         new UniformLight('ambientLightBuffer',3,lightManger,12),
-         new UniformLight('lightCountBuffer',4,lightManger,16)
+         new UniformLight('spotLightBuffer',0,this,lightManger.spotLights.length*52),
+         new UniformLight('pointLightBuffer',1,this,lightManger.pointLights.length*32),
+         new UniformLight('dirtectLightBuffer',2,this,lightManger.dirtectLights.length*24),
+         new UniformLight('ambientLightBuffer',3,this,lightManger.ambientLight!=undefined?12:0),
+         new UniformLight('lightCountBuffer',4,this,16)
        ]
     }
     private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
         this.spotLightBuffer=Buffer.createUniformBuffer(device,lightManger.spotLights.length*52);
         this.pointLightBuffer=Buffer.createUniformBuffer(device,lightManger.pointLights.length*32);
-        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,24);
-        this.ambientLightBuffer=Buffer.createUniformBuffer(device,12)
+        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,lightManger.dirtectLights.length*24);
+        this.ambientLightBuffer=Buffer.createUniformBuffer(device,lightManger.ambientLight!=undefined?12:0)
         this.lightCountBuffer=Buffer.createUniformBuffer(device,12);
     }
     destory(){

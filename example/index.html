@@ -62,9 +62,12 @@
         scene.add(primitive);
         scene.setCamera(camera);
         scene.addLight(light);
-        scene.render();
+        function animate() {
+            requestAnimationFrame( animate );
+            scene.render()
+        }
         // document.body.appendChild(scene.context.canvas);
-        debugger
+        animate()
      }
      init();
     </script>
