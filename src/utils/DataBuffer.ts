@@ -15,7 +15,12 @@ export  default class DataBuffer{
         return preDataLength
     }
     update(offset,data){
-      this.data.splice(offset,...data)
+     if (Array.isArray(data)) {
+        this.data.splice(offset,...data)
+     } else {
+        this.data.splice(offset,data)
+     }
+      
     }
     delete(offset,length){
         this.data.splice(offset,length)

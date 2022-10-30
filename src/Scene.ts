@@ -19,6 +19,7 @@ export class Scene extends EventDispatcher {
     container: HTMLCanvasElement
     frameState: FrameState;
     currentRenderPipeline:IBaseRenderLine;
+    private ready: boolean;
     constructor(options) {
         super();
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
@@ -29,14 +30,16 @@ export class Scene extends EventDispatcher {
         this.requestAdapter = options.requestAdapter||{};
         this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;
+        this.ready=false;
         this.init();
     }
     private async init() {
         if (!(await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor))) {
             throw new Error("Your browser doesn't support WebGPU.");
         } else {
-            this.currentRenderPipeline=new ForwardRenderLine(this.context)
-            this.frameState = new FrameState(this.context)
+            this.currentRenderPipeline=new ForwardRenderLine(this.context);
+            this.frameState = new FrameState(this.context);
+            this.ready=true;
         }
     }
     add(instance) {
@@ -62,6 +65,7 @@ export class Scene extends EventDispatcher {
         this.update();
     }
     private update() {
+        if(!this.ready) return;
         //更新灯光
         this.lightManger.update();
         //更新相机

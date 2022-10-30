@@ -113,8 +113,10 @@ export default class LightManger extends Manger{
         this.pointLightDataBuffer.update(0,data);
     }
     private updateAmbientLight(){
-        let data=this.ambientLight.lightColor.toArray();
-        this.ambientLightDataBuffer.update(0,data);
+        if(this.ambientLight){
+            let data=this.ambientLight.lightColor.toArray();
+            this.ambientLightDataBuffer.update(0,data);
+        }
     }
     private updateDirtectLight(){
         let data;
