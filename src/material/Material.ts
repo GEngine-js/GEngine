@@ -234,7 +234,7 @@ export class Material{
         if(uniform.type==='number'){
             layoutEntity= new BindGroupLayoutEntry({
                 binding: uniform.binding,
-                buffer:uniform?.buffer.layoutType||uniformBuffer.layoutType,
+                buffer:uniform?.buffer?.layoutType||uniformBuffer.layoutType,
                 visibility: uniform.visibility,
                 // uniforms: this.uniforms,
             });
@@ -261,7 +261,7 @@ export class Material{
             groupEntity=new BindGroupEntity({
                 binding:uniform.binding,
                 resource:{
-                    buffer:uniform?.buffer.gpuBuffer||uniformBuffer.gpuBuffer,
+                    buffer:uniform?.buffer?.gpuBuffer||uniformBuffer.gpuBuffer,
                     offset: 0,
                     //兼容灯光
                     size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
