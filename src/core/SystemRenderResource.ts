@@ -7,7 +7,6 @@ import { FrameState } from "./FrameState";
 import LightManger from "./LightManger";
 import Buffer from "../render/Buffer"
 import DataBuffer from "../utils/DataBuffer";
-import Camera from "../camera/Camera";
 import PerspectiveCamera from "../camera/PerspectiveCamera";
 
 export default class SystemRenderResource{

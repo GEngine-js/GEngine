@@ -21,10 +21,11 @@ export class Scene extends EventDispatcher {
     currentRenderPipeline:IBaseRenderLine;
     constructor(options) {
         super();
-        this.container = options.container
+        this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
         this.lightManger = new LightManger();
         this.primitiveManger = new PrimitiveManger();
-        this.context = new Context({ canvas: this.container });
+        this.context = new Context({ canvas: null });
+        this.container.appendChild(this.context.canvas);
         this.requestAdapter = options.requestAdapter||{};
         this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;

@@ -34,16 +34,11 @@ class Context {
 
   constructor({ canvas, context, pixelRatio }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
+    this.canvas.style.display = 'block';
     this.context =
       context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;   
     this.device=undefined;
-    this.presentationSize = {
-      width:this.canvas.clientWidth * this.pixelRatio,
-      height:this.canvas.clientHeight * this.pixelRatio,
-      depth:0
-    };
-    this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   }
 
   public async init(
@@ -60,8 +55,14 @@ class Context {
         throw new Error(`Missing "navigator.gpu".`);
       }
 
-      this.adapter = await navigator.gpu.requestAdapter(requestAdapter);
-      this.device = await this.adapter.requestDevice(deviceDescriptor);
+      this.adapter = await navigator.gpu.requestAdapter();
+      this.device = await this.adapter.requestDevice();
+      this.presentationSize = {
+        width:this.canvas.clientWidth * this.pixelRatio,
+        height:this.canvas.clientHeight * this.pixelRatio,
+        depth:1
+      };
+      this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
       this.device.addEventListener("uncapturederror", (error) => {
         console.log(error);
         //State.error = true;
