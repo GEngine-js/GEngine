@@ -131,19 +131,19 @@ export default class SystemRenderResource{
     }
     private createLightUniforms(lightManger:LightManger){
        this.lightUniforms=[
-         new UniformLight('spotLightBuffer',0,this,lightManger.spotLights.length*52),
-         new UniformLight('pointLightBuffer',1,this,lightManger.pointLights.length*32),
-         new UniformLight('dirtectLightBuffer',2,this,lightManger.dirtectLights.length*24),
-         new UniformLight('ambientLightBuffer',3,this,lightManger.ambientLight!=undefined?12:0),
+         new UniformLight('spotLightBuffer',0,this,(lightManger.spotLights.length||1)*52),
+         new UniformLight('pointLightBuffer',1,this,(lightManger.pointLights.length||1)*32),
+         new UniformLight('dirtectLightBuffer',2,this,(lightManger.dirtectLights.length||1)*24),
+         new UniformLight('ambientLightBuffer',3,this,12),
          new UniformLight('lightCountBuffer',4,this,16)
        ]
     }
     private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
-        this.spotLightBuffer=Buffer.createUniformBuffer(device,lightManger.spotLights.length*52);
-        this.pointLightBuffer=Buffer.createUniformBuffer(device,lightManger.pointLights.length*32);
-        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,lightManger.dirtectLights.length*24);
-        this.ambientLightBuffer=Buffer.createUniformBuffer(device,lightManger.ambientLight!=undefined?12:0)
-        this.lightCountBuffer=Buffer.createUniformBuffer(device,12);
+        this.spotLightBuffer=Buffer.createUniformBuffer(device,(lightManger.spotLights.length||1)*52);
+        this.pointLightBuffer=Buffer.createUniformBuffer(device,(lightManger.pointLights.length||1)*32);
+        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,(lightManger.dirtectLights.length||1)*24);
+        this.ambientLightBuffer=Buffer.createUniformBuffer(device,12)
+        this.lightCountBuffer=Buffer.createUniformBuffer(device,16);
     }
     destory(){
 

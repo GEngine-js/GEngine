@@ -7,13 +7,14 @@ import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import Context from "../render/Context";
 import Vector3 from "../math/Vector3";
+import Vector4 from "../math/Vector4";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;
     constructor(imageBitmap:ImageBitmap) {
         super();
         this.type = 'phong';
         this.imageBitmap=imageBitmap;
-        this.color = new Vector3(1.0,0.0,0.0);
+        this.color = new Vector4(1.0,0.0,0.0,1.0);
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
             type:this.type

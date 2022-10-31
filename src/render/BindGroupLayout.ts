@@ -5,14 +5,11 @@ class BindGroupLayout {
   public gpuBindGroupLayout: GPUBindGroupLayout;
   index:number;
   private constructor(device:GPUDevice,label:string,public entries: BindGroupLayoutEntry[] = [],index:number=0) {
-    this.index=index||0
+    this.index=index||0;
     this.gpuBindGroupLayout = device.createBindGroupLayout({
       label:label,
-      entries: entries.map(
-        (
-          { visibility, buffer, sampler, texture, storageTexture },
-          binding
-        ) => ({
+      entries:entries.map(
+        ({ visibility, buffer, sampler, texture, storageTexture ,binding}) => ({
           binding,
           visibility,
           buffer,
@@ -20,7 +17,7 @@ class BindGroupLayout {
           texture,
           storageTexture,
         })
-      ),
+      )
     });
   }
   static getBindGroupFromCache(device:GPUDevice,label:string,entires:BindGroupLayoutEntry[],index):BindGroupLayout{

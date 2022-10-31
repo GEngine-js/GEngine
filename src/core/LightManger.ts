@@ -52,10 +52,10 @@ export default class LightManger extends Manger{
         this.pointLights=[];
         this.dirtectLights=[];
         this.ambientLight=undefined;
-        this.spotDirty=true;
-        this.pointDirty=true;
-        this.ambientDirty=true;
-        this.dirtectDirty=true;
+        this.spotDirty=false;
+        this.pointDirty=false;
+        this.ambientDirty=false;
+        this.dirtectDirty=false;
     }
     update(){
         this.updateLight()
@@ -63,12 +63,16 @@ export default class LightManger extends Manger{
     add(light){
         this.lightCountDirty=true;
         if (light.type=='ambient') {
+            this.ambientDirty=true;
             this.ambientLight=light;
         }else if(light.type=='dirtect'){
+            this.dirtectDirty=true;
             this.dirtectLights.push(light);
         } else if(light.type=='point'){
+            this.pointDirty=true;
             this.pointLights.push(light);
         }else if(light.type=='spot'){
+            this.spotDirty=true;
             this.spotLights.push(light);
         }
     }
@@ -91,12 +95,14 @@ export default class LightManger extends Manger{
         // decay: {}
          let data;
          this.spotLights.forEach((light)=>{
-             data= light.lightColor.toArray()
+           if(light){
+            data= light.lightColor.toArray()
             .concat(light.position.toArray())
-            .concat(light.dirtect.toArray())
-            .push(light.distance,light.coneCos,light.penumbraCos,light.decay)
+            .concat(light.dirtect.toArray());
+            data.push(light.distance,light.coneCos,light.penumbraCos,light.decay)
+           }
          });
-         this.spotLightDataBuffer.update(0,data);
+         if(data)this.spotLightDataBuffer.update(0,data);
     }
     private updatePointLight(){
         //uniform
@@ -106,11 +112,13 @@ export default class LightManger extends Manger{
         // distance: {}
         let data;
         this.pointLights.forEach((light)=>{
-            data= light.lightColor.toArray()
-           .concat(light.position.toArray())
-           .push(light.decay,light.distance)     
+            if (light) {
+                data= light.lightColor.toArray()
+                .concat(light.position.toArray());
+                data.push(light.decay,light.distance)  
+            }   
         });
-        this.pointLightDataBuffer.update(0,data);
+        if(data)this.pointLightDataBuffer.update(0,data);
     }
     private updateAmbientLight(){
         if(this.ambientLight){
@@ -121,9 +129,9 @@ export default class LightManger extends Manger{
     private updateDirtectLight(){
         let data;
         this.dirtectLights.forEach((light)=>{
-            data=light.lightColor.toArray().concat(light.dirtect.toArray());
+            if(light)data=light.lightColor.toArray().concat(light.dirtect.toArray());
         });
-        this.dirtectLightDataBuffer.update(0,data);
+        if(data)this.dirtectLightDataBuffer.update(0,data);
         
     }
     private updateLightCount(){

@@ -14,8 +14,8 @@ export default class RenderObject{
         this._position=new Vector3();
         this._sacle=new Vector3();
         this._quaternion=new Quaternion();
-        this.modelMatrix=new Matrix4();
-        this._normalMatrix=new Matrix3();
+        this.modelMatrix=Matrix4.IDENTITY.clone(new Matrix4());
+        this._normalMatrix=Matrix3.IDENTITY.clone(new Matrix3());
     }    
     
     public get normalMatrix() : Matrix3 {

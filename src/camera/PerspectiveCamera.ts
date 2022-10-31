@@ -26,6 +26,7 @@ export default class PerspectiveCamera extends Camera {
         this._projectionMatrix=new Matrix4();
         this._inverseViewMatrix=new Matrix4();
         this._viewMatrix=new Matrix4();
+        this.updateCameraParms()
         this.cullingVolume = new CullingVolume();
     }
 

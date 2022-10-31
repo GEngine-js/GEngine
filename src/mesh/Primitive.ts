@@ -28,24 +28,25 @@ export class Primitive extends RenderObject {
         this.material.update(frameState,this);
 
         // update boundingSphere
-        this.geometry.boundingSphere.update(this.modelMatrix);
+        //this.geometry.boundingSphere.update(this.modelMatrix);
 
         this.distanceToCamera=this.geometry.boundingSphere.distanceToCamera(frameState);
 
         const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
+        debugger
         //视锥剔除
         if (visibility === Intersect.INTERSECTING) {
             //重新创建的条件
             if (!this.drawCommand) this.createCommand(frameState);
             if (this.material.transparent) {
-                frameState.commandList.transparent.push(this.drawCommond);
+                frameState.commandList.transparent.push(this.drawCommand);
             } else {
-                frameState.commandList.opaque.push(this.drawCommond);
+                frameState.commandList.opaque.push(this.drawCommand);
             }
         }
     }
     private createCommand(frameState: FrameState) {
-        const drawCommond = new DrawCommand({
+        const drawCommand = new DrawCommand({
             //pipeline: pipeline,
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
@@ -60,7 +61,7 @@ export class Primitive extends RenderObject {
             uuid:this.material.type,
             type:'render'      
         });
-        this.drawCommand = drawCommond;
+        this.drawCommand = drawCommand;
     }
     destory() {
         this.geometry.destory();

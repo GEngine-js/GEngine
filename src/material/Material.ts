@@ -17,9 +17,10 @@ import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
 import { Primitive } from "../mesh/Primitive";
 import Vector3 from "../math/Vector3";
+import Vector4 from "../math/Vector4";
 export class Material{
     public uniformBuffer:Buffer;
-    color?: Vector3;
+    color?: Vector4;
 
     uniforms:any[];
 

@@ -6,6 +6,9 @@ export  default class DataBuffer{
     get length(){
         return this.data.length;
     }
+    fillDefault(length){
+       this.data=new Array(length).fill(0);
+    }
     toFloat32Array(){
         return new Float32Array(this.data)
     }
@@ -16,9 +19,9 @@ export  default class DataBuffer{
     }
     update(offset,data){
      if (Array.isArray(data)) {
-        this.data.splice(offset,...data)
+        this.data.splice(offset,data.length,...data)
      } else {
-        this.data.splice(offset,data)
+        this.data.splice(offset,1,data)
      }
       
     }
