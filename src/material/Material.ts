@@ -275,15 +275,19 @@ export class Material{
         } else if(uniform.type==='sampler'){
             groupEntity= new BindGroupEntity({
                 binding:uniform.binding,
-                resource:uniform.value.baseSampler.gpuSampler
+                resource:uniform.value.gpuSampler
             });
         }
        return groupEntity;
     }
     static getBindingSize(uniforms){
         let size= uniforms
-        .map((uniform) =>{ if(uniform.type==='number') { return uniform.size}})
-        .reduce((a, b) => a + b, 0);
+        .map((uniform) =>{ if(uniform.type==='number') { 
+            return uniform.size
+        }else{
+            return 0;
+        }
+    }).reduce((a, b) => a + b, 0);
         return size;
     }
     public destory(){

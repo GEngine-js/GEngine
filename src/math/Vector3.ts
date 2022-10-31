@@ -128,6 +128,7 @@ class Vector3 {
      result.x=vec4.x;
      result.y=vec4.y;
      result.z=vec4.z;
+     return result;
   }
   /**
  * Converts the provided Spherical into Vector3 coordinates.
