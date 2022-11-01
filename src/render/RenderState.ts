@@ -98,7 +98,7 @@ export default class RenderState {
     this.stencilReference = defaultValue(rs.stencilReference, 0)
     //已完善
     this.depthStencil = {
-      format: defaultValue(depthStencil.format, TextureFormat.Depth24UnormStencil8),
+      format: defaultValue(depthStencil.format, TextureFormat.Depth24Plus),
       depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, false),
       depthCompare: defaultValue(depthStencil.depthCompare, CompareFunction.Always),
       stencilReadMask: defaultValue(depthStencil.stencilReadMask, 0xFFFFFFFF),

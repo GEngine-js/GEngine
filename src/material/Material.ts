@@ -136,7 +136,7 @@ export class Material{
     createRenderState(frameState:FrameState){
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
         depthStencil=defaultValue(this.depthStencil,{
-            format: TextureFormat.Depth24UnormStencil8,
+            format: TextureFormat.Depth24Plus,
             depthWriteEnabled:  false,
             depthCompare:CompareFunction.Always,
             stencilReadMask: 0xFFFFFFFF,

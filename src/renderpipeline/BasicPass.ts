@@ -31,7 +31,7 @@ export class BasicPass extends Pass{
         })
         const depthTexture=new Texture(this.context,{
             size:this.context.presentationSize,
-            format:TextureFormat.Depth24UnormStencil8,
+            format:TextureFormat.Depth24Plus,
             usage:TextureUsage.RenderAttachment
         });
         const depthAttachment=new Attachment(1,{
