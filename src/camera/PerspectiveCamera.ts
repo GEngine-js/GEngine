@@ -77,7 +77,7 @@ export default class PerspectiveCamera extends Camera {
         this.dirUpRightDirty=true;
         this.target=target
 
-        Vector3.subtract(this.position, target, this.cameraDirection);
+        Vector3.subtract(target, this.position, this.cameraDirection);
 
         Vector3.normalize(this.cameraDirection, this.cameraDirection);
 

@@ -23,7 +23,7 @@ export class ShaderSource{
             this.computeMain=options.computeMain|| 'main';
         }
     }
-   createShaderModule(device:GPUDevice):GPUShaderModuleObject|GPUShaderModule{
+   createShaderModule(device:GPUDevice):{vert:GPUShaderModule,frag:GPUShaderModule}|GPUShaderModule{
     if (this.vert) {
         const vert=device.createShaderModule({
             code:this.vert

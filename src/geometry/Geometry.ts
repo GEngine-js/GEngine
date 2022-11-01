@@ -49,7 +49,6 @@ export default class Geometry {
         return result;
     }
     computeBoundingSphere(positions){
-        debugger
         this.boundingSphere=BoundingSphere.fromVertices(positions,new Vector3(0,0,0),3)
     }
     destory(){}

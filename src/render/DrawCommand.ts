@@ -12,7 +12,7 @@ import { ShaderSource } from "../shader/ShaderSource";
 class DrawCommand {
   public type?: string;
 
-  public pipeline?: GPURenderPipeline|GPUComputePipeline;
+  public pipeline?: Pipeline;
 
   public vertexBuffers?: VertextBuffers;
 
@@ -41,6 +41,8 @@ class DrawCommand {
   public uuid?:string;
 
   public dirty?:boolean;
+
+  public distanceToCamera?:number
 
   constructor(options: DrawCommand) {
     Object.assign(this, options);

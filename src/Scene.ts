@@ -20,6 +20,7 @@ export class Scene extends EventDispatcher {
     frameState: FrameState;
     currentRenderPipeline:IBaseRenderLine;
     private ready: boolean;
+    viewport: { x: number; y: number; width: number; height: number; };
     constructor(options) {
         super();
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
@@ -40,6 +41,12 @@ export class Scene extends EventDispatcher {
             this.currentRenderPipeline=new ForwardRenderLine(this.context);
             this.frameState = new FrameState(this.context);
             this.ready=true;
+            this.viewport={
+                x:0,
+                y:0,
+                width:this.context.presentationSize.width,
+                height:this.context.presentationSize.height
+            }
         }
     }
     add(instance) {
@@ -69,6 +76,7 @@ export class Scene extends EventDispatcher {
         //更新灯光
         this.lightManger.update();
         //更新相机
+        this.frameState.viewport=this.viewport;
         this.frameState.update(this.camera);
 
         this.context.systemRenderResource.update(this.frameState,this)

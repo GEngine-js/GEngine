@@ -74,7 +74,6 @@ export class Material{
         this.uniformsDataBuffer=new DataBuffer()
         this.uniforms=undefined;
         this.shaderSource=undefined;
-        this.groupLayouts=undefined;
         this.renderStateDirty=true;
         this.groupLayouts=[];
         this.bindGroups=[];

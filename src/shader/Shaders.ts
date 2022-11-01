@@ -9,8 +9,8 @@ function reduceComma(shader) {
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
 export const shaders = {
 	phong: {
-		fragmentSource: reduceComma(phongFrag),
-		vertexSource: reduceComma(phongVert)
+		frag: reduceComma(phongFrag),
+		vert: reduceComma(phongVert)
 	},
 
 }

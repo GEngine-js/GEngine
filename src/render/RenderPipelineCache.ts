@@ -16,7 +16,6 @@ function stringToHash(str){
   }
   return hash;
 }
-
 // Creates a cache of GPUPipline objects that helps prevents duplicate pipelines for being created for compatible
 // pipeline descriptors.
 export class RenderPipelineCache {

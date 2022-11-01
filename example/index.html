@@ -25,7 +25,7 @@
         }
 
         #app {
-            height: 300px;
+            height: 400px;
             width: 300px;
         }
     </style>
@@ -48,7 +48,7 @@
 
         const primitive=new Primitive(geometry,phongMaterial)
 
-        const camera=new PerspectiveCamera(Math.PI / 3.0, 1,0.1, 2000)
+        const camera=new PerspectiveCamera(Math.PI / 3.0,0.75,0.1, 2000)
         camera.position=new Vector3(135,0,0);
         camera.lookAt(new Vector3(0,0,0));
 

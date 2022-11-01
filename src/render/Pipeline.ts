@@ -1,3 +1,106 @@
+import BindGroupLayout from "./BindGroupLayout";
+import DrawCommand from "./DrawCommand";
+import { PipelineLayout } from "./PipelineLayout";
+import RenderState from "./RenderState";
+
+const renderPipelines = new Map();
+const computePipelines=new Map();
 export default class Pipeline{
-    
+    gpuPipeline:GPURenderPipeline|GPUComputePipeline;
+    type:string;
+    device: GPUDevice;
+    descriptor: GPURenderPipelineDescriptor|GPUComputePipelineDescriptor;
+    constructor(type:string,device:GPUDevice,descriptor: GPURenderPipelineDescriptor|GPUComputePipelineDescriptor){
+      this.type=type;
+      this.descriptor=descriptor;
+      this.device=device;
+      this.createPipeline();
+    }
+    private createPipeline(){
+        if (this.type=='render') {
+            this.gpuPipeline=this.device.createRenderPipeline(this.descriptor as GPURenderPipelineDescriptor );
+        } else {
+            this.gpuPipeline=this.device.createComputePipeline(this.descriptor as GPUComputePipelineDescriptor);
+        }
+        
+    }
+    public bind(passEncoder:GPURenderPassEncoder|GPUComputePassEncoder){
+        if (this.type=='render') {
+            (passEncoder as GPURenderPassEncoder).setPipeline(this.gpuPipeline as GPURenderPipeline);
+        } else {
+            (passEncoder as GPUComputePassEncoder).setPipeline(this.gpuPipeline as GPUComputePipeline);
+        }
+       
+    }
+    static getRenderPipelineFromCache(device:GPUDevice,drawComand:DrawCommand,systemGroupLayouts:BindGroupLayout[]):Pipeline{ 
+        const {renderState,uuid,groupLayouts}=drawComand; 
+        const rs=RenderState.getFromRenderStateCache(renderState)
+        const rsStr=JSON.stringify(rs);
+        const combineStr=uuid.concat(rsStr);
+        const hashId= stringToHash(combineStr);
+        const combineLayouts=groupLayouts.concat(systemGroupLayouts).sort((layout1,layout2)=>layout1.index-layout2.index)
+        let pipeline = renderPipelines.get(hashId);
+        if(!pipeline){
+          const descriptor=Pipeline.getPipelineDescriptor(device,drawComand,rs,combineLayouts,hashId.toString());
+          pipeline =new Pipeline('render',device,descriptor);
+          renderPipelines.set(hashId, pipeline);
+        }
+        return pipeline;
+      }
+     static getComputePipelineFromCache(device:GPUDevice,drawComand:DrawCommand):Pipeline{
+        
+        const hashId= stringToHash(drawComand.uuid);
+        let pipeline =computePipelines.get(hashId);
+        if(!pipeline){
+          const {shaderSource,groupLayouts}=drawComand;
+        //   const layout=groupLayouts.length>0?groupLayouts.map((layout)=>{return layout.gpuBindGroupLayout}): "auto";
+          pipeline =device.createComputePipeline({
+            layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId.toString(),groupLayouts).gpuPipelineLayout,
+            compute: {
+              module: shaderSource.createShaderModule(device) as GPUShaderModule,
+              entryPoint: shaderSource.computeMain,
+            },
+          });
+          computePipelines.set(hashId, pipeline);
+        }
+        return pipeline;
+      }
+     private static getPipelineDescriptor(device:GPUDevice,drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
+        const {vertexBuffers,topology,indexFormat,shaderSource}=drawComand;
+        const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}
+        const primitiveState: GPUPrimitiveState = {
+          topology:topology as  GPUPrimitiveTopology,
+          frontFace:renderState.primitive.frontFace,
+          cullMode:renderState.primitive.cullMode,
+          stripIndexFormat: indexFormat as GPUIndexFormat,
+        };
+          return {
+            //需要改动
+            layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId,groupLayouts).gpuPipelineLayout,   
+            vertex: {
+              module:vert,
+              entryPoint: shaderSource.vertEntryPoint,
+              buffers:vertexBuffers.getBuffers() as Iterable<GPUVertexBufferLayout>,
+            },
+            primitive:primitiveState,
+            depthStencil:renderState.depthStencil,
+            multisample:renderState.multisample,
+            fragment: {
+              module: frag,
+              entryPoint: shaderSource.fragEntryPoint,
+              targets:renderState.targets as Iterable<GPUColorTargetState>
+            },
+          };
+      }
 }
+// Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+function stringToHash(str){
+    let hash = 0;
+    if (str.length == 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash<<5)-hash)+char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+  }

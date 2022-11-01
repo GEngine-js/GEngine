@@ -17,7 +17,8 @@ export default class BaseMaterial extends Material {
         this.color = new Vector4(1.0,0.0,0.0,1.0);
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
-            type:this.type
+            type:this.type,
+            render:true
         });
 
         this.baseTexture = undefined;

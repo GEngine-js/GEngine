@@ -27,15 +27,12 @@ export  class VertextBuffers{
     public getVertextBuffer(index){
         return this.list[index];
     }
-    // public getAttributes(){
-    //     const result=[];
-    //     this.attributes.forEach((value)=>{
-    //         result.push({
-    //             format:value.format,
-    //             offset:value.offset,
-    //             shaderLocation:value.shaderLocation,
-    //         })
-    //     });
-    //     return result;
-    // }
+    public bind(passEncoder:GPURenderPassEncoder){
+        for (let i = 0; i < this.length; i++) {
+            const vertBuffer=this.getVertextBuffer(i);
+            if(vertBuffer){
+                passEncoder.setVertexBuffer(vertBuffer.index,vertBuffer.buffer.gpuBuffer);
+            }
+        }
+    }
 }

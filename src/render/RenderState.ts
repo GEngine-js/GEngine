@@ -4,7 +4,7 @@ import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColo
 const renderStateCache=new WeakMap();
 export default class RenderState {
   scissorTest: { x: number, y: number, width: number, height: number};
-  viewport: { x: number, y: number, width: number, height: number, minDepth: number, maxDepth: number };
+  viewport: { x: number, y: number, width: number, height: number};
   stencilTest: { depthWriteEnabled: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
   targets: {};
   depthStencil: { format: any; depthWriteEnabled: any; depthCompare: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
@@ -137,5 +137,12 @@ export default class RenderState {
       const newRenderState=new RenderState(renderstate)
       renderStateCache.set(renderstate,Object.freeze(newRenderState));
       return newRenderState;
+  }
+  static applyRenderState(passEncoder:GPURenderPassEncoder,renderState:{}){
+    const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(renderState);
+    passEncoder.setBlendConstant(blendConstant);
+    passEncoder.setStencilReference(stencilReference);
+    passEncoder.setViewport(viewport.x,viewport.y,viewport.width,viewport.height,0,1);
+    passEncoder.setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
   }
 }

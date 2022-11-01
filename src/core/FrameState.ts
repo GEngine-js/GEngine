@@ -14,7 +14,7 @@ export class FrameState{
     public textureMemory:number;
     public frameNumber:number;
     cullingVolume:CullingVolume;
-    viewport:Vector4;
+    viewport:{ x: number; y: number; width: number; height: number; };
     constructor(public context:Context){
        this.commandList=new CommandList();
        this.geometryMemory=0;
@@ -24,7 +24,6 @@ export class FrameState{
     update(camera:PerspectiveCamera){
         this.camera=camera;
         this.commandList.reset();
-        debugger
         this.cullingVolume=this.camera.computeCullingVolume(this.camera.position,this.camera.cameraDirection,this.camera.cameraUp);
         this.frameNumber+=1
     }

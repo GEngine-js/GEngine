@@ -4,6 +4,7 @@ import RenderObject from "../core/RenderObject";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
+import Pipeline from "../render/Pipeline";
 export class Primitive extends RenderObject {
     [x: string]: any;
     geometry: Geometry;
@@ -33,9 +34,8 @@ export class Primitive extends RenderObject {
         this.distanceToCamera=this.geometry.boundingSphere.distanceToCamera(frameState);
 
         const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
-        debugger
         //视锥剔除
-        if (visibility === Intersect.INTERSECTING) {
+        if (visibility === Intersect.INTERSECTING||visibility===Intersect.INSIDE) {
             //重新创建的条件
             if (!this.drawCommand) this.createCommand(frameState);
             if (this.material.transparent) {
@@ -44,8 +44,11 @@ export class Primitive extends RenderObject {
                 frameState.commandList.opaque.push(this.drawCommand);
             }
         }
+        this.drawCommand.distanceToCamera=this.distanceToCamera;
     }
     private createCommand(frameState: FrameState) {
+        const {context}=frameState;
+        const {device,systemRenderResource}=context
         const drawCommand = new DrawCommand({
             //pipeline: pipeline,
             vertexBuffers: this.geometry.vertexBuffers,
@@ -57,10 +60,11 @@ export class Primitive extends RenderObject {
             renderState:this.material.renderState,
             topology:this.geometry.topology as GPUPrimitiveTopology,
             shaderSource:this.material.shaderSource,
-            groupLayouts:this.materialgroupLayouts,
+            groupLayouts:this.material.groupLayouts,
             uuid:this.material.type,
             type:'render'      
         });
+        drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts)
         this.drawCommand = drawCommand;
     }
     destory() {

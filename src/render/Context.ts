@@ -112,40 +112,42 @@ class Context {
       console.warn("You need to submit commands inside the render callback.");
       return;
     }
-      let pipeline;
+      //let pipeline;
       if (command.type === "render") {
-        pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,this.systemRenderResource.layouts)
+        //pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,this.systemRenderResource.layouts)
 
         this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
 
       } else if (command.type === "compute") {
 
-        pipeline=this.renderPipelineCache.getComputePipelineFromCache(command)
+       // pipeline=this.renderPipelineCache.getComputePipelineFromCache(command)
 
         this.passEncoder = this.commandEncoder.beginComputePass();
       }
     
     
-    //if (command.pipeline) {
-      this.passEncoder.setPipeline(pipeline);
-    //}
+    if (command.pipeline) {
+        command.pipeline.bind(this.passEncoder)
+    }
     if (command.renderState) {
-      const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(command.renderState);
-      (this.passEncoder as GPURenderPassEncoder).setBlendConstant(blendConstant);
-      (this.passEncoder as GPURenderPassEncoder).setStencilReference(stencilReference);
-      (this.passEncoder as GPURenderPassEncoder).setViewport(viewport.x,viewport.y,viewport.width,viewport.height,viewport.minDepth,viewport.maxDepth);
-      (this.passEncoder as GPURenderPassEncoder).setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
+      RenderState.applyRenderState(this.passEncoder as GPURenderPassEncoder,command.renderState)
+      // const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(command.renderState);
+      // (this.passEncoder as GPURenderPassEncoder).setBlendConstant(blendConstant);
+      // (this.passEncoder as GPURenderPassEncoder).setStencilReference(stencilReference);
+      // (this.passEncoder as GPURenderPassEncoder).setViewport(viewport.x,viewport.y,viewport.width,viewport.height,0,1);
+      // (this.passEncoder as GPURenderPassEncoder).setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
     }
     if (command.vertexBuffers) {
-      for (let i = 0; i < command.vertexBuffers.length; i++) {
-        const vertBuffer=command.vertexBuffers.getVertextBuffer(i);
-        if(vertBuffer){
-          (this.passEncoder as GPURenderPassEncoder).setVertexBuffer(
-            vertBuffer.index,
-            vertBuffer.buffer.gpuBuffer
-          );
-        }
-      }
+      command.vertexBuffers.bind(this.passEncoder as GPURenderPassEncoder)
+      // for (let i = 0; i < command.vertexBuffers.length; i++) {
+      //   const vertBuffer=command.vertexBuffers.getVertextBuffer(i);
+      //   if(vertBuffer){
+      //     (this.passEncoder as GPURenderPassEncoder).setVertexBuffer(
+      //       vertBuffer.index,
+      //       vertBuffer.buffer.gpuBuffer
+      //     );
+      //   }
+      // }
     }
 
     if (command.indexBuffer) {

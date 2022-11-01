@@ -14,7 +14,6 @@ export class BasicPass extends Pass{
     render(opaque,transparent){
        CommandList.sort(opaque,0,opaque.length,CommandList._compareFromNearToFar);
        CommandList.sort(transparent,0,transparent.length,CommandList._compareFromFarToNear);
-       debugger
        this.excuteCommands(opaque);
        this.excuteCommands(transparent);
     }
@@ -32,7 +31,7 @@ export class BasicPass extends Pass{
         })
         const depthTexture=new Texture(this.context,{
             size:this.context.presentationSize,
-            format:TextureFormat.Depth24Plus,
+            format:TextureFormat.Depth24UnormStencil8,
             usage:TextureUsage.RenderAttachment
         });
         const depthAttachment=new Attachment(1,{
