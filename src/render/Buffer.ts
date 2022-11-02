@@ -18,14 +18,14 @@ class Buffer {
       size: size!=undefined?size: data.byteLength,
       usage,
     });
-    if(usage===(BufferUsage.Uniform|BufferUsage.CopyDst)){
+    //if(usage===(BufferUsage.Uniform|BufferUsage.CopyDst)){
       this.layoutType=defaultValue(layoutType,{
         type:'uniform',
         hasDynamicOffset:false,
         minBindingSize:0
 
       })
-    }
+   //}
     if (data) this.setSubData(0, data);
   }
   static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?:number){
@@ -39,8 +39,9 @@ class Buffer {
     return new Buffer(device,BufferUsage.Index | BufferUsage.CopyDst, data); 
   }
 
-  static createUniformBuffer(device:GPUDevice,size: number,layoutType?:bufferLayoutType): Buffer {
-    return new Buffer(device,BufferUsage.Uniform | BufferUsage.CopyDst, null,size,layoutType); 
+  static createUniformBuffer(device:GPUDevice,size: number,layoutType?:bufferLayoutType,bufferUsage?:BufferUsage): Buffer {
+    const usage=bufferUsage?bufferUsage| BufferUsage.CopyDst:BufferUsage.Uniform | BufferUsage.CopyDst
+    return new Buffer(device,usage, null,size,layoutType); 
   }
   static getBufferType(usage){
     let result;

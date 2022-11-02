@@ -65,7 +65,6 @@ export class Primitive extends RenderObject {
             type:'render'      
         });
         drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);
-        debugger
         this.drawCommand = drawCommand;
     }
     destory() {

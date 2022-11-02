@@ -24,21 +24,20 @@ export class ShaderSource{
         }
     }
    createShaderModule(device:GPUDevice):{vert:GPUShaderModule,frag:GPUShaderModule}|GPUShaderModule{
-    if (this.vert) {
-        const vert=device.createShaderModule({
-            code:this.vert
-        });
-        const frag=device.createShaderModule({
-            code:this.frag
-        });
-        return {vert,frag} 
-    } else {
-        const compute=device.createShaderModule({
-            code:this.compute
-        });
-        return compute
-    }
-
+        if (this.vert) {
+            const vert=device.createShaderModule({
+                code:this.vert
+            });
+            const frag=device.createShaderModule({
+                code:this.frag
+            });
+            return {vert,frag} 
+        } else {
+            const compute=device.createShaderModule({
+                code:this.compute
+            });
+            return compute
+        }
     }
     static replaceMain(source:string, renamedMain:string) {
 		renamedMain = `void ${renamedMain}()`;

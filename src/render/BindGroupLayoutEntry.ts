@@ -17,5 +17,14 @@ export default class BindGroupLayoutEntry{
          this.storageTexture=options.storageTexture;
          this.externalTexture=options.storageTexture;
      }
-     updateUniform(){}
+     getGPULayoutEntity(){
+        return {
+            binding:this.binding,
+            visibility:this.visibility,
+            buffer:this.buffer,
+            sampler:this.sampler,
+            texture:this.texture,
+            storageTexture:this.storageTexture,
+        }
+     }
 }

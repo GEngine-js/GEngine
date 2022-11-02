@@ -6,4 +6,10 @@ export default class BindGroupEntity{
         this.binding=options.binding;
         this.resource=options.resource;
     }
+    public getGPUGroupEntity(){
+        return {
+            binding:this.binding,
+            resource:this.resource,
+        }
+    }
 }

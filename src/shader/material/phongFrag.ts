@@ -1,4 +1,5 @@
-export default`    struct VertexOutput {
+export default`    
+  struct VertexOutput {
       @builtin(position) position : vec4<f32>,
       @location(0) worldPos : vec3<f32>,
       @location(1) view : vec3<f32>, // Vector from vertex to camera.
@@ -7,22 +8,18 @@ export default`    struct VertexOutput {
       @location(4) normal : vec3<f32>,
       @location(5) viewPosition:vec3<f32>,
     };
-    struct BlinnPhongMaterial {
-      diffuseColor:vec3<f32>;
-      specularColor:vec3<f32>;
-      specularShininess:f32;
-      specularStrength:f32;
-    };
-    // struct SelfUniform {
-    //     matrix : mat4x4<f32>,
-    //     color:vec3<f32>
-    // }
-    struct GeometricContext {
-        position: vec3<f32>;
-        normal: vec3<f32>;
-        viewDir: vec3<f32>;
-    };
-    #incude<light>
+    // struct BlinnPhongMaterial {
+    //   diffuseColor:vec3<f32>,
+    //   specularColor:vec3<f32>,
+    //   specularShininess:f32,
+    //   specularStrength:f32,
+    // };
+    // struct GeometricContext {
+    //     position: vec3<f32>,
+    //     normal: vec3<f32>,
+    //     viewDir: vec3<f32>,
+    // };
+    #include <light>
     // @group(0) @binding(0)  var<uniform> selfUniform : SelfUniform;
     @group(0) @binding(1) var mySampler: sampler;
     @group(0) @binding(2) var myTexture: texture_2d<f32>;
@@ -40,5 +37,5 @@ export default`    struct VertexOutput {
         geometry.viewDir =normalize( input.view );
         let reflectedLight:ReflectedLight= parseLights(geometry,material);
         let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
-      return vec4<f32>(finnalColor, color.a);
+        return vec4<f32>(finnalColor, color.a);
     }`

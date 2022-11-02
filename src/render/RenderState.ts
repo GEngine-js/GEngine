@@ -14,6 +14,8 @@ export default class RenderState {
   primitive: any;
   depthStencilAttachment: any;
   colorAttachment: any;
+  stencilEnabled: boolean;
+  scissorTestEnabled: boolean;
   constructor(renderState) {
     const rs = defaultValue(renderState, defaultValue.EMPTY_OBJECT);
     const targets = defaultValue(rs.targets, defaultValue.EMPTY_OBJECT)
@@ -28,6 +30,8 @@ export default class RenderState {
       defaultValue.EMPTY_OBJECT
     );
     const viewport = rs.viewport;
+    this.stencilEnabled=defaultValue(rs.stencilEnabled,false);
+    this.scissorTestEnabled=defaultValue(rs.scissorTestEnabled,false);
     this.colorAttachment=defaultValue(rs.colorAttachment,{
       clearValue:{r:0,g:0,b:0,a:0},
       loadOp:LoadOp.Clear,
@@ -139,10 +143,10 @@ export default class RenderState {
       return newRenderState;
   }
   static applyRenderState(passEncoder:GPURenderPassEncoder,renderState:{}){
-    const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(renderState);
+    const {blendConstant,stencilReference,viewport,scissorTest,stencilEnabled,scissorTestEnabled}=RenderState.getFromRenderStateCache(renderState);
     passEncoder.setBlendConstant(blendConstant);
-    passEncoder.setStencilReference(stencilReference);
+    if(stencilEnabled)passEncoder.setStencilReference(stencilReference);
     passEncoder.setViewport(viewport.x,viewport.y,viewport.width,viewport.height,0,1);
-    passEncoder.setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
+    if(scissorTestEnabled)passEncoder.setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
   }
 }

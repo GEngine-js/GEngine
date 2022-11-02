@@ -67,9 +67,10 @@ export default class Pipeline{
       }
      private static getPipelineDescriptor(device:GPUDevice,drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
         const {vertexBuffers,topology,indexFormat,shaderSource}=drawComand;
+        debugger
         const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}
         const primitiveState: GPUPrimitiveState = {
-          topology:topology as  GPUPrimitiveTopology,
+          topology:topology as GPUPrimitiveTopology,
           frontFace:renderState.primitive.frontFace,
           cullMode:renderState.primitive.cullMode,
           stripIndexFormat: indexFormat as GPUIndexFormat,

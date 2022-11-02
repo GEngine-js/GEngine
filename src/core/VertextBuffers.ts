@@ -21,11 +21,7 @@ export  class VertextBuffers{
                 arrayStride:vertextBuffer.arrayStride,
                 stepMode:vertextBuffer.stepMode,
                 attributes:vertextBuffer.attributes.map((attribute)=>{
-                    return{
-                        shaderLocation: attribute.shaderLocation,
-                        offset: attribute.offset,
-                        format: attribute.format,
-                    }
+                    return attribute.getGPUAttribute()
                 }),
             }
          });

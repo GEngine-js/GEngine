@@ -8,6 +8,7 @@ import LightManger from "./LightManger";
 import Buffer from "../render/Buffer"
 import DataBuffer from "../utils/DataBuffer";
 import PerspectiveCamera from "../camera/PerspectiveCamera";
+import { BufferUsage } from "./WebGPUConstant";
 
 export default class SystemRenderResource{
 
@@ -139,9 +140,9 @@ export default class SystemRenderResource{
        ]
     }
     private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
-        this.spotLightBuffer=Buffer.createUniformBuffer(device,(lightManger.spotLights.length||1)*52);
-        this.pointLightBuffer=Buffer.createUniformBuffer(device,(lightManger.pointLights.length||1)*32);
-        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,(lightManger.dirtectLights.length||1)*24);
+        this.spotLightBuffer=Buffer.createUniformBuffer(device,(lightManger.spotLights.length||1)*52,{type: 'read-only-storage'},BufferUsage.Storage);
+        this.pointLightBuffer=Buffer.createUniformBuffer(device,(lightManger.pointLights.length||1)*32,{type: 'read-only-storage'},BufferUsage.Storage);
+        this.dirtectLightBuffer=Buffer.createUniformBuffer(device,(lightManger.dirtectLights.length||1)*24,{type: 'read-only-storage'},BufferUsage.Storage);
         this.ambientLightBuffer=Buffer.createUniformBuffer(device,12)
         this.lightCountBuffer=Buffer.createUniformBuffer(device,16);
     }

@@ -40,9 +40,9 @@ export default class RenderTarget {
             depthLoadOp: this.depthAttachment?.op || "clear",
             depthClearValue: this.depthAttachment?.value || 0,
             depthStoreOp: this.depthAttachment?.storeOp || "store",
-            stencilLoadOp: this.stencilAttachment?.op || "clear",
-            stencilClearValue: this.stencilAttachment?.value || 0,
-            stencilStoreOp: this.stencilAttachment?.storeOp || "store",
+            // stencilLoadOp: this.stencilAttachment?.op || "clear",
+            // stencilClearValue: this.stencilAttachment?.value || 0,
+            // stencilStoreOp: this.stencilAttachment?.storeOp || "store",
           } as GPURenderPassDepthStencilAttachment,
         }),
       };
