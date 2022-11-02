@@ -48,7 +48,7 @@ export default class RenderState {
     this.scissorTest=defaultValue(rs.scissorRect,{
       x:viewport.x,
       y:viewport.y,
-      with:viewport.width,
+      width:viewport.width,
       height:viewport.height
     })
     //

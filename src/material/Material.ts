@@ -170,8 +170,8 @@ export class Material{
         stencilReference=defaultValue(this.stencilReference,0);
         blendConstant=defaultValue(this.blendConstant,{ r: 1, g: 1, b: 1, a: 1 });
         viewport=frameState.viewport; 
-        targets=frameState?.pass?.colorTargets!=undefined?frameState?.pass?.colorTargets:{
-            format:  TextureFormat.Depth24UnormStencil8,
+        targets=frameState?.pass?.colorTargets!=undefined?frameState?.pass?.colorTargets:[{
+            format:  TextureFormat.Depth24Plus,
             blend: {
                 color: {
                 operation: BlendOperation.Add,
@@ -185,7 +185,7 @@ export class Material{
                 },
             },
             writeMask: ColorWriteFlags.All
-        }
+        }]
         this.renderState={depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant}
     }
     static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string,index:number){

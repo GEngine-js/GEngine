@@ -64,7 +64,8 @@ export class Primitive extends RenderObject {
             uuid:this.material.type,
             type:'render'      
         });
-        drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts)
+        drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);
+        debugger
         this.drawCommand = drawCommand;
     }
     destory() {

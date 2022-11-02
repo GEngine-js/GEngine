@@ -20,7 +20,13 @@ export  class VertextBuffers{
             return {
                 arrayStride:vertextBuffer.arrayStride,
                 stepMode:vertextBuffer.stepMode,
-                attributes:vertextBuffer.attributes,
+                attributes:vertextBuffer.attributes.map((attribute)=>{
+                    return{
+                        shaderLocation: attribute.shaderLocation,
+                        offset: attribute.offset,
+                        format: attribute.format,
+                    }
+                }),
             }
          });
     }
