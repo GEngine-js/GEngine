@@ -14,7 +14,7 @@ export default class BoxGeometry extends Geometry{
     constructor(public width:number=10,public height:number=10,public depth:number=10){
         super({});
         this.type='box';
-        this.topology=PrimitiveTopology.TriangleList;
+        this.topology=PrimitiveTopology.TriangleStrip;
         this.stripIndexFormat=IndexFormat.Uint16; 
         this.init();
     }

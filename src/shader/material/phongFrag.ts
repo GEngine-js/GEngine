@@ -21,8 +21,8 @@ export default`
     // };
     #include <light>
     // @group(0) @binding(0)  var<uniform> selfUniform : SelfUniform;
-    @group(0) @binding(1) var mySampler: sampler;
-    @group(0) @binding(2) var myTexture: texture_2d<f32>;
+    @group(0) @binding(2) var mySampler: sampler;
+    @group(0) @binding(1) var myTexture: texture_2d<f32>;
     @fragment
     fn main(input:VertexOutput) -> @location(0) vec4<f32> {
         let color=textureSample(myTexture, mySampler, input.vUv);
