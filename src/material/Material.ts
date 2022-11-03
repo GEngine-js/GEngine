@@ -171,7 +171,7 @@ export class Material{
         blendConstant=defaultValue(this.blendConstant,{ r: 1, g: 1, b: 1, a: 1 });
         viewport=frameState.viewport; 
         targets=frameState?.pass?.colorTargets!=undefined?frameState?.pass?.colorTargets:[{
-            format:  TextureFormat.Depth24Plus,
+            format:frameState.context.presentationFormat,
             blend: {
                 color: {
                 operation: BlendOperation.Add,

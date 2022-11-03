@@ -65,8 +65,10 @@ export default class BoxGeometry extends Geometry{
                 buffer,
                 attributes:[pat,uat,nat],
             }
-        ])
-        this.indexBuffer=Buffer.createIndexBuffer(device,new Int16Array(this.indices))
+        ]);
+        const indexTypeArray=new Int16Array(this.indices);
+        this.indexBuffer=Buffer.createIndexBuffer(device,indexTypeArray);
+        this.count=indexTypeArray.length
         this.vertexBuffers=vertBuffers;
     }
     destory(){}
