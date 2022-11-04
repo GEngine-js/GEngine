@@ -32,15 +32,27 @@ export class SpotData{
             this.spotLight.positionDirty=false;
             copyData(this.spotLight.position.toArray(),this.position);
         }
-        if (this.spotLight.dir) {
-            
+        if (this.spotLight.dirtectDirty) {
+            this.spotLight.dirtectDirty=false;
+            copyData(this.spotLight.dirtect.toArray(),this.dirtect);
         }
-       
-        copyData(this.spotLight.dirtect.toArray(),this.dirtect);
-        this.distance[0]=this.spotLight.distance;//1
-        this.coneCos[0]=this.spotLight.coneCos;//1
-        this.penumbraCos[0]=this.spotLight.penumbraCos;//1
-        this.decay[0]=this.spotLight.decay;//1
+        if(this.spotLight.distanceDirty){
+            this.spotLight.distanceDirty=true;
+            this.distance[0]=this.spotLight.distance;//1
+        }
+        if(this.spotLight.coneCosDirty){
+            this.spotLight.coneCosDirty=true;
+            this.coneCos[0]=this.spotLight.coneCos;//1
+        }
+        if (this.spotLight.penumbraCosDirty) {
+            this.spotLight.penumbraCosDirty=false;
+            this.penumbraCos[0]=this.spotLight.penumbraCos;//1
+        }
+        if (this.spotLight.decayDirty) {
+            this.spotLight.decayDirty=false;
+            this.decay[0]=this.spotLight.decay;//1
+        }
+        
     }
     destory(){
         this.spotLight=undefined;   
@@ -69,10 +81,23 @@ export class PointData{
         this.distance=new Uint32Array(buffer.buffer, byteOffset+28, 1);//1
     }
     update(){
-        copyData(this.pointLight.color.toArray(),this.color);
-        copyData(this.pointLight.position.toArray(),this.position);
-        this.decay[0]=this.pointLight.decay;
-        this.distance[0]=this.pointLight.distance;
+        if (this.pointLight.colorDirty) {
+            this.pointLight.colorDirty=false;
+            copyData(this.pointLight.color.toArray(),this.color);
+        }
+        if (this.pointLight.positionDirty) {
+            this.pointLight.positionDirty=false;
+            copyData(this.pointLight.position.toArray(),this.position);
+        }
+        if (this.pointLight.decayDirty) {
+            this.pointLight.decayDirty=false;
+            this.decay[0]=this.pointLight.decay;
+        }
+        if (this.pointLight.distanceDirty) {
+            this.pointLight.distanceDirty=false;
+            this.distance[0]=this.pointLight.distance;
+        }
+        
     }
     destory(){
         this.pointLight=undefined;
@@ -94,8 +119,15 @@ export class DirtectData{
         this.dirtect=new Float32Array(buffer.buffer, byteOffset+12, 3);//3
     }
     update(){
-        copyData(this.dirtectLight.color.toArray(),this.color);
-        copyData(this.dirtectLight.dirtect.toArray(),this.dirtect);
+        if (this.dirtectLight.colorDirty) {
+            this.dirtectLight.colorDirty=false;
+            copyData(this.dirtectLight.color.toArray(),this.color);
+        }
+        if (this.dirtectLight.dirtectDirty) {
+            this.dirtectLight.dirtectDirty=false;
+            copyData(this.dirtectLight.dirtect.toArray(),this.dirtect);
+        }
+        
     }
     destory(){
         this.dirtectLight=undefined;
@@ -104,7 +136,7 @@ export class DirtectData{
     }
 }
 function copyData(src:Array<number>,dis:Float32Array|Uint32Array){
-      src.forEach((element,index)=> {
-        dis[index]=element;
-      });
+    src.forEach((element,index)=> {
+    dis[index]=element;
+    });
 }

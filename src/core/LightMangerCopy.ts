@@ -18,12 +18,6 @@ export default class LightManger extends Manger{
 
     ambientLight:AmbientLight;
 
-    spotDirty:boolean;
-
-    pointDirty:boolean;
-
-    dirtectDirty:boolean;
-
     ambientDirty:boolean;
 
     lightCountDirty:boolean;
@@ -50,10 +44,6 @@ export default class LightManger extends Manger{
         this.dirtectDatas=new WeakMap();
         this.ambientLight=undefined;
         this.globalLightsBuffer=undefined;
-        this.spotDirty=false;
-        this.pointDirty=false;
-        this.ambientDirty=false;
-        this.dirtectDirty=false;
     }
     update(){
         this.updateLight()
@@ -79,10 +69,11 @@ export default class LightManger extends Manger{
   
     }
     private updateLightData(){
-        if(this.spotDirty)this.updateSpotLight();
-        if(this.pointDirty)this.updatePointLight();
-        if(this.dirtectDirty) this.updateDirtectLight(); 
-        if(this.ambientDirty)  this.updateAmbientLight();  
+        this.updateSpotLight();
+        this.updatePointLight();
+        this.updateDirtectLight(); 
+        this.updateAmbientLight();
+        this.updateLightCount();  
     }
     private updateSpotLight(){
         this.spotLights.forEach((light)=>{
@@ -111,10 +102,12 @@ export default class LightManger extends Manger{
          })     
     }
     private updateLightCount(){
-        this.lightCount[0]=this.spotLights.length;
-        this.lightCount[1]=this.pointLights.length;
-        this.lightCount[2]=this.dirtectLights.length;
-        this.lightCount[3]=this.ambient!=undefined?1:0;
+        if (this.lightCountDirty) {
+            this.lightCount[0]=this.spotLights.length;
+            this.lightCount[1]=this.pointLights.length;
+            this.lightCount[2]=this.dirtectLights.length;
+            this.lightCount[3]=this.ambient!=undefined?1:0; 
+        }
     }
     private initBuffer(){
         const ambientSize=this.ambientLight!=undefined?3:0;
