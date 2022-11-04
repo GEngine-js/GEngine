@@ -223,7 +223,6 @@ export class UniformSampler extends Uniform<Sampler>{
 }
 export class UniformLight extends Uniform<Light>{
     bufferSize: number;
-    buffer: Buffer;
     constructor(uniformName:string,binding:number,cb:Function|number|Object,size:number) {
         super(uniformName,cb);
         this.buffer =this.getValue();

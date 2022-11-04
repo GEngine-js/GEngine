@@ -2,10 +2,7 @@ import { AmbientLight } from "../light/AmbientLight";
 import { DirtectLight } from "../light/DirtectLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
-import DataBuffer from "../utils/DataBuffer";
 import Manger from "./Manger";
-import BindGroup from "../render/BindGroup";
-import BindGroupLayout from "../render/BindGroupLayout";
 import { DirtectData, PointData, SpotData } from "../light/DataHelper";
 
 export default class LightManger extends Manger{
@@ -34,6 +31,8 @@ export default class LightManger extends Manger{
 
     dirtectDatas:WeakMap<DirtectLight,DirtectData>;
 
+    totalByte:number;
+
     constructor(){
         super();
         this.spotLights=[];
@@ -44,6 +43,7 @@ export default class LightManger extends Manger{
         this.dirtectDatas=new WeakMap();
         this.ambientLight=undefined;
         this.globalLightsBuffer=undefined;
+        this.totalByte=0
     }
     update(){
         this.updateLight()
@@ -118,21 +118,23 @@ export default class LightManger extends Manger{
         this.globalLightsBuffer=new Float32Array(ambientSize+lightCount+pointLightCount+spotLightCount+dirtectLightCount);
         this.ambient=new Float32Array(this.globalLightsBuffer.buffer,0,3);
         this.lightCount=new Uint32Array(this.globalLightsBuffer.buffer,12,4);
-        let currentByteSize=28
+        this.totalByte=28
         //初始化聚光灯
         this.spotLights.forEach((spotLight,i)=>{
-            this.spotDatas.set(spotLight,new SpotData(this.globalLightsBuffer,currentByteSize+SpotData.byteSize*i,spotLight))
+            this.spotDatas.set(spotLight,new SpotData(this.globalLightsBuffer,this.totalByte+SpotData.byteSize*i,spotLight))
         });
-        currentByteSize+=this.spotLights.length*SpotData.byteSize;
+        this.totalByte+=this.spotLights.length*SpotData.byteSize;
 
         this.pointLights.forEach((pointLight,i)=>{
-           this.pointDatas.set(pointLight,new PointData(this.globalLightsBuffer,currentByteSize+PointData.byteSize*i,pointLight))
+           this.pointDatas.set(pointLight,new PointData(this.globalLightsBuffer,this.totalByte+PointData.byteSize*i,pointLight))
         });
-        currentByteSize+=this.pointLights.length*PointData.byteSize;
+        this.totalByte+=this.pointLights.length*PointData.byteSize;
 
         this.dirtectLights.forEach((dirtect,i)=>{
-            this.dirtectDatas.set(dirtect,new DirtectData(this.globalLightsBuffer,currentByteSize+DirtectData.byteSize*i,dirtect))
-        })
+            this.dirtectDatas.set(dirtect,new DirtectData(this.globalLightsBuffer,this.totalByte+DirtectData.byteSize*i,dirtect))
+        });
+
+        this.totalByte+=this.dirtectLights.length*DirtectData.byteSize;
         
     }
     

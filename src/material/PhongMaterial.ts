@@ -10,6 +10,7 @@ import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;
+    uniformTotalByte: number;
     constructor(imageBitmap:ImageBitmap) {
         super();
         this.type = 'phong';
@@ -40,20 +41,22 @@ export default class BaseMaterial extends Material {
       this.bindGroups.push(bindGroup);
     }
     private createUniforms(primitive:Primitive){
+        this.uniformTotalByte=64+64+16;
+        this.uniformsDataBuffer=new Float32Array(16+16+4)
         this.uniforms=[
-            new UniformMat4("modelMatrix",this.uniformsDataBuffer,()=>{
+            new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
                 return primitive.modelMatrix;
             }),
-            new UniformMat4("normalMtrix",this.uniformsDataBuffer,()=>{
+            new UniformMat4("normalMtrix",this.uniformsDataBuffer,64,()=>{
                 return primitive.normalMatrix;
             }),
-            new UniformFloatVec4("color",this.uniformsDataBuffer,this),
-            new UniformTexture('baseTexture',null,1,this),
-            new UniformSampler('baseSampler',null,2,this)
+            new UniformFloatVec4("color",this.uniformsDataBuffer,128,this),
+            new UniformTexture('baseTexture',1,this),
+            new UniformSampler('baseSampler',2,this)
         ]
      }
      private createUniformBuffer(device:GPUDevice){
-         this.uniformBuffer=Buffer.createUniformBuffer(device,Material.getBindingSize(this.uniforms))
+         this.uniformBuffer=Buffer.createUniformBuffer(device,this.uniformTotalByte)
      }
      private ceateTextureAndSampler(context:Context){
         this.baseSampler=new Sampler(context.device,{

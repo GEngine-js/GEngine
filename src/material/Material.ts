@@ -32,7 +32,7 @@ export class Material{
 
     alpha?: number;
 
-    uniformsDataBuffer: DataBuffer;
+    uniformsDataBuffer: Float32Array;
 
     type: string;
 
@@ -70,8 +70,7 @@ export class Material{
         this.alpha=undefined;
         //Buffer
         this.uniformBuffer=undefined;
-        //DataBuffer
-        this.uniformsDataBuffer=new DataBuffer()
+        this.uniformsDataBuffer=undefined;
         this.uniforms=undefined;
         this.shaderSource=undefined;
         this.renderStateDirty=true;
@@ -131,7 +130,7 @@ export class Material{
         this.uniforms.forEach((uniform)=>{
             uniform.set();
         });
-        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer.toFloat32Array())
+        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer)
     }
     createRenderState(frameState:FrameState){
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;

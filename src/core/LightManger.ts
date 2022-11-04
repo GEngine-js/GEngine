@@ -2,10 +2,8 @@ import { AmbientLight } from "../light/AmbientLight";
 import { DirtectLight } from "../light/DirtectLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
-import DataBuffer from "../utils/DataBuffer";
 import Manger from "./Manger";
-import BindGroup from "../render/BindGroup";
-import BindGroupLayout from "../render/BindGroupLayout";
+import { DirtectData, PointData, SpotData } from "../light/DataHelper";
 
 export default class LightManger extends Manger{
 
@@ -17,45 +15,35 @@ export default class LightManger extends Manger{
 
     ambientLight:AmbientLight;
 
-    pointLightDataBuffer:DataBuffer;
-
-    spotLightDataBuffer:DataBuffer;
-
-    dirtectLightDataBuffer:DataBuffer;
-
-    ambientLightDataBuffer:DataBuffer;
-
-    lightCountDataBuffer:DataBuffer;
-
-    bindGroup:BindGroup;
-
-    groupLayout:BindGroupLayout;
-
-    spotDirty:boolean;
-
-    pointDirty:boolean;
-
-    dirtectDirty:boolean;
-
     ambientDirty:boolean;
 
     lightCountDirty:boolean;
 
+    globalLightsBuffer:Float32Array;
+
+    ambient: Float32Array;
+
+    lightCount: Uint32Array;
+
+    pointDatas:WeakMap<PointLight,PointData>;
+
+    spotDatas:WeakMap<SpotLight,SpotData>;
+
+    dirtectDatas:WeakMap<DirtectLight,DirtectData>;
+
+    totalByte:number;
+
     constructor(){
         super();
-        this.spotLightDataBuffer=new DataBuffer();
-        this.pointLightDataBuffer=new DataBuffer();
-        this.dirtectLightDataBuffer=new DataBuffer();
-        this.ambientLightDataBuffer=new DataBuffer()
-        this.lightCountDataBuffer=new DataBuffer();
         this.spotLights=[];
         this.pointLights=[];
         this.dirtectLights=[];
+        this.spotDatas=new WeakMap();
+        this.pointDatas=new WeakMap();
+        this.dirtectDatas=new WeakMap();
         this.ambientLight=undefined;
-        this.spotDirty=false;
-        this.pointDirty=false;
-        this.ambientDirty=false;
-        this.dirtectDirty=false;
+        this.globalLightsBuffer=undefined;
+        this.totalByte=0
     }
     update(){
         this.updateLight()
@@ -63,82 +51,91 @@ export default class LightManger extends Manger{
     add(light){
         this.lightCountDirty=true;
         if (light.type=='ambient') {
-            this.ambientDirty=true;
             this.ambientLight=light;
         }else if(light.type=='dirtect'){
-            this.dirtectDirty=true;
             this.dirtectLights.push(light);
         } else if(light.type=='point'){
-            this.pointDirty=true;
             this.pointLights.push(light);
         }else if(light.type=='spot'){
-            this.spotDirty=true;
             this.spotLights.push(light);
         }
     }
     remove(){}
     private updateLight(){
-        if(this.spotDirty||this.pointDirty||this.pointDirty||this.dirtectDirty||this.ambientDirty) this.updateLightCount()
-        if(this.spotDirty)this.updateSpotLight();
-        if(this.pointDirty)this.updatePointLight();
-        if(this.dirtectDirty) this.updateDirtectLight(); 
-        if(this.ambientDirty)  this.updateAmbientLight();    
+        if(this.lightCountDirty||!this.globalLightsBuffer){
+            this.initBuffer();
+        }
+        this.updateLightData();
+  
+    }
+    private updateLightData(){
+        this.updateSpotLight();
+        this.updatePointLight();
+        this.updateDirtectLight(); 
+        this.updateAmbientLight();
+        this.updateLightCount();  
     }
     private updateSpotLight(){
-        //uniform
-        // color: {},
-        // position: {},
-        // direction: {},
-        // distance: {},
-        // coneCos: {},
-        // penumbraCos: {},
-        // decay: {}
-         let data;
-         this.spotLights.forEach((light)=>{
-           if(light){
-            data= light.lightColor.toArray()
-            .concat(light.position.toArray())
-            .concat(light.dirtect.toArray());
-            data.push(light.distance,light.coneCos,light.penumbraCos,light.decay)
-           }
-         });
-         if(data)this.spotLightDataBuffer.update(0,data);
+        this.spotLights.forEach((light)=>{
+           const lightData=this.spotDatas.get(light);
+           if(lightData)lightData.update();
+        })
     }
     private updatePointLight(){
-        //uniform
-        // color: {},
-        // position: {},
-        // decay: {},
-        // distance: {}
-        let data;
         this.pointLights.forEach((light)=>{
-            if (light) {
-                data= light.lightColor.toArray()
-                .concat(light.position.toArray());
-                data.push(light.decay,light.distance)  
-            }   
-        });
-        if(data)this.pointLightDataBuffer.update(0,data);
+            const lightData=this.pointDatas.get(light);
+            if(lightData)lightData.update();
+         })
     }
     private updateAmbientLight(){
         if(this.ambientLight){
-            let data=this.ambientLight.lightColor.toArray();
-            this.ambientLightDataBuffer.update(0,data);
+            this.ambient[0]=this.ambientLight.color.x;
+            this.ambient[1]=this.ambientLight.color.y;
+            this.ambient[2]=this.ambientLight.color.z;
         }
+         
     }
     private updateDirtectLight(){
-        let data;
         this.dirtectLights.forEach((light)=>{
-            if(light)data=light.lightColor.toArray().concat(light.dirtect.toArray());
-        });
-        if(data)this.dirtectLightDataBuffer.update(0,data);
-        
+            const lightData=this.dirtectDatas.get(light);
+            if(lightData)lightData.update();
+         })     
     }
     private updateLightCount(){
-        this.lightCountDataBuffer.update(0,this.spotLights.length);
-        this.lightCountDataBuffer.update(1,this.pointLights.length);
-        this.lightCountDataBuffer.update(2,(this.dirtectLights.length));
-        this.lightCountDataBuffer.update(3,(this.ambientLight!=undefined?1:0));
+        if (this.lightCountDirty) {
+            this.lightCount[0]=this.spotLights.length;
+            this.lightCount[1]=this.pointLights.length;
+            this.lightCount[2]=this.dirtectLights.length;
+            this.lightCount[3]=this.ambient!=undefined?1:0; 
+        }
+    }
+    private initBuffer(){
+        const ambientSize=this.ambientLight!=undefined?3:0;
+        const lightCount=4;
+        const pointLightCount=this.pointLights.length;
+        const spotLightCount=this.spotLights.length;
+        const dirtectLightCount=this.dirtectLights.length;
+        this.globalLightsBuffer=new Float32Array(ambientSize+lightCount+pointLightCount+spotLightCount+dirtectLightCount);
+        this.ambient=new Float32Array(this.globalLightsBuffer.buffer,0,3);
+        this.lightCount=new Uint32Array(this.globalLightsBuffer.buffer,12,4);
+        this.totalByte=28
+        //初始化聚光灯
+        this.spotLights.forEach((spotLight,i)=>{
+            this.spotDatas.set(spotLight,new SpotData(this.globalLightsBuffer,this.totalByte+SpotData.byteSize*i,spotLight))
+        });
+        this.totalByte+=this.spotLights.length*SpotData.byteSize;
+
+        this.pointLights.forEach((pointLight,i)=>{
+           this.pointDatas.set(pointLight,new PointData(this.globalLightsBuffer,this.totalByte+PointData.byteSize*i,pointLight))
+        });
+        this.totalByte+=this.pointLights.length*PointData.byteSize;
+
+        this.dirtectLights.forEach((dirtect,i)=>{
+            this.dirtectDatas.set(dirtect,new DirtectData(this.globalLightsBuffer,this.totalByte+DirtectData.byteSize*i,dirtect))
+        });
+
+        this.totalByte+=this.dirtectLights.length*DirtectData.byteSize;
+        
     }
     
 }
