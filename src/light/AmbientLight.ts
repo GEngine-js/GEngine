@@ -1,9 +1,8 @@
-import Color from "../math/Color";
+import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
 
 export class AmbientLight extends Light {
-    intensity: number;
-    constructor(color:Color, intensity:number){
+    constructor(color:Vector3, intensity:number){
         super(color,intensity);
         this.type='ambient';
     }
