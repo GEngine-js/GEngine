@@ -9,6 +9,7 @@ import Context from "../render/Context";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
+import { FrameState } from "../core/FrameState";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;
     uniformTotalByte: number;
@@ -27,14 +28,15 @@ export default class BaseMaterial extends Material {
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
-    update(frameState,primitive:Primitive) { 
+    update(frameState:FrameState,primitive:Primitive) { 
         const {device}=frameState.context;
         if(!this.renderState)this.createRenderState(frameState)
         if(!this.baseSampler) this.ceateTextureAndSampler(frameState.context);
         if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
-        this.shaderSource.update();
+        //update defines
+        this.shaderSource.update(frameState.defines,this.defines);
         this.updateUniform();
     }
     private createBindGroupAndLayout(device:GPUDevice){

@@ -1,3 +1,4 @@
+import combine from '../utils/combine';
 import {getVertFrag} from './Shaders';
 import {wgslParseDefines} from './WgslPreprocessor';
 export interface GPUShaderModuleObject{
@@ -32,6 +33,8 @@ export class ShaderSource{
         }
     }
     update(globalDefines,materialDefiens){
+        const combineDefines=combine(globalDefines,materialDefiens,false);
+        this.defines=combine(combineDefines,this.defines,false);
         this.generateUid();
         if(this.dirty){
             this.updateShaderStr();

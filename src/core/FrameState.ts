@@ -1,8 +1,7 @@
 import PerspectiveCamera from "../camera/PerspectiveCamera";
-import Vector4 from "../math/Vector4";
-import BindGroupLayout from "../render/BindGroupLayout";
 import Context from "../render/Context";
 import Pass from "../render/Pass";
+import combine from "../utils/combine";
 import CommandList from "./CommandList";
 import CullingVolume from "./CullingVolume";
 export class FrameState{
@@ -15,11 +14,19 @@ export class FrameState{
     public frameNumber:number;
     cullingVolume:CullingVolume;
     viewport:{ x: number; y: number; width: number; height: number; };
+    private _defines:{};
     constructor(public context:Context){
        this.commandList=new CommandList();
        this.geometryMemory=0;
        this.textureMemory=0;
        this.frameNumber=0;
+       this._defines={}
+    }
+    get defines(){
+        return this._defines;
+    }
+    set defines(value){
+        this._defines=combine(value,this._defines,false)
     }
     update(camera:PerspectiveCamera){
         this.camera=camera;
