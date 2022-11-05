@@ -1,4 +1,4 @@
-import {ShaderChunk} from './shaderChunk/ShaderChunk';
+import ShaderChunk from './shaderChunk/ShaderChunk';
 import phongVert from './material/phongVert';
 import phongFrag from './material/phongFrag';
 function reduceComma(shader) {
@@ -7,22 +7,31 @@ function reduceComma(shader) {
 	return str;
 }
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
-export const shaders = {
+let currentDefines={};
+const shaders = {
 	phong: {
-		frag: reduceComma(phongFrag),
-		vert: reduceComma(phongVert)
+		frag: phongFrag,
+		vert: phongVert,
 	},
-
 }
+
 function resolveIncludes(string) {
 	return string.replace(includePattern, includeReplacer);
 }
 
 function includeReplacer(match, include) {
-	const string = ShaderChunk[include];
-	if (string === undefined) {
+	const excute = ShaderChunk[include];
+	if (excute === undefined) {
 		throw new Error(`Can not resolve #include <${include}>`);
 	}
-
-	return resolveIncludes(string);
+    const result=excute(currentDefines);
+	return resolveIncludes(result);
+}
+export default function getVertFrag(type,defines={}){
+	const excuteFunc=shaders[type];
+	currentDefines=defines;
+    return {
+		vert:reduceComma(excuteFunc.vert(currentDefines)),
+		frag:reduceComma(excuteFunc.frag(currentDefines))
+	}
 }

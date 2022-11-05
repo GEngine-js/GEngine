@@ -8,6 +8,7 @@ import Texture from "../render/Texture";
 import Context from "../render/Context";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;
     uniformTotalByte: number;
@@ -19,7 +20,8 @@ export default class BaseMaterial extends Material {
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
             type:this.type,
-            render:true
+            render:true,
+            defines:this.defines
         });
 
         this.baseTexture = undefined;
@@ -32,6 +34,7 @@ export default class BaseMaterial extends Material {
         if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
+        this.shaderSource.update();
         this.updateUniform();
     }
     private createBindGroupAndLayout(device:GPUDevice){

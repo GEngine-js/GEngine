@@ -1,5 +1,6 @@
 
-export default`    
+export default function light(defines){
+    return `    
    struct ReflectedLight {
         directDiffuse:vec3<f32>,
         directSpecular:vec3<f32>,
@@ -44,23 +45,18 @@ export default`
         direction: vec3<f32>,
         color: vec3<f32>,
     };
-    struct LightCount{
-        spotCount:u32,
-        pointCount:u32,
-        directionCount:u32,
-        ambientLightCount:u32
+    struct CommonLightBuffer{
+        ambient:vec3<f32>,
+        lightCount:vec4<u32>, 
     }
-    struct AmbientLight{
-        color: vec3<f32>,
+    struct SpotLightBuffer{
+        lights:array<SpotLight>,
     }
-    struct SpotLightBuffer {
-        lights: array<SpotLight>,
+    struct PointLightBuffer{
+        lights:array<PointLight>,
     }
-    struct PointLightBuffer {
-        lights: array<PointLight>,
-    }
-    struct DirtectLightBuffer {
-        lights: array<DirtectLight>,
+    struct DirtectLightBuffer{
+        lights:array<DirtectLight>,
     }
     const RECIPROCAL_PI:f32= 0.3183098861837907;
     fn pow2( x:f32 )->f32 { return x*x; }
@@ -71,11 +67,10 @@ export default`
         let result=vec3<f32>( 0.3333333,  0.3333333, 0.3333333);
         return dot( v,result ); 
     }
-    @group(2) @binding(0) var<storage, read> pointLights: PointLightBuffer;
-    @group(2) @binding(1) var<storage, read> spotLights: SpotLightBuffer;
-    @group(2) @binding(2) var<storage, read> directionalLights: DirtectLightBuffer;
-    @group(2) @binding(3) var<uniform> ambientLight: AmbientLight;
-    @group(2) @binding(4) var<uniform> lightCount: LightCount;
+    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
+    @group(2) @binding(1) var<storage, read> spotLightBuffer: SpotLightBuffer;
+    @group(2) @binding(2) var<storage, read> pointLightBuffer: PointLightBuffer;
+    @group(2) @binding(3) var<storage, read> dirtectLightBuffer: DirtectLightBuffer;
     fn getAmbientLightIrradiance(ambientLightColor: vec3<f32>) -> vec3<f32> {
 
         let irradiance = ambientLightColor;
@@ -264,8 +259,8 @@ export default`
         var reflectedLight:ReflectedLight;
         //处理方向光
         var dirtectLight:DirtectLight;
-        for (var i : u32 = 0u; i < lightCount.directionCount; i = i + 1u) {
-            dirtectLight = directionalLights.lights[i];
+        for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
+            dirtectLight = dirtectLightBuffer.lights[i];
             incidentLight=getDirtectLightInfo(dirtectLight, geometry);
             let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
             reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
@@ -273,8 +268,8 @@ export default`
         }
         //处理点光源
         var pointLight:PointLight;
-        for (var i : u32 = 0u; i < lightCount.pointCount;i = i + 1u) {
-            pointLight = pointLights.lights[ i ];
+        for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
+            pointLight = pointLightBuffer.lights[ i ];
             incidentLight =getPointLightInfo( pointLight, geometry);
             let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
             reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
@@ -282,8 +277,8 @@ export default`
         }
         //处理聚光灯
         var spotLight:SpotLight;
-        for (var i : u32 = 0u; i < lightCount.spotCount; i = i + 1u) {
-            spotLight = spotLights.lights[ i ];
+        for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
+            spotLight = spotLightBuffer.lights[ i ];
             incidentLight =getSpotLightInfo( spotLight, geometry);
             let spReflectedLight=RE_Direct_BlinnPhong(incidentLight, geometry, material);
             reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
@@ -291,3 +286,4 @@ export default`
         }
         return reflectedLight;
     }`
+}

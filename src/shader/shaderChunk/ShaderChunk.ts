@@ -1,4 +1,5 @@
 import light from './light/light'
-export  const ShaderChunk={
+const ShaderChunk={
     light:light
 }
+export default ShaderChunk;

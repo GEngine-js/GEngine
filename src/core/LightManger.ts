@@ -18,9 +18,15 @@ export default class LightManger extends Manger{
     ambientDirty:boolean;
 
     lightCountDirty:boolean;
+    //ambient+lightCount
+    commonLightBuffer:Float32Array;
+    //pointLight
+    pointLightsBuffer:Float32Array;
 
-    globalLightsBuffer:Float32Array;
+    spotLightsBuffer:Float32Array;
 
+    dirtectLightsBuffer:Float32Array;
+ 
     ambient: Float32Array;
 
     lightCount: Uint32Array;
@@ -33,6 +39,15 @@ export default class LightManger extends Manger{
 
     totalByte:number;
 
+    commonTatalByte:number;
+
+    spotLightsByte:number;
+
+    pointLightsByte:number;
+
+    dirtectLightsByte:number;
+
+
     constructor(){
         super();
         this.spotLights=[];
@@ -42,8 +57,8 @@ export default class LightManger extends Manger{
         this.pointDatas=new WeakMap();
         this.dirtectDatas=new WeakMap();
         this.ambientLight=undefined;
-        this.globalLightsBuffer=undefined;
-        this.totalByte=0
+        this.totalByte=0;
+
     }
     update(){
         this.updateLight()
@@ -62,7 +77,7 @@ export default class LightManger extends Manger{
     }
     remove(){}
     private updateLight(){
-        if(this.lightCountDirty||!this.globalLightsBuffer){
+        if(this.lightCountDirty){
             this.initBuffer();
         }
         this.updateLightData();
@@ -92,8 +107,7 @@ export default class LightManger extends Manger{
             this.ambient[0]=this.ambientLight.color.x;
             this.ambient[1]=this.ambientLight.color.y;
             this.ambient[2]=this.ambientLight.color.z;
-        }
-         
+        }      
     }
     private updateDirtectLight(){
         this.dirtectLights.forEach((light)=>{
@@ -110,31 +124,42 @@ export default class LightManger extends Manger{
         }
     }
     private initBuffer(){
-        const ambientSize=this.ambientLight!=undefined?3:0;
+       // const ambientSize=this.ambientLight!=undefined?3:0;
+       const ambientSize=3;
         const lightCount=4;
-        const pointLightCount=this.pointLights.length;
-        const spotLightCount=this.spotLights.length;
-        const dirtectLightCount=this.dirtectLights.length;
-        this.globalLightsBuffer=new Float32Array(ambientSize+lightCount+pointLightCount+spotLightCount+dirtectLightCount);
-        this.ambient=new Float32Array(this.globalLightsBuffer.buffer,0,3);
-        this.lightCount=new Uint32Array(this.globalLightsBuffer.buffer,12,4);
-        this.totalByte=28
+        const pointLightCount=this.pointLights.length||1;
+        const spotLightCount=this.spotLights.length||1;
+        const dirtectLightCount=this.dirtectLights.length||1;
+        const pointLightCountSize=pointLightCount*PointData.size;
+        const spotLightCountSize=spotLightCount*SpotData.size;
+        const dirtectLightCountSize=dirtectLightCount*DirtectData.size;
+        
+        this.commonLightBuffer=new Float32Array(ambientSize+lightCount);
+        this.spotLightsBuffer=new Float32Array(spotLightCountSize);
+        this.pointLightsBuffer=new Float32Array(pointLightCountSize);
+        this.dirtectLightsBuffer=new Float32Array(dirtectLightCountSize);
+
+        //common
+        this.commonTatalByte=0;     
+        this.ambient=new Float32Array(this.commonLightBuffer.buffer,this.commonTatalByte,3);
+        this.commonTatalByte+=12;  
+        this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
+        this.commonTatalByte+=16;
         //初始化聚光灯
         this.spotLights.forEach((spotLight,i)=>{
-            this.spotDatas.set(spotLight,new SpotData(this.globalLightsBuffer,this.totalByte+SpotData.byteSize*i,spotLight))
+            this.spotDatas.set(spotLight,new SpotData(this.spotLightsBuffer,SpotData.byteSize*i,spotLight))
         });
-        this.totalByte+=this.spotLights.length*SpotData.byteSize;
-
+        this.spotLightsByte=spotLightCount*SpotData.byteSize;
+        //点光源
         this.pointLights.forEach((pointLight,i)=>{
-           this.pointDatas.set(pointLight,new PointData(this.globalLightsBuffer,this.totalByte+PointData.byteSize*i,pointLight))
-        });
-        this.totalByte+=this.pointLights.length*PointData.byteSize;
-
+           this.pointDatas.set(pointLight,new PointData(this.pointLightsBuffer,PointData.byteSize*i,pointLight))
+        });      
+        this.pointLightsByte=pointLightCount*PointData.byteSize;
+        //方向光
         this.dirtectLights.forEach((dirtect,i)=>{
-            this.dirtectDatas.set(dirtect,new DirtectData(this.globalLightsBuffer,this.totalByte+DirtectData.byteSize*i,dirtect))
+            this.dirtectDatas.set(dirtect,new DirtectData(this.dirtectLightsBuffer,DirtectData.byteSize*i,dirtect))
         });
-
-        this.totalByte+=this.dirtectLights.length*DirtectData.byteSize;
+        this.dirtectLightsByte=dirtectLightCount*DirtectData.byteSize;
         
     }
     

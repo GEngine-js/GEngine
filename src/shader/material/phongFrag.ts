@@ -1,4 +1,5 @@
-export default`    
+export default function phongFrag (defines){
+  return `    
   struct VertexOutput {
       @builtin(position) position : vec4<f32>,
       @location(0) worldPos : vec3<f32>,
@@ -8,17 +9,6 @@ export default`
       @location(4) normal : vec3<f32>,
       @location(5) viewPosition:vec3<f32>,
     };
-    // struct BlinnPhongMaterial {
-    //   diffuseColor:vec3<f32>,
-    //   specularColor:vec3<f32>,
-    //   specularShininess:f32,
-    //   specularStrength:f32,
-    // };
-    // struct GeometricContext {
-    //     position: vec3<f32>,
-    //     normal: vec3<f32>,
-    //     viewDir: vec3<f32>,
-    // };
     #include <light>
     // @group(0) @binding(0)  var<uniform> selfUniform : SelfUniform;
     @group(0) @binding(2) var mySampler: sampler;
@@ -39,3 +29,4 @@ export default`
         let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
         return vec4<f32>(finnalColor, color.a);
     }`
+  }

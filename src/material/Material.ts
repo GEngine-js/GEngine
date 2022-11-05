@@ -59,6 +59,8 @@ export class Material{
 
     _depthStencil:{};
 
+    _defines:{};
+
     constructor(){
         //
         this.label=undefined;
@@ -74,8 +76,15 @@ export class Material{
         this.uniforms=undefined;
         this.shaderSource=undefined;
         this.renderStateDirty=true;
+        this._defines={};
         this.groupLayouts=[];
         this.bindGroups=[];
+    }
+    get defines(){
+        return this._defines;
+    }
+    set defines(value){
+        this._defines=combine(value,this._defines,false);
     }
     get blendConstant(){
         return this._blendConstant;

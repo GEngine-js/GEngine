@@ -1,4 +1,5 @@
-import {shaders} from './Shaders'
+import {getVertFrag} from './Shaders';
+import {wgslParseDefines} from './WgslPreprocessor';
 export interface GPUShaderModuleObject{
     vert:GPUShaderModule;
     frag:GPUShaderModule;
@@ -10,17 +11,45 @@ export class ShaderSource{
     frag?: string;
     compute?: string;
     computeMain?: string;
+    defines?:{};
+    uid?:string;
+    dirty:boolean
+    render: boolean;
+    type: string;
     constructor(options){
+        this.type=options.type;
+        this.defines=options.defines;
+        this.uid='';
         if (options.render) {
+            this.render=true;
             this.vertEntryPoint=options.vertMain||'main';
             this.fragEntryPoint=options.fragMain||'main';
-            const source=shaders[options.type]
-            this.vert=options.vert|| source.vert;
-            this.frag=options.frag|| source.frag;
+            this.vert=options.vert||undefined;
+            this.frag=options.frag||undefined;
         } else {
-            const source=shaders[options.type]
-            this.compute=options.compute|| source.compute;
+            this.compute=options.compute|| undefined;
             this.computeMain=options.computeMain|| 'main';
+        }
+    }
+    update(globalDefines,materialDefiens){
+        this.generateUid();
+        if(this.dirty){
+            this.updateShaderStr();
+            this.dirty=false;
+        }
+    }
+    private updateShaderStr(){
+        if (this.render) {
+            const source=getVertFrag(this.type,this.defines)
+            this.vert=source.vert;
+            this.frag=source.frag; 
+        }
+    }
+    private generateUid(){
+        const newUid=JSON.stringify(this.defines);
+        if(this.uid!=newUid){
+            this.uid=newUid;
+            this.dirty=true;
         }
     }
    createShaderModule(device:GPUDevice):{vert:GPUShaderModule,frag:GPUShaderModule}|GPUShaderModule{
