@@ -21,6 +21,7 @@ export class BasicPass extends Pass{
         this.createRenderTarget();
     }
     private createRenderTarget(){
+        debugger
         const colorTexture=new Texture(this.context,{
             size:this.context.presentationSize,
             format:this.context.presentationFormat,
@@ -40,7 +41,8 @@ export class BasicPass extends Pass{
         this.renderTarget=new RenderTarget(
             'render',
             [colorAttachment],
-            depthAttachment
+            //new Attachment(1)
+             depthAttachment
         )
     }
 }

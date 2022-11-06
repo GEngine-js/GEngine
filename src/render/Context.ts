@@ -13,13 +13,17 @@ import SystemRenderResource from "../core/SystemRenderResource";
 
 class Context {
   public canvas: HTMLCanvasElement;
+
   public context: GPUCanvasContext;
+
   public pixelRatio: number;
+
   public device:GPUDevice;
 
   private adapter: GPUAdapter;
 
   public commandEncoder: GPUCommandEncoder | null;
+
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
  
   public renderPipelineCache:RenderPipelineCache;
@@ -32,11 +36,14 @@ class Context {
   
   public presentationFormat :GPUTextureFormat
 
-  constructor({ canvas, context, pixelRatio }: ContextOptions = {}) {
+  constructor({ canvas,container, context, pixelRatio, }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
     this.canvas.style.display = 'block';
-    this.context =
-      context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
+    this.canvas.width= window.innerWidth;
+    this.canvas.height=window.innerHeight;
+    container.appendChild(this.canvas);
+    this.context =context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
+    debugger
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;   
     this.device=undefined;
   }
@@ -114,14 +121,11 @@ class Context {
     }
       //let pipeline;
       if (command.type === "render") {
-        //pipeline=this.renderPipelineCache.getRenderPipelineFromCache(command,this.systemRenderResource.layouts)
-
+        this.currentRenderTarget.renderPassDescriptor.colorAttachments[0].view = this.context
+        .getCurrentTexture()
+        .createView();
         this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
-
       } else if (command.type === "compute") {
-
-       // pipeline=this.renderPipelineCache.getComputePipelineFromCache(command)
-
         this.passEncoder = this.commandEncoder.beginComputePass();
       }
     
@@ -131,23 +135,9 @@ class Context {
     }
     if (command.renderState) {
       RenderState.applyRenderState(this.passEncoder as GPURenderPassEncoder,command.renderState)
-      // const {blendConstant,stencilReference,viewport,scissorTest}=RenderState.getFromRenderStateCache(command.renderState);
-      // (this.passEncoder as GPURenderPassEncoder).setBlendConstant(blendConstant);
-      // (this.passEncoder as GPURenderPassEncoder).setStencilReference(stencilReference);
-      // (this.passEncoder as GPURenderPassEncoder).setViewport(viewport.x,viewport.y,viewport.width,viewport.height,0,1);
-      // (this.passEncoder as GPURenderPassEncoder).setScissorRect(scissorTest.x,scissorTest.y,scissorTest.width,scissorTest.height);
     }
     if (command.vertexBuffers) {
       command.vertexBuffers.bind(this.passEncoder as GPURenderPassEncoder)
-      // for (let i = 0; i < command.vertexBuffers.length; i++) {
-      //   const vertBuffer=command.vertexBuffers.getVertextBuffer(i);
-      //   if(vertBuffer){
-      //     (this.passEncoder as GPURenderPassEncoder).setVertexBuffer(
-      //       vertBuffer.index,
-      //       vertBuffer.buffer.gpuBuffer
-      //     );
-      //   }
-      // }
     }
 
     if (command.indexBuffer) {
@@ -163,7 +153,7 @@ class Context {
         this.passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
       }
     }
-
+    debugger
     if (command.indexBuffer) {
       (this.passEncoder as GPURenderPassEncoder).drawIndexed(
         command.count || 0,

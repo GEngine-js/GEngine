@@ -18,6 +18,7 @@ export interface ContextState {
 
 export interface ContextOptions {
   canvas?: HTMLCanvasElement;
+  container?:HTMLDivElement;
   context?: GPUCanvasContext;
   pixelRatio?: number;
 }

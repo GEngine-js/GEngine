@@ -25,7 +25,7 @@ export default class RenderTarget {
           colorAttachments: this.colorAttachments.map(
             (colorAttachment) => {
               return ({
-                view: colorAttachment.texture.gpuTexture.createView(),
+                view: colorAttachment?.texture?.gpuTexture?.createView()||undefined,
                 resolveTarget: colorAttachment.resolveTarget != undefined ? colorAttachment.resolveTarget.gpuTexture.createView(): undefined,
                 clearValue: colorAttachment.value,
                 loadOp: colorAttachment.op,
@@ -36,7 +36,7 @@ export default class RenderTarget {
         }),
         ...((this.depthAttachment || this.stencilAttachment) && {
           depthStencilAttachment: {
-            view: this.depthAttachment.texture.gpuTexture.createView(),
+            view: this.depthAttachment?.texture?.gpuTexture?.createView()||undefined,
             depthLoadOp: this.depthAttachment?.op || "clear",
             depthClearValue: this.depthAttachment?.value || 0,
             depthStoreOp: this.depthAttachment?.storeOp || "store",

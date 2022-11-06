@@ -16,7 +16,7 @@ export class Scene extends EventDispatcher {
     requestAdapter: {};
     deviceDescriptor: {};
     presentationContextDescriptor: {};
-    container: HTMLCanvasElement
+    container: HTMLDivElement;
     frameState: FrameState;
     currentRenderPipeline:IBaseRenderLine;
     private ready: boolean;
@@ -26,8 +26,8 @@ export class Scene extends EventDispatcher {
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
         this.lightManger = new LightManger();
         this.primitiveManger = new PrimitiveManger();
-        this.context = new Context({ canvas: null });
-        this.container.appendChild(this.context.canvas);
+        this.context = new Context({ canvas: null,container:this.container,pixelRatio:1});
+        // this.container.appendChild(this.context.canvas);
         this.requestAdapter = options.requestAdapter||{};
         this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;
