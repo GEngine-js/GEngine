@@ -1,5 +1,5 @@
 import combine from '../utils/combine';
-import {getVertFrag} from './Shaders';
+import getVertFrag from './Shaders';
 import {wgslParseDefines} from './WgslPreprocessor';
 export interface GPUShaderModuleObject{
     vert:GPUShaderModule;
@@ -44,6 +44,8 @@ export class ShaderSource{
     private updateShaderStr(){
         if (this.render) {
             const source=getVertFrag(this.type,this.defines)
+            console.log(source.frag);
+            
             this.vert=source.vert;
             this.frag=source.frag; 
         }

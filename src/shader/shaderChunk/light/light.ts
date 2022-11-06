@@ -1,6 +1,15 @@
-
+import {wgslParseDefines} from '../../WgslPreprocessor'
 export default function light(defines){
-    return `    
+    // this.lightDefines={
+    //     ambientLight:false,
+    //     spotLight:false,
+    //     pointLight:false,
+    //     dirtectLight:false,
+    //     spotLightBinding:1,
+    //     pointLightBinding:2,
+    //     dirtectLightBinding:3,
+    // }
+    return wgslParseDefines`    
    struct ReflectedLight {
         directDiffuse:vec3<f32>,
         directSpecular:vec3<f32>,
@@ -22,42 +31,101 @@ export default function light(defines){
         position: vec3<f32>,
         normal: vec3<f32>,
         viewDir: vec3<f32>,
-        // #ifdef USE_CLEARCOAT
-        //     vec3 clearcoatNormal;
-        // #endif
     };
-    struct SpotLight {
-        position: vec3<f32>,
-        direction: vec3<f32>,
-        color: vec3<f32>,
-        distance: f32,
-        decay: f32,
-        coneCos: f32,
-        penumbraCos: f32,
-    };
-    struct PointLight {
-        position: vec3<f32>,
-        color: vec3<f32>,
-        distance: f32,
-        decay: f32,
-    };
-    struct DirtectLight {
-        direction: vec3<f32>,
-        color: vec3<f32>,
-    };
-    struct CommonLightBuffer{
-        ambient:vec3<f32>,
-        lightCount:vec4<u32>, 
-    }
-    struct SpotLightBuffer{
-        lights:array<SpotLight>,
-    }
-    struct PointLightBuffer{
-        lights:array<PointLight>,
-    }
-    struct DirtectLightBuffer{
-        lights:array<DirtectLight>,
-    }
+    #if ${defines.spotLight}
+        struct SpotLight {
+            position: vec3<f32>,
+            direction: vec3<f32>,
+            color: vec3<f32>,
+            distance: f32,
+            decay: f32,
+            coneCos: f32,
+            penumbraCos: f32,
+        };
+        struct SpotLightBuffer{
+            lights:array<SpotLight>,
+        }
+        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLightBuffer: SpotLightBuffer;
+
+        fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
+            var light:IncidentLight;
+            let lVector = spotLight.position - geometry.position;
+    
+            light.direction = normalize(lVector);
+    
+            let angleCos = dot(light.direction, spotLight.direction);
+    
+            let spotAttenuation = getSpotAttenuation(spotLight.coneCos, spotLight.penumbraCos, angleCos);
+    
+            if (spotAttenuation > 0.0) {
+    
+                let lightDistance = length(lVector);
+    
+                light.color = spotLight.color * spotAttenuation;
+                light.color *= getDistanceAttenuation(lightDistance, spotLight.distance, spotLight.decay);
+                light.visible = (length(light.color)>0);
+            } else {
+    
+                light.color = vec3(0.0);
+                light.visible = false;
+            }
+            return light;
+        }
+    #endif 
+
+    #if ${defines.pointLight}
+        struct PointLight {
+            position: vec3<f32>,
+            color: vec3<f32>,
+            distance: f32,
+            decay: f32,
+        };
+        struct PointLightBuffer{
+            lights:array<PointLight>,
+        }
+        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLightBuffer: PointLightBuffer;
+        fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
+            var light:IncidentLight;
+            let lVector:vec3<f32> = pointLight.position - geometry.position;
+    
+            light.direction = normalize(lVector);
+    
+            let lightDistance = length(lVector);
+    
+            light.color = pointLight.color;
+            light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
+            light.visible = (length(light.color)>0);
+            return light;
+        }
+    #endif
+    #if ${defines.directLight}
+        struct DirtectLight {
+            direction: vec3<f32>,
+            color: vec3<f32>,
+        };
+        struct DirtectLightBuffer{
+            lights:array<DirtectLight>,
+        }
+        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLightBuffer: DirtectLightBuffer;
+        fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
+            var light:IncidentLight;
+            light.color = directionalLight.color;
+            light.direction = directionalLight.direction;
+            light.visible = true;
+            return light;
+        }
+    #endif
+    #if ${defines.ambientLight}
+        struct CommonLightBuffer{
+            ambient:vec3<f32>,
+            lightCount:vec4<u32>, 
+        }
+    #else
+        struct CommonLightBuffer{
+            lightCount:vec4<u32>, 
+        }
+    #endif
+    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
     const RECIPROCAL_PI:f32= 0.3183098861837907;
     fn pow2( x:f32 )->f32 { return x*x; }
     fn pow3( x:f32 )->f32 { return x*x*x; }
@@ -67,10 +135,7 @@ export default function light(defines){
         let result=vec3<f32>( 0.3333333,  0.3333333, 0.3333333);
         return dot( v,result ); 
     }
-    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
-    @group(2) @binding(1) var<storage, read> spotLightBuffer: SpotLightBuffer;
-    @group(2) @binding(2) var<storage, read> pointLightBuffer: PointLightBuffer;
-    @group(2) @binding(3) var<storage, read> dirtectLightBuffer: DirtectLightBuffer;
+    
     fn getAmbientLightIrradiance(ambientLightColor: vec3<f32>) -> vec3<f32> {
 
         let irradiance = ambientLightColor;
@@ -78,79 +143,15 @@ export default function light(defines){
         return irradiance;
     }
     fn getDistanceAttenuation(lightDistance: f32, cutoffDistance: f32, decayExponent: f32) -> f32 {
-
-        // #if defined ( PHYSICALLY_CORRECT_LIGHTS )
-
-            // based upon Frostbite 3 Moving to Physically-based Rendering
-            // page 32, equation 26: E[window1]
-            // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
-            // let distanceFalloff = 1.0 / max( pow( lightDistance, decayExponent ), 0.01 );
-
-            // if ( cutoffDistance > 0.0 ) {
-
-            // 	distanceFalloff *= pow2( saturate( 1.0 - pow4( lightDistance / cutoffDistance ) ) );
-
-            // }
-
-            // return distanceFalloff;
-
-        // #else
-
         if (cutoffDistance > 0.0 && decayExponent > 0.0) {
             let x:f32 = saturate(- lightDistance / cutoffDistance + 1.0);
             return pow(x, decayExponent);
         }
         return 1.0;
-
-        // #endif
     }
     fn getSpotAttenuation(coneCosine: f32, penumbraCosine: f32, angleCosine: f32) -> f32 {
 
         return smoothstep(coneCosine, penumbraCosine, angleCosine);
-    }
-    fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
-        var light:IncidentLight;
-        light.color = directionalLight.color;
-        light.direction = directionalLight.direction;
-        light.visible = true;
-        return light;
-    }
-    fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
-        var light:IncidentLight;
-        let lVector:vec3<f32> = pointLight.position - geometry.position;
-
-        light.direction = normalize(lVector);
-
-        let lightDistance = length(lVector);
-
-        light.color = pointLight.color;
-        light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
-        light.visible = (length(light.color)>0);
-        return light;
-    }
-    fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
-        var light:IncidentLight;
-        let lVector = spotLight.position - geometry.position;
-
-        light.direction = normalize(lVector);
-
-        let angleCos = dot(light.direction, spotLight.direction);
-
-        let spotAttenuation = getSpotAttenuation(spotLight.coneCos, spotLight.penumbraCos, angleCos);
-
-        if (spotAttenuation > 0.0) {
-
-            let lightDistance = length(lVector);
-
-            light.color = spotLight.color * spotAttenuation;
-            light.color *= getDistanceAttenuation(lightDistance, spotLight.distance, spotLight.decay);
-            light.visible = (length(light.color)>0);
-        } else {
-
-            light.color = vec3(0.0);
-            light.visible = false;
-        }
-        return light;
     }
     fn BRDF_Lambert(diffuseColor:vec3<f32>)->vec3<f32> {
 
@@ -257,33 +258,39 @@ export default function light(defines){
     fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
         var  incidentLight:IncidentLight;
         var reflectedLight:ReflectedLight;
-        //处理方向光
-        var dirtectLight:DirtectLight;
-        for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
-            dirtectLight = dirtectLightBuffer.lights[i];
-            incidentLight=getDirtectLightInfo(dirtectLight, geometry);
-            let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-            reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
-            reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
-        }
-        //处理点光源
-        var pointLight:PointLight;
-        for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-            pointLight = pointLightBuffer.lights[ i ];
-            incidentLight =getPointLightInfo( pointLight, geometry);
-            let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-            reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
-            reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
-        }
-        //处理聚光灯
-        var spotLight:SpotLight;
-        for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
-            spotLight = spotLightBuffer.lights[ i ];
-            incidentLight =getSpotLightInfo( spotLight, geometry);
-            let spReflectedLight=RE_Direct_BlinnPhong(incidentLight, geometry, material);
-            reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
-            reflectedLight.directSpecular+=spReflectedLight.directSpecular;
-        }
+        #if ${defines.directLight}
+            //处理方向光
+            var dirtectLight:DirtectLight;
+            for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
+                dirtectLight = dirtectLightBuffer.lights[i];
+                incidentLight=getDirtectLightInfo(dirtectLight, geometry);
+                let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
+                reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+            }
+        #endif
+        #if ${defines.pointLight}
+            //处理点光源
+            var pointLight:PointLight;
+            for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
+                pointLight = pointLightBuffer.lights[ i ];
+                incidentLight =getPointLightInfo( pointLight, geometry);
+                let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
+                reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
+            }
+        #endif
+        #if ${defines.directLight}
+            //处理聚光灯
+            var spotLight:SpotLight;
+            for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
+                spotLight = spotLightBuffer.lights[ i ];
+                incidentLight =getSpotLightInfo( spotLight, geometry);
+                let spReflectedLight=RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
+                reflectedLight.directSpecular+=spReflectedLight.directSpecular;
+            }
+        #endif
         return reflectedLight;
     }`
 }

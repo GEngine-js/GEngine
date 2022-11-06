@@ -69,28 +69,8 @@
         // document.body.appendChild(scene.context.canvas);
         animate()
      }
-    // init();
-    // const defines={
-    //     a:1,
-    //     b:2
-    // }
-function resolveIncludes(string,defines) {
-	return string.replace('a', includeReplacer,null,defines);
-}
-function includeReplacer(match, include,aa,defines) {
-    console.log(defines)
-    debugger
-	const string = ShaderChunk[include];
-	if (string === undefined) {
-		throw new Error(`Can not resolve #include <${include}>`);
-	}
+     init();
 
-	return resolveIncludes(string);
-}
-resolveIncludes('abssc',{
-        a:1,
-        b:2
-    })
     </script>
 </body>
 

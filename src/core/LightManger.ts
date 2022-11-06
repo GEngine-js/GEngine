@@ -4,6 +4,7 @@ import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
 import Manger from "./Manger";
 import { DirtectData, PointData, SpotData } from "../light/DataHelper";
+import { FrameState } from "./FrameState";
 
 export default class LightManger extends Manger{
 
@@ -47,6 +48,16 @@ export default class LightManger extends Manger{
 
     dirtectLightsByte:number;
 
+    lightDefines:{
+        ambientLight:boolean
+        spotLight:boolean,
+        pointLight:boolean,
+        dirtectLight:boolean,
+        spotLightBinding:number,
+        pointLightBinding:number,
+        dirtectLightBinding:number
+    }
+
 
     constructor(){
         super();
@@ -57,11 +68,21 @@ export default class LightManger extends Manger{
         this.pointDatas=new WeakMap();
         this.dirtectDatas=new WeakMap();
         this.ambientLight=undefined;
+        this.lightDefines={
+            ambientLight:false,
+            spotLight:false,
+            pointLight:false,
+            dirtectLight:false,
+            spotLightBinding:1,
+            pointLightBinding:2,
+            dirtectLightBinding:3,
+        }
         this.totalByte=0;
 
     }
-    update(){
-        this.updateLight()
+    update(frameState:FrameState){
+        this.updateLight();
+        frameState.defines=this.lightDefines;
     }
     add(light){
         this.lightCountDirty=true;
@@ -124,43 +145,64 @@ export default class LightManger extends Manger{
         }
     }
     private initBuffer(){
-       // const ambientSize=this.ambientLight!=undefined?3:0;
-       const ambientSize=3;
+        const ambientSize=this.ambientLight!=undefined?3:0;
+        //const ambientSize=3;
         const lightCount=4;
-        const pointLightCount=this.pointLights.length||1;
-        const spotLightCount=this.spotLights.length||1;
-        const dirtectLightCount=this.dirtectLights.length||1;
+        const pointLightCount=this.pointLights.length;
+        const spotLightCount=this.spotLights.length;
+        const dirtectLightCount=this.dirtectLights.length;
         const pointLightCountSize=pointLightCount*PointData.size;
         const spotLightCountSize=spotLightCount*SpotData.size;
         const dirtectLightCountSize=dirtectLightCount*DirtectData.size;
-        
-        this.commonLightBuffer=new Float32Array(ambientSize+lightCount);
-        this.spotLightsBuffer=new Float32Array(spotLightCountSize);
-        this.pointLightsBuffer=new Float32Array(pointLightCountSize);
-        this.dirtectLightsBuffer=new Float32Array(dirtectLightCountSize);
-
+        let currentBinding=1;
+                          
         //common
-        this.commonTatalByte=0;     
-        this.ambient=new Float32Array(this.commonLightBuffer.buffer,this.commonTatalByte,3);
-        this.commonTatalByte+=12;  
-        this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
-        this.commonTatalByte+=16;
-        //初始化聚光灯
-        this.spotLights.forEach((spotLight,i)=>{
-            this.spotDatas.set(spotLight,new SpotData(this.spotLightsBuffer,SpotData.byteSize*i,spotLight))
-        });
-        this.spotLightsByte=spotLightCount*SpotData.byteSize;
-        //点光源
-        this.pointLights.forEach((pointLight,i)=>{
-           this.pointDatas.set(pointLight,new PointData(this.pointLightsBuffer,PointData.byteSize*i,pointLight))
-        });      
-        this.pointLightsByte=pointLightCount*PointData.byteSize;
-        //方向光
-        this.dirtectLights.forEach((dirtect,i)=>{
-            this.dirtectDatas.set(dirtect,new DirtectData(this.dirtectLightsBuffer,DirtectData.byteSize*i,dirtect))
-        });
-        this.dirtectLightsByte=dirtectLightCount*DirtectData.byteSize;
-        
+        if (ambientSize>0) {
+            this.commonLightBuffer=new Float32Array(ambientSize+lightCount);
+            this.commonTatalByte=0;     
+            this.ambient=new Float32Array(this.commonLightBuffer.buffer,this.commonTatalByte,3);
+            this.commonTatalByte+=12;  
+            this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
+            this.commonTatalByte+=16;
+            this.lightDefines.ambientLight=true;
+        }else{
+            this.commonLightBuffer=new Float32Array(lightCount);
+            this.commonTatalByte=0;
+            this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
+            this.commonTatalByte+=16;
+        }
+        if (spotLightCountSize>0) {
+            //初始化聚光灯
+            this.spotLightsBuffer=new Float32Array(spotLightCountSize);
+            this.spotLights.forEach((spotLight,i)=>{
+                this.spotDatas.set(spotLight,new SpotData(this.spotLightsBuffer,SpotData.byteSize*i,spotLight))
+            });
+            this.spotLightsByte=spotLightCount*SpotData.byteSize;
+            this.lightDefines.spotLight=true;
+            this.lightDefines.spotLightBinding=currentBinding;
+            currentBinding+=1;
+        }
+        if (pointLightCountSize>0) {
+            //点光源
+            this.pointLightsBuffer=new Float32Array(pointLightCountSize);
+            this.pointLights.forEach((pointLight,i)=>{
+            this.pointDatas.set(pointLight,new PointData(this.pointLightsBuffer,PointData.byteSize*i,pointLight))
+            });      
+            this.pointLightsByte=pointLightCount*PointData.byteSize; 
+            this.lightDefines.pointLight=true;
+            this.lightDefines.pointLightBinding=currentBinding;
+            currentBinding+=1; 
+        }
+        if (dirtectLightCountSize) {
+            //方向光
+            this.dirtectLightsBuffer=new Float32Array(dirtectLightCountSize);
+            this.dirtectLights.forEach((dirtect,i)=>{
+                this.dirtectDatas.set(dirtect,new DirtectData(this.dirtectLightsBuffer,DirtectData.byteSize*i,dirtect))
+            });
+            this.dirtectLightsByte=dirtectLightCount*DirtectData.byteSize;
+            this.lightDefines.dirtectLight=true;
+            this.lightDefines.dirtectLightBinding=currentBinding;
+        }       
     }
     
 }

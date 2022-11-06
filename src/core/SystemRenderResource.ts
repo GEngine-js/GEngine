@@ -107,12 +107,13 @@ export default class SystemRenderResource{
     }
     private setLightData(lightManger:LightManger){
          this.commonGPUBuffer.setSubData(0,lightManger.commonLightBuffer);
-         this.pointLightsGPUBuffer.setSubData(0,lightManger.pointLightsBuffer);
-         this.spotLightsGPUBuffer.setSubData(0,lightManger.spotLightsBuffer);
-         this.dirtectLightsGPUBuffer.setSubData(0,lightManger.dirtectLightsBuffer);
+         if(this.pointLightsGPUBuffer)this.pointLightsGPUBuffer.setSubData(0,lightManger.pointLightsBuffer);
+         if(this.spotLightsGPUBuffer)this.spotLightsGPUBuffer.setSubData(0,lightManger.spotLightsBuffer);
+         if(this.dirtectLightsGPUBuffer)this.dirtectLightsGPUBuffer.setSubData(0,lightManger.dirtectLightsBuffer);
     }
     private createLightBindGroupAndLayout(device:GPUDevice,lightManger:LightManger){
         lightManger.lightCountDirty=false;
+        this.resetLightBufferAndUnifroms();
         this.createLightUniformBuffer(device,lightManger);
         this.createLightUniforms(lightManger);
         const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.lightUniforms,null,'light',2);
@@ -122,16 +123,29 @@ export default class SystemRenderResource{
     private createLightUniforms(lightManger:LightManger){
        this.lightUniforms=[
          new UniformLight('commonGPUBuffer',0,this,lightManger.commonTatalByte),
-         new UniformLight('spotLightsGPUBuffer',1,this,lightManger.spotLightsByte),
-         new UniformLight('pointLightsGPUBuffer',2,this,lightManger.pointLightsByte),
-         new UniformLight('dirtectLightsGPUBuffer',3,this,lightManger.dirtectLightsByte),
        ]
+       if(lightManger.lightDefines.spotLight){
+            this.lightUniforms.push(new UniformLight('spotLightsGPUBuffer',lightManger.lightDefines.spotLightBinding,this,lightManger.spotLightsByte));
+       }
+       if(lightManger.lightDefines.pointLight){
+            this.lightUniforms.push(new UniformLight('pointLightsGPUBuffer',lightManger.lightDefines.pointLightBinding,this,lightManger.pointLightsByte))
+       }
+       if(lightManger.lightDefines.dirtectLight){
+             this.lightUniforms.push(new UniformLight('dirtectLightsGPUBuffer',lightManger.lightDefines.dirtectLightBinding,this,lightManger.dirtectLightsByte))
+       }
     }
     private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
         this.commonGPUBuffer=Buffer.createUniformBuffer(device,lightManger.commonTatalByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        this.spotLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.spotLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        this.pointLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.pointLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        this.dirtectLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.dirtectLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
+        if(lightManger.lightDefines.spotLight)this.spotLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.spotLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
+        if(lightManger.lightDefines.pointLight)this.pointLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.pointLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
+        if(lightManger.lightDefines.dirtectLight)this.dirtectLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.dirtectLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
+    }
+    private resetLightBufferAndUnifroms(){
+        this.lightUniforms=[];
+        this.commonGPUBuffer=undefined;
+        this.spotLightsGPUBuffer=undefined;
+        this.pointLightsGPUBuffer=undefined;
+        this.dirtectLightsGPUBuffer=undefined;
     }
     destory(){
 

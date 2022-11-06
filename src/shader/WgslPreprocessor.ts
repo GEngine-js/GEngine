@@ -3,7 +3,6 @@ const preprocessorSymbols = /#([^\s]*)(\s*)/gm
 // Template literal tag that handles simple preprocessor symbols for WGSL
 // shaders. Supports #if/elif/else/endif statements.
 export function wgslParseDefines(strings, ...values) {
-    debugger
   const stateStack = [];
   let state = { frag: '', elseIsValid: false, expression: true };
   let depth = 1;
