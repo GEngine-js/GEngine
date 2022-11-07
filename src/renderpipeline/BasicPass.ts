@@ -41,7 +41,6 @@ export class BasicPass extends Pass{
         this.renderTarget=new RenderTarget(
             'render',
             [colorAttachment],
-            //new Attachment(1)
              depthAttachment
         )
     }

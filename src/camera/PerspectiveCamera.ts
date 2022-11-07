@@ -15,6 +15,8 @@ export default class PerspectiveCamera extends Camera {
     private _projectionMatrix: Matrix4;
     private _viewMatrix: Matrix4;
     private _inverseViewMatrix: Matrix4;
+    height: number;
+    width: number;
     constructor(fov: number = 50, aspect: number = 1, near: number = 0.1, far: number = 2000) {
         super()
         this.aspect = aspect;
@@ -77,53 +79,58 @@ export default class PerspectiveCamera extends Camera {
         this.dirUpRightDirty=true;
         this.target=target
 
-        Vector3.subtract(target, this.position, this.cameraDirection);
+        Vector3.subtract(this.position,target,this.direction);
 
-        Vector3.normalize(this.cameraDirection, this.cameraDirection);
+        Vector3.normalize(this.direction, this.direction);
 
-        Vector3.cross(this.cameraUp, this.cameraDirection, this.cameraRight);
+        Vector3.cross(this.up, this.direction, this.right);
 
-        Vector3.normalize(this.cameraRight, this.cameraRight);
+        Vector3.normalize(this.right, this.right);
 
-        Vector3.cross(this.cameraDirection, this.cameraRight, this.cameraUp);
+        Vector3.cross(this.direction, this.right, this.up);
     }
     private updateInverseViewMatrix(){
         this.updateViewMatrix();
         Matrix4.inverseTransformation(this._viewMatrix, this._inverseViewMatrix);
     }
     private updateCameraParms() {
-        this.fovy = this.aspect <= 1
-            ? this.fov
-            : Math.atan(Math.tan(this.fov * 0.5) / this.aspect) * 2.0;
-        //+this.yOffset
-        this.top = this.near * Math.tan(0.5 * this.fovy);
-        //+this.yOffset
-        this.bottom = -this.top + this.yOffset;
-        //this.xOffset;
-        this.right = this.aspect * this.top + this.xOffset;
-        //this.xOffset;
-        this.left = -this.right + this.xOffset;
+        // this.fovy = this.aspect <= 1
+        //     ? this.fov
+        //     : Math.atan(Math.tan(this.fov * 0.5) / this.aspect) * 2.0;
+        // //+this.yOffset
+        // this.top = this.near * Math.tan(0.5 * this.fovy);
+        // //+this.yOffset
+        // this.bottom = -this.top + this.yOffset;
+        // //this.xOffset;
+        // this.right = this.aspect * this.top + this.xOffset;
+        // //this.xOffset;
+        // this.left = -this.right + this.xOffset;
+        this.top=this.near*Math.tan(0.5 * this.fov);
+        this.height=2*this.top;
+        this.width=this.aspect*this.height;
+        this.left=0.5*this.width;
+
     }
     private updateProjectionMatrix() {
         if(this.projectMatrixDirty) {
             this.updateCameraParms();
-            this.projectionMatrix = Matrix4.computePerspectiveOffCenter(
-                this.left,
-                this.right,
-                this.bottom,
-                this.top,
-                this.near,
-                this.far,
-                tempPerspectiveMatrix
-            );
+            // this.projectionMatrix = Matrix4.computePerspectiveOffCenter(
+            //     this.left,
+            //     this.right,
+            //     this.bottom,
+            //     this.top,
+            //     this.near,
+            //     this.far,
+            //     tempPerspectiveMatrix
+            // );
+            this.projectionMatrix=Matrix4.makePerspective(this.left, this.left + this.width, this.top, this.top - this.height, this.near, this.far )
             this.projectMatrixDirty=false;
         }
     }
     private updateViewMatrix() {
         if (this.dirUpRightDirty){
             this.dirUpRightDirty=false
-            Matrix4.computeView(this.position, this.cameraDirection, this.cameraRight, this.cameraUp, this.viewMatrix);
-
+            Matrix4.computeView(this.position, this.direction,this.up, this.right,  this.viewMatrix);
         }
     }
     /**
@@ -176,7 +183,7 @@ export default class PerspectiveCamera extends Camera {
         plane.x = normal.x;
         plane.y = normal.y;
         plane.z = normal.z;
-        plane.w = -Vector3.dot(normal, position);
+        plane.w = Vector3.dot(normal, position);
 
         //Right plane computation
         Vector3.multiplyByScalar(right, r, normal);
@@ -192,7 +199,7 @@ export default class PerspectiveCamera extends Camera {
         plane.x = normal.x;
         plane.y = normal.y;
         plane.z = normal.z;
-        plane.w = -Vector3.dot(normal, position);
+        plane.w = Vector3.dot(normal, position);
 
         //Bottom plane computation
         Vector3.multiplyByScalar(up, b, normal);
@@ -208,7 +215,7 @@ export default class PerspectiveCamera extends Camera {
         plane.x = normal.x;
         plane.y = normal.y;
         plane.z = normal.z;
-        plane.w = -Vector3.dot(normal, position);
+        plane.w = Vector3.dot(normal, position);
 
         //Top plane computation
         Vector3.multiplyByScalar(up, t, normal);
@@ -224,7 +231,7 @@ export default class PerspectiveCamera extends Camera {
         plane.x = normal.x;
         plane.y = normal.y;
         plane.z = normal.z;
-        plane.w = -Vector3.dot(normal, position);
+        plane.w = Vector3.dot(normal, position);
 
         //Near plane computation
         plane = planes[4];
@@ -234,7 +241,7 @@ export default class PerspectiveCamera extends Camera {
         plane.x = direction.x;
         plane.y = direction.y;
         plane.z = direction.z;
-        plane.w = -Vector3.dot(direction, nearCenter);
+        plane.w = Vector3.dot(direction, nearCenter);
 
         //Far plane computation
         Vector3.negate(direction, normal);
@@ -246,8 +253,36 @@ export default class PerspectiveCamera extends Camera {
         plane.x = normal.x;
         plane.y = normal.y;
         plane.z = normal.z;
-        plane.w = -Vector3.dot(normal, farCenter);
+        plane.w = Vector3.dot(normal, farCenter);
 
+        return this.cullingVolume;
+    }
+    getCullingVolume(){
+        const vpMatrix=new Matrix4().clone(this.viewMatrix).multiply(this.projectionMatrix)
+        const planes = this.cullingVolume.planes;
+		const me = vpMatrix;
+		const me0 = me[ 0 ], me1 = me[ 1 ], me2 = me[ 2 ], me3 = me[ 3 ];
+		const me4 = me[ 4 ], me5 = me[ 5 ], me6 = me[ 6 ], me7 = me[ 7 ];
+		const me8 = me[ 8 ], me9 = me[ 9 ], me10 = me[ 10 ], me11 = me[ 11 ];
+		const me12 = me[ 12 ], me13 = me[ 13 ], me14 = me[ 14 ], me15 = me[ 15 ];
+        
+		planes[0].normal=Vector3.normalize(new Vector3(me3 - me0, me7 - me4, me11 - me8),new Vector3());
+        planes[0].distance=me15 - me12;
+
+        planes[1].normal=Vector3.normalize(new Vector3(me3 + me0, me7 + me4, me11 + me8),new Vector3());
+        planes[1].distance=me15 + me12 
+
+        planes[2].normal=Vector3.normalize(new Vector3(me3 + me1, me7 + me5, me11 + me9),new Vector3());
+        planes[2].distance=me15 + me13;
+
+        planes[3].normal=Vector3.normalize(new Vector3(me3 - me1, me7 - me5, me11 - me9),new Vector3());
+        planes[3].distance=me15 - me13;
+
+        planes[4].normal=Vector3.normalize(new Vector3(me3 - me2, me7 - me6, me11 - me10),new Vector3());
+        planes[4].distance=me15 - me14;
+
+        planes[5].normal=Vector3.normalize(new Vector3(me3 + me2, me7 + me6, me11 + me10),new Vector3());
+        planes[5].distance=me15 + me14;
         return this.cullingVolume;
     }
 }

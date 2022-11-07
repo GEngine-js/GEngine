@@ -4,13 +4,13 @@ import Vector3 from "../math/Vector3";
 export default class Camera {
     top: number;
     bottom: number;
-    right: number;
+    // right: number;
     left: number;
     private _near: number;
     private _far: number;
-    private _cameraUp: Vector3;
-    private _cameraDirection: Vector3;
-    private _cameraRight: Vector3;
+    private _up: Vector3;
+    private _direction: Vector3;
+    private _right: Vector3;
     position: Vector3;
     target:Vector3;
     dirUpRightDirty: boolean;
@@ -18,12 +18,12 @@ export default class Camera {
     constructor() {
         this.top = 0;
         this.bottom = 0;
-        this.right = 0;
+        // this.right = 0;
         this.left = 0;
         this.position=new Vector3(0,0,0)
-        this._cameraUp = new Vector3(0, 1, 0);
-        this._cameraDirection = new Vector3(0, 0, 1);
-        this._cameraRight = new Vector3(1, 0, 0);
+        this._up = new Vector3(0, 1, 0);
+        this._direction = new Vector3(0, 0, 1);
+        this._right = new Vector3(1, 0, 0);
         this.dirUpRightDirty = false;
         this.projectMatrixDirty=false;
     }
@@ -44,25 +44,25 @@ export default class Camera {
         this.projectMatrixDirty=true;
         this._far = v;
     }
-    get cameraUp() {
-        return this._cameraUp;
+    get up() {
+        return this._up;
     }
-    set cameraUp(up) {
+    set up(value) {
         this.dirUpRightDirty = true;
-        this._cameraUp = up;
+        this._up = value;
     }
-    get cameraDirection() {
-        return this._cameraDirection;
+    get direction() {
+        return this._direction;
     }
-    set cameraDirection(up) {
+    set direction(value) {
         this.dirUpRightDirty = true;
-        this._cameraDirection = up;
+        this._direction = value;
     }
-    get cameraRight() {
-        return this._cameraRight;
+    get right() {
+        return this._right;
     }
-    set cameraRight(up) {
+    set right(value) {
         this.dirUpRightDirty = true;
-        this._cameraRight = up;
+        this._right = value;
     }
 }

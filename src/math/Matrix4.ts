@@ -994,7 +994,24 @@ class Matrix4 {
     result[15] = 1.0;
     return result;
   };
+  static makePerspective(left, right, top, bottom, near, far) {
+   // from three.js
+		const matrix = new Matrix4();
+		const x = 2 * near / ( right - left );
+		const y = 2 * near / ( top - bottom );
 
+		const a = ( right + left ) / ( right - left );
+		const b = ( top + bottom ) / ( top - bottom );
+		const c = - ( far + near ) / ( far - near );
+		const d = - 2 * far * near / ( far - near );
+
+		matrix[ 0 ] = x;	matrix[ 4 ] = 0;	matrix[ 8 ] = a;	matrix[ 12 ] = 0;
+		matrix[ 1 ] = 0;	matrix[ 5 ] = y;	matrix[ 9 ] = b;	matrix[ 13 ] = 0;
+		matrix[ 2 ] = 0;	matrix[ 6 ] = 0;	matrix[ 10 ] = c;	matrix[ 14 ] = d;
+		matrix[ 3 ] = 0;	matrix[ 7 ] = 0;	matrix[ 11 ] = - 1;	matrix[ 15 ] = 0;
+		return matrix;
+
+	}
   /**
    * Computes a Matrix4 instance representing a perspective transformation matrix.
    *
@@ -1274,19 +1291,19 @@ class Matrix4 {
 
     result[0] = right.x;
     result[1] = up.x;
-    result[2] = -direction.x;
+    result[2] = direction.x;
     result[3] = 0.0;
     result[4] = right.y;
     result[5] = up.y;
-    result[6] = -direction.y;
+    result[6] = direction.y;
     result[7] = 0.0;
     result[8] = right.z;
     result[9] = up.z;
-    result[10] = -direction.z;
+    result[10] = direction.z;
     result[11] = 0.0;
     result[12] = -Vector3.dot(right, position);
     result[13] = -Vector3.dot(up, position);
-    result[14] = Vector3.dot(direction, position);
+    result[14] = -Vector3.dot(direction, position);
     result[15] = 1.0;
     return result;
   };

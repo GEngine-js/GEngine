@@ -9,15 +9,12 @@ export default class ForwardRenderLine implements IBaseRenderLine{
     private opaque: DrawCommand[];
     private transparent: DrawCommand[];
        constructor(public context:Context){
-        this.passList=[];
+       this.passList=[];
        this.passList.push(new BasicPass(context))
     }
     setRenderList(options:{opaque: DrawCommand[],transparent: DrawCommand[]}){
       this.opaque=options.opaque;
       this.transparent=options.transparent;
-
-      //.......
-
     }
     addPass(){}
     render() {

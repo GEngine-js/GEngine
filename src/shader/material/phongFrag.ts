@@ -27,6 +27,6 @@ export default function phongFrag (defines){
         geometry.viewDir =normalize( input.view );
         let reflectedLight:ReflectedLight= parseLights(geometry,material);
         let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
-        return vec4<f32>(finnalColor, color.a);
+        return vec4<f32>(1.0,0.0,0.0,1.0);
     }`
   }
