@@ -12,13 +12,13 @@ export default class Camera {
     private _direction: Vector3;
     private _right: Vector3;
     position: Vector3;
-    target:Vector3;
+    _target:Vector3;
+    targetDirty:boolean;
     dirUpRightDirty: boolean;
     projectMatrixDirty: boolean;
     constructor() {
         this.top = 0;
         this.bottom = 0;
-        // this.right = 0;
         this.left = 0;
         this.position=new Vector3(0,0,0)
         this._up = new Vector3(0, 1, 0);
@@ -26,8 +26,16 @@ export default class Camera {
         this._right = new Vector3(1, 0, 0);
         this.dirUpRightDirty = false;
         this.projectMatrixDirty=false;
+        this.targetDirty=false;
+        this._target=new Vector3();
     }
-
+    get target(){
+        return this._target;
+    }
+    set target(value){
+        this.targetDirty=true;
+        this._target=value;
+    }
     get near(): number {
         return this._near
     }
