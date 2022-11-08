@@ -2,7 +2,7 @@
 import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 import Matrix3 from "./Matrix3";
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
@@ -599,7 +599,7 @@ export class Quaternion {
   static computeAxis(quaternion, result) {
 
     const w = quaternion.w;
-    if (Math.abs(w - 1.0) < CesiumMath.EPSILON6) {
+    if (Math.abs(w - 1.0) < GMath.EPSILON6) {
       result.x = result.y = result.z = 0;
       return result;
     }
@@ -620,7 +620,7 @@ export class Quaternion {
    */
   static computeAngle(quaternion) {
 
-    if (Math.abs(quaternion.w - 1.0) < CesiumMath.EPSILON6) {
+    if (Math.abs(quaternion.w - 1.0) < GMath.EPSILON6) {
       return 0.0;
     }
     return 2.0 * Math.acos(quaternion.w);
@@ -669,7 +669,7 @@ export class Quaternion {
 
     // dot > 0, as the dot product approaches 1, the angle between the
     // quaternions vanishes. use linear interpolation.
-    if (1.0 - dot < CesiumMath.EPSILON6) {
+    if (1.0 - dot < GMath.EPSILON6) {
       return Quaternion.lerp(start, r, t, result);
     }
 
@@ -892,7 +892,7 @@ export class Quaternion {
    */
   static log(quaternion, result) {
 
-    const theta = CesiumMath.acosClamped(quaternion.w);
+    const theta = GMath.acosClamped(quaternion.w);
     let thetaOverSinTheta = 0.0;
 
     if (theta !== 0.0) {

@@ -1,6 +1,6 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 /**
  * A 2D Cartesian point.
  * @alias Vector2
@@ -309,8 +309,8 @@ static fromElements(x:number, y:number, result) {
  */
  static clamp (value, min, max, result) {
 
-  const x = CesiumMath.clamp(value.x, min.x, max.x);
-  const y = CesiumMath.clamp(value.y, min.y, max.y);
+  const x = GMath.clamp(value.x, min.x, max.x);
+  const y = GMath.clamp(value.y, min.y, max.y);
 
   result.x = x;
   result.y = y;
@@ -568,7 +568,7 @@ static fromElements(x:number, y:number, result) {
 
   Vector2.normalize(left, angleBetweenScratch);
   Vector2.normalize(right, angleBetweenScratch2);
-  return CesiumMath.acosClamped(
+  return GMath.acosClamped(
     Vector2.dot(angleBetweenScratch, angleBetweenScratch2)
   );
 };
@@ -640,13 +640,13 @@ static fromElements(x:number, y:number, result) {
     left === right ||
     (defined(left) &&
       defined(right) &&
-      CesiumMath.equalsEpsilon(
+      GMath.equalsEpsilon(
         left.x,
         right.x,
         relativeEpsilon,
         absoluteEpsilon
       ) &&
-      CesiumMath.equalsEpsilon(
+      GMath.equalsEpsilon(
         left.y,
         right.y,
         relativeEpsilon,

@@ -43,7 +43,6 @@ class Context {
     this.canvas.height=window.innerHeight;
     container.appendChild(this.canvas);
     this.context =context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
-    debugger
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;   
     this.device=undefined;
   }

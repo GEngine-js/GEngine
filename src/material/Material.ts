@@ -145,8 +145,8 @@ export class Material{
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
         depthStencil=defaultValue(this.depthStencil,{
             format: TextureFormat.Depth24Plus,
-            depthWriteEnabled:  false,
-            depthCompare:CompareFunction.Always,
+            depthWriteEnabled:true,
+            depthCompare:CompareFunction.Less,
             stencilReadMask: 0xFFFFFFFF,
             stencilWriteMask:0xFFFFFFFF,
             stencilFront: {
@@ -166,7 +166,7 @@ export class Material{
             depthBiasClamp: 0
         });
         primitive=defaultValue(this.primitiveState,{
-            frontFace:FrontFace.CCW,
+            frontFace:FrontFace.CW,
             cullMode:CullMode.None,
             unclippedDepth :false,
         });

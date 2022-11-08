@@ -97,17 +97,14 @@ class CullingVolume {
      * @returns {Intersect}  Intersect.OUTSIDE, Intersect.INTERSECTING, or Intersect.INSIDE.
      */
     computeVisibility(boundingVolume) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(boundingVolume)) {
             throw new Error("boundingVolume is required.");
         }
-        //>>includeEnd('debug');
-
         const planes = this.planes;
         let intersecting = false;
         for (let k = 0, len = planes.length; k < len; ++k) {
             const result = boundingVolume.intersectPlane(
-                Plane.fromVector4(planes[k], scratchPlane)
+                planes[k]
             );
             if (result === Intersect.OUTSIDE) {
                 return Intersect.OUTSIDE;

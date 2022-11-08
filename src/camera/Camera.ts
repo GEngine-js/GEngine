@@ -56,21 +56,21 @@ export default class Camera {
         return this._up;
     }
     set up(value) {
-        this.dirUpRightDirty = true;
+        // this.dirUpRightDirty = true;
         this._up = value;
     }
     get direction() {
         return this._direction;
     }
     set direction(value) {
-        this.dirUpRightDirty = true;
+        // this.dirUpRightDirty = true;
         this._direction = value;
     }
     get right() {
         return this._right;
     }
     set right(value) {
-        this.dirUpRightDirty = true;
+        // this.dirUpRightDirty = true;
         this._right = value;
     }
 }

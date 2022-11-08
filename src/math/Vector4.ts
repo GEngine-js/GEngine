@@ -1,6 +1,6 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 
 /**
  * A 4D Cartesian point.
@@ -373,10 +373,10 @@ class Vector4 {
    */
   static clamp(value, min, max, result) {
 
-    const x = CesiumMath.clamp(value.x, min.x, max.x);
-    const y = CesiumMath.clamp(value.y, min.y, max.y);
-    const z = CesiumMath.clamp(value.z, min.z, max.z);
-    const w = CesiumMath.clamp(value.w, min.w, max.w);
+    const x = GMath.clamp(value.x, min.x, max.x);
+    const y = GMath.clamp(value.y, min.y, max.y);
+    const z = GMath.clamp(value.z, min.z, max.z);
+    const w = GMath.clamp(value.w, min.w, max.w);
 
     result.x = x;
     result.y = y;
@@ -739,25 +739,25 @@ class Vector4 {
       left === right ||
       (defined(left) &&
         defined(right) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.x,
           right.x,
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.y,
           right.y,
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.z,
           right.z,
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        CesiumMath.equalsEpsilon(
+        GMath.equalsEpsilon(
           left.w,
           right.w,
           relativeEpsilon,

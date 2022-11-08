@@ -2,7 +2,7 @@ import Vector3 from "./Vector3";
 import Vector4 from "./Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 import Matrix3 from "./Matrix3";
 
 class Matrix4 {
@@ -2816,14 +2816,14 @@ class Matrix4 {
     // calculate determinant
     let det = src0 * dst0 + src1 * dst1 + src2 * dst2 + src3 * dst3;
 
-    if (Math.abs(det) < CesiumMath.EPSILON21) {
+    if (Math.abs(det) < GMath.EPSILON21) {
       // Special case for a zero scale matrix that can occur, for example,
       // when a model's node has a [0, 0, 0] scale.
       if (
         Matrix3.equalsEpsilon(
           Matrix4.getMatrix3(matrix, scratchInverseRotation),
           scratchMatrix3Zero,
-          CesiumMath.EPSILON7
+          GMath.EPSILON7
         ) &&
         Vector4.equals(
           Matrix4.getRow(matrix, 3, scratchBottomRow),

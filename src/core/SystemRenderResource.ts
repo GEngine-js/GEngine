@@ -71,11 +71,11 @@ export default class SystemRenderResource{
     private createSystemUniforms(camera:PerspectiveCamera){
         if(!this.systemDataBuffer) this.systemDataBuffer=new Float32Array(51)
         this.systemUniforms=[
-            new UniformMat4('viewMatrix',this.systemDataBuffer,0,()=>{
-                return camera.viewMatrix
-            }),
-            new UniformMat4('projectionMatrix',this.systemDataBuffer,64,()=>{
+            new UniformMat4('projectionMatrix',this.systemDataBuffer,0,()=>{
                 return camera.projectionMatrix
+            }),
+            new UniformMat4('viewMatrix',this.systemDataBuffer,64,()=>{
+                return camera.viewMatrix
             }),
             new UniformMat4('inverseViewMatrix',this.systemDataBuffer,128,()=>{
                 return camera.inverseViewMatrix

@@ -1,7 +1,7 @@
 import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import CesiumMath from "./Math";
+import GMath from "./Math";
 /**
  * A 3x3 matrix, indexable as a column-major order array.
  * Constructor parameters are in row-major order for code readability.
@@ -1185,7 +1185,7 @@ class Matrix3 {
     // This routine was created based upon Matrix Computations, 3rd ed., by Golub and Van Loan,
     // section 8.4.3 The Classical Jacobi Algorithm
 
-    const tolerance = CesiumMath.EPSILON20;
+    const tolerance = GMath.EPSILON20;
     const maxSweeps = 10;
 
     let count = 0;
@@ -1290,7 +1290,7 @@ class Matrix3 {
     const determinant = Matrix3.determinant(matrix);
 
     //>>includeStart('debug', pragmas.debug);
-    if (Math.abs(determinant) <= CesiumMath.EPSILON15) {
+    if (Math.abs(determinant) <= GMath.EPSILON15) {
       throw new Error("matrix is not invertible");
     }
     //>>includeEnd('debug');
@@ -1579,7 +1579,7 @@ function shurDecomposition(matrix, result) {
   // finds the largest off-diagonal term, and then creates
   // a matrix (result) which can be used to help reduce it
 
-  const tolerance = CesiumMath.EPSILON15;
+  const tolerance = GMath.EPSILON15;
 
   let maxDiagonal = 0.0;
   let rotAxis = 1;

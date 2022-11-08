@@ -50,6 +50,7 @@ export default class BaseMaterial extends Material {
         this.uniformsDataBuffer=new Float32Array(16+16+4)
         this.uniforms=[
             new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
+                debugger
                 return primitive.modelMatrix;
             }),
             new UniformMat4("normalMtrix",this.uniformsDataBuffer,64,()=>{

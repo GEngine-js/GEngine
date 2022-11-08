@@ -81,7 +81,11 @@ class Vector3 {
   clone(result) {
     return Vector3.clone(this, result);
   };
+	length() {
 
+		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
+	}
   /**
    * Compares this Cartesian against the provided Cartesian componentwise and returns
    * <code>true</code> if they are equal, <code>false</code> otherwise.

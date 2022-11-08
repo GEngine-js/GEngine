@@ -38,15 +38,15 @@ class Plane {
 
     public static ORIGIN_ZX_PLANE = Object.freeze(new Plane(Vector3.UNIT_Y, 0.0));
     constructor(normal, distance) {
-        if (
-            !GMath.equalsEpsilon(
-                Vector3.magnitude(normal),
-                1.0,
-                GMath.EPSILON6
-            )
-        ) {
-            throw new Error("normal must be normalized.");
-        }
+        // if (
+        //     !GMath.equalsEpsilon(
+        //         Vector3.magnitude(normal),
+        //         1.0,
+        //         GMath.EPSILON6
+        //     )
+        // ) {
+        //     throw new Error("normal must be normalized.");
+        // }
 
         /**
          * The plane's normal.
@@ -65,6 +65,14 @@ class Plane {
          * @type {Number}
          */
         this.distance = distance;
+    }
+    normalize(){
+        const inverseNormalLength = 1.0 / this.normal.length();
+        this.normal=Vector3.multiplyByScalar(this.normal,inverseNormalLength,this.normal);
+		// this.normal.multiplyScalar( inverseNormalLength );
+		this.distance *= inverseNormalLength;
+
+		return this;
     }
     /**
  * Creates a plane from a normal and a point on the plane.
@@ -259,3 +267,6 @@ const scratchPlaneCartesian4 = new Vector4();
 const scratchTransformNormal = new Vector3();
 
 export default Plane;
+
+
+

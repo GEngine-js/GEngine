@@ -31,7 +31,7 @@ export class FrameState{
     update(camera:PerspectiveCamera){
         this.camera=camera;
         this.commandList.reset();
-        this.cullingVolume=this.camera.computeCullingVolume(this.camera.position,this.camera.cameraDirection,this.camera.cameraUp);
+        this.cullingVolume=this.camera.getCullingVolume();
         this.frameNumber+=1
     }
 }

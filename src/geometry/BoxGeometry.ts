@@ -4,7 +4,7 @@ import {IndexFormat, VertexFormat,InputStepMode,PrimitiveTopology} from "../core
 import {VertextBuffers} from "../core/VertextBuffers";
 import Buffer from "../render/Buffer";
 import { createPlane } from "../utils/GeometryUtils";
-// import { cube } from "primitive-geometry";
+import { cube } from "../../node_modules/primitive-geometry/index";
 export default class BoxGeometry extends Geometry{
     normal: number[];
     uv: number[];
@@ -36,10 +36,17 @@ export default class BoxGeometry extends Geometry{
 		createPlane( 'x', 'z', 'y', 1, - 1, this.width, this.depth, - this.height, widthSegments, depthSegments, data ); // ny
 		createPlane( 'x', 'y', 'z', 1, - 1, this.width, this.height, this.depth, widthSegments, heightSegments, data ); // pz
 		createPlane( 'x', 'y', 'z', - 1, - 1, this.width, this.height, - this.depth, widthSegments, heightSegments, data ); // nz
-        this.position=data.vertices;
-        this.normal=data.normals;
-        this.uv=data.uvs;
-        this.indices=data.indices;
+        // geometry.positions,
+        // geometry.normals,
+        // geometry.uvs
+        const geometry = cube(10);
+        this.position=geometry.positions;
+        this.normal=geometry.normals;
+        this.uv=geometry.uvs;
+        this.indices=geometry.cells;
+      
+        console.log(geometry);
+        debugger
         this.computeBoundingSphere(this.position);
     }
     public update(frameState){
@@ -48,11 +55,11 @@ export default class BoxGeometry extends Geometry{
     }
     private createVertBufferAndIndices(device:GPUDevice){
         const layoutOffset=[3,2,3];
-        const dataBuffer=this.interleaveTypedArray(Float32Array,layoutOffset,new Float32Array(this.position),new Float32Array(this.uv),new Float32Array(this.normal));
+        const dataBuffer=this.interleaveTypedArray(Float32Array,layoutOffset,this.position,this.uv,this.normal);
         //attribute
         const pat=new Attribute('position',VertexFormat.Float32x3,0,0);
         const uat=new Attribute('uv',VertexFormat.Float32x2,3*Float32Array.BYTES_PER_ELEMENT,1);
-        const nat=new Attribute('position',VertexFormat.Float32x3,5*Float32Array.BYTES_PER_ELEMENT,2);
+        const nat=new Attribute('normal',VertexFormat.Float32x3,5*Float32Array.BYTES_PER_ELEMENT,2);
 
         //buffer
         const buffer=Buffer.createVertexBuffer(device,dataBuffer);
@@ -60,7 +67,7 @@ export default class BoxGeometry extends Geometry{
         const vertBuffers=new VertextBuffers([
             {   
                 index:0,
-                arrayStride: dataBuffer.byteLength,
+                arrayStride: 32,
                 stepMode: InputStepMode.Vertex,
                 buffer,
                 attributes:[pat,uat,nat],
@@ -68,7 +75,7 @@ export default class BoxGeometry extends Geometry{
         ]);
         const indexTypeArray=new Int16Array(this.indices);
         this.indexBuffer=Buffer.createIndexBuffer(device,indexTypeArray);
-        this.count=indexTypeArray.length
+        this.count=indexTypeArray.length;
         this.vertexBuffers=vertBuffers;
     }
     destory(){}

@@ -198,7 +198,6 @@ export class UniformMat4 extends Uniform<Matrix4>{
         const v = this.value;
         if (!Matrix4.equals(v, this._value)) {
             Matrix4.clone(v, this._value);
-            debugger
             this.setBuffer(this._value.toArray());
         }
       };
