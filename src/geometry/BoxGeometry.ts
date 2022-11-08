@@ -3,12 +3,11 @@ import Attribute from "../render/Attribute";
 import {IndexFormat, VertexFormat,InputStepMode,PrimitiveTopology} from "../core/WebGPUConstant"
 import {VertextBuffers} from "../core/VertextBuffers";
 import Buffer from "../render/Buffer";
-import { createPlane } from "../utils/GeometryUtils";
-import { cube } from "../../node_modules/primitive-geometry/index";
+import { createCube} from "../utils/GeometryUtils";
 export default class BoxGeometry extends Geometry{
-    normal: number[];
-    uv: number[];
-    position: number[];
+    normal: Float32Array;
+    uv: Float32Array;
+    position:Float32Array;
     indiceBuffer:Buffer;
     indices: number[];
     constructor(public width:number=10,public height:number=10,public depth:number=10){
@@ -23,30 +22,11 @@ export default class BoxGeometry extends Geometry{
         const depthSegments=1;
         const heightSegments=1;
         const widthSegments=1;
-        const data={
-            uvs:[],
-            normals:[],
-            vertices:[],
-            indices:[],
-            numberOfVertices:0
-        }
-        createPlane( 'z', 'y', 'x', - 1, - 1, this.depth, this.height, this.width, depthSegments, heightSegments, data ); // px
-		createPlane( 'z', 'y', 'x', 1, - 1, this.depth, this.height, - this.width, depthSegments, heightSegments, data ); // nx
-		createPlane( 'x', 'z', 'y', 1, 1, this.width, this.depth, this.height, widthSegments, depthSegments, data ); // py
-		createPlane( 'x', 'z', 'y', 1, - 1, this.width, this.depth, - this.height, widthSegments, depthSegments, data ); // ny
-		createPlane( 'x', 'y', 'z', 1, - 1, this.width, this.height, this.depth, widthSegments, heightSegments, data ); // pz
-		createPlane( 'x', 'y', 'z', - 1, - 1, this.width, this.height, - this.depth, widthSegments, heightSegments, data ); // nz
-        // geometry.positions,
-        // geometry.normals,
-        // geometry.uvs
-        const geometry = cube(10);
+        const geometry =createCube({sx:this.width, sy :this.height, sz :this.depth});
         this.position=geometry.positions;
         this.normal=geometry.normals;
         this.uv=geometry.uvs;
         this.indices=geometry.cells;
-      
-        console.log(geometry);
-        debugger
         this.computeBoundingSphere(this.position);
     }
     public update(frameState){

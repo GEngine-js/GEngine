@@ -152,7 +152,6 @@ class Context {
         this.passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
       }
     }
-    debugger
     if (command.indexBuffer) {
       (this.passEncoder as GPURenderPassEncoder).drawIndexed(
         command.count || 0,
