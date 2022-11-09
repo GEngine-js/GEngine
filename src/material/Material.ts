@@ -147,23 +147,23 @@ export class Material{
             format: TextureFormat.Depth24Plus,
             depthWriteEnabled:true,
             depthCompare:CompareFunction.Less,
-            stencilReadMask: 0xFFFFFFFF,
-            stencilWriteMask:0xFFFFFFFF,
-            stencilFront: {
-                compare: CompareFunction.Always,
-                failOp: StencilOperation.Keep,
-                depthFailOp:StencilOperation.Keep,
-                passOp:StencilOperation.Keep,
-            },
-            stencilBack: {
-                compare: CompareFunction.Always,
-                failOp: StencilOperation.Keep,
-                depthFailOp: StencilOperation.Keep,
-                passOp: StencilOperation.Keep,
-            },
-            depthBias:0,
-            depthBiasSlopeScale:  0,
-            depthBiasClamp: 0
+            // stencilReadMask: 0xFFFFFFFF,
+            // stencilWriteMask:0xFFFFFFFF,
+            // stencilFront: {
+            //     compare: CompareFunction.Always,
+            //     failOp: StencilOperation.Keep,
+            //     depthFailOp:StencilOperation.Keep,
+            //     passOp:StencilOperation.Keep,
+            // },
+            // stencilBack: {
+            //     compare: CompareFunction.Always,
+            //     failOp: StencilOperation.Keep,
+            //     depthFailOp: StencilOperation.Keep,
+            //     passOp: StencilOperation.Keep,
+            // },
+            // depthBias:0,
+            // depthBiasSlopeScale:  0,
+            // depthBiasClamp: 0
         });
         primitive=defaultValue(this.primitiveState,{
             frontFace:FrontFace.CW,

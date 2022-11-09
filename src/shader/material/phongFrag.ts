@@ -1,13 +1,13 @@
 export default function phongFrag (defines){
   return `    
   struct VertexOutput {
-      // @builtin(position) position : vec4<f32>,
-      @location(0) worldPos : vec3<f32>,
-      @location(1) view : vec3<f32>, // Vector from vertex to camera.
-      @location(2) vUv : vec2<f32>,
-      @location(3) color : vec4<f32>,
-      @location(4) normal : vec3<f32>,
-      @location(5) viewPosition:vec3<f32>,
+      @builtin(position) position: vec4<f32>,
+      @location(0) vUv: vec2<f32>,
+      @location(1) view: vec3<f32>, // Vector from vertex to camera.
+      @location(2) worldPos: vec3<f32>,
+      @location(3) color: vec4<f32>,
+      @location(4) normal: vec3<f32>,
+      @location(5) viewPosition: vec3<f32>,
     };
     #include <light>
     // @group(0) @binding(0)  var<uniform> selfUniform : SelfUniform;
@@ -28,6 +28,6 @@ export default function phongFrag (defines){
         geometry.viewDir =normalize( input.view );
         let reflectedLight:ReflectedLight= parseLights(geometry,material);
         let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
-        return vec4<f32>(color.x,color.y,color.z,1.0);
+        return vec4<f32>(color.x,color.y,color.z,color.w);
     }`
   }

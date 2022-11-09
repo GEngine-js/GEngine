@@ -39,7 +39,7 @@
      import {BoxGeometry,Primitive, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight} from '../dist/index.js';
 
      const  init= async()=>{
-        const geometry=new BoxGeometry(10,10,10);
+        const geometry=new BoxGeometry(1,1,1);
 
         const img = document.createElement('img');
         img.src ='./Di-3d.png';
@@ -48,23 +48,22 @@
         const phongMaterial=new PhongMaterial(imageBitmap);
 
         const primitive=new Primitive(geometry,phongMaterial)
-
-        const camera=new PerspectiveCamera(Math.PI / 4.0,window.innerWidth/window.innerHeight,0.01, 1000)
-        camera.position=new Vector3(20,20,20);
-        debugger
+        primitive.rotateY(Math.PI/3)
+        const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
+        camera.position=new Vector3(2,2,2);
         camera.target=new Vector3(0,0,0);
 
         // console.log(camera.viewMatrix);
         const light=new SpotLight(new Vector3(1.0,0.0,0.0),0.8);
 
-        const scene=new Scene({
-            container:'app'
-        });
+        const scene=new Scene({container:'app'});
 
         scene.add(primitive);
         scene.setCamera(camera);
         scene.addLight(light);
         function animate() {
+            primitive.rotateY(0.01)
+            primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }

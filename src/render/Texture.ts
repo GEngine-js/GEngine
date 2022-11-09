@@ -87,8 +87,8 @@ export default class Texture{
             dimension: this.textureProp.dimension||'2d',
             format: (this.textureProp.format as  GPUTextureFormat),
             usage: this.textureProp.usage,
-            mipLevelCount: this.textureProp.mipLevelCount,
-            sampleCount: this.textureProp.sampleCount
+            mipLevelCount: this.textureProp.mipLevelCount||1,
+            sampleCount: this.textureProp.sampleCount||1
           });
     }
 }

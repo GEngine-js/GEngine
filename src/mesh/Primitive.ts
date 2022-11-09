@@ -44,6 +44,7 @@ export class Primitive extends RenderObject {
                 frameState.commandList.opaque.push(this.drawCommand);
             }
         }
+        debugger
         this.drawCommand.distanceToCamera=this.distanceToCamera;
     }
     private createCommand(frameState: FrameState) {

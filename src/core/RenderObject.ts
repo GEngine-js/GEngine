@@ -12,10 +12,10 @@ export default class RenderObject{
     private _normalMatrix: Matrix3;
     constructor(){
         this._position=new Vector3();
-        this._sacle=new Vector3();
+        this._sacle=new Vector3(1,1,1);
         this._quaternion=new Quaternion();
-        this.modelMatrix=Matrix4.IDENTITY.clone(new Matrix4());
-        this._normalMatrix=Matrix3.IDENTITY.clone(new Matrix3());
+        this.modelMatrix=Matrix4.clone(Matrix4.IDENTITY,new Matrix4());
+        this._normalMatrix=Matrix3.clone(Matrix3.IDENTITY,new Matrix3());
     }    
     
     public get normalMatrix() : Matrix3 {
@@ -35,12 +35,10 @@ export default class RenderObject{
         Matrix4.multiply(camera.viewMatrix, this.modelMatrix,this._normalMatrix);
         Matrix4.inverse(this._normalMatrix,this._normalMatrix);
         Matrix4.transpose(this._normalMatrix,this._normalMatrix)
-        // mat4.multiply(normalMatrix, camera.viewMatrix, this.modelMatrix);
-        // mat4.invert(normalMatrix, normalMatrix);
-        // mat4.transpose(normalMatrix, normalMatrix);
     }
     updateMatrix(){
-        Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.sacle,this.modelMatrix);
+        debugger
+        this.modelMatrix=Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.sacle,this.modelMatrix);
     }
     rotateOnAxis( axis, angle ) {
         const quat=Quaternion.fromAxisAngle(axis,angle);

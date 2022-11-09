@@ -43,7 +43,7 @@ export class Quaternion {
    */
   public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
 
-  constructor(public x: number = 0, public y: number = 0, public z: number = 0, public w: number = 0) {
+  constructor(public x: number = 0, public y: number = 0, public z: number = 0, public w: number = 1) {
 
   }
   /**

@@ -72,7 +72,7 @@ export default class Pipeline{
           topology:topology as GPUPrimitiveTopology,
           frontFace:renderState.primitive.frontFace,
           cullMode:renderState.primitive.cullMode,
-          stripIndexFormat: indexFormat as GPUIndexFormat,
+          // stripIndexFormat: indexFormat as GPUIndexFormat,
         };
           return {
             //需要改动
