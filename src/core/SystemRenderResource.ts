@@ -81,6 +81,7 @@ export default class SystemRenderResource{
                 return camera.inverseViewMatrix
             }),
             new UniformFloatVec3('position',this.systemDataBuffer,192,()=>{
+                debugger
                 return camera.position
             })
         ]

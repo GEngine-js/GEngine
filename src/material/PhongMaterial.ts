@@ -53,6 +53,7 @@ export default class BaseMaterial extends Material {
                 return primitive.modelMatrix;
             }),
             new UniformMat4("normalMtrix",this.uniformsDataBuffer,64,()=>{
+                debugger
                 return primitive.normalMatrix;
             }),
             new UniformFloatVec4("color",this.uniformsDataBuffer,128,this),

@@ -35,17 +35,14 @@ export default function light(defines){
     #if ${defines.spotLight}
         struct SpotLight {
             position: vec3<f32>,
-            direction: vec3<f32>,
-            color: vec3<f32>,
             distance: f32,
-            decay: f32,
+            direction: vec3<f32>,
             coneCos: f32,
+            color: vec3<f32>,
             penumbraCos: f32,
+            decay: f32,
         };
-        struct SpotLightBuffer{
-            lights:array<SpotLight>,
-        }
-        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLightBuffer: SpotLightBuffer;
+        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLights: array<SpotLight>;
 
         fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
@@ -80,10 +77,7 @@ export default function light(defines){
             distance: f32,
             decay: f32,
         };
-        struct PointLightBuffer{
-            lights:array<PointLight>,
-        }
-        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLightBuffer: PointLightBuffer;
+        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLights: array<PointLight>;
         fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector:vec3<f32> = pointLight.position - geometry.position;
@@ -103,10 +97,7 @@ export default function light(defines){
             direction: vec3<f32>,
             color: vec3<f32>,
         };
-        struct DirtectLightBuffer{
-            lights:array<DirtectLight>,
-        }
-        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLightBuffer: DirtectLightBuffer;
+        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLights: array<DirtectLight>;
         fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             light.color = directionalLight.color;
@@ -117,8 +108,8 @@ export default function light(defines){
     #endif
     #if ${defines.ambientLight}
         struct CommonLightBuffer{
-            ambient:vec3<f32>,
             lightCount:vec4<u32>, 
+            ambient:vec3<f32>,
         }
     #else
         struct CommonLightBuffer{
@@ -247,7 +238,7 @@ export default function light(defines){
     } 
     fn RE_Direct_BlinnPhong(  directLight:IncidentLight,geometry:GeometricContext, material:BlinnPhongMaterial )->ReflectedLight{
         var reflectedLight:ReflectedLight; 
-        let dotNL:f32 = saturate( dot( geometry.normal, directLight.direction ) );
+        let dotNL:f32 = saturate( dot(geometry.normal, directLight.direction));
         let irradiance:vec3<f32> = dotNL * directLight.color;
 
         reflectedLight.directDiffuse= irradiance * BRDF_Lambert( material.diffuseColor );
@@ -262,7 +253,7 @@ export default function light(defines){
             //处理方向光
             var dirtectLight:DirtectLight;
             for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
-                dirtectLight = dirtectLightBuffer.lights[i];
+                dirtectLight = dirtectLights[i];
                 incidentLight=getDirtectLightInfo(dirtectLight, geometry);
                 let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
@@ -273,18 +264,18 @@ export default function light(defines){
             //处理点光源
             var pointLight:PointLight;
             for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-                pointLight = pointLightBuffer.lights[ i ];
+                pointLight = pointLights[ i ];
                 incidentLight =getPointLightInfo( pointLight, geometry);
                 let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
                 reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.directLight}
+        #if ${defines.spotLight}
             //处理聚光灯
             var spotLight:SpotLight;
             for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
-                spotLight = spotLightBuffer.lights[ i ];
+                spotLight = spotLights[i];
                 incidentLight =getSpotLightInfo( spotLight, geometry);
                 let spReflectedLight=RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;

@@ -54,16 +54,16 @@
         camera.target=new Vector3(0,0,0);
 
         // console.log(camera.viewMatrix);
-        const light=new SpotLight(new Vector3(1.0,0.0,0.0),0.8);
-
+        const light=new SpotLight(new Vector3(1.0,0.0,0.0),0.8,15);
+        light.position=new Vector3(6,6,6)
         const scene=new Scene({container:'app'});
 
         scene.add(primitive);
         scene.setCamera(camera);
         scene.addLight(light);
         function animate() {
-            primitive.rotateY(0.01)
-            primitive.rotateX(0.01)
+            // primitive.rotateY(0.01)
+            // primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }

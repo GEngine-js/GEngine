@@ -3,27 +3,29 @@ import { PointLight } from "./PointLight";
 import { SpotLight } from "./SpotLight";
 
 export class SpotData{
-    decay: Uint32Array;
-    penumbraCos: Uint32Array;
-    coneCos: Uint32Array;
-    distance: Uint32Array;
+    decay: Float32Array;
+    penumbraCos: Float32Array;
+    coneCos: Float32Array;
+    distance: Float32Array;
     dirtect: Float32Array;
     position: Float32Array;
     color: Float32Array;
-    static byteSize=52;
+    //array<light> light of byteSize must be k*16 
+    static byteSize=64;
     static size=13;
     spotLight: SpotLight;
     constructor(buffer:Float32Array,byteOffset:number,spotLight:SpotLight){  
         this.spotLight=spotLight;   
-        this.color=new Float32Array(buffer.buffer, byteOffset, 3);//3
-        this.position=new Float32Array(buffer.buffer, byteOffset+12, 3);//3
-        this.dirtect=new Float32Array(buffer.buffer, byteOffset+24, 3);//3
-        this.distance=new Uint32Array(buffer.buffer, byteOffset+36, 1);//1
-        this.coneCos=new Uint32Array(buffer.buffer, byteOffset+40, 1);//1
-        this.penumbraCos=new Uint32Array(buffer.buffer, byteOffset+44,1);//1
-        this.decay=new Uint32Array(buffer.buffer, byteOffset+48, 1);//1
+        this.position=new Float32Array(buffer.buffer, byteOffset,3);//3
+        this.distance=new Float32Array(buffer.buffer, byteOffset+12,1);//1
+        this.dirtect=new Float32Array(buffer.buffer, byteOffset+16,3);//3
+        this.coneCos=new Float32Array(buffer.buffer, byteOffset+28,1);//1
+        this.color=new Float32Array(buffer.buffer, byteOffset+32,3);//3
+        this.penumbraCos=new Float32Array(buffer.buffer, byteOffset+44,1);//1
+        this.decay=new Float32Array(buffer.buffer, byteOffset+48,1);//1
     }
     update(){
+        debugger
         if(this.spotLight.colorDirty){
             this.spotLight.colorDirty=false;
             copyData(this.spotLight.color.toArray(),this.color);
@@ -37,11 +39,11 @@ export class SpotData{
             copyData(this.spotLight.dirtect.toArray(),this.dirtect);
         }
         if(this.spotLight.distanceDirty){
-            this.spotLight.distanceDirty=true;
+            this.spotLight.distanceDirty=false;
             this.distance[0]=this.spotLight.distance;//1
         }
         if(this.spotLight.coneCosDirty){
-            this.spotLight.coneCosDirty=true;
+            this.spotLight.coneCosDirty=false;
             this.coneCos[0]=this.spotLight.coneCos;//1
         }
         if (this.spotLight.penumbraCosDirty) {

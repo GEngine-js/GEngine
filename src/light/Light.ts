@@ -12,7 +12,7 @@ export class Light{
     private _position: Vector3;
     positionDirty: boolean;
     constructor(color:Vector3,intensity:number){
-        this._color=color;
+        this._color=Vector3.multiplyByScalar(color,intensity,new Vector3());
         this._intensity=intensity;
         this._position=new Vector3(0,0,0);
         this.positionDirty=true;
@@ -34,6 +34,7 @@ export class Light{
         this._color=value;
      }
     set intensity(value){
+       this.color=Vector3.multiplyByScalar(this.color,value,new Vector3());
        this.intensityDirty=true;
        this._intensity=value;
     }
