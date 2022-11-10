@@ -37,7 +37,6 @@ export default class RenderObject{
         Matrix4.transpose(this._normalMatrix,this._normalMatrix)
     }
     updateMatrix(){
-        debugger
         this.modelMatrix=Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.sacle,this.modelMatrix);
     }
     rotateOnAxis( axis, angle ) {

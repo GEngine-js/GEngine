@@ -73,19 +73,16 @@ export default function light(defines){
     #if ${defines.pointLight}
         struct PointLight {
             position: vec3<f32>,
-            color: vec3<f32>,
             distance: f32,
+            color: vec3<f32>,
             decay: f32,
         };
         @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLights: array<PointLight>;
         fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector:vec3<f32> = pointLight.position - geometry.position;
-    
             light.direction = normalize(lVector);
-    
-            let lightDistance = length(lVector);
-    
+            let lightDistance = length(lVector); 
             light.color = pointLight.color;
             light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
             light.visible = (length(light.color)>0);
@@ -238,8 +235,8 @@ export default function light(defines){
     } 
     fn RE_Direct_BlinnPhong(  directLight:IncidentLight,geometry:GeometricContext, material:BlinnPhongMaterial )->ReflectedLight{
         var reflectedLight:ReflectedLight; 
-        let dotNL:f32 = saturate( dot(geometry.normal, directLight.direction));
-        let irradiance:vec3<f32> = dotNL * directLight.color;
+        let dotNL:f32 = saturate(dot(geometry.normal, directLight.direction));
+        let irradiance:vec3<f32> = dotNL*directLight.color;
 
         reflectedLight.directDiffuse= irradiance * BRDF_Lambert( material.diffuseColor );
 
@@ -264,7 +261,7 @@ export default function light(defines){
             //处理点光源
             var pointLight:PointLight;
             for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-                pointLight = pointLights[ i ];
+                pointLight = pointLights[i];
                 incidentLight =getPointLightInfo( pointLight, geometry);
                 let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;

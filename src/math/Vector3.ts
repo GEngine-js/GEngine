@@ -78,14 +78,37 @@ class Vector3 {
  * @param {Vector3} [result] The object onto which to store the result.
  * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
  */
-  clone(result) {
-    return Vector3.clone(this, result);
+  clone() {
+    return Vector3.clone(this, new Vector3());
   };
 	length() {
-
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+	}
+  applyMatrix4( matrix ) {
+
+		const x = this.x,
+     y = this.y, 
+     z = this.z;
+		const e = matrix;
+		const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
+		this.x = ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] ) * w;
+		this.y = ( e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] ) * w;
+		this.z = ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w;
+		return this;
 
 	}
+  transformDirection( matrix ) {
+		const x = this.x, y = this.y, z = this.z;
+		const e = matrix;
+		this.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
+		this.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
+		this.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+		return this.normalize();
+	}
+  normalize(){
+   Vector3.normalize(this,this);
+   return this;
+  }
   /**
    * Compares this Cartesian against the provided Cartesian componentwise and returns
    * <code>true</code> if they are equal, <code>false</code> otherwise.

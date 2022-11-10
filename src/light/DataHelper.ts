@@ -1,3 +1,4 @@
+import { FrameState } from "../core/FrameState";
 import { DirtectLight } from "./DirtectLight";
 import { PointLight } from "./PointLight";
 import { SpotLight } from "./SpotLight";
@@ -24,19 +25,23 @@ export class SpotData{
         this.penumbraCos=new Float32Array(buffer.buffer, byteOffset+44,1);//1
         this.decay=new Float32Array(buffer.buffer, byteOffset+48,1);//1
     }
-    update(){
-        debugger
+    update(frameState:FrameState){
+        const viewMatrix=frameState.camera.viewMatrix;
         if(this.spotLight.colorDirty){
             this.spotLight.colorDirty=false;
             copyData(this.spotLight.color.toArray(),this.color);
         }
         if (this.spotLight.positionDirty) {
             this.spotLight.positionDirty=false;
-            copyData(this.spotLight.position.toArray(),this.position);
+            let position=this.spotLight.position.clone();
+            position=position.applyMatrix4(viewMatrix);
+            copyData(position.toArray(),this.position);
         }
         if (this.spotLight.dirtectDirty) {
             this.spotLight.dirtectDirty=false;
-            copyData(this.spotLight.dirtect.toArray(),this.dirtect);
+            let dirtect=this.spotLight.dirtect.clone();
+            dirtect=dirtect.transformDirection(viewMatrix);
+            copyData(dirtect.toArray(),this.dirtect);
         }
         if(this.spotLight.distanceDirty){
             this.spotLight.distanceDirty=false;
@@ -77,18 +82,22 @@ export class PointData{
     static size=8;
     constructor(buffer:Float32Array,byteOffset:number,pointLight:PointLight){
         this.pointLight=pointLight;
-        this.color=new Float32Array(buffer.buffer, byteOffset, 3);//3
-        this.position=new Float32Array(buffer.buffer, byteOffset+12, 3);//3
-        this.decay=new Uint32Array(buffer.buffer, byteOffset+24, 1);//1
-        this.distance=new Uint32Array(buffer.buffer, byteOffset+28, 1);//1
+        this.position=new Float32Array(buffer.buffer, byteOffset, 3);//3
+        this.distance=new Uint32Array(buffer.buffer, byteOffset+12, 1);//1
+        this.color=new Float32Array(buffer.buffer, byteOffset+16, 3);//3
+        this.decay=new Uint32Array(buffer.buffer, byteOffset+28, 1);//1
     }
-    update(){
+    update(frameState:FrameState){
+        const viewMatrix=frameState.camera.viewMatrix;
+        debugger
         if (this.pointLight.colorDirty) {
             this.pointLight.colorDirty=false;
             copyData(this.pointLight.color.toArray(),this.color);
         }
         if (this.pointLight.positionDirty) {
             this.pointLight.positionDirty=false;
+            let position=this.pointLight.position.clone();
+            position=position.applyMatrix4(viewMatrix);
             copyData(this.pointLight.position.toArray(),this.position);
         }
         if (this.pointLight.decayDirty) {
@@ -113,21 +122,24 @@ export class DirtectData{
     dirtect: Float32Array;
     color: Float32Array;
     dirtectLight: DirtectLight;
-    static byteSize=24;
+    static byteSize=32;
     static size=6;
     constructor(buffer:Float32Array,byteOffset:number,dirtectLight:DirtectLight){
         this.dirtectLight=dirtectLight;
         this.color=new Float32Array(buffer.buffer, byteOffset, 3);//3
-        this.dirtect=new Float32Array(buffer.buffer, byteOffset+12, 3);//3
+        this.dirtect=new Float32Array(buffer.buffer, byteOffset+16, 3);//3
     }
-    update(){
+    update(frameState:FrameState){
+        const viewMatrix=frameState.camera.viewMatrix;
         if (this.dirtectLight.colorDirty) {
             this.dirtectLight.colorDirty=false;
             copyData(this.dirtectLight.color.toArray(),this.color);
         }
         if (this.dirtectLight.dirtectDirty) {
             this.dirtectLight.dirtectDirty=false;
-            copyData(this.dirtectLight.dirtect.toArray(),this.dirtect);
+            let dirtect=this.dirtectLight.dirtect.clone();
+            dirtect=dirtect.transformDirection(viewMatrix);
+            copyData(dirtect.toArray(),this.dirtect);
         }
         
     }

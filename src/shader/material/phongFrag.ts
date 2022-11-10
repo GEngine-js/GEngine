@@ -19,13 +19,13 @@ export default function phongFrag (defines){
         let color=textureSample(myTexture, mySampler, input.vUv);
         var material:BlinnPhongMaterial;
         material.diffuseColor =color.xyz;
-        material.specularColor = vec3<f32>(0.9, 0.9, 0.9);
+        material.specularColor = vec3<f32>(1.0, 1.0, 1.0);
         material.specularShininess = 0.9;
         material.specularStrength = 0.3;
         var geometry:GeometricContext;
-        geometry.position = input.worldPos;
+        geometry.position = input.viewPosition;
         geometry.normal = input.normal;
-        geometry.viewDir =normalize( input.view );
+        geometry.viewDir =normalize(input.view);
         let reflectedLight:ReflectedLight= parseLights(geometry,material);
         let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
         return vec4<f32>(finnalColor,1);

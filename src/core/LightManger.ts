@@ -81,7 +81,7 @@ export default class LightManger extends Manger{
 
     }
     update(frameState:FrameState){
-        this.updateLight();
+        this.updateLight(frameState);
         frameState.defines=this.lightDefines;
     }
     add(light){
@@ -97,43 +97,43 @@ export default class LightManger extends Manger{
         }
     }
     remove(){}
-    private updateLight(){
+    private updateLight(frameState:FrameState){
         if(this.lightCountDirty){
             this.initBuffer();
         }
-        this.updateLightData();
+        this.updateLightData(frameState);
   
     }
-    private updateLightData(){
-        this.updateSpotLight();
-        this.updatePointLight();
-        this.updateDirtectLight(); 
-        this.updateAmbientLight();
+    private updateLightData(frameState:FrameState){
+        this.updateSpotLight(frameState);
+        this.updatePointLight(frameState);
+        this.updateDirtectLight(frameState); 
+        this.updateAmbientLight(frameState);
         this.updateLightCount();  
     }
-    private updateSpotLight(){
+    private updateSpotLight(frameState:FrameState){
         this.spotLights.forEach((light)=>{
            const lightData=this.spotDatas.get(light);
-           if(lightData)lightData.update();
+           if(lightData)lightData.update(frameState);
         })
     }
-    private updatePointLight(){
+    private updatePointLight(frameState:FrameState){
         this.pointLights.forEach((light)=>{
             const lightData=this.pointDatas.get(light);
-            if(lightData)lightData.update();
+            if(lightData)lightData.update(frameState);
          })
     }
-    private updateAmbientLight(){
+    private updateAmbientLight(frameState:FrameState){
         if(this.ambientLight){
             this.ambient[0]=this.ambientLight.color.x;
             this.ambient[1]=this.ambientLight.color.y;
             this.ambient[2]=this.ambientLight.color.z;
         }      
     }
-    private updateDirtectLight(){
+    private updateDirtectLight(frameState:FrameState){
         this.dirtectLights.forEach((light)=>{
             const lightData=this.dirtectDatas.get(light);
-            if(lightData)lightData.update();
+            if(lightData)lightData.update(frameState);
          })     
     }
     private updateLightCount(){

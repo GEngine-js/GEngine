@@ -17,7 +17,7 @@ export class SpotLight extends Light{
     private _dirtect: Vector3;
     dirtectDirty: boolean;
     private _target: Vector3;
-    constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra =1, decay = 2){
+    constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra =1, decay = 1){
         super(color, intensity);
         this._distance=distance;
         this._angle=angle;

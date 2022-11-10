@@ -36,10 +36,10 @@
 <body>
     <div id="app"></div>
     <script type="module">
-     import {BoxGeometry,Primitive, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight} from '../dist/index.js';
+     import {BoxGeometry,Primitive, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight,PointLight} from '../dist/index.js';
 
      const  init= async()=>{
-        const geometry=new BoxGeometry(1,1,1);
+        const geometry=new BoxGeometry(10,10,10);
 
         const img = document.createElement('img');
         img.src ='./Di-3d.png';
@@ -50,17 +50,20 @@
         const primitive=new Primitive(geometry,phongMaterial)
         primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
-        camera.position=new Vector3(2,2,2);
+        camera.position=new Vector3(20,20,20);
         camera.target=new Vector3(0,0,0);
 
         // console.log(camera.viewMatrix);
-        const light=new SpotLight(new Vector3(1.0,0.0,0.0),0.8,15);
-        light.position=new Vector3(6,6,6)
+        // const spotLight=new SpotLight(new Vector3(1.0,1.0,1.0),10,16,Math.PI/6);
+        // spotLight.position=new Vector3(0,16,0);
+
+        const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),3,6,1)
+        pointLight.position=new Vector3(0,135,0);
         const scene=new Scene({container:'app'});
 
         scene.add(primitive);
         scene.setCamera(camera);
-        scene.addLight(light);
+        scene.addLight(pointLight);
         function animate() {
             // primitive.rotateY(0.01)
             // primitive.rotateX(0.01)

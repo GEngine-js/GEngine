@@ -72,13 +72,12 @@ export class Scene extends EventDispatcher {
         this.update();
     }
     private update() {
-        if(!this.ready) return;
-        //更新灯光
-        this.lightManger.update(this.frameState);
+    if(!this.ready) return;
         //更新相机
         this.frameState.viewport=this.viewport;
         this.frameState.update(this.camera);
-
+        //更新灯光
+        this.lightManger.update(this.frameState);
         this.context.systemRenderResource.update(this.frameState,this)
 
         //update primitive and select

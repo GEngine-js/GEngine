@@ -33,4 +33,5 @@ export {default as Color} from './math/Color';
 
 //light
 export {SpotLight} from './light/SpotLight';
+export {PointLight} from './light/PointLight';
  
