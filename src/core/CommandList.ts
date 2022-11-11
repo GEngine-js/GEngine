@@ -26,11 +26,11 @@ export default class CommandList {
    }
 
   static _compareFromNearToFar(a: Mesh, b: Mesh): number {
-      return a.component.priority - b.component.priority || a.component._distanceForSort - b.component._distanceForSort;
+      return a.priority - b.priority || a.distanceToCamera - b.distanceToCamera;
    }
 
    static _compareFromFarToNear(a: Mesh, b: Mesh): number {
-      return a.component.priority - b.component.priority || b.component._distanceForSort - a.component._distanceForSort;
+      return a.priority - b.priority || b.distanceToCamera - a.distanceToCamera;
    }
    //according to camera distance
    static sort<T>(insatnce:T[], from: number, to: number,compareFunc: Function): void {

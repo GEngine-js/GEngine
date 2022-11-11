@@ -10,6 +10,7 @@ export class Mesh extends RenderObject {
     geometry: Geometry;
     material: Material;
     instances?: number;
+    priority?:number;
     drawCommand: DrawCommand;
     distanceToCamera:number;
     constructor(geometry, material) {
@@ -43,14 +44,14 @@ export class Mesh extends RenderObject {
             } else {
                 frameState.commandList.opaque.push(this.drawCommand);
             }
+            this.drawCommand.distanceToCamera=this.distanceToCamera;
         }
-        this.drawCommand.distanceToCamera=this.distanceToCamera;
+        
     }
     private createCommand(frameState: FrameState) {
         const {context}=frameState;
         const {device,systemRenderResource}=context
         const drawCommand = new DrawCommand({
-            //pipeline: pipeline,
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,
@@ -61,7 +62,7 @@ export class Mesh extends RenderObject {
             topology:this.geometry.topology as GPUPrimitiveTopology,
             shaderSource:this.material.shaderSource,
             groupLayouts:this.material.groupLayouts,
-            uuid:this.material.type,
+            uuid:this.material.type+this.material.shaderSource.uid,
             type:'render'      
         });
         drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);

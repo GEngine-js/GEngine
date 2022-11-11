@@ -1,5 +1,3 @@
-
-
 //render
 export { default as Buffer } from "./render/Buffer";
 export { default as DrawCommand } from "./render/DrawCommand";
@@ -34,4 +32,5 @@ export {default as Color} from './math/Color';
 //light
 export {SpotLight} from './light/SpotLight';
 export {PointLight} from './light/PointLight';
+export {DirtectLight} from './light/DirtectLight';
  

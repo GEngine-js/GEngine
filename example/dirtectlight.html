@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webworkerTask</title>
+    <!-- <link rel="stylesheet" href="./index.scss" /> -->
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            background: #692a84;
+            background: linear-gradient(316deg, #0e0f2a, #060913);
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #app {
+            height:100%;
+            width:100%;
+        }
+    </style>
+    <!-- <script type="module" src="../dist/index.js"></script> -->
+</head>
+
+<body>
+    <div id="app"></div>
+    <script type="module">
+     import {BoxGeometry,Mesh, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,DirtectLight} from '../dist/index.js';
+
+     const  init= async()=>{
+        const geometry=new BoxGeometry(10,10,10);
+
+        const img = document.createElement('img');
+        img.src ='./uv.jpg';
+        await img.decode();
+        const imageBitmap = await createImageBitmap(img);
+        const phongMaterial=new PhongMaterial(imageBitmap);
+
+        const primitive=new Mesh(geometry,phongMaterial)
+        primitive.rotateY(Math.PI/3)
+        const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
+        camera.position=new Vector3(20,20,20);
+        camera.target=new Vector3(0,0,0);
+
+        // console.log(camera.viewMatrix);
+        const dirtectLight=new DirtectLight(new Vector3(1.0,1.0,1.0),3,new Vector3(0, 1, 0));
+        // spotLight.position=new Vector3(0,16,0);
+
+        const scene=new Scene({container:'app'});
+
+        scene.add(primitive);
+        scene.setCamera(camera);
+        scene.addLight(dirtectLight);
+        function animate() {
+            primitive.rotateY(0.01)
+            primitive.rotateX(0.01)
+            requestAnimationFrame( animate );
+            scene.render()
+        }
+        // document.body.appendChild(scene.context.canvas);
+        animate()
+     }
+     init();
+
+    </script>
+</body>
+
+</html>

@@ -53,7 +53,6 @@ export default class Pipeline{
         let pipeline =computePipelines.get(hashId);
         if(!pipeline){
           const {shaderSource,groupLayouts}=drawComand;
-        //   const layout=groupLayouts.length>0?groupLayouts.map((layout)=>{return layout.gpuBindGroupLayout}): "auto";
           pipeline =device.createComputePipeline({
             layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId.toString(),groupLayouts).gpuPipelineLayout,
             compute: {

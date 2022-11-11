@@ -15,8 +15,8 @@ export class DirtectLight extends Light {
         this.dirtectDirty = true;
         this._dirtect = value;
     }
-    get dirtect() {
-        return this._dirtect;
+    get dirtect() {    
+        return Vector3.normalize(this._dirtect,new Vector3());
     }
 }
 //uniform

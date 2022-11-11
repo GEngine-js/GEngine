@@ -123,7 +123,7 @@ export class DirtectData{
     color: Float32Array;
     dirtectLight: DirtectLight;
     static byteSize=32;
-    static size=6;
+    static size=8;
     constructor(buffer:Float32Array,byteOffset:number,dirtectLight:DirtectLight){
         this.dirtectLight=dirtectLight;
         this.color=new Float32Array(buffer.buffer, byteOffset, 3);//3
@@ -131,6 +131,7 @@ export class DirtectData{
     }
     update(frameState:FrameState){
         const viewMatrix=frameState.camera.viewMatrix;
+        debugger
         if (this.dirtectLight.colorDirty) {
             this.dirtectLight.colorDirty=false;
             copyData(this.dirtectLight.color.toArray(),this.color);

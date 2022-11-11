@@ -89,10 +89,10 @@ export default function light(defines){
             return light;
         }
     #endif
-    #if ${defines.directLight}
+    #if ${defines.dirtectLight}
         struct DirtectLight {
-            direction: vec3<f32>,
             color: vec3<f32>,
+            direction: vec3<f32>,
         };
         @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLights: array<DirtectLight>;
         fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
@@ -246,7 +246,7 @@ export default function light(defines){
     fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
         var  incidentLight:IncidentLight;
         var reflectedLight:ReflectedLight;
-        #if ${defines.directLight}
+        #if ${defines.dirtectLight}
             //处理方向光
             var dirtectLight:DirtectLight;
             for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
