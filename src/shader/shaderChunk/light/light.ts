@@ -85,7 +85,7 @@ export default function light(defines){
             let lightDistance = length(lVector); 
             light.color = pointLight.color;
             light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
-            light.visible = (length(light.color)>0);
+            light.visible =(length(light.color)>0);
             return light;
         }
     #endif

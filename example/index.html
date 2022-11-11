@@ -54,11 +54,11 @@
         camera.target=new Vector3(0,0,0);
 
         // console.log(camera.viewMatrix);
-        // const spotLight=new SpotLight(new Vector3(1.0,1.0,1.0),10,16,Math.PI/6);
+        // const spotLight=new SpotLight(new Vector3(1.0,1.0,1.0),10,12,Math.PI/6);
         // spotLight.position=new Vector3(0,16,0);
 
-        const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),3,6,1)
-        pointLight.position=new Vector3(0,135,0);
+        const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,20,1)
+        pointLight.position=new Vector3(0,25,0);
         const scene=new Scene({container:'app'});
 
         scene.add(primitive);

@@ -36,14 +36,14 @@ export default function phongVert(defines){
             output.vUv = input.uv;
             // 
             let temModelPos = selfUniform.modelMatrix *vec4<f32>(input.position,1.0);
-            let modelPos=temModelPos/temModelPos.w;
+            let modelPos=temModelPos.xyzw/temModelPos.w;
             output.worldPos = modelPos.xyz;
             let vNormalView = selfUniform.normalMatrix * input.normal;
             //output.normal = normalize((systemUniform.inverseViewMatrix * vec4<f32>(vNormalView, 0.0)).xyz);
             output.normal = vNormalView;
             output.view = systemUniform.cameraPosition - modelPos.xyz;
             let viewPosition=systemUniform.viewMatrix * modelPos;
-            output.viewPosition = vec3<f32>(viewPosition.x/viewPosition.w,viewPosition.y/viewPosition.w,viewPosition.z/viewPosition.w);
+            output.viewPosition = viewPosition.xyz/viewPosition.w;
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelPos;
             return output;
       }` ;    

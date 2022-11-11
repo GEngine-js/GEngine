@@ -75,17 +75,17 @@ export class SpotData{
 export class PointData{
     color: Float32Array;
     position: Float32Array;
-    decay: Uint32Array;
-    distance: Uint32Array;
+    decay: Float32Array;
+    distance: Float32Array;
     pointLight: PointLight;
     static byteSize=32;
     static size=8;
     constructor(buffer:Float32Array,byteOffset:number,pointLight:PointLight){
         this.pointLight=pointLight;
         this.position=new Float32Array(buffer.buffer, byteOffset, 3);//3
-        this.distance=new Uint32Array(buffer.buffer, byteOffset+12, 1);//1
+        this.distance=new Float32Array(buffer.buffer, byteOffset+12, 1);//1
         this.color=new Float32Array(buffer.buffer, byteOffset+16, 3);//3
-        this.decay=new Uint32Array(buffer.buffer, byteOffset+28, 1);//1
+        this.decay=new Float32Array(buffer.buffer, byteOffset+28, 1);//1
     }
     update(frameState:FrameState){
         const viewMatrix=frameState.camera.viewMatrix;
@@ -98,7 +98,7 @@ export class PointData{
             this.pointLight.positionDirty=false;
             let position=this.pointLight.position.clone();
             position=position.applyMatrix4(viewMatrix);
-            copyData(this.pointLight.position.toArray(),this.position);
+            copyData(position.toArray(),this.position);
         }
         if (this.pointLight.decayDirty) {
             this.pointLight.decayDirty=false;
