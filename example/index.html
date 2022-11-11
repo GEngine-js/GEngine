@@ -36,7 +36,7 @@
 <body>
     <div id="app"></div>
     <script type="module">
-     import {BoxGeometry,Primitive, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight,PointLight} from '../dist/index.js';
+     import {BoxGeometry,Mesh, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight,PointLight} from '../dist/index.js';
 
      const  init= async()=>{
         const geometry=new BoxGeometry(10,10,10);
@@ -47,7 +47,7 @@
         const imageBitmap = await createImageBitmap(img);
         const phongMaterial=new PhongMaterial(imageBitmap);
 
-        const primitive=new Primitive(geometry,phongMaterial)
+        const primitive=new Mesh(geometry,phongMaterial)
         primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
         camera.position=new Vector3(20,20,20);

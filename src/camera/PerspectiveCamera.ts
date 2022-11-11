@@ -101,7 +101,6 @@ export default class PerspectiveCamera extends Camera {
     
             Vector3.cross(this.direction, this.right, this.up);
     }
-    p
     private updateInverseViewMatrix(){
         this.updateViewMatrix();
         Matrix4.inverseTransformation(this._viewMatrix, this._inverseViewMatrix);

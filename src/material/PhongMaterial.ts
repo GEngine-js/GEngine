@@ -2,7 +2,7 @@ import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 import {UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
-import { Primitive } from "../mesh/Primitive";
+import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import Context from "../render/Context";
@@ -28,7 +28,7 @@ export default class BaseMaterial extends Material {
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
-    update(frameState:FrameState,primitive:Primitive) { 
+    update(frameState:FrameState,primitive:Mesh) { 
         const {device}=frameState.context;
         if(!this.renderState)this.createRenderState(frameState)
         if(!this.baseSampler) this.ceateTextureAndSampler(frameState.context);
@@ -45,7 +45,7 @@ export default class BaseMaterial extends Material {
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }
-    private createUniforms(primitive:Primitive){
+    private createUniforms(primitive:Mesh){
         this.uniformTotalByte=64+64+16;
         this.uniformsDataBuffer=new Float32Array(16+16+4)
         this.uniforms=[

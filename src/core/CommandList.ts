@@ -1,4 +1,4 @@
-import { Primitive } from "../mesh/Primitive";
+import { Mesh } from "../mesh/Mesh";
 import DrawCommand from "../render/DrawCommand";
 
 export default class CommandList {
@@ -25,11 +25,11 @@ export default class CommandList {
       this.transparent = [];
    }
 
-  static _compareFromNearToFar(a: Primitive, b: Primitive): number {
+  static _compareFromNearToFar(a: Mesh, b: Mesh): number {
       return a.component.priority - b.component.priority || a.component._distanceForSort - b.component._distanceForSort;
    }
 
-   static _compareFromFarToNear(a: Primitive, b: Primitive): number {
+   static _compareFromFarToNear(a: Mesh, b: Mesh): number {
       return a.component.priority - b.component.priority || b.component._distanceForSort - a.component._distanceForSort;
    }
    //according to camera distance

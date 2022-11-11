@@ -6,15 +6,11 @@ import GMath from "./Math";
 import Matrix3 from "./Matrix3";
 
 class Matrix4 {
-
-  public static fromArray = Matrix4.unpack;
   /**
    * The number of elements used to pack the object into an array.
    * @type {Number}
    */
   public static packedLength = 16;
-
-
   /**
    * An immutable Matrix4 instance initialized to the identity matrix.
    *
@@ -68,134 +64,6 @@ class Matrix4 {
       0.0
     )
   );
-
-  /**
-   * The index into Matrix4 for column 0, row 0.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN0ROW0 = 0;
-
-  /**
-   * The index into Matrix4 for column 0, row 1.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN0ROW1 = 1;
-
-  /**
-   * The index into Matrix4 for column 0, row 2.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN0ROW2 = 2;
-
-  /**
-   * The index into Matrix4 for column 0, row 3.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN0ROW3 = 3;
-
-  /**
-   * The index into Matrix4 for column 1, row 0.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN1ROW0 = 4;
-
-  /**
-   * The index into Matrix4 for column 1, row 1.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN1ROW1 = 5;
-
-  /**
-   * The index into Matrix4 for column 1, row 2.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN1ROW2 = 6;
-
-  /**
-   * The index into Matrix4 for column 1, row 3.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN1ROW3 = 7;
-
-  /**
-   * The index into Matrix4 for column 2, row 0.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN2ROW0 = 8;
-
-  /**
-   * The index into Matrix4 for column 2, row 1.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN2ROW1 = 9;
-
-  /**
-   * The index into Matrix4 for column 2, row 2.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN2ROW2 = 10;
-
-  /**
-   * The index into Matrix4 for column 2, row 3.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN2ROW3 = 11;
-
-  /**
-   * The index into Matrix4 for column 3, row 0.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN3ROW0 = 12;
-
-  /**
-   * The index into Matrix4 for column 3, row 1.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN3ROW1 = 13;
-
-  /**
-   * The index into Matrix4 for column 3, row 2.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN3ROW2 = 14;
-
-  /**
-   * The index into Matrix4 for column 3, row 3.
-   *
-   * @type {Number}
-   * @constant
-   */
-  public static COLUMN3ROW3 = 15;
   /**
  * A 4x4 matrix, indexable as a column-major order array.
  * Constructor parameters are in row-major order for code readability.
@@ -361,98 +229,6 @@ class Matrix4 {
 
     return array;
   };
-
-  /**
-   * Retrieves an instance from a packed array.
-   *
-   * @param {Number[]} array The packed array.
-   * @param {Number} [startingIndex=0] The starting index of the element to be unpacked.
-   * @param {Matrix4} [result] The object into which to store the result.
-   * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
-   */
-  static unpack(array, startingIndex, result) {
-
-    startingIndex = defaultValue(startingIndex, 0);
-
-    if (!defined(result)) {
-      result = new Matrix4();
-    }
-
-    result[0] = array[startingIndex++];
-    result[1] = array[startingIndex++];
-    result[2] = array[startingIndex++];
-    result[3] = array[startingIndex++];
-    result[4] = array[startingIndex++];
-    result[5] = array[startingIndex++];
-    result[6] = array[startingIndex++];
-    result[7] = array[startingIndex++];
-    result[8] = array[startingIndex++];
-    result[9] = array[startingIndex++];
-    result[10] = array[startingIndex++];
-    result[11] = array[startingIndex++];
-    result[12] = array[startingIndex++];
-    result[13] = array[startingIndex++];
-    result[14] = array[startingIndex++];
-    result[15] = array[startingIndex];
-    return result;
-  };
-
-  /**
-   * Flattens an array of Matrix4s into an array of components. The components
-   * are stored in column-major order.
-   *
-   * @param {Matrix4[]} array The array of matrices to pack.
-   * @param {Number[]} [result] The array onto which to store the result. If this is a typed array, it must have array.length * 16 components, else a {@link Error} will be thrown. If it is a regular array, it will be resized to have (array.length * 16) elements.
-   * @returns {Number[]} The packed array.
-   */
-  static packArray(array, result) {
-
-    const length = array.length;
-    const resultLength = length * 16;
-    if (!defined(result)) {
-      result = new Array(resultLength);
-    } else if (!Array.isArray(result) && result.length !== resultLength) {
-      //>>includeStart('debug', pragmas.debug);
-      throw new Error(
-        "If result is a typed array, it must have exactly array.length * 16 elements"
-      );
-      //>>includeEnd('debug');
-    } else if (result.length !== resultLength) {
-      result.length = resultLength;
-    }
-
-    for (let i = 0; i < length; ++i) {
-      Matrix4.pack(array[i], result, i * 16);
-    }
-    return result;
-  };
-
-  /**
-   * Unpacks an array of column-major matrix components into an array of Matrix4s.
-   *
-   * @param {Number[]} array The array of components to unpack.
-   * @param {Matrix4[]} [result] The array onto which to store the result.
-   * @returns {Matrix4[]} The unpacked array.
-   */
-  static unpackArray(array, result) {
-    if (array.length % 16 !== 0) {
-      throw new Error("array length must be a multiple of 16.");
-    }
-
-    const length = array.length;
-    if (!defined(result)) {
-      result = new Array(length / 16);
-    } else {
-      result.length = length / 16;
-    }
-
-    for (let i = 0; i < length; i += 16) {
-      const index = i / 16;
-      result[index] = Matrix4.unpack(array, i, result[index]);
-    }
-    return result;
-  };
-
   /**
    * Duplicates a Matrix4 instance.
    *

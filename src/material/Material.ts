@@ -15,7 +15,7 @@ import combine from "../utils/combine";
 import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode, FrontFace, StencilOperation, TextureFormat } from "../core/WebGPUConstant";
 import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
-import { Primitive } from "../mesh/Primitive";
+import { Mesh } from "../mesh/Mesh";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 export class Material{
@@ -132,7 +132,7 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(frameState:FrameState,primitive:Primitive){
+    update(frameState:FrameState,primitive:Mesh){
        
     }
     updateUniform(){

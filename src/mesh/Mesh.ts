@@ -5,7 +5,7 @@ import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
 import Pipeline from "../render/Pipeline";
-export class Primitive extends RenderObject {
+export class Mesh extends RenderObject {
     [x: string]: any;
     geometry: Geometry;
     material: Material;

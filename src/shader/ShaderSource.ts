@@ -1,6 +1,5 @@
 import combine from '../utils/combine';
 import getVertFrag from './Shaders';
-import {wgslParseDefines} from './WgslPreprocessor';
 export interface GPUShaderModuleObject{
     vert:GPUShaderModule;
     frag:GPUShaderModule;

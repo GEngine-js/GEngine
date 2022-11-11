@@ -1,4 +1,4 @@
-import { Primitive } from "../mesh/Primitive";
+import { Mesh } from "../mesh/Mesh";
 import createGuid from "../utils/createGuid";
 import defined from "../utils/defined";
 import { FrameState } from "./FrameState";
@@ -20,7 +20,7 @@ export default class PrimitiveManger extends Manger{
             primitive.update(frameState);
         });
     }
-    add(instance:Primitive, index?:number) {
+    add(instance:Mesh, index?:number) {
         const hasIndex = defined(index);
 
         //>>includeStart('debug', pragmas.debug);

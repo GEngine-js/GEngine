@@ -14,7 +14,7 @@ export { default as BindGroupEntity } from "./render/BindGroupEntity";
 //utils
 export { default as DataBuffer } from "./utils/DataBuffer";
 //mesh
-export {Primitive} from "./mesh/Primitive";
+export {Mesh} from "./mesh/Mesh";
 
 //geometry
 export {default as BoxGeometry} from "./geometry/BoxGeometry";
