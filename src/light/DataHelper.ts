@@ -13,7 +13,7 @@ export class SpotData{
     color: Float32Array;
     //array<light> light of byteSize must be k*16 
     static byteSize=64;
-    static size=13;
+    static size=16;
     spotLight: SpotLight;
     constructor(buffer:Float32Array,byteOffset:number,spotLight:SpotLight){  
         this.spotLight=spotLight;   
