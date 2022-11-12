@@ -1,6 +1,4 @@
 import type {GLB} from '../types/glb-types';
-import {padToNBytes, assert} from '@loaders.gl/loader-utils';
-
 export type GLBParseOptions = {
   magic?: number;
   strict?: boolean;
@@ -164,7 +162,9 @@ function parseGLBChunksSync(
 
   return byteOffset;
 }
-
+function padToNBytes(byteLength: number, padding: number): number {
+    return (byteLength + (padding - 1)) & ~(padding - 1);
+}
 // Parse a GLB JSON chunk
 function parseJSONChunk(glb: GLB, dataView: DataView, byteOffset: number, chunkLength: number) {
   // 1. Create a "view" of the binary encoded JSON data inside the GLB

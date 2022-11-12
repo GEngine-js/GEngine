@@ -1,19 +1,17 @@
 /* eslint-disable camelcase, max-statements, no-restricted-globals */
-import type {LoaderContext} from '@loaders.gl/loader-utils';
-import {BasisLoader, selectSupportedBasisFormat} from '@loaders.gl/textures';
-import type {GLTFLoaderOptions} from '../../gltf-loader';
+// import type {LoaderContext} from '@loaders.gl/loader-utils';
+// import {BasisLoader, selectSupportedBasisFormat} from '@loaders.gl/textures';
+// import type {GLTFLoaderOptions} from '../../gltf-loader';
 import type {GLB} from '../types/glb-types';
 import type {GLTFWithBuffers} from '../types/gltf-types';
 
-import {ImageLoader} from '@loaders.gl/images';
-import {parseJSON, sliceArrayBuffer} from '@loaders.gl/loader-utils';
-import {assert} from '../utils/assert';
-import {resolveUrl} from '../gltf-utils/resolve-url';
-import {getTypedArrayForBufferView} from '../gltf-utils/get-typed-array';
-import {preprocessExtensions, decodeExtensions} from '../api/gltf-extensions';
-import {normalizeGLTFV1} from '../api/normalize-gltf-v1';
-import {postProcessGLTF} from '../api/post-process-gltf';
-import parseGLBSync, {isGLB} from './parse-glb';
+// import {ImageLoader} from '@loaders.gl/images';
+import {resolveUrl} from './GltfUtils';
+import {getTypedArrayForBufferView} from './GltfUtils';
+import {preprocessExtensions, decodeExtensions} from '../extensions/GltfExtensions';
+import {normalizeGLTFV1} from './NormalizeGltfV1';
+import {postProcessGLTF} from './PostProcessGltf';
+import parseGLBSync, {isGLB} from './ParseGlb';
 
 export type GLTFParseOptions = {
   normalize?: boolean;
@@ -83,18 +81,17 @@ function parseGLTFContainerSync(gltf, data, byteOffset, options) {
 
   if (typeof data === 'string') {
     // If string, try to parse as JSON
-    gltf.json = parseJSON(data);
+    gltf.json = JSON.parse(data)
   } else if (data instanceof ArrayBuffer) {
     // If still ArrayBuffer, parse as GLB container
     const glb: GLB = {} as GLB;
     byteOffset = parseGLBSync(glb, data, byteOffset, options.glb);
-
-    assert(glb.type === 'glTF', `Invalid GLB magic string ${glb.type}`);
+    throw new Error(`Invalid GLB magic string ${glb.type}`)
 
     gltf._glb = glb;
     gltf.json = glb.json;
   } else {
-    assert(false, 'GLTF: must be ArrayBuffer or string');
+    throw new Error('GLTF: must be ArrayBuffer or string')
   }
 
   // Populate buffers
@@ -131,8 +128,6 @@ async function loadBuffers(gltf: GLTFWithBuffers, options, context: LoaderContex
     const buffer = buffers[i];
     if (buffer.uri) {
       const {fetch} = context;
-      assert(fetch);
-
       const uri = resolveUrl(buffer.uri, options);
       const response = await context?.fetch?.(uri);
       const arrayBuffer = await response?.arrayBuffer?.();
@@ -178,14 +173,12 @@ async function loadImages(gltf: GLTFWithBuffers, options, context: LoaderContext
 /** Make sure we only load images that are actually referenced by textures */
 function getReferencesImageIndices(gltf: GLTFWithBuffers): number[] {
   const imageIndices = new Set<number>();
-
   const textures = gltf.json.textures || [];
   for (const texture of textures) {
     if (texture.source !== undefined) {
       imageIndices.add(texture.source);
     }
   }
-
   return Array.from(imageIndices).sort();
 }
 
@@ -214,8 +207,7 @@ async function loadImage(
     const array = getTypedArrayForBufferView(gltf.json, gltf.buffers, image.bufferView);
     arrayBuffer = sliceArrayBuffer(array.buffer, array.byteOffset, array.byteLength);
   }
-
-  assert(arrayBuffer, 'glTF image has no data');
+  throw new Error("glTF image has no data");
 
   // Call `parse`
   let parsedImage = await parse(
@@ -241,3 +233,21 @@ async function loadImage(
   gltf.images = gltf.images || [];
   gltf.images[index] = parsedImage;
 }
+/**
+ * Copy a view of an ArrayBuffer into new ArrayBuffer with byteOffset = 0
+ * @param arrayBuffer
+ * @param byteOffset
+ * @param byteLength
+ */
+ export function sliceArrayBuffer(
+    arrayBuffer: ArrayBuffer,
+    byteOffset: number,
+    byteLength?: number
+  ): ArrayBuffer {
+    const subArray =
+      byteLength !== undefined
+        ? new Uint8Array(arrayBuffer).subarray(byteOffset, byteOffset + byteLength)
+        : new Uint8Array(arrayBuffer).subarray(byteOffset);
+    const arrayCopy = new Uint8Array(subArray);
+    return arrayCopy.buffer;
+  }

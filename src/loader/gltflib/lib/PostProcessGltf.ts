@@ -1,5 +1,5 @@
-import {assert} from '../utils/assert';
-import {getAccessorArrayTypeAndLength} from '../gltf-utils/gltf-utils';
+// import {assert} from '../utils/assert';
+import {getAccessorArrayTypeAndLength} from './GltfUtils';
 import {BufferView} from '../types/gltf-json-schema';
 import {BufferView as BufferViewPostprocessed} from '../types/gltf-postprocessed-schema';
 

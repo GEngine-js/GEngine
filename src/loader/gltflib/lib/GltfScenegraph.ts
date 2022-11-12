@@ -14,13 +14,13 @@ import type {
   } from '../types/gltf-types';
   
   import {getBinaryImageMetadata} from '@loaders.gl/images';
-  import {padToNBytes, copyToArray} from '@loaders.gl/loader-utils';
-  import {assert} from '../utils/assert';
+  import {padToNBytes, copyToArray} from './GltfUtils';
+//   import {assert} from '../utils/assert';
   import {
     getAccessorArrayTypeAndLength,
     getAccessorTypeFromSize,
     getComponentTypeFromArray
-  } from '../gltf-utils/gltf-utils';
+  } from './GltfUtils';
   
   type GLTFWithBuffers = {
     json: GLTF;
