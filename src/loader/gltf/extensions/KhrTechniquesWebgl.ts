@@ -1,7 +1,7 @@
 // GLTF EXTENSION: KHR_techniques_webgl
 // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_techniques_webgl
 
-import type {GLTF} from '../../types/gltf-types';
+import type {GLTF} from '../types/gltf-types';
 
 import GLTFScenegraph from '../lib/GltfScenegraph';
 

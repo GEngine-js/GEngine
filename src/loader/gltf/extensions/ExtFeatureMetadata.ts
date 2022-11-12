@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
-import type {GLTF} from '../../types/gltf-types';
+import type {GLTF} from '../types/gltf-types';
 
-import GLTFScenegraph from '../../api/gltf-scenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 import {
   ClassProperty,
   EXT_feature_metadata_class_object,
   EXT_feature_metadata_feature_table,
   FeatureTableProperty,
   GLTF_EXT_feature_metadata
-} from '../../types/gltf-json-schema';
+} from '../types/gltf-json-schema';
 
 /** Extension name */
 const EXT_FEATURE_METADATA = 'EXT_feature_metadata';

@@ -3,7 +3,7 @@
 /* eslint-disable camelcase */
 
 import type {GLTF, GLTF_KHR_texture_basisu} from '../types/gltf-types';
-import GLTFScenegraph from '../gltfScenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const KHR_TEXTURE_BASISU = 'KHR_texture_basisu';
 

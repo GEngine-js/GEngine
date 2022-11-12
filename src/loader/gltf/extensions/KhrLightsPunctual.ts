@@ -1,10 +1,10 @@
 // GLTF EXTENSION: KHR_lights_punctual
 // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
 
-import type {GLTF} from '../../types/gltf-types';
+import type {GLTF} from '../types/gltf-types';
 
-import {assert} from '../../utils/assert';
-import GLTFScenegraph from '../../api/gltf-scenegraph';
+// import {assert} from '../../utils/assert';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const KHR_LIGHTS_PUNCTUAL = 'KHR_lights_punctual';
 
@@ -43,7 +43,7 @@ export async function encode(gltfData): Promise<void> {
   if (json.lights) {
     const extension = gltfScenegraph.addExtension(KHR_LIGHTS_PUNCTUAL);
     // @ts-ignore
-    assert(!extension.lights);
+    // assert(!extension.lights);
     // @ts-ignore
     extension.lights = json.lights;
     // @ts-ignore

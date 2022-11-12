@@ -176,7 +176,7 @@ import type {
       // Get hold of the arrayBuffer
       // const buffer = this.getBuffer(bufferIndex);
       const binChunk = this.gltf.buffers[bufferIndex];
-      assert(binChunk);
+      // assert(binChunk);
   
       // @ts-ignore
       const byteOffset = (bufferView.byteOffset || 0) + binChunk.byteOffset;
@@ -267,7 +267,7 @@ import type {
      * Add to standard GLTF top level extension object, mark as used
      */
     addExtension(extensionName: string, extensionData: object = {}): object {
-      assert(extensionData);
+      // assert(extensionData);
       this.json.extensions = this.json.extensions || {};
       this.json.extensions[extensionName] = extensionData;
       this.registerUsedExtension(extensionName);
@@ -278,7 +278,7 @@ import type {
      * Standard GLTF top level extension object, mark as used and required
      */
     addRequiredExtension(extensionName, extensionData: object = {}): object {
-      assert(extensionData);
+      // assert(extensionData);
       this.addExtension(extensionName, extensionData);
       this.registerRequiredExtension(extensionName);
       return extensionData;
@@ -436,7 +436,7 @@ import type {
      */
     addBufferView(buffer: any): number {
       const byteLength = buffer.byteLength;
-      assert(Number.isFinite(byteLength));
+      // assert(Number.isFinite(byteLength));
   
       // Add this buffer to the list of buffers to be written to the body.
       this.sourceBuffers = this.sourceBuffers || [];

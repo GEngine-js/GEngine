@@ -228,7 +228,7 @@ export function getAccessorArrayTypeAndLength(accessor, bufferView) {
   const bytesPerComponent = ATTRIBUTE_COMPONENT_TYPE_TO_BYTE_SIZE[accessor.componentType];
   const length = accessor.count * components;
   const byteLength = accessor.count * components * bytesPerComponent;
-  assert(byteLength >= 0 && byteLength <= bufferView.byteLength);
+  // assert(byteLength >= 0 && byteLength <= bufferView.byteLength);
   return {ArrayType, length, byteLength};
 }
 

@@ -77,7 +77,7 @@ class GLTFPostProcessor {
 
   postProcess(gltf, options = {}) {
     const {json, buffers = [], images = [], baseUri = ''} = gltf;
-    assert(json);
+    // assert(json);
 
     this.baseUri = baseUri;
     this.json = json;

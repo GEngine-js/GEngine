@@ -4,8 +4,7 @@
 
 import {Vector3, Matrix3} from '@math.gl/core';
 import type {GLTFMeshPrimitive, GLTFWithBuffers} from '../types/gltf-types';
-import {getAccessorArrayTypeAndLength} from '../gltfUtils';
-import {BYTES, COMPONENTS} from '../gltfUtils';
+import {getAccessorArrayTypeAndLength,BYTES, COMPONENTS} from '../lib/GltfUtils';
 import {
   Accessor,
   BufferView,
@@ -13,7 +12,7 @@ import {
   MaterialOcclusionTextureInfo,
   TextureInfo as GLTFTextureInfo
 } from '../types/gltf-json-schema';
-import GLTFScenegraph from '../gltfScenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 /** Extension name */
 const EXT_MESHOPT_TRANSFORM = 'KHR_texture_transform';

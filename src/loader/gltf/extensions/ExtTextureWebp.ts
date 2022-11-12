@@ -6,7 +6,7 @@ import type {GLTF, GLTF_EXT_texture_webp} from '../types/gltf-types';
 // import type {GLTFLoaderOptions} from '../../gltf-loader';
 
 import {_isImageFormatSupported} from '@loaders.gl/images';
-import GLTFScenegraph from '../gltfScenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const EXT_TEXTURE_WEBP = 'EXT_texture_webp';
 
