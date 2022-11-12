@@ -4,7 +4,7 @@
 
 import type {GLTF, GLTF_KHR_binary_glTF} from '../types/gltf-types';
 
-import GLTFScenegraph from '../gltfScenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const KHR_BINARY_GLTF = 'KHR_binary_glTF';
 

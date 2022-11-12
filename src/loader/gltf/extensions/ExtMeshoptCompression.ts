@@ -1,27 +1,16 @@
 /* eslint-disable camelcase */
 import type {GLTF, GLTFBufferView, GLTF_EXT_meshopt_compression} from '../types/gltf-types';
-import type {GLTFLoaderOptions} from '../../gltf-loader';
 import GLTFScenegraph from '../lib/GltfScenegraph';
 import {meshoptDecodeGltfBuffer} from '../lib/MeshoptDecoder';
 
-// @ts-ignore
-// eslint-disable-next-line
-const DEFAULT_MESHOPT_OPTIONS = {
-  byteOffset: 0,
-  filter: 'NONE'
-};
 
 /** Extension name */
 const EXT_MESHOPT_COMPRESSION = 'EXT_meshopt_compression';
 
 export const name = EXT_MESHOPT_COMPRESSION;
 
-export async function decode(gltfData: {json: GLTF}, options: GLTFLoaderOptions) {
+export async function decode(gltfData: {json: GLTF}) {
   const scenegraph = new GLTFScenegraph(gltfData);
-
-  if (!options?.gltf?.decompressMeshes) {
-    return;
-  }
 
   const promises: Promise<any>[] = [];
   for (const bufferViewIndex of gltfData.json.bufferViews || []) {

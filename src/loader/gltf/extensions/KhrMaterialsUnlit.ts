@@ -1,9 +1,9 @@
 // GLTF EXTENSION: KHR_materials_unlit
 // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
 
-import type {GLTF} from '../../types/gltf-types';
+import type {GLTF} from '../types/gltf-types';
 
-import GLTFScenegraph from '../lib/gltfScenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const KHR_MATERIALS_UNLIT = 'KHR_materials_unlit';
 
@@ -25,25 +25,5 @@ export async function decode(gltfData: {json: GLTF}): Promise<void> {
       material.unlit = true;
     }
     gltfScenegraph.removeObjectExtension(material, KHR_MATERIALS_UNLIT);
-  }
-}
-
-export function encode(gltfData) {
-  const gltfScenegraph = new GLTFScenegraph(gltfData);
-  const {json} = gltfScenegraph;
-
-  // Any nodes that have lights field pointing to light object
-  // add the extension
-  // @ts-ignore
-  if (gltfScenegraph.materials) {
-    for (const material of json.materials || []) {
-      // @ts-ignore
-      if (material.unlit) {
-        // @ts-ignore
-        delete material.unlit;
-        gltfScenegraph.addObjectExtension(material, KHR_MATERIALS_UNLIT, {});
-        gltfScenegraph.addExtension(KHR_MATERIALS_UNLIT);
-      }
-    }
   }
 }

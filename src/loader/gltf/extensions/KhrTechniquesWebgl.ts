@@ -36,10 +36,6 @@ export async function decode(gltfData: {json: GLTF}): Promise<void> {
     gltfScenegraph.removeExtension(KHR_TECHNIQUES_WEBGL);
   }
 }
-// eslint-disable-next-line
-export async function encode(gltfData, options): Promise<void> {
-  // TODO
-}
 
 function resolveTechniques(
   techniquesExtension: {[key: string]: any},

@@ -4,8 +4,6 @@
 
 import type {GLTF, GLTF_EXT_texture_webp} from '../types/gltf-types';
 // import type {GLTFLoaderOptions} from '../../gltf-loader';
-
-import {_isImageFormatSupported} from '@loaders.gl/images';
 import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const EXT_TEXTURE_WEBP = 'EXT_texture_webp';
@@ -17,15 +15,15 @@ export const name = EXT_TEXTURE_WEBP;
  * Replaces a texture source reference with the extension texture
  * Done in preprocess() to prevent load of default image
  */
-export function preprocess(gltfData: {json: GLTF}, options: GLTFLoaderOptions): void {
+export function preprocess(gltfData: {json: GLTF}): void {
   const scenegraph = new GLTFScenegraph(gltfData);
 
-  if (!_isImageFormatSupported('image/webp')) {
-    if (scenegraph.getRequiredExtensions().includes(EXT_TEXTURE_WEBP)) {
-      throw new Error(`gltf: Required extension ${EXT_TEXTURE_WEBP} not supported by browser`);
-    }
-    return;
-  }
+  // if (!_isImageFormatSupported('image/webp')) {
+  //   if (scenegraph.getRequiredExtensions().includes(EXT_TEXTURE_WEBP)) {
+  //     throw new Error(`gltf: Required extension ${EXT_TEXTURE_WEBP} not supported by browser`);
+  //   }
+  //   return;
+  // }
 
   const {json} = scenegraph;
 

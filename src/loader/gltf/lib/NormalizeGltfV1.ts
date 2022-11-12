@@ -102,10 +102,8 @@ class GLTFV1Normalizer {
   /**
    * Convert (normalize) glTF < 2.0 to glTF 2.0
    * @param gltf - object with json and binChunks
-   * @param options
-   * @param options normalize Whether to actually normalize
    */
-  normalize(gltf, options) {
+  normalize(gltf) {
     this.json = gltf.json;
     const json = gltf.json;
 
@@ -124,11 +122,6 @@ class GLTFV1Normalizer {
         // eslint-disable-next-line no-undef, no-console
         console.warn(`glTF: Unknown version ${json.asset.version}`);
         return;
-    }
-
-    if (!options.normalize) {
-      // We are still missing a few conversion tricks, remove once addressed
-      throw new Error('glTF v1 is not supported.');
     }
 
     // eslint-disable-next-line no-undef, no-console
@@ -308,6 +301,6 @@ class GLTFV1Normalizer {
   }
 }
 
-export function normalizeGLTFV1(gltf, options = {}) {
-  return new GLTFV1Normalizer().normalize(gltf, options);
+export function normalizeGLTFV1(gltf) {
+  return new GLTFV1Normalizer().normalize(gltf);
 }

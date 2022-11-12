@@ -53,7 +53,7 @@ type TransformParameters = {
  * @param gltfData gltf buffers and json
  * @param options GLTFLoader options
  */
-export async function decode(gltfData: GLTFWithBuffers, options: GLTFLoaderOptions) {
+export async function decode(gltfData: GLTFWithBuffers) {
   const gltfScenegraph = new GLTFScenegraph(gltfData);
   const extension = gltfScenegraph.getExtension(EXT_MESHOPT_TRANSFORM);
   if (!extension) {

@@ -14,7 +14,7 @@ export const name = KHR_TEXTURE_BASISU;
  * Replaces a texture source reference with the extension texture
  * Done in preprocess() to prevent load of default image
  */
-export function preprocess(gltfData: {json: GLTF}, options: GLTFLoaderOptions): void {
+export function preprocess(gltfData: {json: GLTF}): void {
   const scene = new GLTFScenegraph(gltfData);
   const {json} = scene;
 

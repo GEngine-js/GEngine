@@ -33,33 +33,3 @@ export async function decode(gltfData: {json: GLTF}): Promise<void> {
     gltfScenegraph.removeObjectExtension(node, KHR_LIGHTS_PUNCTUAL);
   }
 }
-
-// Move the light ar ray out of the extension and remove the extension
-export async function encode(gltfData): Promise<void> {
-  const gltfScenegraph = new GLTFScenegraph(gltfData);
-  const {json} = gltfScenegraph;
-
-  // @ts-ignore
-  if (json.lights) {
-    const extension = gltfScenegraph.addExtension(KHR_LIGHTS_PUNCTUAL);
-    // @ts-ignore
-    // assert(!extension.lights);
-    // @ts-ignore
-    extension.lights = json.lights;
-    // @ts-ignore
-    delete json.lights;
-  }
-
-  // Any nodes that have lights field pointing to light object
-  // add the extension
-  // @ts-ignore
-  if (gltfScenegraph.json.lights) {
-    // @ts-ignore
-    for (const light of gltfScenegraph.json.lights) {
-      const node = light.node;
-      gltfScenegraph.addObjectExtension(node, KHR_LIGHTS_PUNCTUAL, light);
-    }
-    // @ts-ignore
-    delete gltfScenegraph.json.lights;
-  }
-}

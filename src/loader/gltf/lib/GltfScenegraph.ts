@@ -13,7 +13,7 @@ import type {
     GLTFBufferView
   } from '../types/gltf-types';
   
-  import {getBinaryImageMetadata} from '@loaders.gl/images';
+  import {getBinaryImageMetadata} from './GltfUtils';
   import {padToNBytes, copyToArray} from './GltfUtils';
 //   import {assert} from '../utils/assert';
   import {

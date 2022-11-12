@@ -1,6 +1,4 @@
 import {GLTF} from '../types/gltf-types';
-import type {GLTFLoaderOptions} from '../../gltf-loader';
-
 // GLTF 1.0 extensions (decode only)
 // import * as KHR_binary_gltf from './KHR_draco_mesh_compression';
 
@@ -8,7 +6,7 @@ import type {GLTFLoaderOptions} from '../../gltf-loader';
 import * as EXT_meshopt_compression from './ExtMeshoptCompression';
 import * as EXT_texture_webp from './ExtTextureWebp';
 import * as KHR_texture_basisu from './KhrTextureBasisu';
-import * as KHR_draco_mesh_compression from './KhrDracoMeshCompression';
+// import * as KHR_draco_mesh_compression from './KhrDracoMeshCompression';
 import * as KHR_texture_transform from './KhrTextureTransform';
 
 // Deprecated. These should be handled by rendering library (e.g. luma.gl), not the loader.
@@ -21,16 +19,15 @@ import * as EXT_feature_metadata from './ExtFeatureMetadata';
 
 type GLTFExtensionPlugin = {
   name: string;
-  preprocess?: (gltfData: {json: GLTF}, options: GLTFLoaderOptions, context) => void;
+  preprocess?: (gltfData: {json: GLTF}, options: {}, context) => void;
   decode?: (
     gltfData: {
       json: GLTF;
       buffers: {arrayBuffer: ArrayBuffer; byteOffset: number; byteLength: number}[];
     },
-    options: GLTFLoaderOptions,
+    options: {},
     context
   ) => Promise<void>;
-  encode?: (gltfData: {json: GLTF}, options: GLTFLoaderOptions) => void;
 };
 
 /**
@@ -48,7 +45,7 @@ export const EXTENSIONS: GLTFExtensionPlugin[] = [
   EXT_texture_webp,
   // Basisu should come after webp, we want basisu to be preferred if both are provided
   KHR_texture_basisu,
-  KHR_draco_mesh_compression,
+  // KHR_draco_mesh_compression,
   KHR_lights_punctual,
   KHR_materials_unlit,
   KHR_techniques_webgl,

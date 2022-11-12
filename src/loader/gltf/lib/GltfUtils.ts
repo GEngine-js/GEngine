@@ -267,3 +267,139 @@ export function padToNBytes(byteLength: number, padding: number): number {
   
     return targetOffset + padToNBytes(sourceArray.byteLength, 4);
   }
+  /**
+ * Copy a view of an ArrayBuffer into new ArrayBuffer with byteOffset = 0
+ * @param arrayBuffer
+ * @param byteOffset
+ * @param byteLength
+ */
+ export function sliceArrayBuffer(
+  arrayBuffer: ArrayBuffer,
+  byteOffset: number,
+  byteLength?: number
+): ArrayBuffer {
+  const subArray =
+    byteLength !== undefined
+      ? new Uint8Array(arrayBuffer).subarray(byteOffset, byteOffset + byteLength)
+      : new Uint8Array(arrayBuffer).subarray(byteOffset);
+  const arrayCopy = new Uint8Array(subArray);
+  return arrayCopy.buffer;
+}
+
+
+function toDataView(data) {
+  if (data instanceof DataView) {
+    return data;
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new DataView(data.buffer);
+  }
+
+  // TODO: make these functions work for Node.js buffers?
+  // if (bufferToArrayBuffer) {
+  //   data = bufferToArrayBuffer(data);
+  // }
+
+  // Careful - Node Buffers will look like ArrayBuffers (keep after isBuffer)
+  if (data instanceof ArrayBuffer) {
+    return new DataView(data);
+  }
+  throw new Error('toDataView');
+}
+export type BinaryImageMetadata = {
+  mimeType: string;
+  width: number;
+  height: number;
+};
+/**
+ * Extracts `{mimeType, width and height}` from a memory buffer containing a known image format
+ * Currently supports `image/png`, `image/jpeg`, `image/bmp` and `image/gif`.
+ * @param binaryData image file memory to parse
+ * @returns metadata or null if memory is not a valid image file format layout.
+ */
+ export function getBinaryImageMetadata(
+  binaryData: DataView | ArrayBuffer
+): BinaryImageMetadata | null {
+  const dataView = toDataView(binaryData);
+  return (
+    getPngMetadata(dataView) ||
+    getJpegMetadata(dataView) ||
+  );
+}
+const BIG_ENDIAN = false;
+function getPngMetadata(binaryData) {
+  const dataView = toDataView(binaryData);
+  // Check file contains the first 4 bytes of the PNG signature.
+  const isPng = dataView.byteLength >= 24 && dataView.getUint32(0, BIG_ENDIAN) === 0x89504e47;
+  if (!isPng) {
+    return null;
+  }
+
+  // Extract size from a binary PNG file
+  return {
+    mimeType: 'image/png',
+    width: dataView.getUint32(16, BIG_ENDIAN),
+    height: dataView.getUint32(20, BIG_ENDIAN)
+  };
+}
+// JPEG
+
+// Extract width and height from a binary JPEG file
+function getJpegMetadata(binaryData) {
+  const dataView = toDataView(binaryData);
+  // Check file contains the JPEG "start of image" (SOI) marker
+  // followed by another marker.
+  const isJpeg =
+    dataView.byteLength >= 3 &&
+    dataView.getUint16(0, BIG_ENDIAN) === 0xffd8 &&
+    dataView.getUint8(2) === 0xff;
+
+  if (!isJpeg) {
+    return null;
+  }
+
+  const {tableMarkers, sofMarkers} = getJpegMarkers();
+
+  // Exclude the two byte SOI marker.
+  let i = 2;
+  while (i + 9 < dataView.byteLength) {
+    const marker = dataView.getUint16(i, BIG_ENDIAN);
+
+    // The frame that contains the width and height of the JPEG image.
+    if (sofMarkers.has(marker)) {
+      return {
+        mimeType: 'image/jpeg',
+        height: dataView.getUint16(i + 5, BIG_ENDIAN), // Number of lines
+        width: dataView.getUint16(i + 7, BIG_ENDIAN) // Number of pixels per line
+      };
+    }
+
+    // Miscellaneous tables/data preceding the frame header.
+    if (!tableMarkers.has(marker)) {
+      return null;
+    }
+
+    // Length includes size of length parameter but not the two byte header.
+    i += 2;
+    i += dataView.getUint16(i, BIG_ENDIAN);
+  }
+
+  return null;
+}
+function getJpegMarkers() {
+  // Tables/misc header markers.
+  // DQT, DHT, DAC, DRI, COM, APP_n
+  const tableMarkers = new Set([0xffdb, 0xffc4, 0xffcc, 0xffdd, 0xfffe]);
+  for (let i = 0xffe0; i < 0xfff0; ++i) {
+    tableMarkers.add(i);
+  }
+
+  // SOF markers and DHP marker.
+  // These markers are after tables/misc data.
+  const sofMarkers = new Set([
+    0xffc0, 0xffc1, 0xffc2, 0xffc3, 0xffc5, 0xffc6, 0xffc7, 0xffc9, 0xffca, 0xffcb, 0xffcd, 0xffce,
+    0xffcf, 0xffde
+  ]);
+
+  return {tableMarkers, sofMarkers};
+}
