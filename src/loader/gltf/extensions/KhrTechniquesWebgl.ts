@@ -3,7 +3,7 @@
 
 import type {GLTF} from '../../types/gltf-types';
 
-import GLTFScenegraph from '../../api/gltf-scenegraph';
+import GLTFScenegraph from '../lib/GltfScenegraph';
 
 const KHR_TECHNIQUES_WEBGL = 'KHR_techniques_webgl';
 

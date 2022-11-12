@@ -84,7 +84,7 @@ export default function parseGLBSync(
 
 function parseGLBV1(glb: GLB, dataView: DataView, byteOffset: number): number {
   // Sanity: ensure file is big enough to hold at least the headers
-  assert(glb.header.byteLength > GLB_FILE_HEADER_SIZE + GLB_CHUNK_HEADER_SIZE);
+  // assert(glb.header.byteLength > GLB_FILE_HEADER_SIZE + GLB_CHUNK_HEADER_SIZE);
 
   // Explanation of GLB structure:
   // https://cloud.githubusercontent.com/assets/3479527/22600725/36b87122-ea55-11e6-9d40-6fd42819fcab.png
@@ -93,7 +93,7 @@ function parseGLBV1(glb: GLB, dataView: DataView, byteOffset: number): number {
   byteOffset += GLB_CHUNK_HEADER_SIZE;
 
   // GLB v1 only supports a single chunk type
-  assert(contentFormat === GLB_V1_CONTENT_FORMAT_JSON);
+  // assert(contentFormat === GLB_V1_CONTENT_FORMAT_JSON);
 
   parseJSONChunk(glb, dataView, byteOffset, contentLength);
   // No need to call the function padToBytes() from parseJSONChunk()
@@ -110,8 +110,6 @@ function parseGLBV2(
   options: GLBParseOptions
 ): number {
   // Sanity: ensure file is big enough to hold at least the first chunk header
-  assert(glb.header.byteLength > GLB_FILE_HEADER_SIZE + GLB_CHUNK_HEADER_SIZE);
-
   parseGLBChunksSync(glb, dataView, byteOffset, options);
 
   return byteOffset + glb.header.byteLength;
