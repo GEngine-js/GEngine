@@ -52,7 +52,7 @@ export class Mesh extends RenderObject {
     private createCommand(frameState: FrameState) {
         const {context,pass}=frameState;
         const {device,systemRenderResource}=context;
-        
+        if (this.material.dirty) this.material.dirty=false;
         const drawCommand = new DrawCommand({
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,

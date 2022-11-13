@@ -1,6 +1,7 @@
 import BindGroupLayout from "../render/BindGroupLayout";
 import  BindGroupEntity  from "../render/BindGroupEntity";
 import Texture from "../render/Texture";
+import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode, FrontFace, StencilOperation, TextureFormat } from "./WebGPUConstant";
 export const GPUCanvasCompositingAlphaMode: {
   [key: string]: GPUCanvasCompositingAlphaMode;
 } = {
@@ -117,5 +118,60 @@ export type bufferLayoutType={
   type: string;//"uniform"
   hasDynamicOffset?: Boolean;
   minBindingSize?: number;
+}
+//renderstate
+export type DepthStencil={
+  format: TextureFormat,
+  depthWriteEnabled:boolean,
+  depthCompare:CompareFunction,
+  stencilReadMask?: number,
+  stencilWriteMask?:number,
+  stencilFront?: {
+      compare: CompareFunction,
+      failOp: StencilOperation,
+      depthFailOp:StencilOperation,
+      passOp:StencilOperation,
+  },
+  stencilBack?: {
+      compare: CompareFunction,
+      failOp: StencilOperation,
+      depthFailOp: StencilOperation,
+      passOp: StencilOperation,
+  },
+  depthBias?:number,
+  depthBiasSlopeScale?:number,
+  depthBiasClamp?:number
+}
+export type PrimitiveState={
+  frontFace?:FrontFace,
+  cullMode?:CullMode,
+  unclippedDepth? :boolean,
+}
+export type MultiSample={
+  count?: number,
+  mask?: number,
+  alphaToCoverageEnabled?: boolean
+}
+export type Target={
+    format:TextureFormat,
+    blend?: {
+        color: {
+          operation: BlendOperation,
+          srcFactor: BlendFactor,
+          dstFactor: BlendFactor
+        },
+        alpha: {
+          operation: BlendOperation,
+          srcFactor: BlendFactor,
+          dstFactor:BlendFactor,
+        },
+    },
+    writeMask: ColorWriteFlags
+}
+export type BlendConstant={
+  r:number,
+  g:number,
+  b:number,
+  a:number
 }
 export default null;

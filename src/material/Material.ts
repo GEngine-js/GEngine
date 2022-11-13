@@ -18,6 +18,7 @@ import { FrameState } from "../core/FrameState";
 import { Mesh } from "../mesh/Mesh";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
+import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
 export class Material{
     public uniformBuffer:Buffer;
     color?: Vector4;
@@ -50,17 +51,17 @@ export class Material{
 
     dirty:boolean;
 
-    _blendConstant:{};
+    _blendConstant:BlendConstant;
 
-    _targets:{};
+    _targets:Target;
 
-    _multisample:{}
+    _multisample:MultiSample;
     
-    _primitiveState:{}
+    _primitiveState:PrimitiveState
 
-    _stencilReference:{};
+    _stencilReference:number;
 
-    _depthStencil:{};
+    _depthStencil:DepthStencil;
 
     _defines:{};
 
@@ -99,14 +100,14 @@ export class Material{
     }
     set blendConstant(value){
         this.renderStateDirty=true;
-        this._blendConstant=combine(value,this._blendConstant,false);
+        this._blendConstant=combine(value,this._blendConstant,false) as BlendConstant;
     }
     get targets(){
         return this._targets;
     }
-    set targets(value){
+    set targets(value:Target){
         this.renderStateDirty=true;
-        this._targets=combine(value,this._targets,false);
+        this._targets=combine(value,this._targets,false) as Target;
     }
     get multisample(){
         return this._multisample;
@@ -132,9 +133,9 @@ export class Material{
     get depthStencil(){
         return this._depthStencil;
     }
-    set depthStencil(value){
+    set depthStencil(value:DepthStencil){
         this.renderStateDirty=true;
-        this._depthStencil=combine(value,this._depthStencil,false);
+        this._depthStencil=combine(value,this._depthStencil,false) as DepthStencil;
     }
     onBeforeRender() {}
 
@@ -156,23 +157,23 @@ export class Material{
             format: TextureFormat.Depth24Plus,
             depthWriteEnabled:true,
             depthCompare:CompareFunction.Less,
-            // stencilReadMask: 0xFFFFFFFF,
-            // stencilWriteMask:0xFFFFFFFF,
-            // stencilFront: {
-            //     compare: CompareFunction.Always,
-            //     failOp: StencilOperation.Keep,
-            //     depthFailOp:StencilOperation.Keep,
-            //     passOp:StencilOperation.Keep,
-            // },
-            // stencilBack: {
-            //     compare: CompareFunction.Always,
-            //     failOp: StencilOperation.Keep,
-            //     depthFailOp: StencilOperation.Keep,
-            //     passOp: StencilOperation.Keep,
-            // },
-            // depthBias:0,
-            // depthBiasSlopeScale:  0,
-            // depthBiasClamp: 0
+            stencilReadMask: 0xFFFFFFFF,
+            stencilWriteMask:0xFFFFFFFF,
+            stencilFront: {
+                compare: CompareFunction.Always,
+                failOp: StencilOperation.Keep,
+                depthFailOp:StencilOperation.Keep,
+                passOp:StencilOperation.Keep,
+            },
+            stencilBack: {
+                compare: CompareFunction.Always,
+                failOp: StencilOperation.Keep,
+                depthFailOp: StencilOperation.Keep,
+                passOp: StencilOperation.Keep,
+            },
+            depthBias:0,
+            depthBiasSlopeScale:  0,
+            depthBiasClamp: 0
         });
         primitive=defaultValue(this.primitiveState,{
             frontFace:FrontFace.CW,
