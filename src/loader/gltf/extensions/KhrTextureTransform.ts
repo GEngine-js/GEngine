@@ -2,7 +2,8 @@
  * https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_texture_transform/README.md
  */
 
-import {Vector3, Matrix3} from '@math.gl/core';
+import Vector3 from '../../../math/Vector3';
+import Matrix3 from '../../../math/Matrix3';
 import type {GLTFMeshPrimitive, GLTFWithBuffers} from '../types/gltf-types';
 import {getAccessorArrayTypeAndLength,BYTES, COMPONENTS} from '../lib/GltfUtils';
 import {
@@ -194,7 +195,7 @@ function transformPrimitive(
           const uv = new ArrayType(arrayBuffer, byteOffset + i * elementAddressScale, 2);
           // Set and transform Vector3 per https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_transform#overview
           scratchVector.set(uv[0], uv[1], 1);
-          scratchVector.transformByMatrix3(matrix);
+          scratchVector.applyMatrix3(matrix);
           // Save result in Float32Array
           result.set([scratchVector[0], scratchVector[1]], i * components);
         }
@@ -286,8 +287,8 @@ function createAttribute(
  */
 function makeTransformationMatrix(extensionData: TextureInfo): Matrix3 {
   const {offset = [0, 0], rotation = 0, scale = [1, 1]} = extensionData;
-  const translationMatirx = new Matrix3().set(1, 0, 0, 0, 1, 0, offset[0], offset[1], 1);
-  const rotationMatirx = scratchRotationMatrix.set(
+  const translationMatirx = new Matrix3(1, 0, 0, 0, 1, 0, offset[0], offset[1], 1);
+  const rotationMatirx = Matrix3.fromColumnMajorArray([ 
     Math.cos(rotation),
     Math.sin(rotation),
     0,
@@ -296,8 +297,10 @@ function makeTransformationMatrix(extensionData: TextureInfo): Matrix3 {
     0,
     0,
     0,
-    1
-  );
-  const scaleMatrix = scratchScaleMatrix.set(scale[0], 0, 0, 0, scale[1], 0, 0, 0, 1);
-  return translationMatirx.multiplyRight(rotationMatirx).multiplyRight(scaleMatrix);
+    1]);
+  // );
+  const scaleMatrix = new Matrix3(scale[0], 0, 0, 0, scale[1], 0, 0, 0, 1);
+  Matrix3.multiply(translationMatirx,rotationMatirx,translationMatirx);
+  Matrix3.multiply(translationMatirx,scaleMatrix,translationMatirx);
+  return translationMatirx;
 }

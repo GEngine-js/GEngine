@@ -85,7 +85,6 @@ class Vector3 {
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
 	}
   applyMatrix4( matrix ) {
-
 		const x = this.x,
      y = this.y, 
      z = this.z;
@@ -97,6 +96,15 @@ class Vector3 {
 		return this;
 
 	}
+  applyMatrix3(matrix){
+    let x = this.x,
+    y = this.y,
+    z = this.z;
+    this.x= x * matrix[0] + y * matrix[3] + z * matrix[6];
+    this.y = x * matrix[1] + y * matrix[4] + z * matrix[7];
+    this.z = x * matrix[2] + y * matrix[5] + z * matrix[8];
+    return this;
+  }
   transformDirection( matrix ) {
 		const x = this.x, y = this.y, z = this.z;
 		const e = matrix;

@@ -19,14 +19,13 @@ import * as EXT_feature_metadata from './ExtFeatureMetadata';
 
 type GLTFExtensionPlugin = {
   name: string;
-  preprocess?: (gltfData: {json: GLTF}, options: {}, context) => void;
+  preprocess?: (gltfData: {json: GLTF}, options: {}) => void;
   decode?: (
     gltfData: {
       json: GLTF;
       buffers: {arrayBuffer: ArrayBuffer; byteOffset: number; byteLength: number}[];
     },
     options: {},
-    context
   ) => Promise<void>;
 };
 
@@ -54,25 +53,26 @@ export const EXTENSIONS: GLTFExtensionPlugin[] = [
 ];
 
 /** Call before any resource loading starts */
-export function preprocessExtensions(gltf, options: GLTFLoaderOptions = {}, context?) {
+export function preprocessExtensions(gltf, options: {},) {
   const extensions = EXTENSIONS.filter((extension) => useExtension(extension.name, options));
   for (const extension of extensions) {
-    extension.preprocess?.(gltf, options, context);
+    extension.preprocess?.(gltf, options,);
   }
 }
 
 /** Call after resource loading */
-export async function decodeExtensions(gltf, options: GLTFLoaderOptions = {}, context?) {
+export async function decodeExtensions(gltf, options:{}) {
   const extensions = EXTENSIONS.filter((extension) => useExtension(extension.name, options));
   for (const extension of extensions) {
     // Note: We decode async extensions sequentially, this might not be necessary
     // Currently we only have Draco, but when we add Basis we may revisit
-    await extension.decode?.(gltf, options, context);
+    await extension.decode?.(gltf, options);
   }
 }
 
-function useExtension(extensionName: string, options: GLTFLoaderOptions) {
-  const excludes = options?.gltf?.excludeExtensions || {};
+function useExtension(extensionName: string, options:{}) {
+  //const excludes = options?.gltf?.excludeExtensions || {};
+  const excludes ={};
   const exclude = extensionName in excludes && !excludes[extensionName];
   return !exclude;
 }

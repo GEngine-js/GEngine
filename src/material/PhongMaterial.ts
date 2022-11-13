@@ -30,13 +30,18 @@ export default class BaseMaterial extends Material {
     }
     update(frameState:FrameState,primitive:Mesh) { 
         const {device}=frameState.context;
-        if(!this.renderState)this.createRenderState(frameState)
+        // if(!this.renderState)this.createRenderState(frameState)
         if(!this.baseSampler) this.ceateTextureAndSampler(frameState.context);
         if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) this.createRenderState(frameState);
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
         //update defines
         this.shaderSource.update(frameState.defines,this.defines);
+        // if (frameState.definesDirty&&this.definesDirty) {
+        //     frameState.definesDirty=false;
+        //     this.definesDirty=false;
+        //     this.shaderSource.update(frameState.defines,this.defines);
+        // }
         this.updateUniform();
     }
     private createBindGroupAndLayout(device:GPUDevice){

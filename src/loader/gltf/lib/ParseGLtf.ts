@@ -24,13 +24,12 @@ export async function parseGLTF(
   arrayBufferOrString,
   byteOffset = 0,
   options: {},
-  context: LoaderContext
 ) {
   parseGLTFContainerSync(gltf, arrayBufferOrString, byteOffset, options);
 
   normalizeGLTFV1(gltf);
 
-  preprocessExtensions(gltf, options, context);
+  preprocessExtensions(gltf, options,);
 
   const promises: Promise<any>[] = [];
 
@@ -43,7 +42,7 @@ export async function parseGLTF(
   promises.push(imagePromise);
 
 
-  const extensionPromise = decodeExtensions(gltf, options, context);
+  const extensionPromise = decodeExtensions(gltf, options);
   promises.push(extensionPromise);
 
   // Parallelize image loading and buffer loading/extension decoding

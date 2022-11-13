@@ -42,9 +42,7 @@ export class ShaderSource{
     }
     private updateShaderStr(){
         if (this.render) {
-            const source=getVertFrag(this.type,this.defines);    
-            console.log(source.frag);
-                          
+            const source=getVertFrag(this.type,this.defines);                      
             this.vert=source.vert;
             this.frag=source.frag; 
         }

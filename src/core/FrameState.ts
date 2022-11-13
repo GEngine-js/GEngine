@@ -13,6 +13,7 @@ export class FrameState{
     public textureMemory:number;
     public frameNumber:number;
     cullingVolume:CullingVolume;
+    definesDirty:boolean;
     viewport:{ x: number; y: number; width: number; height: number; };
     private _defines:{};
     constructor(public context:Context){
@@ -20,12 +21,14 @@ export class FrameState{
        this.geometryMemory=0;
        this.textureMemory=0;
        this.frameNumber=0;
-       this._defines={}
+       this._defines={};
+       this.definesDirty=true;
     }
     get defines(){
         return this._defines;
     }
     set defines(value){
+        this.definesDirty=true;
         this._defines=combine(value,this._defines,false)
     }
     update(camera:PerspectiveCamera){

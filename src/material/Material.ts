@@ -45,7 +45,10 @@ export class Material{
     bindGroups: BindGroup[];
 
     transparent:boolean;
+
     renderStateDirty:boolean;
+
+    shaderDirty:boolean;
 
     _blendConstant:{};
 
@@ -60,6 +63,8 @@ export class Material{
     _depthStencil:{};
 
     _defines:{};
+    
+    definesDirty: boolean;
 
     constructor(){
         //
@@ -76,6 +81,7 @@ export class Material{
         this.uniforms=undefined;
         this.shaderSource=undefined;
         this.renderStateDirty=true;
+        this.definesDirty=true;
         this._defines={};
         this.groupLayouts=[];
         this.bindGroups=[];
@@ -84,6 +90,7 @@ export class Material{
         return this._defines;
     }
     set defines(value){
+        this.definesDirty=true;
         this._defines=combine(value,this._defines,false);
     }
     get blendConstant(){
@@ -139,9 +146,11 @@ export class Material{
         this.uniforms.forEach((uniform)=>{
             uniform.set();
         });
-        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer)
+        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer);
+
     }
     createRenderState(frameState:FrameState){
+        this.renderStateDirty=false;
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
         depthStencil=defaultValue(this.depthStencil,{
             format: TextureFormat.Depth24Plus,

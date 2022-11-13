@@ -2,6 +2,8 @@ import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
+import { Quaternion } from "./Quaternion";
+import Matrix2 from "./Matrix2";
 /**
  * A 3x3 matrix, indexable as a column-major order array.
  * Constructor parameters are in row-major order for code readability.
@@ -101,7 +103,10 @@ class Matrix3 {
    * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
    */
-  static fromColumnMajorArray(values, result) {
+  static fromColumnMajorArray(values:Array<number>, result?:Matrix3) {
+    if (!defined(result)) {
+        result=new Matrix3
+    }
     return Matrix3.clone(values, result);
   };
 
@@ -113,7 +118,7 @@ class Matrix3 {
    * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
    */
-  static fromRowMajorArray(values, result) {
+  static fromRowMajorArray(values:Array<number>, result?:Matrix3) {
 
     if (!defined(result)) {
       return new Matrix3(
@@ -147,7 +152,7 @@ class Matrix3 {
    * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
    * @returns {Matrix3} The 3x3 rotation matrix from this quaternion.
    */
-  static fromQuaternion(quaternion, result) {
+  static fromQuaternion(quaternion:Quaternion, result?:Matrix3) {
 
     const x2 = quaternion.x * quaternion.x;
     const xy = quaternion.x * quaternion.y;
