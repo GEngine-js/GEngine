@@ -30,7 +30,8 @@ export class Mesh extends RenderObject {
         this.material.update(frameState,this);
 
         // update boundingSphere
-        //this.geometry.boundingSphere.update(this.modelMatrix);
+
+        this.geometry.boundingSphere.update(this.modelMatrix);
 
         this.distanceToCamera=this.geometry.boundingSphere.distanceToCamera(frameState);
 
@@ -38,7 +39,7 @@ export class Mesh extends RenderObject {
         //视锥剔除
         if (visibility === Intersect.INTERSECTING||visibility===Intersect.INSIDE) {
             //重新创建的条件
-            if (!this.drawCommand) this.createCommand(frameState);
+            if (!this.drawCommand||this.material.dirty) this.createCommand(frameState);
             if (this.material.transparent) {
                 frameState.commandList.transparent.push(this.drawCommand);
             } else {

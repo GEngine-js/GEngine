@@ -3,7 +3,6 @@ import {
 } from "../core/WebGPUTypes";
 import{TextureUsage} from '../core/WebGPUConstant'
 import { ContextOptions } from "../core/WebGPUTypes";
-import { RenderPipelineCache } from "./RenderPipelineCache.js";
 import DrawCommand from "./DrawCommand.js";
 import RenderTarget from "./RenderTarget";
 import RenderState from "./RenderState";
@@ -25,8 +24,6 @@ class Context {
   public commandEncoder: GPUCommandEncoder | null;
 
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
- 
-  public renderPipelineCache:RenderPipelineCache;
   
   public currentRenderTarget:RenderTarget;
 
@@ -82,7 +79,6 @@ class Context {
         alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
         ...presentationContextDescriptor,
       });
-      this.renderPipelineCache=new RenderPipelineCache(this.device);
       this.systemRenderResource=new SystemRenderResource();
       
     } catch (error) {
