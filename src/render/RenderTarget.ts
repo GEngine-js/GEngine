@@ -5,8 +5,6 @@ import QuerySet from "./QuerySet";
 import Texture from "./Texture";
 
 export default class RenderTarget {
-  colorTextures: Texture[];
-  depthStencilTexture: Texture[];
   renderPassDescriptor: GPURenderPassDescriptor;
   constructor(
     public type: PassType,
@@ -17,7 +15,19 @@ export default class RenderTarget {
   ) {
     this.renderPassDescriptor = this.getRenderPassDescriptor();
   }
-
+  public getColorTexture(index:number=0):Texture{
+    const colAtt=this.colorAttachments[index];
+    if (colAtt) {
+      return colAtt.texture
+    } else {
+      return null;
+    }
+  }
+  public getDepthTexture():Texture{
+     if (this.depthAttachment) {
+       return this.depthAttachment.texture;
+     }
+  }
   private getRenderPassDescriptor(): GPURenderPassDescriptor | null {
     if (this.type === "render") {
       return {

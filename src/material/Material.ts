@@ -188,7 +188,7 @@ export class Material{
         stencilReference=defaultValue(this.stencilReference,0);
         blendConstant=defaultValue(this.blendConstant,{ r: 1, g: 1, b: 1, a: 1 });
         viewport=frameState.viewport; 
-        targets=frameState?.pass?.colorTargets!=undefined?frameState?.pass?.colorTargets:[{
+        targets=frameState?.pass?.colorTargets!=undefined?frameState.pass.colorTargets:[{
             format:frameState.context.presentationFormat,
             blend: {
                 color: {

@@ -84,10 +84,7 @@ export class Scene extends EventDispatcher {
         this.primitiveManger.update(this.frameState)
         
         //selct renderPipeline
-        this.currentRenderPipeline.setRenderList({
-            opaque:this.frameState.commandList.opaque,
-            transparent:this.frameState.commandList.transparent
-        });
+        this.currentRenderPipeline.setRenderList(this.frameState.commandList);
         this.currentRenderPipeline.render();
     }
 

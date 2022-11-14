@@ -11,11 +11,11 @@ export class BasicPass extends Pass{
         super(context);
         this.init();
     }
-    render(opaque,transparent){
-       CommandList.sort(opaque,0,opaque.length,CommandList._compareFromNearToFar);
-       CommandList.sort(transparent,0,transparent.length,CommandList._compareFromFarToNear);
-       this.excuteCommands(opaque);
-       this.excuteCommands(transparent);
+    render(commandList:CommandList){
+       CommandList.sort(commandList.opaque,0,commandList.opaqueLength,CommandList._compareFromNearToFar);
+       CommandList.sort(commandList.transparent,0,commandList.transparentLenght,CommandList._compareFromFarToNear);
+       this.excuteCommands(commandList.opaque);
+       this.excuteCommands(commandList.transparent);
     }
     private init(){
         this.createRenderTarget();
