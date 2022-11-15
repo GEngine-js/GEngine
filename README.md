@@ -1,5 +1,7 @@
 ## Note:
-  * 正在开发阶段，还不能跑起来
+  * 一个WebGPU 引擎
 ##  install
   * `npm install` 
+##  build
+  * `npm run build` 
 

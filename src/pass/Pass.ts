@@ -5,7 +5,6 @@ import Context from "../render/Context.js";
 import DrawCommand from "../render/DrawCommand.js";
 import { Target } from "../core/WebGPUTypes.js";
 import Texture from "../render/Texture.js";
-import IPass from "../render/IPass.js";
 
 class Pass {
   public renderTarget: RenderTarget;

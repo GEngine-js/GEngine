@@ -6,9 +6,7 @@ import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import Context from "../render/Context";
-import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import { FrameState } from "../core/FrameState";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;

@@ -157,13 +157,6 @@ class Context {
       );
     }
   }
-  // public render(drawCommand:DrawCommand,): void {
-  //   // this.commandEncoder = this.device.createCommandEncoder();
-  //   // Submit commands
-  //   this.submit(drawCommand);
-  //   this.device.queue.submit([this.commandEncoder.finish()]);
-  //   this.commandEncoder = null;
-  // }
 }
 
 export default Context;
