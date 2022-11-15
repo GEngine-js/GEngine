@@ -1,11 +1,11 @@
-import RenderTarget from "./RenderTarget.js";
+import RenderTarget from "../render/RenderTarget.js";
 import { Material } from "../material/Material.js";
 import CommandList from "../core/CommandList.js";
-import Context from "./Context.js";
-import DrawCommand from "./DrawCommand.js";
+import Context from "../render/Context.js";
+import DrawCommand from "../render/DrawCommand.js";
 import { Target } from "../core/WebGPUTypes.js";
-import Texture from "./Texture.js";
-import IPass from "./IPass.js";
+import Texture from "../render/Texture.js";
+import IPass from "../render/IPass.js";
 
 class Pass {
   public renderTarget: RenderTarget;

@@ -3,7 +3,7 @@ import { InputStepMode, VertexFormat } from "../core/WebGPUConstant";
 import Attribute from "../render/Attribute";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
-import Pass from "../render/Pass";
+import Pass from "../pass/Pass";
 import Buffer from '../render/Buffer';
 
 export default class ResolveFrameTarget extends Pass{

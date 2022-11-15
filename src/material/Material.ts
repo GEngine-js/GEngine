@@ -19,6 +19,7 @@ import { Mesh } from "../mesh/Mesh";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
+import RenderObject from "../core/RenderObject";
 export class Material{
     public uniformBuffer:Buffer;
     color?: Vector4;
@@ -141,7 +142,7 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(frameState:FrameState,primitive:Mesh){
+    update(frameState:FrameState,primitive:RenderObject){
        
     }
     updateUniform(){

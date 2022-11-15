@@ -2,7 +2,7 @@ import CommandList from "../core/CommandList";
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
-import Pass from "../render/Pass";
+import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
 
@@ -14,8 +14,8 @@ export class BasicPass extends Pass{
     render(commandList:CommandList){
        CommandList.sort(commandList.opaque,0,commandList.opaqueLength,CommandList._compareFromNearToFar);
        CommandList.sort(commandList.transparent,0,commandList.transparentLenght,CommandList._compareFromFarToNear);
-       this.excuteCommands(commandList.opaque,'render');
-       this.excuteCommands(commandList.transparent,'render');
+       this.excuteCommands(commandList.opaque);
+       this.excuteCommands(commandList.transparent);
     }
     private init(){
         this.createRenderTarget();

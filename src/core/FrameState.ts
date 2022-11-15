@@ -1,6 +1,6 @@
 import PerspectiveCamera from "../camera/PerspectiveCamera";
 import Context from "../render/Context";
-import Pass from "../render/Pass";
+import Pass from "../pass/Pass";
 import combine from "../utils/combine";
 import CommandList from "./CommandList";
 import CullingVolume from "./CullingVolume";

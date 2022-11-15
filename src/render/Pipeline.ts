@@ -82,7 +82,7 @@ export default class Pipeline{
               buffers:vertexBuffers.getBuffers() as Iterable<GPUVertexBufferLayout>,
             },
             primitive:primitiveState,
-            depthStencil:renderState.depthStencil,
+            depthStencil:renderState.depthStencil as GPUDepthStencilState,
             multisample:renderState.multisample,
             fragment: {
               module: frag,

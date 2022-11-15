@@ -2,16 +2,11 @@ import { FrameState } from "../core/FrameState";
 import RenderObject from "../core/RenderObject";
 import { VertextBuffers } from "../core/VertextBuffers";
 import { IndexFormat, InputStepMode, PrimitiveTopology, VertexFormat } from "../core/WebGPUConstant";
-import { Material } from "../material/Material";
+import ColorMaterial from "../material/ColorMaterial";
 import Attribute from "../render/Attribute";
-import BindGroup from "../render/BindGroup";
-import BindGroupLayout from "../render/BindGroupLayout";
 import Buffer from "../render/Buffer";
 import DrawCommand from "../render/DrawCommand";
 import Pipeline from "../render/Pipeline";
-import RenderState from "../render/RenderState";
-import { UniformMat4 } from "../render/Uniforms";
-import { ShaderSource } from "../shader/ShaderSource";
 export default class Axes extends RenderObject {
 
     private vertBuffers: VertextBuffers;
@@ -20,47 +15,29 @@ export default class Axes extends RenderObject {
 
     private drawCommand: DrawCommand;
 
-    uniforms:any[];
-
-    uniformsDataBuffer: Float32Array;
-
-    shaderSource: ShaderSource;
-
-    groupLayouts: BindGroupLayout[];
-
-    bindGroups: BindGroup[];
-
     count: number;
-
-    uniformBuffer: Buffer;
 
     type:string;
 
     distanceToCamera:number;
+
     priority?:number;
+
+    material: ColorMaterial;
+
     constructor() {
         super();
         this.type = 'primitive';
-        this.shaderSource=new ShaderSource({
-            type:'color',
-            render:true,
-            defines:{}
-        });
         this.distanceToCamera=10;
-        this.groupLayouts=[];
-        this.bindGroups=[];
+        this.material=new ColorMaterial();
     }
     update(frameState: FrameState){
         this.updateMatrix();
-        if(!this.uniformBuffer) this.init(frameState);
-        this.uniforms.forEach((uniform)=>{
-            uniform.set();
-        });
-        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer);
+        this.material.update(frameState,this);
+        if(!this.drawCommand) this.init(frameState);
         frameState.commandList.opaque.push(this.drawCommand);
     }
     private init(frameState: FrameState) {
-        this.shaderSource.update();
         const {context,pass}=frameState;
         const {device,systemRenderResource}=context;
         const data = new Float32Array([
@@ -93,40 +70,20 @@ export default class Axes extends RenderObject {
         this.vertBuffers = vertBuffers;
         this.indexBuffer = Buffer.createIndexBuffer(device, indices);
         this.count = indices.length;
-        this.createBindGroupAndLayout(device);
         this.drawCommand = new DrawCommand({
             vertexBuffers: this.vertBuffers,
             indexBuffer: this.indexBuffer,
             indexFormat: IndexFormat.Uint16,
-            bindGroups: this.bindGroups,
+            bindGroups: this.material.bindGroups,
             instances: 1,
             count: this.count,
-            renderState:{
-                viewport:frameState.viewport,
-                depthStencil:RenderState.defaultDepthStencil,
-                target:[RenderState.defaultTarget]
-            },
+            renderState:this.material.renderState,
             topology:PrimitiveTopology.LineList,
-            shaderSource:this.shaderSource,
-            groupLayouts:this.groupLayouts,
-            uuid:'color'+this.shaderSource.uid,
+            shaderSource:this.material.shaderSource,
+            groupLayouts:this.material.groupLayouts,
+            uuid:this.material.type+this.material.shaderSource.uid,
             type:'render'      
         });
         this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };
-    private createUniformBuffer(device:GPUDevice){
-        this.uniformsDataBuffer=new Float32Array(16);
-        this.uniforms=[
-            new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
-                return this.modelMatrix;
-            }),
-        ]
-        this.uniformBuffer=Buffer.createUniformBuffer(device,64)
-    }
-    private createBindGroupAndLayout(device:GPUDevice){
-        this.createUniformBuffer(device);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,'axes',0);
-        this.groupLayouts.push(groupLayout);
-        this.bindGroups.push(bindGroup);
-      }
 }

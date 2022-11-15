@@ -110,22 +110,7 @@ class Context {
   }
 
   public render(command: DrawCommand,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder): void {
-    // debugger
-    // if (!this.commandEncoder) {
-    //   console.warn("You need to submit commands inside the render callback.");
-    //   return;
-    // }
-    //   //let pipeline;
-    //   if (command.type === "render") {
-    //     this.currentRenderTarget.renderPassDescriptor.colorAttachments[0].view = this.context
-    //     .getCurrentTexture()
-    //     .createView();
-    //     this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
-    //   } else if (command.type === "compute") {
-    //     this.passEncoder = this.commandEncoder.beginComputePass();
-    //   }
-    
-    
+
     if (command.pipeline) {
         command.pipeline.bind(passEncoder)
     }
@@ -171,10 +156,6 @@ class Context {
           : [command.dispatch]) as [number, number?, number?])
       );
     }
-
-    // if (subcommand) subcommand();
-      // this.passEncoder?.end();
-      // this.passEncoder = null;
   }
   // public render(drawCommand:DrawCommand,): void {
   //   // this.commandEncoder = this.device.createCommandEncoder();

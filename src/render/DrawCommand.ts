@@ -1,4 +1,4 @@
-import Pass from "./Pass";
+import Pass from "../pass/Pass";
 import Pipeline from "./Pipeline";
 import Buffer from "./Buffer";
 import BindGroup from "./BindGroup";
