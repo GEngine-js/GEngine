@@ -7,12 +7,12 @@ import DrawCommand from "../render/DrawCommand";
 import Pipeline from "../render/Pipeline";
 export class Mesh extends RenderObject {
     [x: string]: any;
-    geometry: Geometry;
-    material: Material;
+    geometry?: Geometry;
+    material?: Material;
     instances?: number;
     priority?:number;
-    drawCommand: DrawCommand;
-    distanceToCamera:number;
+    drawCommand?: DrawCommand;
+    distanceToCamera?:number;
     constructor(geometry, material) {
         super();
         this.geometry = geometry;

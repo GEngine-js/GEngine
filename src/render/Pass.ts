@@ -6,19 +6,26 @@ import DrawCommand from "./DrawCommand.js";
 import { Target } from "../core/WebGPUTypes.js";
 import Texture from "./Texture.js";
 import IPass from "./IPass.js";
+
 class Pass {
   public renderTarget: RenderTarget;
   public context:Context;
   public overrideMaterial?:Material;
-  public colorTargets?:Array<Target>
+  public colorTargets?:Array<Target>;
+  private commandEncoder:GPUCommandEncoder |null;
+  private passRenderEncoder: GPURenderPassEncoder |null;
   constructor(
     context:Context
   ) {
      this.context=context;
+     
   }
   render(commandList: CommandList|DrawCommand): void{};
   beforRender(){
-
+    const {device}=this.context;
+    this.commandEncoder = device.createCommandEncoder();
+    this.renderTarget.renderPassDescriptor.colorAttachments[0].view = this.context.context.getCurrentTexture().createView();
+    this.passRenderEncoder = this.commandEncoder.beginRenderPass(this.renderTarget.renderPassDescriptor);
   }
   getColorTexture(index:number=0):Texture{
      return this.renderTarget.getColorTexture(index)
@@ -27,19 +34,19 @@ class Pass {
     return this.renderTarget.getDepthTexture();
   }
   afterRender(){
-
+    this.passRenderEncoder?.end();
+    this.passRenderEncoder = null;
+    this.context.device.queue.submit([this.commandEncoder.finish()]);
+    this.commandEncoder = null;
   }
   protected excuteCommands(commands:DrawCommand[]){
     commands.forEach((command)=>{
-      this.excuteCommand(command);
+      this.excuteCommand(command,this.passRenderEncoder);
     });
   }
-  protected excuteCommand(command){
-    this.context.currentRenderTarget=this.renderTarget;
-    this.context.render(command);
-    this.context.currentRenderTarget=null;
+  protected excuteCommand(command,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder){
+    this.context.render(command,passEncoder);
   }
-  resolveFramebuffers
 }
 
 export default Pass;

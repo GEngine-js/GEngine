@@ -142,7 +142,6 @@ export default class LightManger extends Manger{
             this.lightCount[1]=this.pointLights.length;
             this.lightCount[2]=this.dirtectLights.length;
             this.lightCount[3]=this.ambient!=undefined?1:0; 
-            debugger
         }
     }
     private initBuffer(){

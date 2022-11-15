@@ -17,8 +17,11 @@ export default class ForwardRenderLine implements IBaseRenderLine{
     }
     addPass(){}
     render() {
+        
         this.passList.forEach((pass)=>{
+             pass.beforRender();
              pass.render(this.commandList);
+             pass.afterRender();
         });       
     }
     destory(){}

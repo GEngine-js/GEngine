@@ -4,9 +4,11 @@ import DrawCommand from "../render/DrawCommand";
 export default class CommandList {
    public opaque: Array<DrawCommand>;
    public transparent: Array<DrawCommand>;
+   public compute: Array<DrawCommand>;
    constructor() {
       this.opaque = [];
       this.transparent = [];
+      this.compute=[];
    }
    get opaqueLength() {
       return this.opaque.length;
@@ -14,15 +16,20 @@ export default class CommandList {
    get transparentLenght() {
       return this.transparent.length;
    }
+   get computeLenghth(){
+      return this.compute.length
+   }
    get renderQueue(){
       return {
          opaque:this.opaque,
-         transparent:this.transparent
+         transparent:this.transparent,
+         compute:this.compute
       }
    }
    reset() {
       this.opaque = [];
       this.transparent = [];
+      this.compute=[];
    }
 
   static _compareFromNearToFar(a: Mesh, b: Mesh): number {

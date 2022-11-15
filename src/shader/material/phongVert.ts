@@ -30,7 +30,7 @@ export default function phongVert(defines){
             @location(1) normal: vec3<f32>,
             @location(2) uv: vec2<f32>,
       }
-            @vertex
+      @vertex
       fn main(input: VertexInput) -> VertexOutput {
             var output: VertexOutput;
             output.vUv = input.uv;

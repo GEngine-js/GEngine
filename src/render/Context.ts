@@ -109,34 +109,35 @@ class Context {
     });
   }
 
-  private submit(command: DrawCommand,subcommand?: () => unknown): void {
-    if (!this.commandEncoder) {
-      console.warn("You need to submit commands inside the render callback.");
-      return;
-    }
-      //let pipeline;
-      if (command.type === "render") {
-        this.currentRenderTarget.renderPassDescriptor.colorAttachments[0].view = this.context
-        .getCurrentTexture()
-        .createView();
-        this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
-      } else if (command.type === "compute") {
-        this.passEncoder = this.commandEncoder.beginComputePass();
-      }
+  public render(command: DrawCommand,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder): void {
+    // debugger
+    // if (!this.commandEncoder) {
+    //   console.warn("You need to submit commands inside the render callback.");
+    //   return;
+    // }
+    //   //let pipeline;
+    //   if (command.type === "render") {
+    //     this.currentRenderTarget.renderPassDescriptor.colorAttachments[0].view = this.context
+    //     .getCurrentTexture()
+    //     .createView();
+    //     this.passEncoder = this.commandEncoder.beginRenderPass(this.currentRenderTarget.renderPassDescriptor);
+    //   } else if (command.type === "compute") {
+    //     this.passEncoder = this.commandEncoder.beginComputePass();
+    //   }
     
     
     if (command.pipeline) {
-        command.pipeline.bind(this.passEncoder)
+        command.pipeline.bind(passEncoder)
     }
     if (command.renderState) {
-      RenderState.applyRenderState(this.passEncoder as GPURenderPassEncoder,command.renderState)
+      RenderState.applyRenderState(passEncoder as GPURenderPassEncoder,command.renderState)
     }
     if (command.vertexBuffers) {
-      command.vertexBuffers.bind(this.passEncoder as GPURenderPassEncoder)
+      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder)
     }
 
     if (command.indexBuffer) {
-      (this.passEncoder as GPURenderPassEncoder).setIndexBuffer(
+      (passEncoder as GPURenderPassEncoder).setIndexBuffer(
         command.indexBuffer.gpuBuffer,
         command.indexFormat
       );
@@ -145,11 +146,11 @@ class Context {
     if (command.bindGroups) {
       const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups).sort((group1,group2)=>group1.index-group2.index)
       for (let i = 0; i < combineBindGroups.length; i++) {
-        this.passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
+        passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
       }
     }
     if (command.indexBuffer) {
-      (this.passEncoder as GPURenderPassEncoder).drawIndexed(
+      (passEncoder as GPURenderPassEncoder).drawIndexed(
         command.count || 0,
         command.instances || 1,
         0,
@@ -164,24 +165,24 @@ class Context {
         0
       );
     } else if (command.dispatch) {
-      (this.passEncoder as GPUComputePassEncoder).dispatch(
+      (passEncoder as GPUComputePassEncoder).dispatch(
         ...((Array.isArray(command.dispatch)
           ? command.dispatch
           : [command.dispatch]) as [number, number?, number?])
       );
     }
 
-    if (subcommand) subcommand();
-      this.passEncoder?.end();
-      this.passEncoder = null;
+    // if (subcommand) subcommand();
+      // this.passEncoder?.end();
+      // this.passEncoder = null;
   }
-  public render(drawCommand:DrawCommand): void {
-    this.commandEncoder = this.device.createCommandEncoder();
-    // Submit commands
-    this.submit(drawCommand);
-    this.device.queue.submit([this.commandEncoder.finish()]);
-    this.commandEncoder = null;
-  }
+  // public render(drawCommand:DrawCommand,): void {
+  //   // this.commandEncoder = this.device.createCommandEncoder();
+  //   // Submit commands
+  //   this.submit(drawCommand);
+  //   this.device.queue.submit([this.commandEncoder.finish()]);
+  //   this.commandEncoder = null;
+  // }
 }
 
 export default Context;

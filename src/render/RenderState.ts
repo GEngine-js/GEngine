@@ -1,19 +1,17 @@
 import defaultValue from "../utils/defaultValue";
 import defined  from "../utils/defined";
-import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp } from "../core/WebGPUConstant.js";
+import { BlendOperation, BlendFactor, StencilOperation, CompareFunction, GPUColorWrite, TextureFormat, FrontFace, CullMode, StoreOp, LoadOp, ColorWriteFlags } from "../core/WebGPUConstant.js";
+import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
 const renderStateCache=new WeakMap();
 export default class RenderState {
   scissorTest: { x: number, y: number, width: number, height: number};
   viewport: { x: number, y: number, width: number, height: number};
-  stencilTest: { depthWriteEnabled: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
-  targets: {};
-  depthStencil: { format: any; depthWriteEnabled: any; depthCompare: any; stencilReadMask: any; stencilWriteMask: any; stencilFront: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; stencilBack: { compare: any; failOp: any; depthFailOp: any; passOp: any; }; depthBias: any; depthBiasSlopeScale: any; depthBiasClamp: any; };
-  blendConstant: any;
-  stencilReference: any;
-  multisample: any;
-  primitive: any;
-  depthStencilAttachment: any;
-  colorAttachment: any;
+  targets: Array<Target>;
+  depthStencil: DepthStencil;
+  blendConstant: BlendConstant;
+  stencilReference: number;
+  multisample: MultiSample;
+  primitive: PrimitiveState;
   stencilEnabled: boolean;
   scissorTestEnabled: boolean;
   constructor(renderState) {
@@ -32,23 +30,6 @@ export default class RenderState {
     const viewport = rs.viewport;
     this.stencilEnabled=defaultValue(rs.stencilEnabled,false);
     this.scissorTestEnabled=defaultValue(rs.scissorTestEnabled,false);
-    this.colorAttachment=defaultValue(rs.colorAttachment,{
-      clearValue:{r:0,g:0,b:0,a:0},
-      loadOp:LoadOp.Clear,
-      storeOp:StoreOp.Store,
-    })
-    //
-    this.depthStencilAttachment=defaultValue(rs.depthStencilAttachment,{
-        depthClearValue:1.0,
-        depthLoadOp:LoadOp.Clear,
-        depthStoreOp:StoreOp.Store,
-        depthReadOnly :false,
-    
-        stencilClearValue:0,
-        stencilLoadOp:LoadOp.Clear,
-        stencilStoreOp:StoreOp.Store,
-       stencilReadOnly:false,
-    })
     this.scissorTest=defaultValue(rs.scissorRect,{
       x:viewport.x,
       y:viewport.y,
@@ -64,8 +45,8 @@ export default class RenderState {
     //已完善
     this.blendConstant = defaultValue(rs.blendConstant, { r: 1, g: 1, b: 1, a: 1 })
     //已完善
-    this.targets =Array.isArray(targets)?targets: {
-      format: defaultValue(targets.format, TextureFormat.Depth24UnormStencil8),
+    this.targets =Array.isArray(targets)?targets: [{
+      format:TextureFormat.BGRA8Unorm,
       blend: {
         color: {
           operation: defaultValue(
@@ -97,7 +78,7 @@ export default class RenderState {
         },
       },
       writeMask: defaultValue(targets.writeMask, GPUColorWrite.All)
-    }
+    }]
     //
     this.stencilReference = defaultValue(rs.stencilReference, 0)
     //已完善
@@ -134,6 +115,58 @@ export default class RenderState {
       ? viewport
       : undefined;
   }
+  static readonly defaultDepthStencil={
+      format: TextureFormat.Depth24Plus,
+      depthWriteEnabled:true,
+      depthCompare:CompareFunction.Less,
+      stencilReadMask: 0xFFFFFFFF,
+      stencilWriteMask:0xFFFFFFFF,
+      stencilFront: {
+          compare: CompareFunction.Always,
+          failOp: StencilOperation.Keep,
+          depthFailOp:StencilOperation.Keep,
+          passOp:StencilOperation.Keep,
+      },
+      stencilBack: {
+          compare: CompareFunction.Always,
+          failOp: StencilOperation.Keep,
+          depthFailOp: StencilOperation.Keep,
+          passOp: StencilOperation.Keep,
+      },
+      depthBias:0,
+      depthBiasSlopeScale:  0,
+      depthBiasClamp: 0
+  }
+
+  static readonly defaultPrimitiveState={
+    frontFace:FrontFace.CW,
+    cullMode:CullMode.None,
+    unclippedDepth :false,
+  }
+
+  static readonly defaultMultisample={
+    count: 1,
+    mask: 0xFFFFFFFF,
+    alphaToCoverageEnabled: false
+  }
+
+  static readonly defaultTarget={
+    format:TextureFormat.BGRA8Unorm,
+    blend: {
+        color: {
+        operation: BlendOperation.Add,
+        srcFactor: BlendFactor.One,
+        dstFactor: BlendFactor.Zero
+        },
+        alpha: {
+        operation: BlendOperation.Add,
+        srcFactor: BlendFactor.One,
+        dstFactor:BlendFactor.Zero,
+        },
+    },
+    writeMask: ColorWriteFlags.All
+  }
+  static readonly defaultBlendConstant={ r: 1, g: 1, b: 1, a: 1 };
   static getFromRenderStateCache(renderstate){
       if (renderStateCache.has(renderstate)) {
         return renderStateCache.get(renderstate);
@@ -142,6 +175,9 @@ export default class RenderState {
       renderStateCache.set(renderstate,Object.freeze(newRenderState));
       return newRenderState;
   }
+ 
+
+
   static applyRenderState(passEncoder:GPURenderPassEncoder,renderState:{}){
     const {blendConstant,stencilReference,viewport,scissorTest,stencilEnabled,scissorTestEnabled}=RenderState.getFromRenderStateCache(renderState);
     passEncoder.setBlendConstant(blendConstant);

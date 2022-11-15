@@ -6,13 +6,13 @@ import Vector3 from "../math/Vector3";
 
 export default class RenderObject{
     private _position:Vector3;
-    private _sacle:Vector3;
+    private _scale:Vector3;
     private _quaternion:Quaternion;
     modelMatrix: Matrix4;
     private _normalMatrix: Matrix3;
     constructor(){
         this._position=new Vector3();
-        this._sacle=new Vector3(1,1,1);
+        this._scale=new Vector3(1,1,1);
         this._quaternion=new Quaternion();
         this.modelMatrix=Matrix4.clone(Matrix4.IDENTITY,new Matrix4());
         this._normalMatrix=Matrix3.clone(Matrix3.IDENTITY,new Matrix3());
@@ -25,8 +25,8 @@ export default class RenderObject{
     public get position() : Vector3 {
         return this._position
     }
-    public get sacle() : Vector3 {
-        return this._sacle
+    public get scale() : Vector3 {
+        return this._scale
     }
     public get quaternion():Quaternion{
         return this._quaternion
@@ -37,7 +37,7 @@ export default class RenderObject{
         Matrix4.transpose(this._normalMatrix,this._normalMatrix)
     }
     updateMatrix(){
-        this.modelMatrix=Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.sacle,this.modelMatrix);
+        this.modelMatrix=Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.scale,this.modelMatrix);
     }
     rotateOnAxis( axis, angle ) {
         const quat=Quaternion.fromAxisAngle(axis,angle);

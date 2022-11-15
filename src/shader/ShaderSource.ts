@@ -20,6 +20,7 @@ export class ShaderSource{
         this.type=options.type;
         this.defines=options.defines;
         this.uid='';
+        this.dirty=true;
         if (options.render) {
             this.render=true;
             this.vertEntryPoint=options.vertMain||'main';
@@ -31,10 +32,12 @@ export class ShaderSource{
             this.computeMain=options.computeMain|| 'main';
         }
     }
-    update(globalDefines,materialDefiens){
-        const combineDefines=combine(globalDefines,materialDefiens,false);
-        this.defines=combine(combineDefines,this.defines,false);
-        this.generateUid();
+    update(globalDefines?:object,materialDefiens?:object){
+        if (globalDefines&&materialDefiens) {
+            const combineDefines=combine(globalDefines,materialDefiens,false);
+            this.defines=combine(combineDefines,this.defines,false);
+            this.generateUid();
+        }
         if(this.dirty){
             this.updateShaderStr();
             this.dirty=false;

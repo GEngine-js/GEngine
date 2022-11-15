@@ -14,8 +14,8 @@ export class BasicPass extends Pass{
     render(commandList:CommandList){
        CommandList.sort(commandList.opaque,0,commandList.opaqueLength,CommandList._compareFromNearToFar);
        CommandList.sort(commandList.transparent,0,commandList.transparentLenght,CommandList._compareFromFarToNear);
-       this.excuteCommands(commandList.opaque);
-       this.excuteCommands(commandList.transparent);
+       this.excuteCommands(commandList.opaque,'render');
+       this.excuteCommands(commandList.transparent,'render');
     }
     private init(){
         this.createRenderTarget();

@@ -1,6 +1,8 @@
 import ShaderChunk from './shaderChunk/ShaderChunk';
 import phongVert from './material/phongVert';
 import phongFrag from './material/phongFrag';
+import colorFrag from './material/colorFrag';
+import colorVert from './material/colorVert';
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -13,6 +15,10 @@ const shaders = {
 		frag: phongFrag,
 		vert: phongVert,
 	},
+	color:{
+		frag:colorFrag,
+		vert:colorVert
+	}
 }
 
 function resolveIncludes(string) {

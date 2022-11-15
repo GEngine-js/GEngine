@@ -153,57 +153,13 @@ export class Material{
     }
     createRenderState(frameState:FrameState){
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
-        depthStencil=defaultValue(this.depthStencil,{
-            format: TextureFormat.Depth24Plus,
-            depthWriteEnabled:true,
-            depthCompare:CompareFunction.Less,
-            stencilReadMask: 0xFFFFFFFF,
-            stencilWriteMask:0xFFFFFFFF,
-            stencilFront: {
-                compare: CompareFunction.Always,
-                failOp: StencilOperation.Keep,
-                depthFailOp:StencilOperation.Keep,
-                passOp:StencilOperation.Keep,
-            },
-            stencilBack: {
-                compare: CompareFunction.Always,
-                failOp: StencilOperation.Keep,
-                depthFailOp: StencilOperation.Keep,
-                passOp: StencilOperation.Keep,
-            },
-            depthBias:0,
-            depthBiasSlopeScale:  0,
-            depthBiasClamp: 0
-        });
-        primitive=defaultValue(this.primitiveState,{
-            frontFace:FrontFace.CW,
-            cullMode:CullMode.None,
-            unclippedDepth :false,
-        });
-        multisample=defaultValue(this.multisample,{
-            count: 1,
-            mask: 0xFFFFFFFF,
-            alphaToCoverageEnabled: false
-        });
+        depthStencil=defaultValue(this.depthStencil,RenderState.defaultDepthStencil);
+        primitive=defaultValue(this.primitiveState,RenderState.defaultPrimitiveState);
+        multisample=defaultValue(this.multisample,RenderState.defaultMultisample);
         stencilReference=defaultValue(this.stencilReference,0);
-        blendConstant=defaultValue(this.blendConstant,{ r: 1, g: 1, b: 1, a: 1 });
+        blendConstant=defaultValue(this.blendConstant,RenderState.defaultBlendConstant);
         viewport=frameState.viewport; 
-        targets=frameState?.pass?.colorTargets!=undefined?frameState.pass.colorTargets:[{
-            format:frameState.context.presentationFormat,
-            blend: {
-                color: {
-                operation: BlendOperation.Add,
-                srcFactor: BlendFactor.One,
-                dstFactor: BlendFactor.Zero
-                },
-                alpha: {
-                operation: BlendOperation.Add,
-                srcFactor: BlendFactor.One,
-                dstFactor:BlendFactor.Zero,
-                },
-            },
-            writeMask: ColorWriteFlags.All
-        }]
+        targets=frameState?.pass?.colorTargets!=undefined?frameState.pass.colorTargets:[RenderState.defaultTarget]
         this.renderState={depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant}
     }
     static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string,index:number){

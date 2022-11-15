@@ -1,12 +1,15 @@
+import { FrameState } from "../core/FrameState";
 import RenderObject from "../core/RenderObject";
 import { VertextBuffers } from "../core/VertextBuffers";
-import { InputStepMode, VertexFormat } from "../core/WebGPUConstant";
+import { IndexFormat, InputStepMode, PrimitiveTopology, VertexFormat } from "../core/WebGPUConstant";
 import { Material } from "../material/Material";
 import Attribute from "../render/Attribute";
 import BindGroup from "../render/BindGroup";
 import BindGroupLayout from "../render/BindGroupLayout";
 import Buffer from "../render/Buffer";
 import DrawCommand from "../render/DrawCommand";
+import Pipeline from "../render/Pipeline";
+import RenderState from "../render/RenderState";
 import { UniformMat4 } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 export default class Axes extends RenderObject {
@@ -28,12 +31,38 @@ export default class Axes extends RenderObject {
     bindGroups: BindGroup[];
 
     count: number;
+
     uniformBuffer: Buffer;
 
+    type:string;
+
+    distanceToCamera:number;
+    priority?:number;
     constructor() {
         super();
+        this.type = 'primitive';
+        this.shaderSource=new ShaderSource({
+            type:'color',
+            render:true,
+            defines:{}
+        });
+        this.distanceToCamera=10;
+        this.groupLayouts=[];
+        this.bindGroups=[];
     }
-    private init(device: GPUDevice) {
+    update(frameState: FrameState){
+        this.updateMatrix();
+        if(!this.uniformBuffer) this.init(frameState);
+        this.uniforms.forEach((uniform)=>{
+            uniform.set();
+        });
+        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer);
+        frameState.commandList.opaque.push(this.drawCommand);
+    }
+    private init(frameState: FrameState) {
+        this.shaderSource.update();
+        const {context,pass}=frameState;
+        const {device,systemRenderResource}=context;
         const data = new Float32Array([
             /* position */ 0, 0, 0, /* color */ 1, 0, 0, 1,
             /* position */ 1, 0, 0, /* color */ 1, 0.5, 0.5, 1,
@@ -55,7 +84,7 @@ export default class Axes extends RenderObject {
         const vertBuffers = new VertextBuffers([
             {
                 index: 0,
-                arrayStride: 24,
+                arrayStride: 28,
                 stepMode: InputStepMode.Vertex,
                 buffer,
                 attributes: [pat, cat],
@@ -65,6 +94,25 @@ export default class Axes extends RenderObject {
         this.indexBuffer = Buffer.createIndexBuffer(device, indices);
         this.count = indices.length;
         this.createBindGroupAndLayout(device);
+        this.drawCommand = new DrawCommand({
+            vertexBuffers: this.vertBuffers,
+            indexBuffer: this.indexBuffer,
+            indexFormat: IndexFormat.Uint16,
+            bindGroups: this.bindGroups,
+            instances: 1,
+            count: this.count,
+            renderState:{
+                viewport:frameState.viewport,
+                depthStencil:RenderState.defaultDepthStencil,
+                target:[RenderState.defaultTarget]
+            },
+            topology:PrimitiveTopology.LineList,
+            shaderSource:this.shaderSource,
+            groupLayouts:this.groupLayouts,
+            uuid:'color'+this.shaderSource.uid,
+            type:'render'      
+        });
+        this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };
     private createUniformBuffer(device:GPUDevice){
         this.uniformsDataBuffer=new Float32Array(16);

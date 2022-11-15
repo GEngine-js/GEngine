@@ -13,6 +13,7 @@ export { default as BindGroupEntity } from "./render/BindGroupEntity";
 export { default as DataBuffer } from "./utils/DataBuffer";
 //mesh
 export {Mesh} from "./mesh/Mesh";
+export {default as Axes} from "./mesh/Axes";
 
 //geometry
 export {default as BoxGeometry} from "./geometry/BoxGeometry";

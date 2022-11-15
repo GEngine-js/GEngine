@@ -89,7 +89,6 @@ export class PointData{
     }
     update(frameState:FrameState){
         const viewMatrix=frameState.camera.viewMatrix;
-        debugger
         if (this.pointLight.colorDirty) {
             this.pointLight.colorDirty=false;
             copyData(this.pointLight.color.toArray(),this.color);
@@ -131,7 +130,6 @@ export class DirtectData{
     }
     update(frameState:FrameState){
         const viewMatrix=frameState.camera.viewMatrix;
-        debugger
         if (this.dirtectLight.colorDirty) {
             this.dirtectLight.colorDirty=false;
             copyData(this.dirtectLight.color.toArray(),this.color);
