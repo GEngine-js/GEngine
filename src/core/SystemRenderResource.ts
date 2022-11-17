@@ -6,7 +6,6 @@ import { Scene } from "../Scene";
 import { FrameState } from "./FrameState";
 import LightManger from "./LightManger";
 import Buffer from "../render/Buffer"
-import DataBuffer from "../utils/DataBuffer";
 import PerspectiveCamera from "../camera/PerspectiveCamera";
 import { BufferUsage } from "./WebGPUConstant";
 
@@ -37,9 +36,7 @@ export default class SystemRenderResource{
     pointLightsGPUBuffer:Buffer;
 
     dirtectLightsGPUBuffer:Buffer;
-
-
-
+    
     constructor(){
     }
     get layouts():BindGroupLayout[]{
@@ -147,7 +144,7 @@ export default class SystemRenderResource{
         this.pointLightsGPUBuffer=undefined;
         this.dirtectLightsGPUBuffer=undefined;
     }
-    destory(){
+    destroy(){
 
     }
 }

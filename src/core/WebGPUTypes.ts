@@ -2,6 +2,7 @@ import BindGroupLayout from "../render/BindGroupLayout";
 import  BindGroupEntity  from "../render/BindGroupEntity";
 import Texture from "../render/Texture";
 import { BlendFactor, BlendOperation, ColorWriteFlags, CompareFunction, CullMode, FrontFace, StencilOperation, TextureFormat } from "./WebGPUConstant";
+import Sampler from "../render/Sampler";
 export const GPUCanvasCompositingAlphaMode: {
   [key: string]: GPUCanvasCompositingAlphaMode;
 } = {
@@ -98,6 +99,8 @@ export type WebGPUTextureProps ={
 
   usage: number;
 
+  sampler?:Sampler;
+
   data?:ImageBitmap
 
   mipLevelCount?: number;
@@ -107,6 +110,8 @@ export type WebGPUTextureProps ={
   dimension?: dimension;
 
   viewFormats?: string;
+
+  sampleType?:string
 };
 export type extent3DDict= {
   width:number;

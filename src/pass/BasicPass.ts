@@ -9,7 +9,7 @@ import Texture from "../render/Texture";
 export class BasicPass extends Pass{
     constructor(context:Context){
         super(context);
-        this.init();
+        this.init(context);
     }
     render(commandList:CommandList){
        CommandList.sort(commandList.opaque,0,commandList.opaqueLength,CommandList._compareFromNearToFar);
@@ -17,23 +17,25 @@ export class BasicPass extends Pass{
        this.excuteCommands(commandList.opaque);
        this.excuteCommands(commandList.transparent);
     }
-    private init(){
-        this.createRenderTarget();
+    private init(context:Context){
+        this.createRenderTarget(context);
     }
-    private createRenderTarget(){
-        const colorTexture=new Texture(this.context,{
+    private createRenderTarget(context:Context){
+        const colorTexture=new Texture({
             size:this.context.presentationSize,
             format:this.context.presentationFormat,
             usage:TextureUsage.RenderAttachment|TextureUsage.TextureBinding
-        })
+        });
+        colorTexture.update(context);
         const colorAttachment=new Attachment({ r: 0.14, g: 0.14, b: 0.14, a: 1 },{
             texture:colorTexture,
         })
-        const depthTexture=new Texture(this.context,{
+        const depthTexture=new Texture({
             size:this.context.presentationSize,
             format:TextureFormat.Depth24Plus,
             usage:TextureUsage.RenderAttachment
         });
+        depthTexture.update(context)
         const depthAttachment=new Attachment(1.0,{
             texture:depthTexture,
         })

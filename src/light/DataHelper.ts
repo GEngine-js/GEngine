@@ -61,7 +61,7 @@ export class SpotData{
         }
         
     }
-    destory(){
+    destroy(){
         this.spotLight=undefined;   
         this.color=undefined; 
         this.position=undefined; 
@@ -109,7 +109,7 @@ export class PointData{
         }
         
     }
-    destory(){
+    destroy(){
         this.pointLight=undefined;
         this.color=undefined;
         this.position=undefined;
@@ -142,7 +142,7 @@ export class DirtectData{
         }
         
     }
-    destory(){
+    destroy(){
         this.dirtectLight=undefined;
         this.color=undefined;
         this.dirtect=undefined;

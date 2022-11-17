@@ -709,61 +709,6 @@ class Matrix2 {
    */
   public static ZERO = Object.freeze(new Matrix2(0.0, 0.0, 0.0, 0.0));
 
-  /**
-   * The index into Matrix2 for column 0, row 0.
-   *
-   * @type {Number}
-   * @constant
-   *
-   * @example
-   * const matrix = new Cesium.Matrix2();
-   * matrix[Cesium.Matrix2.COLUMN0ROW0] = 5.0; // set column 0, row 0 to 5.0
-   */
-  public static COLUMN0ROW0 = 0;
-
-  /**
-   * The index into Matrix2 for column 0, row 1.
-   *
-   * @type {Number}
-   * @constant
-   *
-   * @example
-   * const matrix = new Cesium.Matrix2();
-   * matrix[Cesium.Matrix2.COLUMN0ROW1] = 5.0; // set column 0, row 1 to 5.0
-   */
-  public static COLUMN0ROW1 = 1;
-
-  /**
-   * The index into Matrix2 for column 1, row 0.
-   *
-   * @type {Number}
-   * @constant
-   *
-   * @example
-   * const matrix = new Cesium.Matrix2();
-   * matrix[Cesium.Matrix2.COLUMN1ROW0] = 5.0; // set column 1, row 0 to 5.0
-   */
-  public static COLUMN1ROW0 = 2;
-
-  /**
-   * The index into Matrix2 for column 1, row 1.
-   *
-   * @type {Number}
-   * @constant
-   *
-   * @example
-   * const matrix = new Cesium.Matrix2();
-   * matrix[Cesium.Matrix2.COLUMN1ROW1] = 5.0; // set column 1, row 1 to 5.0
-   */
-  public static COLUMN1ROW1 = 3;
-
-
-  /**
-   * Duplicates the provided Matrix2 instance.
-   *
-   * @param {Matrix2} [result] The object onto which to store the result.
-   * @returns {Matrix2} The modified result parameter or a new Matrix2 instance if one was not provided.
-   */
   clone(result) {
     return Matrix2.clone(this, result);
   };
@@ -802,10 +747,10 @@ class Matrix2 {
     return `(${this[0]}, ${this[2]})\n` + `(${this[1]}, ${this[3]})`;
   };
 }
-const scaleScratch1 = new Vector2();
-const scaleScratch2 = new Vector2();
-const scaleScratch3 = new Vector2();
-const scaleScratch4 = new Vector2();
-const scratchColumn = new Vector2();
-const scaleScratch5 = new Vector2();
+  const scaleScratch1 = new Vector2();
+  const scaleScratch2 = new Vector2();
+  const scaleScratch3 = new Vector2();
+  const scaleScratch4 = new Vector2();
+  const scratchColumn = new Vector2();
+  const scaleScratch5 = new Vector2();
 export default Matrix2;

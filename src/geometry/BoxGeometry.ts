@@ -59,5 +59,5 @@ export default class BoxGeometry extends Geometry{
         this.count=indexTypeArray.length;
         this.vertexBuffers=vertBuffers;
     }
-    destory(){}
+    destroy(){}
 }

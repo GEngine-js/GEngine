@@ -23,7 +23,7 @@ export default class ForwardRenderLine implements IBaseRenderLine{
              pass.afterRender();
         });       
     }
-    destory(){
+    destroy(){
         this.passList=[];
     }
     

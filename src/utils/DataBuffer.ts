@@ -28,7 +28,7 @@ export  default class DataBuffer{
     delete(offset,length){
         this.data.splice(offset,length)
     }
-    destory(){
+    destroy(){
         this.data=null;
     }
 }

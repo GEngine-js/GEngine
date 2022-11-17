@@ -29,7 +29,7 @@ export default class BaseMaterial extends Material {
     update(frameState:FrameState,primitive:Mesh) { 
         const {device}=frameState.context;
         // if(!this.renderState)this.createRenderState(frameState)
-        if(!this.baseSampler) this.ceateTextureAndSampler(frameState.context);
+        if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
         if(!this.uniforms) this.createUniforms(primitive);
         if(this.renderStateDirty||!this.renderState) {
             if (this.renderStateDirty) {
@@ -67,18 +67,18 @@ export default class BaseMaterial extends Material {
             }),
             new UniformFloatVec4("color",this.uniformsDataBuffer,128,this),
             new UniformTexture('baseTexture',1,this),
-            new UniformSampler('baseSampler',2,this)
+            new UniformSampler('sampler',2,this.baseTexture)
         ]
      }
      private createUniformBuffer(device:GPUDevice){
          this.uniformBuffer=Buffer.createUniformBuffer(device,this.uniformTotalByte)
      }
      private ceateTextureAndSampler(context:Context){
-        this.baseSampler=new Sampler(context.device,{
+        const baseSampler=new Sampler({
             magFilter: 'linear',
             minFilter: 'linear',
           });
-        this.baseTexture=new Texture(context,{
+        this.baseTexture=new Texture({
             size: {width:this.imageBitmap.width, height:this.imageBitmap.height, depth:1},
             data:this.imageBitmap,
             format: 'rgba8unorm',
@@ -86,9 +86,11 @@ export default class BaseMaterial extends Material {
               GPUTextureUsage.TEXTURE_BINDING |
               GPUTextureUsage.COPY_DST |
               GPUTextureUsage.RENDER_ATTACHMENT,
-          })
+            sampler:baseSampler
+          });
+          this.baseTexture.update(context);
      }
-    destory() {
+    destroy() {
 
     }
 }

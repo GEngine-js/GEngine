@@ -2,11 +2,9 @@ import BindGroup from "../render/BindGroup";
 import  BindGroupEntity  from "../render/BindGroupEntity";
 import  BindGroupLayout  from "../render/BindGroupLayout";
 import BindGroupLayoutEntry from "../render/BindGroupLayoutEntry";
-import Color from '../math/Color'
 import RenderState from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import DataBuffer from "../utils/DataBuffer";
 import Buffer from "../render/Buffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import combine from "../utils/combine";
@@ -16,7 +14,9 @@ import Vector4 from "../math/Vector4";
 import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
 import RenderObject from "../core/RenderObject";
 export class Material{
+
     public uniformBuffer:Buffer;
+
     color?: Vector4;
 
     uniforms:any[];
@@ -260,7 +260,7 @@ export class Material{
     }).reduce((a, b) => a + b, 0);
         return size;
     }
-    public destory(){
+    public destroy(){
         this.label=undefined;
         this.type=undefined;
         this.baseTexture=undefined;

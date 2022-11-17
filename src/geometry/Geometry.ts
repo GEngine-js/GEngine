@@ -51,5 +51,5 @@ export default class Geometry {
     computeBoundingSphere(positions){
         this.boundingSphere=BoundingSphere.fromVertices(positions,new Vector3(0,0,0),3)
     }
-    destory(){}
+    destroy(){}
 }

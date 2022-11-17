@@ -70,8 +70,8 @@ export class Mesh extends RenderObject {
         drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);
         this.drawCommand = drawCommand;
     }
-    destory() {
-        this.geometry.destory();
-        this.material.destory();
+    destroy() {
+        this.geometry.destroy();
+        this.material.destroy();
     }
 }
