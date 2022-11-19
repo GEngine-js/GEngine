@@ -59,7 +59,7 @@ export default function pbrFrag(defines){
 
     
     uniform vec3 ambientLightColor;
-    uniform vec3 lightProbe[ 9 ];
+    uniform vec3 lightProbe[9];
 ////////////////////////////////////
 
         #if ${defines.FLAT_SHADED}
@@ -619,10 +619,9 @@ export default function pbrFrag(defines){
 
     void main(@builtin(front_facing) is_front: bool) {
         let diffuseColor:vec4<f32> = vec4( diffuse, opacity );
-
-        ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+       // ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+        ReflectedLight reflectedLight;
         let totalEmissiveRadiance:vec3<f32> = emissive;
-
         #if ${defines.USE_MAP}
             //let sampledDiffuseColor:vec4<f32> = texture2D( map, vUv );
             let sampledDiffuseColor:vec4<f32> =textureSample(map, baseSampler, vUv);
@@ -666,7 +665,7 @@ export default function pbrFrag(defines){
                     tangent = tangent * faceDirection;
                     bitangent = bitangent * faceDirection;
                 #endif
-                #if defined( TANGENTSPACE_NORMALMAP ) || defined( USE_CLEARCOAT_NORMALMAP )
+                #if ${defines.TANGENTSPACE_NORMALMAP||defines.USE_CLEARCOAT_NORMALMAP}
                     let vTBN:mat3x3<f32> = mat3x3<f32>( tangent, bitangent, normal );
                 #endif
 
@@ -678,10 +677,10 @@ export default function pbrFrag(defines){
         #if ${defines.OBJECTSPACE_NORMALMAP}
             //normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
             normal =textureSample(normalMap, baseSampler, vUv).xyz * 2.0 - 1.0;
-            #ifdef FLIP_SIDED
+            #if ${defines.FLIP_SIDED}
                 normal = - normal;
             #endif
-            #ifdef DOUBLE_SIDED
+            #if ${defines.DOUBLE_SIDED}
                 normal = normal * faceDirection;
             #endif
 
@@ -843,14 +842,15 @@ export default function pbrFrag(defines){
                 irradiance += lightMapIrradiance;
             #endif
 //////////////////////////////////////////////////////////////////
-            #if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )
+            #if ${defines.USE_ENVMAP&& defines.STANDARD&&defines.ENVMAP_TYPE_CUBE_UV} 
                 iblIrradiance += getIBLIrradiance( geometry.normal );
             #endif
 ////////////////////////////////////////////////////////////////////
         //#endif
-        #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
+        //#if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
+        #if ${defines.USE_ENVMAP}
             radiance += getIBLRadiance( geometry.viewDir, geometry.normal, material.roughness );
-            #ifdef USE_CLEARCOAT
+            #if ${defines.USE_CLEARCOAT}
                 clearcoatRadiance += getIBLRadiance( geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness );
             #endif
         #endif
@@ -868,7 +868,7 @@ export default function pbrFrag(defines){
             let ambientOcclusion:f32 = (textureSample(aoMap, baseSampler, vUv2).r - 1.0 ) * aoMapIntensity + 1.0;
 
             reflectedLight.indirectDiffuse *= ambientOcclusion;
-            #if defined( USE_ENVMAP ) && defined( STANDARD )
+            #if ${defines.USE_ENVMAP&&defines.STANDARD} 
                 let dotNV:f32 = saturate( dot( geometry.normal, geometry.viewDir ) );
                 reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
             #endif
@@ -883,11 +883,11 @@ export default function pbrFrag(defines){
             material.thickness = thickness;
             material.attenuationDistance = attenuationDistance;
             material.attenuationColor = attenuationColor;
-            #ifdef USE_TRANSMISSIONMAP
+            #if ${defines.USE_TRANSMISSIONMAP}
                 //material.transmission *= texture2D( transmissionMap, vUv).r;
                 material.transmission *=textureSample(transmissionMap, baseSampler, vUv).r;
             #endif
-            #ifdef USE_THICKNESSMAP
+            #if ${defines.USE_THICKNESSMAP}
                 //material.thickness *= texture2D( thicknessMap, vUv).g;
                 material.thickness *=textureSample(thicknessMap, baseSampler, vUv).g;
             #endif

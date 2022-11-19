@@ -21,8 +21,9 @@ export default function pbrFunction(defines){
        singleScatter += FssEss;
        multiScatter += Fms * Ems;
    }
-
-   fn RE_Direct_Physical( directLight:IncidentLight, geometry:GeometricContext,  material:PhysicalMaterial, reflectedLight:ReflectedLight ) {
+   //直接光照
+   fn RE_Direct_Physical( directLight:IncidentLight, geometry:GeometricContext,  material:PhysicalMaterial)->ReflectedLight {
+       var reflectedLight:ReflectedLight;
        let dotNL:f32 = saturate( dot( geometry.normal, directLight.direction ) );
        let irradiance:vec3<f32> = dotNL * directLight.color;
        #if ${defines.USE_CLEARCOAT}
@@ -35,17 +36,22 @@ export default function pbrFunction(defines){
        #endif
 
        #if ${defines.USE_IRIDESCENCE}
-           reflectedLight.directSpecular += irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );
+           reflectedLight.directSpecular = irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );
        #else
-           reflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
+           reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
        #endif
-       reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+       reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
+       return reflectedLight;
    }
-   fn RE_IndirectDiffuse_Physical( irradiance:vec3, geometry:GeometricContext, material:PhysicalMaterial,reflectedLight:ReflectedLight ) {
-       reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+   //间接光照
+   fn RE_IndirectDiffuse_Physical( irradiance:vec3, geometry:GeometricContext, material:PhysicalMaterial )->ReflectedLight {
+       var reflectedLight:ReflectedLight;
+       reflectedLight.indirectDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
+       return reflectedLight;
    }
-   //////// inout ReflectedLight reflectedLight
-   fn RE_IndirectSpecular_Physical( radiance:vec3<f32>, irradiance:vec3<f32>, clearcoatRadiance:vec3<f32>, geometry:GeometricContext, material:PhysicalMaterial, reflectedLight:ReflectedLight) {
+   //间接高光
+   fn RE_IndirectSpecular_Physical( radiance:vec3<f32>, irradiance:vec3<f32>, clearcoatRadiance:vec3<f32>, geometry:GeometricContext, material:PhysicalMaterial)->ReflectedLight {
+       var reflectedLight:ReflectedLight;
        #if ${defines.USE_CLEARCOAT}
            clearcoatSpecular += clearcoatRadiance * EnvironmentBRDF( geometry.clearcoatNormal, geometry.viewDir, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
        #endif
@@ -62,9 +68,10 @@ export default function pbrFunction(defines){
        #endif
        let totalScattering:vec3<f32> = singleScattering + multiScattering;
        let diffuse:vec3<f32> = material.diffuseColor * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );
-       reflectedLight.indirectSpecular += radiance * singleScattering;
-       reflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;
-       reflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;
+       reflectedLight.indirectSpecular = radiance * singleScattering;
+       reflectedLight.indirectSpecular = multiScattering * cosineWeightedIrradiance;
+       reflectedLight.indirectDiffuse = diffuse * cosineWeightedIrradiance;
+       return reflectedLight;
    }
 
    #define RE_Direct				RE_Direct_Physical
