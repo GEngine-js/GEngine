@@ -1,31 +1,13 @@
 export default function pbrVert(defines){
     return  `
-    #version 300 es
-    precision mediump sampler2DArray;
-    #define attribute in
-    #define varying out
-    #define texture2D texture
-    precision highp float;
-    precision highp int;
-    #define HIGH_PRECISION
-    #define SHADER_NAME MeshStandardMaterial
-    #define STANDARD 
-    #define VERTEX_TEXTURES
-    #define USE_MAP
-    #define USE_ENVMAP
-    #define ENVMAP_MODE_REFLECTION
-    #define USE_NORMALMAP
-    #define TANGENTSPACE_NORMALMAP
-    #define USE_ROUGHNESSMAP
-    #define USE_METALNESSMAP
-    #define USE_UV
+
     uniform mat4 modelMatrix;
     uniform mat4 modelViewMatrix;
     uniform mat4 projectionMatrix;
     uniform mat4 viewMatrix;
     uniform mat3 normalMatrix;
     uniform vec3 cameraPosition;
-    uniform bool isOrthographic;
+
     #ifdef USE_INSTANCING
         attribute mat4 instanceMatrix;
     #endif
@@ -60,14 +42,14 @@ export default function pbrVert(defines){
             attribute vec3 morphTarget7;
         #endif
     #endif
-    #ifdef USE_SKINNING
+    #if ${defines.USE_SKINNING}
         attribute vec4 skinIndex;
         attribute vec4 skinWeight;
     #endif
     
     #define STANDARD
     varying vec3 vViewPosition;
-    #ifdef USE_TRANSMISSION
+    #if ${defines.USE_TRANSMISSION}
         varying vec3 vWorldPosition;
     #endif
     #define PI 3.141592653589793
@@ -104,16 +86,6 @@ export default function pbrVert(defines){
         highp float dt = dot( uv.xy, vec2( a, b ) ), sn = mod( dt, PI );
         return fract( sin( sn ) * c );
     }
-    #ifdef HIGH_PRECISION
-        float precisionSafeLength( vec3 v ) {
-            return length( v );
-        }
-    #else
-        float precisionSafeLength( vec3 v ) {
-            float maxComponent = max3( abs( v ) );
-            return length( v / maxComponent ) * maxComponent;
-        }
-    #endif
     struct IncidentLight {
         vec3 color;
         vec3 direction;
@@ -158,8 +130,8 @@ export default function pbrVert(defines){
         float v = asin( clamp( dir.y, - 1.0, 1.0 ) ) * RECIPROCAL_PI + 0.5;
         return vec2( u, v );
     }
-    #ifdef USE_UV
-        #ifdef UVS_VERTEX_ONLY
+    #if ${defines.USE_UV}
+        #if ${defines.UVS_VERTEX_ONLY}
             vec2 vUv;
         #else
             varying vec2 vUv;
@@ -171,7 +143,7 @@ export default function pbrVert(defines){
         varying vec2 vUv2;
         uniform mat3 uv2Transform;
     #endif
-    #ifdef USE_DISPLACEMENTMAP
+    #if ${defines.USE_DISPLACEMENTMAP}
         uniform sampler2D displacementMap;
         uniform float displacementScale;
         uniform float displacementBias;
