@@ -1,116 +1,105 @@
 export default function pbrVert(defines){
     return  `
 
-    uniform mat4 modelMatrix;
-    uniform mat4 modelViewMatrix;
-    uniform mat4 projectionMatrix;
-    uniform mat4 viewMatrix;
-    uniform mat3 normalMatrix;
-    uniform vec3 cameraPosition;
+    // uniform mat4 modelMatrix;
+    // uniform mat4 modelViewMatrix;
+    // uniform mat4 projectionMatrix;
+    // uniform mat4 viewMatrix;
+    // uniform mat3 normalMatrix;
+    // uniform vec3 cameraPosition;
+    struct SelfUniform {
+        modelMatrix: mat4x4<f32>,
+        normalMatrix: mat3x3<f32>,
+        color: vec3<f32>
+    }
+    struct SystemUniform {
+        projectionMatrix: mat4x4<f32>,
+        viewMatrix: mat4x4<f32>,
+        inverseViewMatrix: mat4x4<f32>,
+        cameraPosition: vec3<f32>,
+    };
+    struct VertexOutput {
+        @builtin(position) position: vec4<f32>,
+        @location(0) vUv: vec2<f32>,
+        @location(1) vViewPosition: vec3<f32>, // Vector from vertex to camera.
+        @location(2) vWorldPosition: vec3<f32>,
+        // 可选
+        @location(3) vUv2: vec4<f32>,
+        @location(4) vColor: vec3<f32>,
+        @location(5) vNormal: vec3<f32>,
+        @location(6) vTangent: vec3<f32>,
+        @location(7) vBitangent: vec3<f32>,
+    };
+    struct VertexInput {
+        @location(0) position: vec3<f32>,  
 
-    #ifdef USE_INSTANCING
-        attribute mat4 instanceMatrix;
-    #endif
-    #ifdef USE_INSTANCING_COLOR
-        attribute vec3 instanceColor;
-    #endif
-    attribute vec3 position;
-    attribute vec3 normal;
-    attribute vec2 uv;
-    #ifdef USE_TANGENT
-        attribute vec4 tangent;
-    #endif
-    #if defined( USE_COLOR_ALPHA )
-        attribute vec4 color;
-        #elif defined( USE_COLOR )
-        attribute vec3 color;
-    #endif
-    #if ( defined( USE_MORPHTARGETS ) && ! defined( MORPHTARGETS_TEXTURE ) )
-        attribute vec3 morphTarget0;
-        attribute vec3 morphTarget1;
-        attribute vec3 morphTarget2;
-        attribute vec3 morphTarget3;
-        #ifdef USE_MORPHNORMALS
-            attribute vec3 morphNormal0;
-            attribute vec3 morphNormal1;
-            attribute vec3 morphNormal2;
-            attribute vec3 morphNormal3;
-        #else
-            attribute vec3 morphTarget4;
-            attribute vec3 morphTarget5;
-            attribute vec3 morphTarget6;
-            attribute vec3 morphTarget7;
+        @location(1) normal: vec3<f32>,
+
+        @location(2) uv: vec2<f32>,
+
+        #if ${defines.USE_INSTANCING}
+            @location(${defines.instanceMatrixLocation}) instanceMatrix:mat4x4<f32>,
         #endif
-    #endif
-    #if ${defines.USE_SKINNING}
-        attribute vec4 skinIndex;
-        attribute vec4 skinWeight;
-    #endif
-    
-    #define STANDARD
-    varying vec3 vViewPosition;
-    #if ${defines.USE_TRANSMISSION}
-        varying vec3 vWorldPosition;
-    #endif
+        #if ${defines.USE_INSTANCING_COLOR}
+            @location(${defines.instanceColorLocation}) instanceColor:vec3<f32>,
+        #endif
+        
+        #if ${defines.USE_TANGENT}
+            @location(${defines.tangentLocation}) tangent:vec4<f32>,
+        #endif
+        #if ${defines.USE_COLOR_ALPHA}
+            @location(${defines.colorLocation}) color:vec4<f32>,
+        #elif ${defines.USE_COLOR}
+            @location(${defines.colorLocation}) color:vec3<f32>,
+        #endif
+
+        #if ${defines.USE_MORPHTARGETS&&!defines.MORPHTARGETS_TEXTURE}
+            @location(${defines.morphTarget0Location}) morphTarget0:vec3<f32>,
+
+            @location(${defines.morphTarget1Location}) morphTarget1:vec3<f32>,
+
+            @location(${defines.morphTarget2Location}) morphTarget2:vec3<f32>,
+
+            @location(${defines.morphTarget3Location}) morphTarget3:vec3<f32>,
+            #if ${defines.USE_MORPHNORMALS}
+                @location(${defines.morphNormal0Location}) morphNormal0:vec3<f32>,
+
+                @location(${defines.morphNormal1Location}) morphNormal1:vec3<f32>,
+
+                @location(${defines.morphNormal2Location}) morphNormal2:vec3<f32>,
+
+                @location(${defines.morphNormal3Location}) morphNormal3:vec3<f32>,
+            #else
+                @location(${defines.morphTarget4Location}) morphTarget4:vec3<f32>,
+
+                @location(${defines.morphTarget5Location}) morphTarget5:vec3<f32>,
+
+                @location(${defines.morphTarget6Location}) morphTarget6:vec3<f32>,
+
+                @location(${defines.morphTarget7Location}) morphTarget7:vec3<f32>,
+            #endif
+        #endif
+        #if ${defines.USE_SKINNING}
+            @location(${defines.skinIndexLocation}) skinIndex:vec4<f32>,
+
+            @location(${defines.skinWeightLocation}) skinWeight:vec4<f32>,
+        #endif
+        #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP} 
+            @location(${defines.uv2Location}) skinWeight:vec2<f32>,
+        #endif
+  }
+
     #define PI 3.141592653589793
     #define PI2 6.283185307179586
     #define PI_HALF 1.5707963267948966
     #define RECIPROCAL_PI 0.3183098861837907
     #define RECIPROCAL_PI2 0.15915494309189535
     #define EPSILON 1e-6
-    #ifndef saturate
-        #define saturate( a ) clamp( a, 0.0, 1.0 )
-    #endif
-    #define whiteComplement( a ) ( 1.0 - saturate( a ) )
 
-    struct IncidentLight {
-        vec3 color;
-        vec3 direction;
-        bool visible;
-    };
-    struct GeometricContext {
-        vec3 position;
-        vec3 normal;
-        vec3 viewDir;
-        #ifdef USE_CLEARCOAT
-            vec3 clearcoatNormal;
-        #endif
-    };
-
-    vec2 equirectUv( in vec3 dir ) {
-        float u = atan( dir.z, dir.x ) * RECIPROCAL_PI2 + 0.5;
-        float v = asin( clamp( dir.y, - 1.0, 1.0 ) ) * RECIPROCAL_PI + 0.5;
-        return vec2( u, v );
-    }
-    #if ${defines.USE_UV}
-        #if ${defines.UVS_VERTEX_ONLY}
-            vec2 vUv;
-        #else
-            varying vec2 vUv;
-        #endif
-        uniform mat3 uvTransform;
-    #endif
-    #if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )
-        attribute vec2 uv2;
-        varying vec2 vUv2;
-        uniform mat3 uv2Transform;
-    #endif
     #if ${defines.USE_DISPLACEMENTMAP}
         uniform sampler2D displacementMap;
         uniform float displacementScale;
         uniform float displacementBias;
-    #endif
-    #if defined( USE_COLOR_ALPHA )
-        varying vec4 vColor;
-        #elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
-        varying vec3 vColor;
-    #endif
-    #if ${defines.FLAT_SHADED}
-        varying vec3 vNormal;
-        #if ${defines.USE_TANGENT}
-            varying vec3 vTangent;
-            varying vec3 vBitangent;
-        #endif
     #endif
     #if ${defines.USE_MORPHTARGETS}
         uniform float morphTargetBaseInfluence;
@@ -158,12 +147,12 @@ export default function pbrVert(defines){
         #if ${defines.USE_UV}
             vUv = ( uvTransform * vec3( uv, 1 ) ).xy;
         #endif
-        #if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )
+        #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
             vUv2 = ( uv2Transform * vec3( uv2, 1 ) ).xy;
         #endif
-        #if defined( USE_COLOR_ALPHA )
+        #if ${defines.USE_COLOR_ALPHA}
             vColor = vec4( 1.0 );
-            #elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
+            #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
             vColor = vec3( 1.0 );
         #endif
         #if ${defines.USE_COLOR}
@@ -172,12 +161,12 @@ export default function pbrVert(defines){
         #if ${defines.USE_INSTANCING_COLOR}
             vColor.xyz *= instanceColor.xyz;
         #endif
-        #if defined( USE_MORPHCOLORS ) && defined( MORPHTARGETS_TEXTURE )
+        #if ${defines.USE_MORPHCOLORS&&defines.MORPHTARGETS_TEXTURE}
             vColor *= morphTargetBaseInfluence;
             for ( int i = 0; i < MORPHTARGETS_COUNT; i ++ ) {
-                #if defined( USE_COLOR_ALPHA )
+                #if ${defines.USE_COLOR_ALPHA}
                     if ( morphTargetInfluences[ i ] ! = 0.0 ) vColor += getMorph( gl_VertexID, i, 2 ) * morphTargetInfluences[ i ];
-                    #elif defined( USE_COLOR )
+                    #elif ${defines.USE_COLOR}
                     if ( morphTargetInfluences[ i ] ! = 0.0 ) vColor += getMorph( gl_VertexID, i, 2 ).rgb * morphTargetInfluences[ i ];
                 #endif
             }
@@ -213,7 +202,7 @@ export default function pbrVert(defines){
             skinMatrix += skinWeight.w * boneMatW;
             skinMatrix = bindMatrixInverse * skinMatrix * bindMatrix;
             objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;
-            #ifdef USE_TANGENT
+            #if ${defines.USE_TANGENT}
                 objectTangent = vec4( skinMatrix * vec4( objectTangent, 0.0 ) ).xyz;
             #endif
         #endif
@@ -279,9 +268,9 @@ export default function pbrVert(defines){
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;
         vViewPosition = - mvPosition.xyz;
-        #if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION ) || 0 > 0
+        #if ${defines.USE_ENVMAP||defines.DISTANCE||defines.USE_TRANSMISSION} 
             vec4 worldPosition = vec4( transformed, 1.0 );
-            #ifdef USE_INSTANCING
+            #if ${defines.USE_INSTANCING}
                 worldPosition = instanceMatrix * worldPosition;
             #endif
             worldPosition = modelMatrix * worldPosition;

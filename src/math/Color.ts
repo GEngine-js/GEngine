@@ -287,6 +287,12 @@ class Color {
      */
     this.alpha =alpha;
   }
+  set(value){
+      if (typeof value==='string') {
+        Color.fromCssColorString(value,this);
+      }
+      return this;
+  }
   toArray(){
     return [this.red,this.green,this.blue,this.alpha]
   }

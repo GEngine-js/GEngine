@@ -7,23 +7,47 @@ export default function pbrFrag(defines){
     const RECIPROCAL_PI2:f32= 0.15915494309189535;
     const EPSILON:f32= 1e-6
 
-
-
     struct PbrData{
-        diffuse:vec3<f32>,
-        roughness:f32,
-        emissive:vec3<f32>, 
-        metalness:f32,
-        opacity:f32,
-        toneMappingExposure:f32,
-
-        #if ${defines.IOR}
-             ior:f32;
-        #endif
+        diffuse:vec3<f32>;
+        roughness:f32;
+        emissive:vec3<f32>; 
+        metalness:f32;
 
         #if ${defines.SPECULAR}
-             specularIntensity:f32;
              specularColor:vec3<f32>;
+             specularIntensity:f32;
+        #endif
+        
+        #if ${defines.USE_SHEEN}
+            sheenColor:vec3<f32>;
+            sheenRoughness:f32;
+        #endif
+        #if ${defines.USE_TRANSMISSION}
+            attenuationColor:vec3<f32>;
+            transmission:f32;
+            thickness:f32;
+            attenuationDistance:f32;
+            
+            transmissionSamplerSize:vec2<f32>;
+            // uniform mat4 modelMatrix;
+            // uniform mat4 projectionMatrix;
+            //varying vec3 vWorldPosition;
+        #endif
+
+        #if ${defines.USE_CLEARCOAT_NORMALMAP}
+            clearcoatNormalScale:vec2<f32>;
+        #endif
+
+        #if ${defines.USE_NORMALMAP}
+             normalScale:vec2<f32>;
+        #endif
+
+        opacity:f32;
+
+        toneMappingExposure:f32;
+
+        #if ${defines.IOR}
+            ior:f32;
         #endif
 
         #if ${defines.USE_CLEARCOAT}
@@ -37,23 +61,18 @@ export default function pbrFrag(defines){
             iridescenceThicknessMinimum:f32;
             iridescenceThicknessMaximum:f32;
         #endif
-
-        #if ${defines.USE_SHEEN}
-            sheenColor:vec3<f32>;
-            sheenRoughness:f32;
-        #endif
         #if ${defines.USE_AOMAP}
-          aoMapIntensity:f32;
+             aoMapIntensity:f32;
         #endif
         #if ${defines.USE_LIGHTMAP}
              lightMapIntensity:f32;
         #endif
-        #if ${defines.USE_CLEARCOAT_NORMALMAP}
-             clearcoatNormalScale:vec2<f32>;
-        #endif
 
-        #if ${defines.USE_NORMALMAP}
-             normalScale:vec2<f32>;
+        #if ${defines.USE_ENVMAP}
+            // uniform float envMapIntensity;
+            // uniform float flipEnvMap;
+            envMapIntensity:f32;
+            flipEnvMap:f32; 
         #endif
     }
 
@@ -63,11 +82,11 @@ export default function pbrFrag(defines){
 ////////////////////////////////////
 
         #if ${defines.FLAT_SHADED}
-        varying vec3 vNormal;
-        #if ${defines.USE_TANGENT}
-            varying vec3 vTangent;
-            varying vec3 vBitangent;
-        #endif
+            varying vec3 vNormal;
+            #if ${defines.USE_TANGENT}
+                varying vec3 vTangent;
+                varying vec3 vBitangent;
+            #endif
         #endif
         struct PhysicalMaterial {
              diffuseColor:vec3<f32>;
@@ -103,37 +122,15 @@ export default function pbrFrag(defines){
             #endif
         };
 
-
-        #if ${defines.OBJECTSPACE_NORMALMAP}
+    #if ${defines.OBJECTSPACE_NORMALMAP}
         uniform mat3 normalMatrix;
     #endif
     #if ${defines.USE_ALPHATEST}
-    uniform float alphaTest;
-#endif
-
-#if ${defines.USE_TRANSMISSION}
-                uniform float transmission;
-                uniform float thickness;
-                uniform float attenuationDistance;
-                uniform vec3 attenuationColor;
-                #ifdef USE_TRANSMISSIONMAP
-                    uniform sampler2D transmissionMap;
-                #endif
-                #ifdef USE_THICKNESSMAP
-                    uniform sampler2D thicknessMap;
-                #endif
-
-                uniform vec2 transmissionSamplerSize;
-                uniform sampler2D transmissionSamplerMap;
-                uniform mat4 modelMatrix;
-                uniform mat4 projectionMatrix;
-                varying vec3 vWorldPosition;
-#endif
+       uniform float alphaTest;
+    #endif
 
 
-    // #ifndef saturate
-    //     #define saturate( a ) clamp( a, 0.0, 1.0 )
-    // #endif
+
 
     #define STANDARD
 
@@ -144,7 +141,7 @@ export default function pbrFrag(defines){
 
     varying vec3 vViewPosition;
 
-    #ifdef DITHERING
+    #if ${defines.DITHERING}
         fn dithering(color:vec3<f32> )->vec3<f32> {
             let grid_position:f32 = rand( gl_FragCoord.xy );
             let dither_shift_RGB:vec3<f32> = vec3<f32>( 0.25 / 255.0, -0.25 / 255.0, 0.25 / 255.0 );
@@ -159,7 +156,7 @@ export default function pbrFrag(defines){
         varying vec2 vUv2;
     #endif
 
-    #ifdef USE_IRIDESCENCE
+    #if ${defines.USE_IRIDESCENCE}
         fn BRDF_GGX_Iridescence( lightDir:vec3<f32>, viewDir:vec3<f32>,normal:vec3<f32>, f0:vec3<f32>, f90:f32,iridescence:f32, iridescenceFresnel:vec3<f32>,roughness:f32 )->vec3<f32> {
             let alpha:f32 = pow2( roughness );
             let halfDir:vec3<f32> = normalize( lightDir + viewDir );
@@ -508,22 +505,6 @@ export default function pbrFrag(defines){
         return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );
     }
     #if ${defines.USE_TRANSMISSION}
-        // uniform float transmission;
-        // uniform float thickness;
-        // uniform float attenuationDistance;
-        // uniform vec3 attenuationColor;
-        // #ifdef USE_TRANSMISSIONMAP
-        //     uniform sampler2D transmissionMap;
-        // #endif
-        // #ifdef USE_THICKNESSMAP
-        //     uniform sampler2D thicknessMap;
-        // #endif
-
-        // uniform vec2 transmissionSamplerSize;
-        // uniform sampler2D transmissionSamplerMap;
-        // uniform mat4 modelMatrix;
-        // uniform mat4 projectionMatrix;
-        // varying vec3 vWorldPosition;
 
         fn getVolumeTransmissionRay( n:vec3<f32>, v:vec3<f32>, thickness:f32, ior:f32, modelMatrix:mat4x4:f32)->vec3<f32> {
             var refractionVector:vec3<f32> = refract( - v, normalize( n ), 1.0 / ior );
@@ -537,12 +518,7 @@ export default function pbrFrag(defines){
             return roughness * clamp( ior * 2.0 - 2.0, 0.0, 1.0 );
         }
         fn getTransmissionSample( fragCoord:vec2<f32>, roughness:f32,ior:f32 )->vec4<f32> {
-            let framebufferLod = log2:f32( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );
-            // #ifdef texture2DLodEXT
-            //     return texture2DLodEXT( transmissionSamplerMap, fragCoord.xy, framebufferLod );
-            // #else
-            //     return texture2D( transmissionSamplerMap, fragCoord.xy, framebufferLod );
-            // #endif
+            let framebufferLod:f32 = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );
             return textureSampleLevel(transmissionSamplerMap,baseSampler,fragCoord.xy, framebufferLod);
 
         }
@@ -577,10 +553,6 @@ export default function pbrFrag(defines){
         fn dHdxy_fwd()->vec2<f32> {
             let dSTdx:vec2<f32> = dpdx( vUv );
             let dSTdy:vec2<f32> = dpdy( vUv );
-            //textureSample(bumpMap, baseSampler, vUv).rgb
-            // let Hll:f32 = bumpScale * texture2D( bumpMap, vUv ).x;
-            // let dBx:f32 = bumpScale * texture2D( bumpMap, vUv + dSTdx ).x - Hll;
-            // let dBy:f32 = bumpScale * texture2D( bumpMap, vUv + dSTdy ).x - Hll;
 
             let Hll:f32 = bumpScale * textureSample(bumpMap, baseSampler, vUv).x;
             let dBx:f32 = bumpScale * textureSample(bumpMap, baseSampler, vUv + dSTdx).x - Hll;

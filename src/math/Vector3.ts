@@ -72,6 +72,36 @@ class Vector3 {
   toArray(){
     return [this.x,this.y,this.z]
   }
+  
+	copy( v ) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+
+	}
+  lerp(end,t){
+    Vector3.lerp(this,end,t,this);
+    return this;
+  }
+  add(v){
+    Vector3.add(this,v,this);
+    return this;
+  }
+	addScaledVector( v, s ) {
+		this.x += v.x * s;
+		this.y += v.y * s;
+		this.z += v.z * s;
+		return this;
+	}
+  subtract(v){
+    Vector3.subtract(this,v,this);
+    return this;
+  }
+  multiplyByScalar(scale){
+    Vector3.multiplyByScalar(this,scale,this);
+    return this;
+  }
   /**
  * Duplicates this Vector3 instance.
  *
@@ -720,7 +750,5 @@ const lerpScratch = new Vector3();
 const angleBetweenScratch = new Vector3();
 const angleBetweenScratch2 = new Vector3();
 const mostOrthogonalAxisScratch = new Vector3();
-let scratchN = new Vector3();
-let scratchK = new Vector3();
 export default Vector3;
 
