@@ -1,13 +1,13 @@
 export default function pbrTexture(defines) {
      return `
 
-            @group(0) @binding(2) var baseSampler: sampler;
+            @group(0) @binding(${defines.samplerBinding}) var baseSampler: sampler;
             #if ${defines.USE_TRANSMISSION}
-                #ifdef USE_TRANSMISSIONMAP
+                #if ${defines.USE_TRANSMISSIONMAP}
                    // uniform sampler2D transmissionMap;
                     @group(0) @binding(${defines.transmissionMapBinding}) var transmissionMap: texture_2d<f32>;
                 #endif
-                #ifdef USE_THICKNESSMAP
+                #if ${defines.USE_THICKNESSMAP}
                     //uniform sampler2D thicknessMap;
                     @group(0) @binding(${defines.thicknessMapBinding}) var thicknessMap: texture_2d<f32>;
                 #endif
@@ -15,8 +15,6 @@ export default function pbrTexture(defines) {
                 @group(0) @binding(${defines.transmissionSamplerMapBinding}) var transmissionSamplerMap: texture_2d<f32>;
             #endif
             #if ${defines.USE_ENVMAP}
-                uniform float envMapIntensity;
-                uniform float flipEnvMap;
                 #if ${defines.ENVMAP_TYPE_CUBE}
                 // uniform samplerCube envMap;
                     //texture_cube
@@ -102,7 +100,6 @@ export default function pbrTexture(defines) {
             #endif
             #if ${defines.USE_LIGHTMAP}
                 @group(0) @binding(${defines.lightMapBinding}) var lightMap: texture_2d<f32>;
-                uniform float lightMapIntensity;
             #endif
 
             #if ${defines.USE_EMISSIVEMAP}

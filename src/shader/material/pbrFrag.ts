@@ -8,138 +8,149 @@ export default function pbrFrag(defines){
     const EPSILON:f32= 1e-6
 
     struct PbrData{
-        diffuse:vec3<f32>;
-        roughness:f32;
-        emissive:vec3<f32>; 
-        metalness:f32;
+
+        diffuse:vec3<f32>,
+
+        roughness:f32,
+
+        emissive:vec3<f32>,
+
+        metalness:f32,
 
         #if ${defines.SPECULAR}
-             specularColor:vec3<f32>;
-             specularIntensity:f32;
+             specularColor:vec3<f32>,
+
+             specularIntensity:f32,
         #endif
         
         #if ${defines.USE_SHEEN}
-            sheenColor:vec3<f32>;
-            sheenRoughness:f32;
+            sheenColor:vec3<f32>,
+
+            sheenRoughness:f32,
         #endif
         #if ${defines.USE_TRANSMISSION}
-            attenuationColor:vec3<f32>;
-            transmission:f32;
-            thickness:f32;
-            attenuationDistance:f32;
+            attenuationColor:vec3<f32>,
+
+            transmission:f32,
+
+            thickness:f32,
+
+            attenuationDistance:f32,
             
-            transmissionSamplerSize:vec2<f32>;
-            // uniform mat4 modelMatrix;
-            // uniform mat4 projectionMatrix;
-            //varying vec3 vWorldPosition;
+            transmissionSamplerSize:vec2<f32>,
+
         #endif
 
         #if ${defines.USE_CLEARCOAT_NORMALMAP}
-            clearcoatNormalScale:vec2<f32>;
+            clearcoatNormalScale:vec2<f32>,
         #endif
 
         #if ${defines.USE_NORMALMAP}
-             normalScale:vec2<f32>;
+             normalScale:vec2<f32>,
         #endif
 
-        opacity:f32;
+        opacity:f32,
 
-        toneMappingExposure:f32;
+        toneMappingExposure:f32,
 
         #if ${defines.IOR}
-            ior:f32;
+            ior:f32,
         #endif
 
         #if ${defines.USE_CLEARCOAT}
-             clearcoat:f32;
-             clearcoatRoughness:f32;
+             clearcoat:f32,
+
+             clearcoatRoughness:f32,
         #endif
 
         #if ${defines.USE_IRIDESCENCE}
-            iridescence:f32;
-            iridescenceIOR:f32;
-            iridescenceThicknessMinimum:f32;
-            iridescenceThicknessMaximum:f32;
+            iridescence:f32,
+
+            iridescenceIOR:f32,
+
+            iridescenceThicknessMinimum:f32,
+
+            iridescenceThicknessMaximum:f32,
+
         #endif
         #if ${defines.USE_AOMAP}
-             aoMapIntensity:f32;
+             aoMapIntensity:f32,
         #endif
         #if ${defines.USE_LIGHTMAP}
-             lightMapIntensity:f32;
+             lightMapIntensity:f32,
         #endif
 
         #if ${defines.USE_ENVMAP}
-            // uniform float envMapIntensity;
-            // uniform float flipEnvMap;
-            envMapIntensity:f32;
-            flipEnvMap:f32; 
+            envMapIntensity:f32,
+
+            flipEnvMap:f32,
         #endif
     }
 
     
-    uniform vec3 ambientLightColor;
-    uniform vec3 lightProbe[9];
+    uniform vec3 ambientLightColor,
+    uniform vec3 lightProbe[9],
 ////////////////////////////////////
 
-        #if ${defines.FLAT_SHADED}
-            varying vec3 vNormal;
-            #if ${defines.USE_TANGENT}
-                varying vec3 vTangent;
-                varying vec3 vBitangent;
-            #endif
-        #endif
+        // #if ${defines.FLAT_SHADED}
+        //     varying vec3 vNormal;
+        //     #if ${defines.USE_TANGENT}
+        //         varying vec3 vTangent;
+        //         varying vec3 vBitangent;
+        //     #endif
+        // #endif
         struct PhysicalMaterial {
-             diffuseColor:vec3<f32>;
-             roughness:f32;
-             specularColor:vec3<f32>;
-             specularF90:f32;
+             diffuseColor:vec3<f32>,
+             roughness:f32,
+             specularColor:vec3<f32>,
+             specularF90:f32,
             #if ${defines.USE_CLEARCOAT}
-                clearcoat:f32;
-                clearcoatRoughness:f32;
-                clearcoatF0:vec3<f32>;
-                clearcoatF90:f32;
+                clearcoat:f32,
+                clearcoatRoughness:f32,
+                clearcoatF0:vec3<f32>,
+                clearcoatF90:f32,
             #endif
             #if ${defines.USE_IRIDESCENCE}
-                iridescence:f32;
-                iridescenceIOR:f32;
-                iridescenceThickness:f32;
-                iridescenceFresnel:vec3<f32>;
-                iridescenceF0:vec3<f32>;
+                iridescence:f32,
+                iridescenceIOR:f32,
+                iridescenceThickness:f32,
+                iridescenceFresnel:vec3<f32>,
+                iridescenceF0:vec3<f32>,
             #endif
             #if ${defines.USE_SHEEN}
-                sheenColor:vec3<f32>;
-                sheenRoughness:f32;
+                sheenColor:vec3<f32>,
+                sheenRoughness:f32,
             #endif
             #if ${defines.IOR}
-                 ior:f32;
+                 ior:f32,
             #endif
             #if ${defines.USE_TRANSMISSION}
-                transmission:f32;
-                transmissionAlpha:f32;
-                thickness:f32;
-                attenuationDistance:f32;
-                attenuationColor:vec3<f32>;
+                transmission:f32,
+                transmissionAlpha:f32,
+                thickness:f32,
+                attenuationDistance:f32,
+                attenuationColor:vec3<f32>,
             #endif
         };
-
-    #if ${defines.OBJECTSPACE_NORMALMAP}
-        uniform mat3 normalMatrix;
-    #endif
-    #if ${defines.USE_ALPHATEST}
-       uniform float alphaTest;
-    #endif
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////
+    // #if ${defines.OBJECTSPACE_NORMALMAP}
+    //     uniform mat3 normalMatrix;
+    // #endif
+    // #if ${defines.USE_ALPHATEST}
+    //    uniform float alphaTest;
+    // #endif
 
 
-    #define STANDARD
 
-    #ifdef PHYSICAL
-        #define IOR
-        #define SPECULAR
-    #endif
 
-    varying vec3 vViewPosition;
+    // #define STANDARD
+
+    // #ifdef PHYSICAL
+    //     #define IOR
+    //     #define SPECULAR
+    // #endif
+
+    //varying vec3 vViewPosition;
 
     #if ${defines.DITHERING}
         fn dithering(color:vec3<f32> )->vec3<f32> {
@@ -149,12 +160,12 @@ export default function pbrFrag(defines){
             return color + dither_shift_RGB;
         }
     #endif
-    #if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )
-        varying vec2 vUv;
-    #endif
-    #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
-        varying vec2 vUv2;
-    #endif
+    // #if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )
+    //     varying vec2 vUv;
+    // #endif
+    // #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
+    //     varying vec2 vUv2;
+    // #endif
 
     #if ${defines.USE_IRIDESCENCE}
         fn BRDF_GGX_Iridescence( lightDir:vec3<f32>, viewDir:vec3<f32>,normal:vec3<f32>, f0:vec3<f32>, f90:f32,iridescence:f32, iridescenceFresnel:vec3<f32>,roughness:f32 )->vec3<f32> {
@@ -417,16 +428,7 @@ export default function pbrFrag(defines){
         
         }
     #endif
-    #ifdef USE_ENVMAP
-        uniform float envMapIntensity;
-        uniform float flipEnvMap;
-        #if ${defines.ENVMAP_TYPE_CUBE}
-            uniform samplerCube envMap;
-        #else
-            uniform sampler2D envMap;
-        #endif
-        
-    #endif
+
     #if ${defines.USE_ENVMAP}
         fn getIBLIrradiance( normal:vec<f32> )->vec3 {
             #if ${defines.ENVMAP_TYPE_CUBE_UV}
@@ -889,19 +891,20 @@ export default function pbrFrag(defines){
             diffuseColor.a *= material.transmissionAlpha + 0.1;
         #endif
 
-        gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+        let finnalColor:vec4<f32> = vec4<f32>( outgoingLight, diffuseColor.a );
 
         #if ${defines.TONE_MAPPING}
-            gl_FragColor.rgb = toneMapping( gl_FragColor.rgb );
+           finnalColor.rgb = toneMapping( finnalColor.rgb );
         #endif
 
-        gl_FragColor = linearToOutputTexel( gl_FragColor );
+          finnalColor = linearToOutputTexel( finnalColor );
 
-        // #ifdef PREMULTIPLIED_ALPHA
-        //     gl_FragColor.rgb *= gl_FragColor.a;
-        // #endif
-        // #ifdef DITHERING
-        //     gl_FragColor.rgb = dithering( gl_FragColor.rgb );
-        // #endif
+        #if ${defines.PREMULTIPLIED_ALPHA}
+            finnalColor.rgb *= finnalColor.a;
+        #endif
+        #if ${defines.DITHERING}
+            finnalColor.rgb = dithering( finnalColor.rgb );
+        #endif
+        return finnalColor;
     }`
 }
