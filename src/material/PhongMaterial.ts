@@ -26,28 +26,13 @@ export default class BaseMaterial extends Material {
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
-    update(frameState:FrameState,primitive:Mesh) { 
+    update(frameState:FrameState,mesh:Mesh) { 
         const {device}=frameState.context;
-        // if(!this.renderState)this.createRenderState(frameState)
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
-        if(!this.uniforms) this.createUniforms(primitive);
-        if(this.renderStateDirty||!this.renderState) {
-            if (this.renderStateDirty) {
-                this.dirty=true;
-                this.renderStateDirty=false;
-            }
-            this.createRenderState(frameState);
-        }
+        if(!this.uniforms) this.createUniforms(mesh);
+        super.update(frameState,mesh)
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
-        //update defines
-        //this.shaderSource.update(frameState.defines,this.defines);
-        if (frameState.definesDirty&&this.definesDirty) {
-            frameState.definesDirty=false;
-            this.definesDirty=false;
-            this.dirty=true;
-            this.shaderSource.update(frameState.defines,this.defines);
-        }
-        this.updateUniform();
+        this.setUniforms();
     }
     private createBindGroupAndLayout(device:GPUDevice){
       this.createUniformBuffer(device);
@@ -55,15 +40,15 @@ export default class BaseMaterial extends Material {
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }
-    private createUniforms(primitive:Mesh){
+    private createUniforms(mesh:Mesh){
         this.uniformTotalByte=64+64+16;
         this.uniformsDataBuffer=new Float32Array(16+16+4)
         this.uniforms=[
             new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
-                return primitive.modelMatrix;
+                return mesh.modelMatrix;
             }),
             new UniformMat4("normalMtrix",this.uniformsDataBuffer,64,()=>{
-                return primitive.normalMatrix;
+                return mesh.normalMatrix;
             }),
             new UniformFloatVec4("color",this.uniformsDataBuffer,128,this),
             new UniformTexture('baseTexture',1,this),

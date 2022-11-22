@@ -31,15 +31,8 @@ export default class ColorMaterial extends Material{
     }
     update(frameState:FrameState,primitive:RenderObject){
         if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,primitive);
-        if(this.renderStateDirty||!this.renderState) {
-            if (this.renderStateDirty) {
-                this.dirty=true;
-                this.renderStateDirty=false;
-            }
-            this.createRenderState(frameState);
-        };
-        this.updateUniform();
-        this.shaderSource.update();
+        super.update(frameState,primitive)
+        this.setUniforms();
     }
     private createUniformBuffer(device:GPUDevice,primitive:RenderObject){
         this.uniformsDataBuffer=new Float32Array(16);

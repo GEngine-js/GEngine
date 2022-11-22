@@ -59,7 +59,7 @@ export class Uniform<T> {
     }
 }
 
-export class UniformVec extends Uniform<number>{
+export class UniformFloat extends Uniform<number>{
     _value:number;
     name: string;
     value: number;

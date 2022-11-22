@@ -59,7 +59,9 @@ export class Material{
 
     _depthStencil:DepthStencil;
 
-    _defines:{};
+    _defines:{[prop: string]: boolean|number};
+
+    _opacity:number;
 
     definesDirty: boolean;
 
@@ -84,6 +86,11 @@ export class Material{
         this.bindGroups=[];
         this.dirty=true;
     }
+    
+    public get opacity() : number {
+        return this._opacity
+    }
+    
     get defines(){
         return this._defines;
     }
@@ -138,9 +145,28 @@ export class Material{
 	onBeforeCompile() {}
 
     update(frameState:FrameState,primitive:RenderObject){
-       
+        this.updateShader(frameState);
+        this.updateRenderState(frameState);
+        // this.Uniform();
     }
-    updateUniform(){
+    private updateShader(frameState:FrameState){
+        if (frameState.definesDirty||this.definesDirty) {
+            frameState.definesDirty=false;
+            this.definesDirty=false;
+            this.dirty=true;
+            this.shaderSource.update(frameState.defines,this.defines);
+        }
+    }
+    private updateRenderState(frameState:FrameState){
+        if(this.renderStateDirty||!this.renderState) {
+            if (this.renderStateDirty) {
+                this.dirty=true;
+                this.renderStateDirty=false;
+            }
+            this.createRenderState(frameState);
+        }
+    }
+    setUniforms(){
         this.uniforms.forEach((uniform)=>{
             uniform.set();
         });
