@@ -10,14 +10,16 @@ import { ShaderSource } from "../shader/ShaderSource";
 import combine from "../utils/combine";
 import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
-import Vector4 from "../math/Vector4";
 import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
 import RenderObject from "../core/RenderObject";
+import { UniformColor, UniformFloat, UniformMat3, UniformMat4 } from "../render/Uniforms";
+import Color from "../math/Color";
+import { Mesh } from "../mesh/Mesh";
 export class Material{
 
     public uniformBuffer:Buffer;
 
-    color?: Vector4;
+    color?: Color;
 
     uniforms:any[];
 
@@ -47,23 +49,27 @@ export class Material{
 
     dirty:boolean;
 
-    _blendConstant:BlendConstant;
+    private _blendConstant:BlendConstant;
 
-    _targets:Target;
+    private _targets:Target;
 
-    _multisample:MultiSample;
+    private _multisample:MultiSample;
     
-    _primitiveState:PrimitiveState
+    private _primitiveState:PrimitiveState
 
-    _stencilReference:number;
+    private _stencilReference:number;
 
-    _depthStencil:DepthStencil;
+    private _depthStencil:DepthStencil;
 
-    _defines:{[prop: string]: boolean|number};
+    private _defines:{[prop: string]: boolean|number};
 
-    _opacity:number;
+    private _opacity:number;
 
     definesDirty: boolean;
+
+    byteOffset:number;
+
+    totalUniformCount:number;
 
     constructor(){
         //
@@ -72,12 +78,13 @@ export class Material{
         this.baseTexture=undefined;
         this.baseSampler=undefined;
         this.renderState=undefined;
-        this.color=undefined;
+        this.color=new Color(1,1,1,0);
         this.alpha=undefined;
+        this._opacity=1.0;
         //Buffer
         this.uniformBuffer=undefined;
         this.uniformsDataBuffer=undefined;
-        this.uniforms=undefined;
+        this.uniforms=[];
         this.shaderSource=undefined;
         this.renderStateDirty=true;
         this.definesDirty=true;
@@ -85,10 +92,15 @@ export class Material{
         this.groupLayouts=[];
         this.bindGroups=[];
         this.dirty=true;
+        this.byteOffset=0;
+        this.totalUniformCount=0;
     }
     
     public get opacity() : number {
         return this._opacity
+    }
+    public set opacity(v : number) {
+        this._opacity = v;
     }
     
     get defines(){
@@ -144,17 +156,44 @@ export class Material{
 
 	onBeforeCompile() {}
 
-    update(frameState:FrameState,primitive:RenderObject){
-        this.updateShader(frameState);
+    update(frameState:FrameState,mesh:Mesh){
+        this.updateShader(frameState,mesh);
         this.updateRenderState(frameState);
-        // this.Uniform();
     }
-    private updateShader(frameState:FrameState){
-        if (frameState.definesDirty||this.definesDirty) {
+    protected createUniforms(mesh?:Mesh){
+        this.byteOffset=0;
+
+        this.uniformsDataBuffer=new Float32Array(this.totalUniformCount);
+        this.uniforms.push(new UniformMat4("modelMatrix",this.uniformsDataBuffer,this.byteOffset,()=>{
+            return mesh.modelMatrix;
+        }));
+        this.byteOffset+=64;
+
+        this.uniforms.push(new UniformColor("color",this.uniformsDataBuffer,this.byteOffset,this));
+        this.byteOffset+=12;
+        
+        this.uniforms.push(new UniformFloat("opacity",this.uniformsDataBuffer,this.byteOffset,this));
+        this.byteOffset+=4;
+
+        this.uniforms.push(new UniformMat3("normalMtrix",this.uniformsDataBuffer,this.byteOffset,()=>{
+            return mesh.normalMatrix;
+        }));
+        this.byteOffset+=48;
+
+        this.byteOffset= Math.ceil(this.byteOffset/64)*64;
+    }
+    protected getUniformSize(){
+       let byteSize= 16+9+3+1;
+       return Math.ceil(byteSize/16)*16;
+    }
+    private updateShader(frameState:FrameState,mesh:Mesh){
+        const {geometry}=mesh;
+        if (frameState.definesDirty||this.definesDirty||geometry.definesDirty) {
             frameState.definesDirty=false;
             this.definesDirty=false;
+            geometry.definesDirty=false;
             this.dirty=true;
-            this.shaderSource.update(frameState.defines,this.defines);
+            this.shaderSource.update(frameState.defines,this.defines,geometry.defines);
         }
     }
     private updateRenderState(frameState:FrameState){

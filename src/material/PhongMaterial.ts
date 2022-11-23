@@ -8,6 +8,7 @@ import Texture from "../render/Texture";
 import Context from "../render/Context";
 import Vector4 from "../math/Vector4";
 import { FrameState } from "../core/FrameState";
+import Color from "../math/Color";
 export default class BaseMaterial extends Material {
     imageBitmap: ImageBitmap;
     uniformTotalByte: number;
@@ -15,7 +16,7 @@ export default class BaseMaterial extends Material {
         super();
         this.type = 'phong';
         this.imageBitmap=imageBitmap;
-        this.color = new Vector4(1.0,0.0,0.0,1.0);
+        this.color = new Color(1.0,0.0,0.0,1.0);
         this.alpha = undefined;
         this.shaderSource=new ShaderSource({
             type:this.type,
@@ -29,7 +30,7 @@ export default class BaseMaterial extends Material {
     update(frameState:FrameState,mesh:Mesh) { 
         const {device}=frameState.context;
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
-        if(!this.uniforms) this.createUniforms(mesh);
+        if(this.uniforms.length==0) this.createUniforms(mesh);
         super.update(frameState,mesh)
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
         this.setUniforms();
@@ -40,23 +41,15 @@ export default class BaseMaterial extends Material {
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }
-    private createUniforms(mesh:Mesh){
-        this.uniformTotalByte=64+64+16;
-        this.uniformsDataBuffer=new Float32Array(16+16+4)
-        this.uniforms=[
-            new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
-                return mesh.modelMatrix;
-            }),
-            new UniformMat4("normalMtrix",this.uniformsDataBuffer,64,()=>{
-                return mesh.normalMatrix;
-            }),
-            new UniformFloatVec4("color",this.uniformsDataBuffer,128,this),
-            new UniformTexture('baseTexture',1,this),
-            new UniformSampler('sampler',2,this.baseTexture)
-        ]
+    protected createUniforms(mesh?:Mesh){
+        this.totalUniformCount=this.getUniformSize();
+        super.createUniforms(mesh);
+        this.uniforms.push(new UniformTexture('baseTexture',1,this));
+        this.uniforms.push(new UniformSampler('sampler',2,this.baseTexture));
+        this.byteOffset=this.getUniformSize()*4;
      }
      private createUniformBuffer(device:GPUDevice){
-         this.uniformBuffer=Buffer.createUniformBuffer(device,this.uniformTotalByte)
+         this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
      }
      private ceateTextureAndSampler(context:Context){
         const baseSampler=new Sampler({
@@ -74,6 +67,10 @@ export default class BaseMaterial extends Material {
             sampler:baseSampler
           });
           this.baseTexture.update(context);
+     }
+     protected getUniformSize(){
+        let uniformSize= super.getUniformSize()
+        return uniformSize;
      }
     destroy() {
 

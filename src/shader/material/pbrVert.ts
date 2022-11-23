@@ -38,8 +38,8 @@ export default function pbrVert(defines){
 
             boneTextureSize:u32,
         #endif
-
-        #if ${defines.USE_DISPLACEMENTMAP}
+       TEXTURE
+        #if ${defines.USE_DISPLACEMENTTEXTURE}
             displacementScale:f32,
 
             displacementBias:f32,
@@ -67,9 +67,9 @@ export default function pbrVert(defines){
         @group(0) @binding(${defines.boneTextureBinding}) var boneTexture: texture_2d<f32>;
     #endif
 
-    #if ${defines.USE_DISPLACEMENTMAP}
+    #if ${defines.USE_DISPLACEMENTTEXTURE}
         //uniform sampler2D displacementMap;
-        @group(0) @binding(${defines.displacementMapBinding}) var displacementMap: texture_2d<f32>;
+        @group(0) @binding(${defines.displacementTextureBinding}) var displacementMap: texture_2d<f32>;
     #endif
 
     #if ${defines.MORPHTARGETS_TEXTURE}
@@ -83,7 +83,7 @@ export default function pbrVert(defines){
         @location(1) normal: vec3<f32>,
 
         @location(2) uv: vec2<f32>,
-        #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
+        #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
             @location(${defines.uv2Location}) uv2:vec2<f32>,
         #endif
         #if ${defines.USE_INSTANCING}
@@ -171,7 +171,7 @@ export default function pbrVert(defines){
         #if ${defines.USE_UV}
             vertexOutput.vUv = ( uvTransform * vec3(input.uv, 1 ) ).xy;
         #endif
-        #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
+        #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
             vertexOutput.vUv2 = ( uv2Transform * vec3(input.uv2, 1 ) ).xy;
         #endif
         #if ${defines.USE_COLOR_ALPHA}
@@ -283,7 +283,7 @@ export default function pbrVert(defines){
             skinned += boneMatW * skinVertex * input.skinWeight.w;
             transformed = ( vertUniform.bindMatrixInverse * skinned ).xyz;
         #endif
-        #if ${defines.USE_DISPLACEMENTMAP} 
+        #if ${defines.USE_DISPLACEMENTTEXTURE} 
             transformed += normalize( objectNormal ) * (textureSample(displacementMap, baseSampler, vUv).x * vertUniform.displacementScale + vertUniform.displacementBias );
         #endif
         let mvPosition:vec4<f32> = vec4<f32>( transformed, 1.0 );
@@ -293,7 +293,7 @@ export default function pbrVert(defines){
         mvPosition = globalUniform.viewMatrix*vertUniform.modelMatrix * mvPosition;
         vertexOutput.position = globalUniform.projectionMatrix * mvPosition;
         vertexOutput.vViewPosition = - mvPosition.xyz;
-        #if ${defines.USE_ENVMAP||defines.DISTANCE||defines.USE_TRANSMISSION} 
+        #if ${defines.USE_ENVTEXTURE||defines.DISTANCE||defines.USE_TRANSMISSION} 
             vec4 worldPosition = vec4( transformed, 1.0 );
             #if ${defines.USE_INSTANCING}
                 worldPosition = input.instanceMatrix * worldPosition;

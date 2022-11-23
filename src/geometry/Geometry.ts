@@ -5,6 +5,7 @@ import { IndexFormat,PrimitiveTopology } from "../core/WebGPUConstant";
 import Vector3 from "../math/Vector3";
 import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
+import combine from "../utils/combine";
 export default class Geometry {
     public attributes: Attribute[];
     type: string;
@@ -15,6 +16,15 @@ export default class Geometry {
     indexBuffer?:Buffer;
     count:number;
     boundingSphere:BoundingSphere
+    private  _defines:{[prop: string]: boolean|number};
+    definesDirty: boolean;
+    get defines(){
+        return this._defines;
+    }
+    set defines(value){
+        this.definesDirty=true;
+        this._defines=combine(value,this._defines,false);
+    }
     constructor(options?:any) {
         this.type = options.type||undefined;
         this.vertexBuffers = options.vertexBuffers||undefined;
@@ -22,6 +32,8 @@ export default class Geometry {
         this.topology=PrimitiveTopology.TriangleList;
         this.stripIndexFormat=IndexFormat.Uint32;
         this.dirty = false;
+        this.definesDirty=true;
+        this._defines={};
     }
     update(frameState:FrameState){}
     /**

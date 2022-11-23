@@ -138,8 +138,8 @@ export class UniformColor extends Uniform<Color>{
         super(uniformName,cb);
         this.value = undefined;
         this._value =new Color();
-        this.buffer=new Float32Array(buffer.buffer,byteOffset,4)
-        this.size=16;
+        this.buffer=new Float32Array(buffer.buffer,byteOffset,3)
+        this.size=12;
     }
     set () {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -174,7 +174,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
         this.value = undefined;
         this._value = new Matrix3();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,9)
-        this.size=36;
+        this.size=48;
     }
     set () {
         if(this.cb!=undefined)this.value=this.getValue();

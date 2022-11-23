@@ -35,13 +35,9 @@ export default class ColorMaterial extends Material{
         this.setUniforms();
     }
     private createUniformBuffer(device:GPUDevice,primitive:RenderObject){
-        this.uniformsDataBuffer=new Float32Array(16);
-        this.uniforms=[
-            new UniformMat4("modelMatrix",this.uniformsDataBuffer,0,()=>{
-                return primitive.modelMatrix;
-            }),
-        ]
-        this.uniformBuffer=Buffer.createUniformBuffer(device,64)
+        this.totalUniformCount=super.getUniformSize();
+        super.createUniforms(primitive)
+        this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
     }
     private createBindGroupAndLayout(device:GPUDevice,primitive:RenderObject){
         this.createUniformBuffer(device,primitive);

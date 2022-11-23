@@ -294,7 +294,7 @@ class Color {
       return this;
   }
   toArray(){
-    return [this.red,this.green,this.blue,this.alpha]
+    return [this.red,this.green,this.blue]
   }
   /**
  * Returns a duplicate of a Color instance.

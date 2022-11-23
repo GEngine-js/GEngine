@@ -41,11 +41,11 @@ export default function pbrFrag(defines){
 
         #endif
 
-        #if ${defines.USE_CLEARCOAT_NORMALMAP}
+        #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
             clearcoatNormalScale:vec2<f32>,
         #endif
 
-        #if ${defines.USE_NORMALMAP}
+        #if ${defines.USE_NORMALTEXTURE}
              normalScale:vec2<f32>,
         #endif
 
@@ -73,17 +73,20 @@ export default function pbrFrag(defines){
             iridescenceThicknessMaximum:f32,
 
         #endif
-        #if ${defines.USE_AOMAP}
-             aoMapIntensity:f32,
+        #if ${defines.USE_AOTEXTURE}
+             aoTextureIntensity:f32,
         #endif
-        #if ${defines.USE_LIGHTMAP}
-             lightMapIntensity:f32,
+        #if ${defines.USE_LIGHTTEXTURE}
+             lightTextureIntensity:f32,
         #endif
 
-        #if ${defines.USE_ENVMAP}
-            envMapIntensity:f32,
+        #if ${defines.USE_ENVTEXTURE}
+            envTextureIntensity:f32,
 
-            flipEnvMap:f32,
+            flipEnvTexture:f32,
+        #endif
+        #if ${defines.USE_BUMPTEXTURE}
+            bumpScale:f32;
         #endif
     }
 
@@ -133,7 +136,7 @@ export default function pbrFrag(defines){
             #endif
         };
 ////////////////////////////////////////////////////////////////////////////////////////////////
-    // #if ${defines.OBJECTSPACE_NORMALMAP}
+    // #if ${defines.OBJECTSPACE_NORMALTEXTURE}
     //     uniform mat3 normalMatrix;
     // #endif
     // #if ${defines.USE_ALPHATEST}
@@ -163,7 +166,7 @@ export default function pbrFrag(defines){
     // #if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )
     //     varying vec2 vUv;
     // #endif
-    // #if ${defines.USE_LIGHTMAP||defines.USE_AOMAP}
+    // #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
     //     varying vec2 vUv2;
     // #endif
 
@@ -315,7 +318,7 @@ export default function pbrFrag(defines){
             return max( I, vec3<f32>( 0.0 ) );
         }
     #endif
-    #if ${defines.ENVMAP_TYPE_CUBE_UV}
+    #if ${defines.ENVTEXTURE_TYPE_CUBE_UV}
         const cubeUV_minMipLevel:f32= 4.0;
         const cubeUV_minTileSize:f32= 16.0;
         fn getFace(direction:vec3<f32> )->f32 {
@@ -357,7 +360,7 @@ export default function pbrFrag(defines){
             }
             return 0.5 * ( uv + 1.0 );
         }
-        fn bilinearCubeUV(envMap:texture_2d<f32>,direction:vec3<f32>, mipInt:f32 )->vec3<f32> {
+        fn bilinearCubeUV(envTexture:texture_2d<f32>,direction:vec3<f32>, mipInt:f32 )->vec3<f32> {
             float face = getFace( direction );
             float filterInt = max( cubeUV_minMipLevel - mipInt, 0.0 );
             mipInt = max( mipInt, cubeUV_minMipLevel );
@@ -373,10 +376,10 @@ export default function pbrFrag(defines){
             uv.x *= CUBEUV_TEXEL_WIDTH;
             uv.y *= CUBEUV_TEXEL_HEIGHT;
             #ifdef texture2DGradEXT
-                return texture2DGradEXT( envMap, uv, vec2<f32>( 0.0 ), vec2<f32>( 0.0 ) ).rgb;
+                return texture2DGradEXT( envTexture, uv, vec2<f32>( 0.0 ), vec2<f32>( 0.0 ) ).rgb;
             #else
-               // return texture2D( envMap, uv ).rgb;
-                return textureSample(envMap, baseSampler, uv).rgb;
+               // return texture2D( envTexture, uv ).rgb;
+                return textureSample(envTexture, baseSampler, uv).rgb;
             #endif
         }
         const cubeUV_r0:f32= 1.0;
@@ -413,39 +416,39 @@ export default function pbrFrag(defines){
             }
             return mip;
         }
-        fn textureCubeUV(envMap:texture_2d<f32>, sampleDir:vec3<f32>,roughness:f32 )->vec4<f32> {
+        fn textureCubeUV(envTexture:texture_2d<f32>, sampleDir:vec3<f32>,roughness:f32 )->vec4<f32> {
             let mip = clamp( roughnessToMip( roughness ), cubeUV_m0, CUBEUV_MAX_MIP );
             let mipF = fract( mip );
             let mipInt = floor( mip );
-            let color0:vec3<f32> = bilinearCubeUV( envMap, sampleDir, mipInt );
+            let color0:vec3<f32> = bilinearCubeUV( envTexture, sampleDir, mipInt );
             if ( mipF == 0.0 ) {
                 return vec4( color0, 1.0 );
             }
             else {
-                vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );
+                vec3 color1 = bilinearCubeUV( envTexture, sampleDir, mipInt + 1.0 );
                 return vec4( mix( color0, color1, mipF ), 1.0 );
             }
         
         }
     #endif
 
-    #if ${defines.USE_ENVMAP}
+    #if ${defines.USE_ENVTEXTURE}
         fn getIBLIrradiance( normal:vec<f32> )->vec3 {
-            #if ${defines.ENVMAP_TYPE_CUBE_UV}
+            #if ${defines.ENVTEXTURE_TYPE_CUBE_UV}
                 let worldNormal:vec3<f32> = inverseTransformDirection( normal, viewMatrix );
-                let envMapColor:vec4<f32> = textureCubeUV( envMap, worldNormal, 1.0 );
-                return PI * envMapColor.rgb * envMapIntensity;
+                let envTextureColor:vec4<f32> = textureCubeUV( envTexture, worldNormal, 1.0 );
+                return PI * envTextureColor.rgb * envTextureIntensity;
             #else
                 return vec3( 0.0 );
             #endif
         }
         fn getIBLRadiance( viewDir:vec3<f32>, normal:vec3<f32>, roughness:f32 )->vec3<f32> {
-            #if ${defines.ENVMAP_TYPE_CUBE_UV}
+            #if ${defines.ENVTEXTURE_TYPE_CUBE_UV}
                 let reflectVec:vec3<f32> = reflect( - viewDir, normal );
                 reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );
                 reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-                let envMapColor:vec4<f32> = textureCubeUV( envMap, reflectVec, roughness );
-                return envMapColor.rgb * envMapIntensity;
+                let envTextureColor:vec4<f32> = textureCubeUV( envTexture, reflectVec, roughness );
+                return envTextureColor.rgb * envTextureIntensity;
             #else
                 return vec3( 0.0 );
             #endif
@@ -521,7 +524,7 @@ export default function pbrFrag(defines){
         }
         fn getTransmissionSample( fragCoord:vec2<f32>, roughness:f32,ior:f32 )->vec4<f32> {
             let framebufferLod:f32 = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );
-            return textureSampleLevel(transmissionSamplerMap,baseSampler,fragCoord.xy, framebufferLod);
+            return textureSampleLevel(transmissionSamplerTexture,baseSampler,fragCoord.xy, framebufferLod);
 
         }
         fn applyVolumeAttenuation( radiance:vec3<vec3>, transmissionDistance:f32,attenuationColor:vec3<f32>,attenuationDistance:f32 )->vec3<f32> {
@@ -549,16 +552,14 @@ export default function pbrFrag(defines){
         }
     #endif
  
-    #if ${defines.USE_BUMPMAP}
-        uniform sampler2D bumpMap;
-        uniform float bumpScale;
+    #if ${defines.USE_BUMPTEXTURE}
         fn dHdxy_fwd()->vec2<f32> {
             let dSTdx:vec2<f32> = dpdx( vUv );
             let dSTdy:vec2<f32> = dpdy( vUv );
 
-            let Hll:f32 = bumpScale * textureSample(bumpMap, baseSampler, vUv).x;
-            let dBx:f32 = bumpScale * textureSample(bumpMap, baseSampler, vUv + dSTdx).x - Hll;
-            let dBy:f32 = bumpScale * textureSample(bumpMap, baseSampler, vUv + dSTdy).x - Hll;
+            let Hll:f32 = bumpScale * textureSample(bumpTexture, baseSampler, vUv).x;
+            let dBx:f32 = bumpScale * textureSample(bumpTexture, baseSampler, vUv + dSTdx).x - Hll;
+            let dBy:f32 = bumpScale * textureSample(bumpTexture, baseSampler, vUv + dSTdy).x - Hll;
             return vec2<f32>( dBx, dBy );
         }
         fn perturbNormalArb( surf_pos:vec3<f32>, surf_norm:vec3<f32>, dHdxy:vec2<f32>, faceDirection:f32 )->vec3<f32> {
@@ -573,9 +574,9 @@ export default function pbrFrag(defines){
         }
     #endif
 
-    //! defined ( USE_TANGENT ) && ( defined ( TANGENTSPACE_NORMALMAP ) || defined ( USE_CLEARCOAT_NORMALMAP ) )
-    #if ${!defines.USE_TANGENT&&defines.TANGENTSPACE_NORMALMAP||defines.USE_CLEARCOAT_NORMALMAP}
-        fn perturbNormal2Arb( eye_pos:vec3<f32>, surf_norm:vec3<f32>, mapN:vec3<f32>, faceDirection:f32 )->vec3<f32> {
+    //! defined ( USE_TANGENT ) && ( defined ( TANGENTSPACE_NORMALTEXTURE ) || defined ( USE_CLEARCOAT_NORMALTEXTURE ) )
+    #if ${!defines.USE_TANGENT&&defines.TANGENTSPACE_NORMALTEXTURE||defines.USE_CLEARCOAT_NORMALTEXTURE}
+        fn perturbNormal2Arb( eye_pos:vec3<f32>, surf_norm:vec3<f32>, textureN:vec3<f32>, faceDirection:f32 )->vec3<f32> {
             let q0:vec3<f32> = dpdx( eye_pos.xyz );
             let q1:vec3<f32> = dpdy( eye_pos.xyz );
             let st0:vec2<f32> = dpdx( vUv.st );
@@ -587,7 +588,7 @@ export default function pbrFrag(defines){
             let B:vec3<f32> = q1perp * st0.y + q0perp * st1.y;
             let det:f32 = max( dot( T, T ), dot( B, B ) );
             let scale:f32 = ( det == 0.0 ) ? 0.0 : faceDirection * inversesqrt( det );
-            return normalize( T * ( mapN.x * scale ) + B * ( mapN.y * scale ) + N * mapN.z );
+            return normalize( T * ( textureN.x * scale ) + B * ( textureN.y * scale ) + N * textureN.z );
         }
     #endif
 
@@ -596,9 +597,9 @@ export default function pbrFrag(defines){
        // ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
         ReflectedLight reflectedLight;
         let totalEmissiveRadiance:vec3<f32> = emissive;
-        #if ${defines.USE_MAP}
-            //let sampledDiffuseColor:vec4<f32> = texture2D( map, vUv );
-            let sampledDiffuseColor:vec4<f32> =textureSample(map, baseSampler, vUv);
+        #if ${defines.USE_TEXTURE}
+            //let sampledDiffuseColor:vec4<f32> = texture2D( baseTexture, vUv );
+            let sampledDiffuseColor:vec4<f32> =textureSample(baseTexture, baseSampler, vUv);
             #if ${defines.DECODE_VIDEO_TEXTURE}
                 sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
             #endif
@@ -607,17 +608,17 @@ export default function pbrFrag(defines){
 
         let roughnessFactor:f32 = roughness;
     
-        #if ${defines.USE_ROUGHNESSMAP}
-            //let texelRoughness:vec4<f32> = texture2D( roughnessMap, vUv );
-            let texelRoughness:vec4<f32>=textureSample(roughnessMap, baseSampler, vUv);
+        #if ${defines.USE_ROUGHNESSTEXTURE}
+            //let texelRoughness:vec4<f32> = texture2D( roughnessTexture, vUv );
+            let texelRoughness:vec4<f32>=textureSample(roughnessTexture, baseSampler, vUv);
             roughnessFactor *= texelRoughness.g;
         #endif
 
         let metalnessFactor:vec3<f32> = metalness;
     
-        #ifdef ${defines.USE_METALNESSMAP}
-            //let texelMetalness:vec4<f32> = texture2D( metalnessMap, vUv );
-            let texelMetalness:vec4<f32> =textureSample(metalnessMap, baseSampler, vUv);
+        #ifdef ${defines.USE_METALNESSTEXTURE}
+            //let texelMetalness:vec4<f32> = texture2D( metalnessTexture, vUv );
+            let texelMetalness:vec4<f32> =textureSample(metalnessTexture, baseSampler, vUv);
             metalnessFactor *= texelMetalness.b;
         #endif
 
@@ -639,7 +640,7 @@ export default function pbrFrag(defines){
                     tangent = tangent * faceDirection;
                     bitangent = bitangent * faceDirection;
                 #endif
-                #if ${defines.TANGENTSPACE_NORMALMAP||defines.USE_CLEARCOAT_NORMALMAP}
+                #if ${defines.TANGENTSPACE_NORMALTEXTURE||defines.USE_CLEARCOAT_NORMALTEXTURE}
                     let vTBN:mat3x3<f32> = mat3x3<f32>( tangent, bitangent, normal );
                 #endif
 
@@ -648,9 +649,9 @@ export default function pbrFrag(defines){
     
         let geometryNormal:vec3<f32> = normal;
 
-        #if ${defines.OBJECTSPACE_NORMALMAP}
-            //normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
-            normal =textureSample(normalMap, baseSampler, vUv).xyz * 2.0 - 1.0;
+        #if ${defines.OBJECTSPACE_NORMALTEXTURE}
+            //normal = texture2D( normalTexture, vUv ).xyz * 2.0 - 1.0;
+            normal =textureSample(normalTexture, baseSampler, vUv).xyz * 2.0 - 1.0;
             #if ${defines.FLIP_SIDED}
                 normal = - normal;
             #endif
@@ -660,9 +661,9 @@ export default function pbrFrag(defines){
 
             normal = normalize( normalMatrix * normal );
 
-            #elif ${defines.TANGENTSPACE_NORMALMAP}
-            //let mapN:vec3<f32> = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
-            let mapN:vec3<f32> =textureSample(normalMap, baseSampler, vUv).xyz * 2.0 - 1.0;
+            #elif ${defines.TANGENTSPACE_NORMALTEXTURE}
+            //let mapN:vec3<f32> = texture2D( normalTexture, vUv ).xyz * 2.0 - 1.0;
+            let mapN:vec3<f32> =textureSample(normalTexture, baseSampler, vUv).xyz * 2.0 - 1.0;
             let mapN:vec3<f32> =mapN.xy *= normalScale;
             #if ${defines.USE_TANGENT}
                 normal = normalize( vTBN * mapN );
@@ -670,7 +671,7 @@ export default function pbrFrag(defines){
                 normal = perturbNormal2Arb( - vViewPosition, normal, mapN, faceDirection );
             #endif
 
-            #elif ${defines.USE_BUMPMAP}
+            #elif ${defines.USE_BUMPTEXTURE}
 
             normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
         #endif
@@ -678,9 +679,9 @@ export default function pbrFrag(defines){
         #if ${defines.USE_CLEARCOAT}
             let clearcoatNormal:vec3<f32> = geometryNormal;
         #endif
-        #if ${defines.USE_CLEARCOAT_NORMALMAP}
-            //let clearcoatMapN:vec3<f32> = texture2D( clearcoatNormalMap, vUv ).xyz * 2.0 - 1.0;
-            let clearcoatMapN:vec3<f32> =textureSample(clearcoatNormalMap, baseSampler, vUv).xyz * 2.0 - 1.0;
+        #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
+            //let clearcoatMapN:vec3<f32> = texture2D( clearcoatNormalTexture, vUv ).xyz * 2.0 - 1.0;
+            let clearcoatMapN:vec3<f32> =textureSample(clearcoatNormalTexture, baseSampler, vUv).xyz * 2.0 - 1.0;
             clearcoatMapN.xy *= clearcoatNormalScale;
             #if ${defines.USE_TANGENT}
                 clearcoatNormal = normalize( vTBN * clearcoatMapN );
@@ -688,9 +689,9 @@ export default function pbrFrag(defines){
                 clearcoatNormal = perturbNormal2Arb( - vViewPosition, clearcoatNormal, clearcoatMapN, faceDirection );
             #endif
         #endif
-        #if ${defines.USE_EMISSIVEMAP}
-            //let emissiveColor:vec4<f32> = texture2D(emissiveMap, vUv );
-            let emissiveColor:vec4<f32> =textureSample(clearcoatNormalMap, baseSampler, vUv);
+        #if ${defines.USE_EMISSIVETEXTURE}
+            //let emissiveColor:vec4<f32> = texture2D(emissiveTexture, vUv );
+            let emissiveColor:vec4<f32> =textureSample(clearcoatNormalTexture, baseSampler, vUv);
             totalEmissiveRadiance *= emissiveColor.rgb;
         #endif
 
@@ -707,14 +708,14 @@ export default function pbrFrag(defines){
             #if ${defines.SPECULAR}
                 let specularIntensityFactor:f32 = specularIntensity;
                 let specularColorFactor:vec3<f32> = specularColor;
-                #if ${defines.USE_SPECULARINTENSITYMAP}
-                    //specularIntensityFactor *= texture2D( specularIntensityMap, vUv ).a;
-                    specularIntensityFactor *=textureSample(specularIntensityMap, baseSampler, vUv).a;
+                #if ${defines.USE_SPECULARINTENSITYTEXTURE}
+                    //specularIntensityFactor *= texture2D( specularIntensityTexture, vUv ).a;
+                    specularIntensityFactor *=textureSample(specularIntensityTexture, baseSampler, vUv).a;
                 #endif
 
-                #if ${defines.USE_SPECULARCOLORMAP}
-                    //specularColorFactor *= texture2D( specularColorMap, vUv ).rgb;
-                    specularColorFactor *=textureSample(specularColorMap, baseSampler, vUv).rgb;
+                #if ${defines.USE_SPECULARCOLORTEXTURE}
+                    //specularColorFactor *= texture2D( specularColorTexture, vUv ).rgb;
+                    specularColorFactor *=textureSample(specularColorTexture, baseSampler, vUv).rgb;
                 #endif
 
                 material.specularF90 = mix( specularIntensityFactor, 1.0, metalnessFactor );
@@ -733,13 +734,13 @@ export default function pbrFrag(defines){
             material.clearcoatRoughness = clearcoatRoughness;
             material.clearcoatF0 = vec3<f32>( 0.04 );
             material.clearcoatF90 = 1.0;
-            #if ${defines.USE_CLEARCOATMAP}
-                //material.clearcoat *= texture2D( clearcoatMap, vUv ).x;
-                material.clearcoat *=textureSample(clearcoatMap, baseSampler, vUv).x;
+            #if ${defines.USE_CLEARCOATTEXTURE}
+                //material.clearcoat *= texture2D( clearcoatTexture, vUv ).x;
+                material.clearcoat *=textureSample(clearcoatTexture, baseSampler, vUv).x;
             #endif
-            #if ${defines.USE_CLEARCOAT_ROUGHNESSMAP}
-                //material.clearcoatRoughness *= texture2D( clearcoatRoughnessMap, vUv ).y;
-                material.clearcoatRoughness *=textureSample(clearcoatRoughnessMap, baseSampler, vUv).y;
+            #if ${defines.USE_CLEARCOAT_ROUGHNESSTEXTURE}
+                //material.clearcoatRoughness *= texture2D( clearcoatRoughnessTexture, vUv ).y;
+                material.clearcoatRoughness *=textureSample(clearcoatRoughnessTexture, baseSampler, vUv).y;
             #endif
             material.clearcoat = saturate( material.clearcoat );
             material.clearcoatRoughness = max( material.clearcoatRoughness, 0.0525 );
@@ -749,27 +750,27 @@ export default function pbrFrag(defines){
         #if ${defines.USE_IRIDESCENCE}
             material.iridescence = iridescence;
             material.iridescenceIOR = iridescenceIOR;
-            #if ${defines.USE_IRIDESCENCEMAP}
-                //material.iridescence *= texture2D( iridescenceMap, vUv ).r;
-                material.iridescence *=textureSample(iridescenceMap, baseSampler, vUv).r;
+            #if ${defines.USE_IRIDESCENCETEXTURE}
+                //material.iridescence *= texture2D( iridescenceTexture, vUv ).r;
+                material.iridescence *=textureSample(iridescenceTexture, baseSampler, vUv).r;
             #endif
-            #if ${defines.USE_IRIDESCENCE_THICKNESSMAP}
-                //material.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * texture2D( iridescenceThicknessMap, vUv ).g + iridescenceThicknessMinimum;
-                material.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * textureSample(iridescenceThicknessMap, baseSampler, vUv).g + iridescenceThicknessMinimum;
+            #if ${defines.USE_IRIDESCENCE_THICKNESSTEXTURE}
+                //material.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * texture2D( iridescenceThicknessTexture, vUv ).g + iridescenceThicknessMinimum;
+                material.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * textureSample(iridescenceThicknessTexture, baseSampler, vUv).g + iridescenceThicknessMinimum;
             #else
                 material.iridescenceThickness = iridescenceThicknessMaximum;
             #endif
         #endif
         #if ${defines.USE_SHEEN}
             material.sheenColor = sheenColor;
-            #if ${defines.USE_SHEENCOLORMAP}
-                //material.sheenColor *= texture2D( sheenColorMap, vUv ).rgb;
-                material.sheenColor *=textureSample(sheenColorMap, baseSampler, vUv).rgb;
+            #if ${defines.USE_SHEENCOLORTEXTURE}
+                //material.sheenColor *= texture2D( sheenColorTexture, vUv ).rgb;
+                material.sheenColor *=textureSample(sheenColorTexture, baseSampler, vUv).rgb;
             #endif
             material.sheenRoughness = clamp( sheenRoughness, 0.07, 1.0 );
-            #if ${defines.USE_SHEENROUGHNESSMAP}
-                //material.sheenRoughness *= texture2D( sheenRoughnessMap, vUv ).a;
-                material.sheenRoughness *=textureSample(sheenRoughnessMap, baseSampler, vUv).a;
+            #if ${defines.USE_SHEENROUGHNESSTEXTURE}
+                //material.sheenRoughness *= texture2D( sheenRoughnessTexture, vUv ).a;
+                material.sheenRoughness *=textureSample(sheenRoughnessTexture, baseSampler, vUv).a;
             #endif
         #endif
         
@@ -809,20 +810,20 @@ export default function pbrFrag(defines){
             let clearcoatRadiance:vec3<f32> = vec3<f32>( 0.0 );
         //#endif
         //#if defined( RE_IndirectDiffuse )
-            #if ${defines.USE_LIGHTMAP}
-                //let lightMapTexel:vec4<f32> = texture2D( lightMap, vUv2 );
-                let lightMapTexel:vec4<f32> =textureSample(lightMap, baseSampler, vUv2);
-                let lightMapIrradiance:vec3<f32> = lightMapTexel.rgb * lightMapIntensity;
+            #if ${defines.USE_LIGHTTEXTURE}
+                //let lightMapTexel:vec4<f32> = texture2D( lightTexture, vUv2 );
+                let lightMapTexel:vec4<f32> =textureSample(lightTexture, baseSampler, vUv2);
+                let lightMapIrradiance:vec3<f32> = lightMapTexel.rgb * lightTextureIntensity;
                 irradiance += lightMapIrradiance;
             #endif
 //////////////////////////////////////////////////////////////////
-            #if ${defines.USE_ENVMAP&& defines.STANDARD&&defines.ENVMAP_TYPE_CUBE_UV} 
+            #if ${defines.USE_ENVTEXTURE&& defines.STANDARD&&defines.ENVTEXTURE_TYPE_CUBE_UV} 
                 iblIrradiance += getIBLIrradiance( geometry.normal );
             #endif
 ////////////////////////////////////////////////////////////////////
         //#endif
         //#if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
-        #if ${defines.USE_ENVMAP}
+        #if ${defines.USE_ENVTEXTURE}
             radiance += getIBLRadiance( geometry.viewDir, geometry.normal, material.roughness );
             #if ${defines.USE_CLEARCOAT}
                 clearcoatRadiance += getIBLRadiance( geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness );
@@ -837,12 +838,12 @@ export default function pbrFrag(defines){
             RE_IndirectSpecular( radiance, iblIrradiance, clearcoatRadiance, geometry, material, reflectedLight );
         //#endif
         //环境光遮蔽
-        #if ${defines.USE_AOMAP}
-            //let ambientOcclusion:f32 = (texture2D(aoMap, vUv2 ).r - 1.0 ) * aoMapIntensity + 1.0;
-            let ambientOcclusion:f32 = (textureSample(aoMap, baseSampler, vUv2).r - 1.0 ) * aoMapIntensity + 1.0;
+        #if ${defines.USE_AOTEXTURE}
+            //let ambientOcclusion:f32 = (texture2D(aoTexture, vUv2 ).r - 1.0 ) * aoTextureIntensity + 1.0;
+            let ambientOcclusion:f32 = (textureSample(aoTexture, baseSampler, vUv2).r - 1.0 ) * aoTextureIntensity + 1.0;
 
             reflectedLight.indirectDiffuse *= ambientOcclusion;
-            #if ${defines.USE_ENVMAP&&defines.STANDARD} 
+            #if ${defines.USE_ENVTEXTURE&&defines.STANDARD} 
                 let dotNV:f32 = saturate( dot( geometry.normal, geometry.viewDir ) );
                 reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
             #endif
@@ -857,13 +858,13 @@ export default function pbrFrag(defines){
             material.thickness = thickness;
             material.attenuationDistance = attenuationDistance;
             material.attenuationColor = attenuationColor;
-            #if ${defines.USE_TRANSMISSIONMAP}
-                //material.transmission *= texture2D( transmissionMap, vUv).r;
-                material.transmission *=textureSample(transmissionMap, baseSampler, vUv).r;
+            #if ${defines.USE_TRANSMISSIONTEXTURE}
+                //material.transmission *= texture2D( transmissionTexture, vUv).r;
+                material.transmission *=textureSample(transmissionTexture, baseSampler, vUv).r;
             #endif
-            #if ${defines.USE_THICKNESSMAP}
-                //material.thickness *= texture2D( thicknessMap, vUv).g;
-                material.thickness *=textureSample(thicknessMap, baseSampler, vUv).g;
+            #if ${defines.USE_THICKNESSTEXTURE}
+                //material.thickness *= texture2D( thicknessTexture, vUv).g;
+                material.thickness *=textureSample(thicknessTexture, baseSampler, vUv).g;
             #endif
             let pos:vec3<f32> = vWorldPosition;
             let v:vec3<f32> = normalize( cameraPosition - pos );

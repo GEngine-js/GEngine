@@ -12,8 +12,9 @@ export default function phongVert(defines){
             };
       struct SelfUniform {
             modelMatrix: mat4x4<f32>,
+            color: vec3<f32>,
+            opacity:f32,
             normalMatrix: mat3x3<f32>,
-            color: vec3<f32>
       }
       struct SystemUniform {
             projectionMatrix: mat4x4<f32>,
@@ -39,7 +40,7 @@ export default function phongVert(defines){
             let modelPos=temModelPos.xyzw/temModelPos.w;
             output.worldPos = modelPos.xyz;
             let vNormalView = selfUniform.normalMatrix * input.normal;
-            //output.normal = normalize((systemUniform.inverseViewMatrix * vec4<f32>(vNormalView, 0.0)).xyz);
+           // output.normal = normalize((systemUniform.inverseViewMatrix * vec4<f32>(vNormalView, 0.0)).xyz);
             output.normal = vNormalView;
             output.view = systemUniform.cameraPosition - modelPos.xyz;
             let viewPosition=systemUniform.viewMatrix * modelPos;

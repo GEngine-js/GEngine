@@ -2,108 +2,112 @@ export default function pbrTexture(defines) {
      return `
 
             @group(0) @binding(${defines.samplerBinding}) var baseSampler: sampler;
+            #if ${defines.USE_BUMPTEXTURE}
+                uniform sampler2D bumpMap;
+                @group(0) @binding(${defines.bumpTextureBinding}) var bumpTexture: texture_2d<f32>;
+            #endif
             #if ${defines.USE_TRANSMISSION}
-                #if ${defines.USE_TRANSMISSIONMAP}
-                   // uniform sampler2D transmissionMap;
-                    @group(0) @binding(${defines.transmissionMapBinding}) var transmissionMap: texture_2d<f32>;
+                #if ${defines.USE_TRANSMISSIONTEXTURE}
+                   // uniform sampler2D transmissionTexture;
+                    @group(0) @binding(${defines.transmissionTextureBinding}) var transmissionTexture: texture_2d<f32>;
                 #endif
-                #if ${defines.USE_THICKNESSMAP}
-                    //uniform sampler2D thicknessMap;
-                    @group(0) @binding(${defines.thicknessMapBinding}) var thicknessMap: texture_2d<f32>;
+                #if ${defines.USE_THICKNESSTEXTURE}
+                    //uniform sampler2D thicknessTexture;
+                    @group(0) @binding(${defines.thicknessTextureBinding}) var thicknessTexture: texture_2d<f32>;
                 #endif
-                //uniform sampler2D transmissionSamplerMap;
-                @group(0) @binding(${defines.transmissionSamplerMapBinding}) var transmissionSamplerMap: texture_2d<f32>;
+                //uniform sampler2D transmissionSamplerTexture;
+                @group(0) @binding(${defines.transmissionSamplerTextureBinding}) var transmissionSamplerTexture: texture_2d<f32>;
             #endif
-            #if ${defines.USE_ENVMAP}
-                #if ${defines.ENVMAP_TYPE_CUBE}
-                // uniform samplerCube envMap;
+            #if ${defines.USE_ENVTEXTURE}
+                #if ${defines.ENVTEXTURE_TYPE_CUBE}
+                // uniform samplerCube envTexture;
                     //texture_cube
-                    @group(0) @binding(${defines.envMapBinding}) var envMap: texture_cube<f32>;
+                    @group(0) @binding(${defines.envTextureBinding}) var envTexture: texture_cube<f32>;
                 #else
-                    //uniform sampler2D envMap;
-                    @group(0) @binding(${defines.envMapBinding}) var envMap: texture_2d<f32>;
+                    //uniform sampler2D envTexture;
+                    @group(0) @binding(${defines.envTextureBinding}) var envTexture: texture_2d<f32>;
                 #endif
             
             #endif
-            #if ${defines.USE_NORMALMAP}
-                @group(0) @binding(${defines.normalMapBinding}) var normalMap: texture_2d<f32>;
+            #if ${defines.USE_NORMALTEXTURE}
+                @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_CLEARCOATMAP}
-                //uniform sampler2D clearcoatMap;
-                @group(0) @binding(${defines.clearcoatMapBinding}) var clearcoatMap: texture_2d<f32>;
+            #if ${defines.USE_CLEARCOATTEXTURE}
+                //uniform sampler2D clearcoatTexture;
+                @group(0) @binding(${defines.clearcoatTextureBinding}) var clearcoatTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_CLEARCOAT_ROUGHNESSMAP}
-                // uniform sampler2D clearcoatRoughnessMap;
-                @group(0) @binding(${defines.clearcoatRoughnessMapBinding}) var clearcoatRoughnessMap: texture_2d<f32>;
+            #if ${defines.USE_CLEARCOAT_ROUGHNESSTEXTURE}
+                // uniform sampler2D clearcoatRoughnessTexture;
+                @group(0) @binding(${defines.clearcoatRclearcoatRoughnessTextureBinding}) var clearcoatRoughnessTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_CLEARCOAT_NORMALMAP}
-                @group(0) @binding(${defines.clearcoatNormalMapBinding}) var clearcoatNormalMap: texture_2d<f32>;
-                // uniform sampler2D clearcoatNormalMap;
+            #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
+                @group(0) @binding(${defines.clearcoatNormalTextureBinding}) var clearcoatNormalTexture: texture_2d<f32>;
+                // uniform sampler2D clearcoatNormalTexture;
             #endif
             
-            #if ${defines.USE_IRIDESCENCEMAP}
-                //uniform sampler2D iridescenceMap;
-                @group(0) @binding(${defines.iridescenceMapBinding}) var iridescenceMap: texture_2d<f32>;
+            #if ${defines.USE_IRIDESCENCETEXTURE}
+                //uniform sampler2D iridescenceTexture;
+                @group(0) @binding(${defines.iridescenceTextureBinding}) var iridescenceTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_IRIDESCENCE_THICKNESSMAP}
-                //uniform sampler2D iridescenceThicknessMap;
-                @group(0) @binding(${defines.iridescenceThicknessMapBinding}) var iridescenceThicknessMap: texture_2d<f32>;
+            #if ${defines.USE_IRIDESCENCE_THICKNESSTEXTURE}
+                //uniform sampler2D iridescenceThicknessTexture;
+                @group(0) @binding(${defines.iridescenceThicknessTextureBinding}) var iridescenceThicknessTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_ROUGHNESSMAP}
-                //uniform sampler2D roughnessMap;
-                @group(0) @binding(${defines.roughnessMapBinding}) var roughnessMap: texture_2d<f32>;
+            #if ${defines.USE_ROUGHNESSTEXTURE}
+                //uniform sampler2D roughnessTexture;
+                @group(0) @binding(${defines.roughnessTextureBinding}) var roughnessTexture: texture_2d<f32>;
             #endif
             
-            #if ${defines.USE_METALNESSMAP}
-                //uniform sampler2D metalnessMap;
-                @group(0) @binding(${defines.metalnessMapBinding}) var metalnessMap: texture_2d<f32>;
+            #if ${defines.USE_METALNESSTEXTURE}
+                //uniform sampler2D metalnessTexture;
+                @group(0) @binding(${defines.metalnessTextureBinding}) var metalnessTexture: texture_2d<f32>;
             #endif
 
             #if ${defines.SPECULAR}
-                #if ${defines.USE_SPECULARINTENSITYMAP}
-                    //uniform sampler2D specularIntensityMap;
-                    @group(0) @binding(${defines.specularIntensityMapBinding}) var specularIntensityMap: texture_2d<f32>;
+                #if ${defines.USE_SPECULARINTENSITYTEXTURE}
+                    //uniform sampler2D specularIntensityTexture;
+                    @group(0) @binding(${defines.specularIntensityTextureBinding}) var specularIntensityTexture: texture_2d<f32>;
                 #endif
-                #if ${defines.USE_SPECULARCOLORMAP}
-                    @group(0) @binding(${defines.specularColorMapBinding}) var specularColorMap: texture_2d<f32>;
-                    //uniform sampler2D specularColorMap;
+                #if ${defines.USE_SPECULARCOLORTEXTURE}
+                    @group(0) @binding(${defines.specularColorTextureBinding}) var specularColorTexture: texture_2d<f32>;
+                    //uniform sampler2D specularColorTexture;
                 #endif
             #endif
 
             #if ${defines.USE_SHEEN}
-                #if ${defines.USE_SHEENCOLORMAP}
-                    // uniform sampler2D sheenColorMap;
-                    @group(0) @binding(${defines.sheenColorMapBinding}) var sheenColorMap: texture_2d<f32>;
+                #if ${defines.USE_SHEENCOLORTEXTURE}
+                    // uniform sampler2D sheenColorTexture;
+                    @group(0) @binding(${defines.sheenColorTextureBinding}) var sheenColorTexture: texture_2d<f32>;
                 #endif
-                #if ${defines.USE_SHEENROUGHNESSMAP}
-                    //uniform sampler2D sheenRoughnessMap;
-                    @group(0) @binding(${defines.sheenRoughnessMapBinding}) var sheenRoughnessMap: texture_2d<f32>;
+                #if ${defines.USE_SHEENROUGHNESSTEXTURE}
+                    //uniform sampler2D sheenRoughnessTexture;
+                    @group(0) @binding(${defines.sheenRoughnessTextureBinding}) var sheenRoughnessTexture: texture_2d<f32>;
                 #endif
             #endif
 
-            #if ${defines.USE_MAP}
+            #if ${defines.USE_TEXTURE}
                 @group(0) @binding(${defines.baseTextureBinding}) var baseTexture: texture_2d<f32>;
             #endif
 
-            #if ${defines.USE_ALPHAMAP}
-                @group(0) @binding(${defines.alphaMapBinding}) var alphaMap: texture_2d<f32>;
+            #if ${defines.USE_ALPHATEXTURE}
+                @group(0) @binding(${defines.alphaTextureBinding}) var alphaTexture: texture_2d<f32>;
             #endif
 
-            #if ${defines.USE_AOMAP}
-                @group(0) @binding(${defines.aoMapBinding}) var aoMap: texture_2d<f32>;
+            #if ${defines.USE_AOTEXTURE}
+                @group(0) @binding(${defines.aoTextureBinding}) var aoTexture: texture_2d<f32>;
                 
             #endif
-            #if ${defines.USE_LIGHTMAP}
-                @group(0) @binding(${defines.lightMapBinding}) var lightMap: texture_2d<f32>;
+            #if ${defines.USE_LIGHTTEXTURE}
+                @group(0) @binding(${defines.lightTextureBinding}) var lightTexture: texture_2d<f32>;
             #endif
 
-            #if ${defines.USE_EMISSIVEMAP}
-                @group(0) @binding(${defines.emissiveMapBinding}) var emissiveMap: texture_2d<f32>;
+            #if ${defines.USE_EMISSIVETEXTURE}
+                @group(0) @binding(${defines.emissiveTextureBinding}) var emissiveTexture: texture_2d<f32>;
             #endif
      `
 }

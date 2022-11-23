@@ -32,9 +32,9 @@ export class ShaderSource{
             this.computeMain=options.computeMain|| 'main';
         }
     }
-    update(globalDefines?:object,materialDefiens?:object){
-        if (globalDefines&&materialDefiens) {
-            const combineDefines=combine(globalDefines,materialDefiens,false);
+    update(globalDefines?:object,materialDefines?:object,geometryDefines?:object){
+        if (globalDefines&&materialDefines) {
+            const combineDefines=combine(globalDefines,materialDefines,false);
             this.defines=combine(combineDefines,this.defines,false);
             this.generateUid();
         }

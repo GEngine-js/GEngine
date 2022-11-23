@@ -5,7 +5,7 @@ import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Context from "../render/Context";
 import Texture from "../render/Texture";
-import { UniformColor, UniformFloatVec3, UniformMat4, UniformFloat, UniformTexture } from "../render/Uniforms";
+import { UniformColor, UniformFloat, UniformTexture } from "../render/Uniforms";
 import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 
@@ -32,12 +32,8 @@ export default class PbrBaseMaterial extends Material{
 
     public metalnessTexture:Texture;
 
-    public specularIntensityTexture:Texture;
-
-    public specularColorTexture:Texture;
-
     public lightTexture:Texture;
-    private uniformTotalByte: number;
+
     private _roughness: number;
     private _metalness: number;
     private _lightTextureIntensity: number;
@@ -190,7 +186,7 @@ export default class PbrBaseMaterial extends Material{
     update(frameState:FrameState,mesh:Mesh){
        const {context}=frameState; 
        this.updateTexture(context);
-       if(!this.uniforms) this.createUniforms(mesh);
+       if(this.uniforms.length==0) this.createUniforms(mesh);
        super.update(frameState,mesh)
        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
        this.setUniforms();   
@@ -200,34 +196,22 @@ export default class PbrBaseMaterial extends Material{
         const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
         this.groupLayouts.push(groupLayout);
         this.bindGroups.push(bindGroup);
-      }
+    }
     private createUniformBuffer(device:GPUDevice){
-         this.uniformBuffer=Buffer.createUniformBuffer(device,this.uniformTotalByte)
-     }
-    private createUniforms(mesh:Mesh){
-        let totalUniformSize=this.getUniformSize();
-        this.uniformsDataBuffer=new Float32Array(totalUniformSize);
-        let byteOffset=0;
-        this.uniforms.push(new UniformMat4("modelMatrix",this.uniformsDataBuffer,byteOffset,mesh));
-        byteOffset+=64;
+         this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
+    }
+    protected createUniforms(mesh:Mesh){
+        // let totalUniformSize=this.getUniformSize();
+        this.totalUniformCount=this.getUniformSize();
+        super.createUniforms(mesh);
+        this.uniforms.push(new UniformColor("emissive",this.uniformsDataBuffer,this.byteOffset,this));
+        this.byteOffset+=12;
 
-        this.uniforms.push(new UniformMat4("normalMtrix",this.uniformsDataBuffer,byteOffset,mesh));
-        byteOffset+=64;
+        this.uniforms.push(new UniformFloat("metalness",this.uniformsDataBuffer,this.byteOffset,this));
+        this.byteOffset+=4;
 
-        this.uniforms.push(new UniformColor("color",this.uniformsDataBuffer,byteOffset,this));
-        byteOffset+=12;
-
-        this.uniforms.push(new UniformFloat("opacity",this.uniformsDataBuffer,byteOffset,this))
-        byteOffset+=4;
-
-        this.uniforms.push(new UniformColor("emissive",this.uniformsDataBuffer,byteOffset,this));
-        byteOffset+=12;
-
-        this.uniforms.push(new UniformFloat("metalness",this.uniformsDataBuffer,byteOffset,this));
-        byteOffset+=4;
-
-        this.uniforms.push(new UniformFloat("roughness",this.uniformsDataBuffer,byteOffset,this));
-        byteOffset+=4;
+        this.uniforms.push(new UniformFloat("roughness",this.uniformsDataBuffer,this.byteOffset,this));
+        this.byteOffset+=4;
 
         if (this.baseTexture) {
             this.uniforms.push(new UniformTexture('baseTexture',this.textureBindingCount,this));
@@ -246,16 +230,16 @@ export default class PbrBaseMaterial extends Material{
         }
         if ( this.bumpTexture) {
             //if ( material.side === BackSide ) uniforms.bumpScale.value *= - 1;
-           this.uniforms.push(new UniformFloat("bumpScale",this.uniformsDataBuffer,byteOffset,this));
-           byteOffset+=4;
+           this.uniforms.push(new UniformFloat("bumpScale",this.uniformsDataBuffer,this.byteOffset,this));
+           this.byteOffset+=4;
 
            this.uniforms.push(new UniformTexture('bumpTexture',this.textureBindingCount,this));
            this.defines.bumpTextureBinding=this.textureBindingCount;
            this.textureBindingCount+=1;
 		}
         if (this.aoTexture ) {
-            this.uniforms.push(new UniformFloat("aoMapIntensity",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("aoMapIntensity",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
             this.uniforms.push(new UniformTexture('aoTexture',this.textureBindingCount,this));
             this.defines.aoTextureBinding=this.textureBindingCount;
@@ -265,19 +249,19 @@ export default class PbrBaseMaterial extends Material{
 			// artist-friendly light intensity scaling factor
 			//const scaleFactor = ( renderer.physicallyCorrectLights !== true ) ? Math.PI : 1;
 			//uniforms.lightMapIntensity.value = material.lightMapIntensity * scaleFactor;
-            this.uniforms.push(new UniformFloat("lightMapIntensity",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("lightMapIntensity",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
             this.uniforms.push(new UniformTexture('lightTexture',this.textureBindingCount,this));
             this.defines.lightTextureBinding=this.textureBindingCount;
             this.textureBindingCount+=1
 		}
         if (this.displacementTexture ) {
-            this.uniforms.push( new UniformFloat("displacementBias",this.uniformsDataBuffer,byteOffset,this));
-             byteOffset+=4;
+            this.uniforms.push( new UniformFloat("displacementBias",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
-             this.uniforms.push(new UniformFloat("displacementScale",this.uniformsDataBuffer,byteOffset,this));
-             byteOffset+=4;
+             this.uniforms.push(new UniformFloat("displacementScale",this.uniformsDataBuffer,this.byteOffset,this));
+             this.byteOffset+=4;
 
              this.uniforms.push(new UniformTexture('displacementTexture',this.textureBindingCount,this));
              this.defines.displacementTextureBinding=this.textureBindingCount;
@@ -286,8 +270,8 @@ export default class PbrBaseMaterial extends Material{
         if (this.normalTexture ) {
 			// uniforms.normalScale.value.copy( material.normalScale );
 			// if ( material.side === BackSide ) uniforms.normalScale.value.negate();
-            this.uniforms.push(new UniformFloat("normalScale",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("normalScale",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
             this.uniforms.push(new UniformTexture('normalTexture',this.textureBindingCount,this));
             this.defines.normalTextureBinding=this.textureBindingCount;
@@ -296,91 +280,83 @@ export default class PbrBaseMaterial extends Material{
         if (this.envTexture ) {
 			// uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
 			// uniforms.refractionRatio.value = material.refractionRatio;
-            this.uniforms.push(new UniformFloat("flipEnvTexture",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("flipEnvTexture",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
-            this.uniforms.push(new UniformFloat("ior",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("ior",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
-            this.uniforms.push(new UniformFloat("reflectivity",this.uniformsDataBuffer,byteOffset,this));
-            byteOffset+=4;
+            this.uniforms.push(new UniformFloat("reflectivity",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=4;
 
             this.uniforms.push(new UniformTexture('envTexture',this.textureBindingCount,this));
             this.defines.envTextureBinding=this.textureBindingCount;
             this.textureBindingCount+=1;
 		}
-        this.uniformTotalByte=Math.ceil(byteOffset/64)*64;
+        // this.uniformTotalByte=Math.ceil(byteOffset/64)*64;
     }
     private updateTexture(context:Context){
-
         if(this.baseTexture) {
-            this.defines.USE_MAP=true;
+            this.defines.USE_TEXTURE=true;
             this.baseTexture.update(context);
         }
         if(this.bumpTexture) {
-            this.defines.USE_BUMPMAP=true;
+            this.defines.USE_BUMPTEXTURE=true;
             this.bumpTexture.update(context);
         }
         if(this.normalTexture) {
-            this.defines.USE_NORMALMAP=true;
+            this.defines.USE_NORMALTEXTURE=true;
             this.normalTexture.update(context);
         }
  
         if(this.aoTexture) {
-            this.defines.USE_AOMAP=true;
+            this.defines.USE_AOTEXTURE=true;
             this.aoTexture.update(context);
         }
 
         if(this.specularTexture) {
-            this.defines.USE_SPECULARMAP=true;
+            this.defines.USE_SPECULARTEXTURE=true;
             this.specularTexture.update(context);
         }
   
         if(this.alphaTexture){
-            this.defines.USE_ALPHAMAP=true;
+            this.defines.USE_ALPHATEXTURE=true;
             this.alphaTexture.update(context);
         }
  
         if(this.envTexture){
-            this.defines.USE_ENVMAP=true;
+            this.defines.USE_ENVTEXTURE=true;
             this.envTexture.update(context);
         }
 
         if(this.emissiveTexture){
-            this.defines.USE_EMISSIVEMAP=true;
+            this.defines.USE_EMISSIVETEXTURE=true;
             this.emissiveTexture.update(context);
         }
 
         if(this.roughnessTexture){
-            this.defines.USE_ROUGHNESSMAP=true;
+            this.defines.USE_ROUGHNESSTEXTURE=true;
             this.roughnessTexture.update(context);
  
         }
         if(this.displacementTexture){
-            this.defines.USE_DISPLACEMENTMAP=true;
+            this.defines.USE_DISPLACEMENTTEXTURE=true;
             this.displacementTexture.update(context);
         }
   
         if(this.metalnessTexture) {
-            this.defines.USE_METALNESSMAP=true;
+            this.defines.USE_METALNESSTEXTURE=true;
             this.metalnessTexture.update(context);
         }
  
-        if(this.specularIntensityTexture){
-            this.defines.USE_SPECULARINTENSITYMAP=true;
-            this.specularIntensityTexture.update(context);
-        }
-        if(this.specularColorTexture){
-            this.defines.USE_SPECULARCOLORMAP=true;
-            this.specularColorTexture.update(context);
-        }
         if(this.lightTexture) {
-            this.defines.USE_LIGHTMAP=true;
+            this.defines.USE_LIGHTTEXTURE=true;
             this.lightTexture.update(context);
         }
     }
-    private getUniformSize(){
-        let byteSize= 16+16+3+1+3+1+1;
+    protected getUniformSize(){
+        let parentByteSize=super.getUniformSize()
+        let byteSize=parentByteSize+16+16+3+1+3+1+1;
         if (this.bumpTexture) byteSize+=1;
         if (this.aoTexture) byteSize+=1;
         if (this.lightTexture ) byteSize+=1;
@@ -394,7 +370,7 @@ export default class PbrBaseMaterial extends Material{
             byteSize+=1;
             byteSize+=1;
 		}
-       return Math.ceil(byteSize/64)*64;
+       return Math.ceil(byteSize/16)*16;
     }
     destory(){
 
