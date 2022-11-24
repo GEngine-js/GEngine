@@ -37,5 +37,10 @@ export default function phongFunction(defines){
         reflectedLight.directSpecular= irradiance * BRDF_BlinnPhong( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularShininess ) * material.specularStrength;
         return reflectedLight;
     }
+    fn RE_IndirectDiffuse_BlinnPhong( irradiance:vec3<f32>, geometry:GeometricContext, material:BlinnPhongMaterial)->ReflectedLight {
+        var reflectedLight:ReflectedLight; 
+        reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+        return reflectedLight;
+    }
     `
 }

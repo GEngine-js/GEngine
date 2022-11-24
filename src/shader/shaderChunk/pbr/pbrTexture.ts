@@ -3,7 +3,7 @@ export default function pbrTexture(defines) {
 
             @group(0) @binding(${defines.samplerBinding}) var baseSampler: sampler;
             #if ${defines.USE_BUMPTEXTURE}
-                uniform sampler2D bumpMap;
+                // uniform sampler2D bumpMap;
                 @group(0) @binding(${defines.bumpTextureBinding}) var bumpTexture: texture_2d<f32>;
             #endif
             #if ${defines.USE_TRANSMISSION}

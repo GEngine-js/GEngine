@@ -1,22 +1,24 @@
 export default function pbrVert(defines){
     return  `
-
     struct VertexOutput {
         @builtin(position) position: vec4<f32>,
         @location(0) vUv: vec2<f32>,
         @location(1) vViewPosition: vec3<f32>, // Vector from vertex to camera.
         @location(2) vWorldPosition: vec3<f32>,
+        @location(3) vNormal: vec3<f32>,
         // 可选
-        @location(3) vUv2: vec2<f32>,
-        #if ${defines.USE_COLOR_ALPHA}
-            @location(4) vColor: vec4<f32>,
-        #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
-            @location(4) vColor: vec3<f32>,
+        #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
+            @location(${defines.vUv2OutLocation}) vUv2: vec2<f32>,
         #endif
-        @location(4) vColor: vec3<f32>,
-        @location(5) vNormal: vec3<f32>,
-        @location(6) vTangent: vec3<f32>,
-        @location(7) vBitangent: vec3<f32>,
+        #if ${defines.USE_COLOR_ALPHA}
+            @location(${defines.vColorOutLocation}) vColor: vec4<f32>,
+        #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
+            @location(${defines.vColorOutLocation}) vColor: vec3<f32>,
+        #endif
+        #if ${defines.USE_TANGENT}
+            @location(${defines.vTangentOutLocation}) vTangent: vec3<f32>,
+            @location(${defines.vBitangentOutLocation}) vBitangent: vec3<f32>,
+        #endif
     };
     struct GlobalUniform {
         projectionMatrix: mat4x4<f32>,
@@ -271,7 +273,7 @@ export default function pbrVert(defines){
         #endif
         #if ${defines.USE_MORPHCOLORS&&defines.MORPHTARGETS_TEXTURE}
             vertexOutput.vColor *= materialUniform.morphTargetBaseInfluence;
-            for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
+            for (let i : u32 = 0u; i < materialUniform.MORPHTARGETS_COUNT; i = i + 1u ) {
                 #if ${defines.USE_COLOR_ALPHA}
                     if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) vertexOutput.vColor += getMorph( gl_VertexID, i, 2 ) * materialUniform.morphTargetInfluences[ i ];
                     #elif ${defines.USE_COLOR}
@@ -286,7 +288,7 @@ export default function pbrVert(defines){
         #if ${defines.USE_MORPHNORMALS}
             objectNormal *= materialUniform.morphTargetBaseInfluence;
             #if ${defines.MORPHTARGETS_TEXTURE}
-                for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
+                for ( let i : u32 = 0u; i < materialUniform.MORPHTARGETS_COUNT; i = i + 1u) {
                     if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) objectNormal += getMorph( gl_VertexID, i, 1 ).xyz * materialUniform.morphTargetInfluences[ i ];
                 }
             #else
@@ -325,7 +327,6 @@ export default function pbrVert(defines){
             transformedNormal = - transformedNormal;
         #endif
         #if ${defines.USE_TANGENT}
-           
             let transformedTangent:vec3<f32> = (globalUniform.viewMatrix*materialUniform.modelMatrix * vec4<f32>( objectTangent, 0.0 ) ).xyz;
             #if ${defines.FLIP_SIDED}
                 transformedTangent = - transformedTangent;
@@ -342,7 +343,7 @@ export default function pbrVert(defines){
         #if ${defines.USE_MORPHTARGETS}
             transformed *= materialUniform.morphTargetBaseInfluence;
             #if ${defines.MORPHTARGETS_TEXTURE}
-                for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
+                for ( let i : u32 = 0u; i < materialUniform.MORPHTARGETS_COUNT; i = i + 1u ) {
                     if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) transformed += getMorph( gl_VertexID, i, 0 ).xyz * morphTargetInfluences[ i ];
                 }
             #else

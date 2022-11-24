@@ -311,6 +311,7 @@ export default class PbrBaseMaterial extends Material{
  
         if(this.aoTexture) {
             this.defines.USE_AOTEXTURE=true;
+            this.defines.vUv2OutLocation=4;
             this.aoTexture.update(context);
         }
 
@@ -351,6 +352,7 @@ export default class PbrBaseMaterial extends Material{
  
         if(this.lightTexture) {
             this.defines.USE_LIGHTTEXTURE=true;
+            this.defines.vUv2OutLocation=4;
             this.lightTexture.update(context);
         }
     }
