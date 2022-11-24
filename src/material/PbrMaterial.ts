@@ -283,6 +283,8 @@ export default class PbrMaterial extends Material{
     protected createUniforms(mesh:Mesh){
         this.totalUniformCount=this.getUniformSize();
         super.createUniforms(mesh);
+        this.defines.IOR=true;
+        this.defines.SPECULAR=true;
          this.uniforms.push(new UniformFloat('specularIntensity',this.uniformsDataBuffer,this.byteOffset,this));
          this.byteOffset+=4;
          this.uniforms.push(new UniformColor('specularColor',this.uniformsDataBuffer,this.byteOffset,this));

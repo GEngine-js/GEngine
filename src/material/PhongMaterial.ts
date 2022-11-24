@@ -18,6 +18,8 @@ export default class BaseMaterial extends Material {
         this.imageBitmap=imageBitmap;
         this.color = new Color(1.0,0.0,0.0,1.0);
         this.alpha = undefined;
+        this.defines.materialPhong=true;
+        // this.defines.materialPbr=false
         this.shaderSource=new ShaderSource({
             type:this.type,
             render:true,

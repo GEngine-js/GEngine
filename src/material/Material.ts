@@ -187,14 +187,23 @@ export class Material{
        return Math.ceil(byteSize/16)*16;
     }
     private updateShader(frameState:FrameState,mesh:Mesh){
-        const {geometry}=mesh;
-        if (frameState.definesDirty||this.definesDirty||geometry.definesDirty) {
-            frameState.definesDirty=false;
-            this.definesDirty=false;
-            geometry.definesDirty=false;
-            this.dirty=true;
-            this.shaderSource.update(frameState.defines,this.defines,geometry.defines);
+        if (mesh.geometry) {
+            if (frameState.definesDirty||this.definesDirty||mesh.geometry.definesDirty) {
+                frameState.definesDirty=false;
+                this.definesDirty=false;
+                mesh.geometry.definesDirty=false;
+                this.dirty=true;
+                this.shaderSource.update(frameState.defines,this.defines,mesh.geometry.defines);
+            }
+        } else {
+            if (frameState.definesDirty||this.definesDirty) {
+                frameState.definesDirty=false;
+                this.definesDirty=false;
+                this.dirty=true;
+                this.shaderSource.update(frameState.defines,this.defines);
+            }
         }
+
     }
     private updateRenderState(frameState:FrameState){
         if(this.renderStateDirty||!this.renderState) {

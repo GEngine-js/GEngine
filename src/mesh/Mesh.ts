@@ -13,7 +13,7 @@ export class Mesh extends RenderObject {
     priority?:number;
     drawCommand?: DrawCommand;
     distanceToCamera?:number;
-    constructor(geometry, material) {
+    constructor(geometry?:Geometry, material?: Material) {
         super();
         this.geometry = geometry;
         this.material = material;

@@ -29,17 +29,17 @@ export default class ColorMaterial extends Material{
             defines:this.defines
         });
     }
-    update(frameState:FrameState,primitive:RenderObject){
+    update(frameState:FrameState,primitive:Mesh){
         if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,primitive);
         super.update(frameState,primitive)
         this.setUniforms();
     }
-    private createUniformBuffer(device:GPUDevice,primitive:RenderObject){
+    private createUniformBuffer(device:GPUDevice,primitive:Mesh){
         this.totalUniformCount=super.getUniformSize();
         super.createUniforms(primitive)
         this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
     }
-    private createBindGroupAndLayout(device:GPUDevice,primitive:RenderObject){
+    private createBindGroupAndLayout(device:GPUDevice,primitive:Mesh){
         this.createUniformBuffer(device,primitive);
         const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,'axes',0);
         this.groupLayouts.push(groupLayout);

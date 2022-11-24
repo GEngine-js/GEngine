@@ -24,12 +24,50 @@ export default function pbrVert(defines){
         inverseViewMatrix: mat4x4<f32>,
         cameraPosition: vec3<f32>,
     };
-    struct VertUniform{
+    struct MaterialUniform{
 
         modelMatrix: mat4x4<f32>,
 
+        diffuse:vec3<f32>,
+
+        opacity:f32,
+
         normalMatrix: mat3x3<f32>,
 
+        emissive:vec3<f32>,
+
+        roughness:f32,
+
+        metalness:f32,
+
+        toneMappingExposure:f32,
+
+        #if ${defines.SPECULAR}
+
+             specularColor:vec3<f32>,
+
+             specularIntensity:f32,
+        #endif
+        
+        #if ${defines.USE_SHEEN}
+
+            sheenColor:vec3<f32>,
+
+            sheenRoughness:f32,
+        #endif
+        #if ${defines.USE_TRANSMISSION}
+
+            attenuationColor:vec3<f32>,
+
+            transmission:f32,
+
+            transmissionSamplerSize:vec2<f32>,
+
+            thickness:f32,
+
+            attenuationDistance:f32,
+            
+        #endif
         #if ${defines.USE_SKINNING}
 
             bindMatrix:mat4x4<f32>,
@@ -38,8 +76,52 @@ export default function pbrVert(defines){
 
             boneTextureSize:u32,
         #endif
-       TEXTURE
+        #if ${defines.USE_NORMALTEXTURE}
+             normalScale:vec2<f32>,
+        #endif
+
+        #if ${defines.IOR}
+            ior:f32,
+        #endif
+
+        #if ${defines.USE_CLEARCOAT}
+
+            #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
+                clearcoatNormalScale:vec2<f32>,
+            #endif
+
+             clearcoat:f32,
+
+             clearcoatRoughness:f32,
+        #endif
+
+        #if ${defines.USE_IRIDESCENCE}
+            iridescence:f32,
+
+            iridescenceIOR:f32,
+
+            iridescenceThicknessMinimum:f32,
+
+            iridescenceThicknessMaximum:f32,
+
+        #endif
+        #if ${defines.USE_AOTEXTURE}
+             aoTextureIntensity:f32,
+        #endif
+        #if ${defines.USE_LIGHTTEXTURE}
+             lightTextureIntensity:f32,
+        #endif
+
+        #if ${defines.USE_ENVTEXTURE}
+            envTextureIntensity:f32,
+
+            flipEnvTexture:f32,
+        #endif
+        #if ${defines.USE_BUMPTEXTURE}
+            bumpScale:f32;
+        #endif
         #if ${defines.USE_DISPLACEMENTTEXTURE}
+
             displacementScale:f32,
 
             displacementBias:f32,
@@ -57,7 +139,7 @@ export default function pbrVert(defines){
             #endif
 
             morphTargetInfluences:array<f32>,
-            
+                
         #endif
     }
     //texture and sampler
@@ -137,8 +219,8 @@ export default function pbrVert(defines){
     #if ${defines.MORPHTARGETS_TEXTURE}
         fn getMorph( vertexIndex:u32, morphTargetIndex:u32,offset:u32 )->vec4<f32> {
             let texelIndex:u32 = vertexIndex * MORPHTARGETS_TEXTURE_STRIDE + offset;
-            let y:u32 = texelIndex / vertUniform.morphTargetsTextureSize.x;
-            let x:u32 = texelIndex - y * vertUniform.morphTargetsTextureSize.x;
+            let y:u32 = texelIndex / materialUniform.morphTargetsTextureSize.x;
+            let x:u32 = texelIndex - y * materialUniform.morphTargetsTextureSize.x;
             let morphUV:vec3<u32> = vec3<u32>( x, y, morphTargetIndex );
             //textureLoad
             //return texelFetch( morphTargetsTexture, morphUV, 0 );
@@ -148,10 +230,10 @@ export default function pbrVert(defines){
     #if ${defines.USE_SKINNING}
         fn getBoneMatrix( i:f32 )->mat4x4<f32> {
             let j:f32 = i * 4.0;
-            let x:f32 = mod( j, f32( vertUniform.boneTextureSize ) );
-            let y:f32 = floor( j / f32( vertUniform.boneTextureSize ) );
-            let dx:f32 = 1.0 / f32( vertUniform.boneTextureSize );
-            let dy:f32 = 1.0 / f32( vertUniform.boneTextureSize );
+            let x:f32 = mod( j, f32( materialUniform.boneTextureSize ) );
+            let y:f32 = floor( j / f32( materialUniform.boneTextureSize ) );
+            let dx:f32 = 1.0 / f32( materialUniform.boneTextureSize );
+            let dy:f32 = 1.0 / f32( materialUniform.boneTextureSize );
             y = dy * ( y + 0.5 );
             
             let v1:vec4<f32> = textureSample(boneTexture, baseSampler, vec2<f32>( dx * ( x + 0.5 ), y ) );
@@ -163,16 +245,18 @@ export default function pbrVert(defines){
         }
     #endif
 
-    @binding(0) @group(0) var<uniform> vertUniform : VertUniform;
+    @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
     @binding(0) @group(1) var<uniform> globalUniform : GlobalUniform;
 
     void main(input:VertexInput)->VertexOutput {
         var vertexOutput:VertexOutput;
         #if ${defines.USE_UV}
-            vertexOutput.vUv = ( uvTransform * vec3(input.uv, 1 ) ).xy;
+            //vertexOutput.vUv = ( uvTransform * vec3(input.uv, 1 ) ).xy;
+            vertexOutput.vUv = input.uv;
         #endif
         #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
-            vertexOutput.vUv2 = ( uv2Transform * vec3(input.uv2, 1 ) ).xy;
+            //vertexOutput.vUv2 = ( uv2Transform * vec3(input.uv2, 1 ) ).xy;
+            vertexOutput.vUv2 input.uv2;
         #endif
         #if ${defines.USE_COLOR_ALPHA}
             vertexOutput.vColor = vec4( 1.0 );
@@ -186,12 +270,12 @@ export default function pbrVert(defines){
             vertexOutput.vColor.xyz *= input.instanceColor.xyz;
         #endif
         #if ${defines.USE_MORPHCOLORS&&defines.MORPHTARGETS_TEXTURE}
-            vertexOutput.vColor *= vertUniform.morphTargetBaseInfluence;
-            for ( int i = 0; i < vertUniform.MORPHTARGETS_COUNT; i ++ ) {
+            vertexOutput.vColor *= materialUniform.morphTargetBaseInfluence;
+            for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
                 #if ${defines.USE_COLOR_ALPHA}
-                    if ( vertUniform.morphTargetInfluences[ i ] ! = 0.0 ) vertexOutput.vColor += getMorph( gl_VertexID, i, 2 ) * vertUniform.morphTargetInfluences[ i ];
+                    if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) vertexOutput.vColor += getMorph( gl_VertexID, i, 2 ) * materialUniform.morphTargetInfluences[ i ];
                     #elif ${defines.USE_COLOR}
-                    if ( vertUniform.morphTargetInfluences[ i ] ! = 0.0 ) vertexOutput.vColor += getMorph( gl_VertexID, i, 2 ).rgb * vertUniform.morphTargetInfluences[ i ];
+                    if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) vertexOutput.vColor += getMorph( gl_VertexID, i, 2 ).rgb * materialUniform.morphTargetInfluences[ i ];
                 #endif
             }
         #endif
@@ -200,16 +284,16 @@ export default function pbrVert(defines){
             let objectTangent:vec3<f32> = vec3<f32>( input.tangent.xyz );
         #endif
         #if ${defines.USE_MORPHNORMALS}
-            objectNormal *= vertUniform.morphTargetBaseInfluence;
+            objectNormal *= materialUniform.morphTargetBaseInfluence;
             #if ${defines.MORPHTARGETS_TEXTURE}
-                for ( int i = 0; i < vertUniform.MORPHTARGETS_COUNT; i ++ ) {
-                    if ( vertUniform.morphTargetInfluences[ i ] ! = 0.0 ) objectNormal += getMorph( gl_VertexID, i, 1 ).xyz * vertUniform.morphTargetInfluences[ i ];
+                for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
+                    if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) objectNormal += getMorph( gl_VertexID, i, 1 ).xyz * materialUniform.morphTargetInfluences[ i ];
                 }
             #else
-                objectNormal += morphNormal0 * vertUniform.morphTargetInfluences[ 0 ];
-                objectNormal += morphNormal1 * vertUniform.morphTargetInfluences[ 1 ];
-                objectNormal += morphNormal2 * vertUniform.morphTargetInfluences[ 2 ];
-                objectNormal += morphNormal3 * vertUniform.morphTargetInfluences[ 3 ];
+                objectNormal += morphNormal0 * materialUniform.morphTargetInfluences[ 0 ];
+                objectNormal += morphNormal1 * materialUniform.morphTargetInfluences[ 1 ];
+                objectNormal += morphNormal2 * materialUniform.morphTargetInfluences[ 2 ];
+                objectNormal += morphNormal3 * materialUniform.morphTargetInfluences[ 3 ];
             #endif
         #endif
         #if ${defines.USE_SKINNING}
@@ -224,7 +308,7 @@ export default function pbrVert(defines){
             skinMatrix += input.skinWeight.y * boneMatY;
             skinMatrix += input.skinWeight.z * boneMatZ;
             skinMatrix += input.skinWeight.w * boneMatW;
-            skinMatrix = vertUniform.bindMatrixInverse * skinMatrix * vertUniform.bindMatrix;
+            skinMatrix = materialUniform.bindMatrixInverse * skinMatrix * materialUniform.bindMatrix;
             objectNormal = vec4<f32>( skinMatrix * vec4<f32>( objectNormal, 0.0 ) ).xyz;
             #if ${defines.USE_TANGENT}
                 objectTangent = vec4<f32>( skinMatrix * vec4<f32>( objectTangent, 0.0 ) ).xyz;
@@ -236,13 +320,13 @@ export default function pbrVert(defines){
             transformedNormal /= vec3<f32>( dot( m[ 0 ], m[ 0 ] ), dot( m[ 1 ], m[ 1 ] ), dot( m[ 2 ], m[ 2 ] ) );
             transformedNormal = m * transformedNormal;
         #endif
-        transformedNormal = vertUniform.normalMatrix * transformedNormal;
+        transformedNormal = materialUniform.normalMatrix * transformedNormal;
         #if ${defines.FLIP_SIDED}
             transformedNormal = - transformedNormal;
         #endif
         #if ${defines.USE_TANGENT}
            
-            let transformedTangent:vec3<f32> = (globalUniform.viewMatrix*vertUniform.modelMatrix * vec4<f32>( objectTangent, 0.0 ) ).xyz;
+            let transformedTangent:vec3<f32> = (globalUniform.viewMatrix*materialUniform.modelMatrix * vec4<f32>( objectTangent, 0.0 ) ).xyz;
             #if ${defines.FLIP_SIDED}
                 transformedTangent = - transformedTangent;
             #endif
@@ -256,41 +340,41 @@ export default function pbrVert(defines){
         #endif
         let transformed:vec3<f32> = vec3<f32>( input.position );
         #if ${defines.USE_MORPHTARGETS}
-            transformed *= vertUniform.morphTargetBaseInfluence;
+            transformed *= materialUniform.morphTargetBaseInfluence;
             #if ${defines.MORPHTARGETS_TEXTURE}
-                for ( int i = 0; i < vertUniform.MORPHTARGETS_COUNT; i ++ ) {
-                    if ( vertUniform.morphTargetInfluences[ i ] ! = 0.0 ) transformed += getMorph( gl_VertexID, i, 0 ).xyz * morphTargetInfluences[ i ];
+                for ( int i = 0; i < materialUniform.MORPHTARGETS_COUNT; i ++ ) {
+                    if ( materialUniform.morphTargetInfluences[ i ] ! = 0.0 ) transformed += getMorph( gl_VertexID, i, 0 ).xyz * morphTargetInfluences[ i ];
                 }
             #else
-                transformed += input.morphTarget0 * vertUniform.morphTargetInfluences[ 0 ];
-                transformed += input.morphTarget1 * vertUniform.morphTargetInfluences[ 1 ];
-                transformed += input.morphTarget2 * vertUniform.morphTargetInfluences[ 2 ];
-                transformed += input.morphTarget3 * vertUniform.morphTargetInfluences[ 3 ];
+                transformed += input.morphTarget0 * materialUniform.morphTargetInfluences[ 0 ];
+                transformed += input.morphTarget1 * materialUniform.morphTargetInfluences[ 1 ];
+                transformed += input.morphTarget2 * materialUniform.morphTargetInfluences[ 2 ];
+                transformed += input.morphTarget3 * materialUniform.morphTargetInfluences[ 3 ];
                 #if ${defines.USE_MORPHNORMALS}
-                    transformed += input.morphTarget4 * vertUniform.morphTargetInfluences[ 4 ];
-                    transformed += input.morphTarget5 * vertUniform.morphTargetInfluences[ 5 ];
-                    transformed += input.morphTarget6 * vertUniform.morphTargetInfluences[ 6 ];
-                    transformed += input.morphTarget7 * vertUniform.morphTargetInfluences[ 7 ];
+                    transformed += input.morphTarget4 * materialUniform.morphTargetInfluences[ 4 ];
+                    transformed += input.morphTarget5 * materialUniform.morphTargetInfluences[ 5 ];
+                    transformed += input.morphTarget6 * materialUniform.morphTargetInfluences[ 6 ];
+                    transformed += input.morphTarget7 * materialUniform.morphTargetInfluences[ 7 ];
                 #endif
             #endif
         #endif
         #if ${defines.USE_SKINNING}
-            let skinVertex:vec4<f32> = vertUniform.bindMatrix * vec4<f32>( transformed, 1.0 );
+            let skinVertex:vec4<f32> = materialUniform.bindMatrix * vec4<f32>( transformed, 1.0 );
             let skinned:vec4<f32> = vec4<f32>( 0.0 );
             skinned += boneMatX * skinVertex * input.skinWeight.x;
             skinned += boneMatY * skinVertex * input.skinWeight.y;
             skinned += boneMatZ * skinVertex * input.skinWeight.z;
             skinned += boneMatW * skinVertex * input.skinWeight.w;
-            transformed = ( vertUniform.bindMatrixInverse * skinned ).xyz;
+            transformed = ( materialUniform.bindMatrixInverse * skinned ).xyz;
         #endif
         #if ${defines.USE_DISPLACEMENTTEXTURE} 
-            transformed += normalize( objectNormal ) * (textureSample(displacementMap, baseSampler, vUv).x * vertUniform.displacementScale + vertUniform.displacementBias );
+            transformed += normalize( objectNormal ) * (textureSample(displacementMap, baseSampler, vUv).x * materialUniform.displacementScale + materialUniform.displacementBias );
         #endif
         let mvPosition:vec4<f32> = vec4<f32>( transformed, 1.0 );
         #if ${defines.USE_INSTANCING}
             mvPosition = input.instanceMatrix * mvPosition;
         #endif
-        mvPosition = globalUniform.viewMatrix*vertUniform.modelMatrix * mvPosition;
+        mvPosition = globalUniform.viewMatrix*materialUniform.modelMatrix * mvPosition;
         vertexOutput.position = globalUniform.projectionMatrix * mvPosition;
         vertexOutput.vViewPosition = - mvPosition.xyz;
         #if ${defines.USE_ENVTEXTURE||defines.DISTANCE||defines.USE_TRANSMISSION} 
@@ -298,7 +382,7 @@ export default function pbrVert(defines){
             #if ${defines.USE_INSTANCING}
                 worldPosition = input.instanceMatrix * worldPosition;
             #endif
-            worldPosition = vertUniform.modelMatrix * worldPosition;
+            worldPosition = materialUniform.modelMatrix * worldPosition;
         #endif
         #if ${defines.USE_TRANSMISSION}
             vertexOutput.vWorldPosition = worldPosition.xyz;

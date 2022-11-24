@@ -7,27 +7,21 @@ import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 import DrawCommand from "../render/DrawCommand";
 import Pipeline from "../render/Pipeline";
-export default class Axes extends RenderObject {
+import { Mesh } from "./Mesh";
+export default class Axes extends Mesh {
 
     private vertBuffers: VertextBuffers;
 
     private indexBuffer: Buffer;
 
-    private drawCommand: DrawCommand;
-
     count: number;
 
     type:string;
-
-    distanceToCamera:number;
-
-    priority?:number;
 
     material: ColorMaterial;
 
     constructor() {
         super();
-        this.type = 'primitive';
         this.distanceToCamera=10;
         this.material=new ColorMaterial();
     }
