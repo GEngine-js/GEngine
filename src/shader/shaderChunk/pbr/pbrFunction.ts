@@ -1,5 +1,7 @@
+import { wgslParseDefines } from "../../WgslPreprocessor";
+
 export default function pbrFunction(defines){
-   return  `
+   return wgslParseDefines `
 
     #if ${defines.DITHERING}
     fn dithering(color:vec3<f32> )->vec3<f32> {

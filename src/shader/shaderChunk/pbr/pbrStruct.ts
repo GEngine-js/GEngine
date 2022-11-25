@@ -1,5 +1,7 @@
+import { wgslParseDefines } from "../../WgslPreprocessor";
+
 export default function pbrStruct(defines){
-   return  `
+   return  wgslParseDefines`
         struct pbrVertexOutput {
             @builtin(position) position: vec4<f32>,
             @location(0) vUv: vec2<f32>,

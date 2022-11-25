@@ -5,9 +5,10 @@ import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Context from "../render/Context";
 import Texture from "../render/Texture";
-import { UniformColor, UniformFloat, UniformTexture } from "../render/Uniforms";
+import { UniformColor, UniformFloat, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { Material } from "./Material";
 import Buffer from '../render/Buffer';
+import { ShaderSource } from "../shader/ShaderSource";
 
 export default class PbrBaseMaterial extends Material{
     public baseTexture:Texture;
@@ -49,7 +50,7 @@ export default class PbrBaseMaterial extends Material{
     private _emissive:Color;
     private _ior: number;
     private _flipEnvTexture: number;
-    textureBindingCount: number;
+    currentBinding: number;
     public get roughness():number{
         return this._roughness
     }
@@ -149,7 +150,8 @@ export default class PbrBaseMaterial extends Material{
     
     constructor(){
         super();
-        
+        this.type='pbr';
+
         this._roughness = 1.0;
 
 		this._metalness = 0.0;
@@ -177,8 +179,15 @@ export default class PbrBaseMaterial extends Material{
         // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
         this._flipEnvTexture=-1;
 
-        this.textureBindingCount=1;
+        this.currentBinding=1;
+;
+        this.defines.materialPbr=true;
 
+        this.shaderSource=new ShaderSource({
+            type:this.type,
+            render:true,
+            defines:this.defines
+        });
         // uniforms.reflectivity.value = material.reflectivity;
         // uniforms.ior.value = material.ior;
         // uniforms.refractionRatio.value = material.refractionRatio;
@@ -214,36 +223,40 @@ export default class PbrBaseMaterial extends Material{
         this.byteOffset+=4;
 
         if (this.baseTexture) {
-            this.uniforms.push(new UniformTexture('baseTexture',this.textureBindingCount,this));
-            this.defines.baseTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('baseTexture',this.currentBinding,this));
+            this.defines.baseTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
+            this.uniforms.push(new UniformSampler('sampler',this.currentBinding,this.baseTexture));
+            this.defines.baseSamplerBinding=this.currentBinding;
+            this.currentBinding+=1;
+           
         }
         if(this.metalnessTexture){
-            this.uniforms.push(new UniformTexture('metalnessTexture',this.textureBindingCount,this));
-            this.defines.metalnessTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('metalnessTexture',this.currentBinding,this));
+            this.defines.metalnessTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
         }
         if (this.roughnessTexture) {
-            this.uniforms.push(new UniformTexture('roughnessTexture',this.textureBindingCount,this));
-            this.defines.roughnessTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('roughnessTexture',this.currentBinding,this));
+            this.defines.roughnessTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
         }
         if ( this.bumpTexture) {
             //if ( material.side === BackSide ) uniforms.bumpScale.value *= - 1;
            this.uniforms.push(new UniformFloat("bumpScale",this.uniformsDataBuffer,this.byteOffset,this));
            this.byteOffset+=4;
 
-           this.uniforms.push(new UniformTexture('bumpTexture',this.textureBindingCount,this));
-           this.defines.bumpTextureBinding=this.textureBindingCount;
-           this.textureBindingCount+=1;
+           this.uniforms.push(new UniformTexture('bumpTexture',this.currentBinding,this));
+           this.defines.bumpTextureBinding=this.currentBinding;
+           this.currentBinding+=1;
 		}
         if (this.aoTexture ) {
             this.uniforms.push(new UniformFloat("aoMapIntensity",this.uniformsDataBuffer,this.byteOffset,this));
             this.byteOffset+=4;
 
-            this.uniforms.push(new UniformTexture('aoTexture',this.textureBindingCount,this));
-            this.defines.aoTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('aoTexture',this.currentBinding,this));
+            this.defines.aoTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
 		}
         if (this.lightTexture ) {
 			// artist-friendly light intensity scaling factor
@@ -252,9 +265,9 @@ export default class PbrBaseMaterial extends Material{
             this.uniforms.push(new UniformFloat("lightMapIntensity",this.uniformsDataBuffer,this.byteOffset,this));
             this.byteOffset+=4;
 
-            this.uniforms.push(new UniformTexture('lightTexture',this.textureBindingCount,this));
-            this.defines.lightTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1
+            this.uniforms.push(new UniformTexture('lightTexture',this.currentBinding,this));
+            this.defines.lightTextureBinding=this.currentBinding;
+            this.currentBinding+=1
 		}
         if (this.displacementTexture ) {
             this.uniforms.push( new UniformFloat("displacementBias",this.uniformsDataBuffer,this.byteOffset,this));
@@ -263,9 +276,9 @@ export default class PbrBaseMaterial extends Material{
              this.uniforms.push(new UniformFloat("displacementScale",this.uniformsDataBuffer,this.byteOffset,this));
              this.byteOffset+=4;
 
-             this.uniforms.push(new UniformTexture('displacementTexture',this.textureBindingCount,this));
-             this.defines.displacementTextureBinding=this.textureBindingCount;
-             this.textureBindingCount+=1;
+             this.uniforms.push(new UniformTexture('displacementTexture',this.currentBinding,this));
+             this.defines.displacementTextureBinding=this.currentBinding;
+             this.currentBinding+=1;
 		}
         if (this.normalTexture ) {
 			// uniforms.normalScale.value.copy( material.normalScale );
@@ -273,9 +286,9 @@ export default class PbrBaseMaterial extends Material{
             this.uniforms.push(new UniformFloat("normalScale",this.uniformsDataBuffer,this.byteOffset,this));
             this.byteOffset+=4;
 
-            this.uniforms.push(new UniformTexture('normalTexture',this.textureBindingCount,this));
-            this.defines.normalTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('normalTexture',this.currentBinding,this));
+            this.defines.normalTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
 		}
         if (this.envTexture ) {
 			// uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
@@ -289,9 +302,9 @@ export default class PbrBaseMaterial extends Material{
             this.uniforms.push(new UniformFloat("reflectivity",this.uniformsDataBuffer,this.byteOffset,this));
             this.byteOffset+=4;
 
-            this.uniforms.push(new UniformTexture('envTexture',this.textureBindingCount,this));
-            this.defines.envTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
+            this.uniforms.push(new UniformTexture('envTexture',this.currentBinding,this));
+            this.defines.envTextureBinding=this.currentBinding;
+            this.currentBinding+=1;
 		}
         // this.uniformTotalByte=Math.ceil(byteOffset/64)*64;
     }

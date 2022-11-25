@@ -1,7 +1,8 @@
-export default function pbrTexture(defines) {
-     return `
+import { wgslParseDefines } from "../../WgslPreprocessor";
 
-            @group(0) @binding(${defines.samplerBinding}) var baseSampler: sampler;
+export default function pbrTexture(defines) {
+     return wgslParseDefines`
+            @group(0) @binding(${defines.baseSamplerBinding}) var baseSampler: sampler;
             #if ${defines.USE_BUMPTEXTURE}
                 // uniform sampler2D bumpMap;
                 @group(0) @binding(${defines.bumpTextureBinding}) var bumpTexture: texture_2d<f32>;

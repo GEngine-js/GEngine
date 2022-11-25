@@ -37,9 +37,12 @@ export default class BoxGeometry extends Geometry{
         const layoutOffset=[3,3,2];
         const dataBuffer=this.interleaveTypedArray(Float32Array,layoutOffset,this.position,this.normal,this.uv);
         //attribute
-        const pat=new Attribute('position',VertexFormat.Float32x3,0,0);
-        const nat=new Attribute('normal',VertexFormat.Float32x3,3*Float32Array.BYTES_PER_ELEMENT,1);
-        const uat=new Attribute('uv',VertexFormat.Float32x2,6*Float32Array.BYTES_PER_ELEMENT,2);
+        const pat=new Attribute('position',VertexFormat.Float32x3,0,this.shaderLocation);
+        this.shaderLocation+=1;
+        const nat=new Attribute('normal',VertexFormat.Float32x3,3*Float32Array.BYTES_PER_ELEMENT,this.shaderLocation);
+        this.shaderLocation+=1;
+        const uat=new Attribute('uv',VertexFormat.Float32x2,6*Float32Array.BYTES_PER_ELEMENT,this.shaderLocation);
+        this.shaderLocation+=1;
        
 
         //buffer

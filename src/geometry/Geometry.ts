@@ -7,6 +7,7 @@ import Attribute from "../render/Attribute";
 import Buffer from "../render/Buffer";
 import combine from "../utils/combine";
 export default class Geometry {
+    
     public attributes: Attribute[];
     type: string;
     public vertexBuffers: VertextBuffers;
@@ -15,7 +16,8 @@ export default class Geometry {
     topology: string;
     indexBuffer?:Buffer;
     count:number;
-    boundingSphere:BoundingSphere
+    boundingSphere:BoundingSphere;
+    shaderLocation:number;
     private  _defines:{[prop: string]: boolean|number};
     definesDirty: boolean;
     get defines(){
@@ -33,6 +35,7 @@ export default class Geometry {
         this.stripIndexFormat=IndexFormat.Uint32;
         this.dirty = false;
         this.definesDirty=true;
+        this.shaderLocation=0;
         this._defines={};
     }
     update(frameState:FrameState){}

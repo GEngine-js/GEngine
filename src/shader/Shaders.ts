@@ -3,6 +3,8 @@ import phongVert from './material/phongVert';
 import phongFrag from './material/phongFrag';
 import colorFrag from './material/colorFrag';
 import colorVert from './material/colorVert';
+import pbrFrag from './material/pbrFrag';
+import pbrVert from './material/pbrVert';
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -18,6 +20,10 @@ const shaders = {
 	color:{
 		frag:colorFrag,
 		vert:colorVert
+	},
+	pbr:{
+        frag:pbrFrag,
+		vert:pbrVert,
 	}
 }
 
