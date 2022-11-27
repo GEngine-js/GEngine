@@ -23,7 +23,15 @@ export class Material{
 
     uniforms:any[];
 
-    renderState:{};
+    renderState:{
+        depthStencil:DepthStencil,
+        primitive:PrimitiveState,
+        multisample:MultiSample,
+        stencilReference:number,
+        targets:Array<Target>,
+        viewport:{ x: number, y: number, width: number, height: number},
+        blendConstant:BlendConstant,
+    };
 
     baseSampler?: Sampler;
 

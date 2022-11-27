@@ -8,6 +8,7 @@ import { UniformColor, UniformFloat, UniformFloatVec2, UniformMat4, UniformTextu
 import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 import Context from "../render/Context";
+import { CullMode } from "../core/WebGPUConstant";
 export default class PbrMaterial extends Material{
 
     public boneTexture:Texture;
@@ -82,6 +83,9 @@ export default class PbrMaterial extends Material{
     }
     
     public get clearcoatNormalScale() : Vector2 {
+        if(this.renderState.primitive.cullMode==CullMode.Back){
+            return Vector2.negate(this._clearcoatNormalScale,new Vector2());
+        }
         return this._clearcoatNormalScale
     }
     
@@ -368,10 +372,7 @@ export default class PbrMaterial extends Material{
             if (this.clearcoatNormalTexture ) {
                 this.uniforms.push(new UniformFloatVec2('clearcoatNormalScale',this.uniformsDataBuffer,this.byteOffset,this));
                 this.byteOffset+=8;
-                // uniforms.clearcoatNormalScale.value.copy( material.clearcoatNormalScale );
-				// if ( material.side === BackSide ) {
-				// 	uniforms.clearcoatNormalScale.value.negate();
-				// }
+                
                 this.uniforms.push(new UniformTexture('clearcoatNormalTexture',this.textureBindingCount,this));
                 this.defines.clearcoatNormalTextureBinding=this.textureBindingCount;
                 this.textureBindingCount+=1;

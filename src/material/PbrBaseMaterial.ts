@@ -5,10 +5,11 @@ import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Context from "../render/Context";
 import Texture from "../render/Texture";
-import { UniformColor, UniformFloat, UniformSampler, UniformTexture } from "../render/Uniforms";
+import { UniformColor, UniformFloat, UniformFloatVec2, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 import { ShaderSource } from "../shader/ShaderSource";
+import { CullMode } from "../core/WebGPUConstant";
 
 export default class PbrBaseMaterial extends Material{
     public baseTexture:Texture;
@@ -94,12 +95,22 @@ export default class PbrBaseMaterial extends Material{
         this._aoTextureIntensity = v;
     }
     public get bumpScale() : number {
-        return this._bumpScale
+        if(this.renderState&&this.renderState.primitive){
+            if(this.renderState.primitive.cullMode==CullMode.Back) return this._bumpScale*-1;
+        }
+        return this._bumpScale;
+        
+        
     }
     public set bumpScale(v : number) {
         this._bumpScale = v;
     }
     public get normalScale() : Vector2 {
+        if(this.renderState&&this.renderState.primitive){
+            if(this.renderState.primitive.cullMode==CullMode.Back){
+                return Vector2.negate(this._normalScale,new Vector2());
+            };
+        }
         return this._normalScale
     }
     public set normalScale(v : Vector2) {
@@ -283,8 +294,8 @@ export default class PbrBaseMaterial extends Material{
         if (this.normalTexture ) {
 			// uniforms.normalScale.value.copy( material.normalScale );
 			// if ( material.side === BackSide ) uniforms.normalScale.value.negate();
-            this.uniforms.push(new UniformFloat("normalScale",this.uniformsDataBuffer,this.byteOffset,this));
-            this.byteOffset+=4;
+            this.uniforms.push(new UniformFloatVec2("normalScale",this.uniformsDataBuffer,this.byteOffset,this));
+            this.byteOffset+=8;
 
             this.uniforms.push(new UniformTexture('normalTexture',this.currentBinding,this));
             this.defines.normalTextureBinding=this.currentBinding;
@@ -391,105 +402,105 @@ export default class PbrBaseMaterial extends Material{
 
     }
 }
-const defines={
-    USE_COLOR_ALPHA:false,
-    USE_COLOR:false,
-    USE_INSTANCING_COLOR:false,
-    USE_SKINNING:false,
-    USE_DISPLACEMENTMAP:false,
-    USE_MORPHTARGETS:false,
-    MORPHTARGETS_TEXTURE:false,
-    USE_INSTANCING:false,
-    USE_TANGENT:false,
-    USE_MORPHNORMALS:false,
-    USE_UV:false,
-    USE_MORPHCOLORS:false,
-    FLIP_SIDED:false,
-    FLAT_SHADED:false,
-    USE_ENVMAP:false,
-    DISTANCE:false,
-    USE_TRANSMISSION:false,
-    SPECULAR:false,////////
-    USE_SHEEN:false,
-    USE_CLEARCOAT_NORMALMAP:false,
-    USE_NORMALMAP:false,
-    IOR:false,
-    USE_CLEARCOAT:false,
-    USE_IRIDESCENCE:false,
-    OBJECTSPACE_NORMALMAP:false,
-    USE_ALPHATEST:false,
-    STANDARD:false,
-    DITHERING:false,
-    ENVMAP_TYPE_CUBE_UV:false,
-    ENVMAP_TYPE_CUBE:false,
-    USE_BUMPMAP:false,
-    TANGENTSPACE_NORMALMAP:false,
-    USE_MAP:false,
-    DECODE_VIDEO_TEXTURE:false,
-    USE_ROUGHNESSMAP:false,
-    USE_METALNESSMAP:false,
-    DOUBLE_SIDED:false,
-    USE_EMISSIVEMAP:false,
-    USE_SPECULARINTENSITYMAP:false,
-    USE_SPECULARCOLORMAP:false,
-    USE_CLEARCOATMAP:false,
-    USE_CLEARCOAT_ROUGHNESSMAP:false,
-    USE_IRIDESCENCEMAP:false,
-    USE_IRIDESCENCE_THICKNESSMAP:false,
-    USE_SHEENCOLORMAP:false,
-    USE_SHEENROUGHNESSMAP:false,
-    USE_TRANSMISSIONMAP:false,
-    USE_THICKNESSMAP:false,
-    TONE_MAPPING:false,
-    PREMULTIPLIED_ALPHA:false,
+// const defines={
+//     USE_COLOR_ALPHA:false,
+//     USE_COLOR:false,
+//     USE_INSTANCING_COLOR:false,
+//     USE_SKINNING:false,
+//     USE_DISPLACEMENTMAP:false,
+//     USE_MORPHTARGETS:false,
+//     MORPHTARGETS_TEXTURE:false,
+//     USE_INSTANCING:false,
+//     USE_TANGENT:false,
+//     USE_MORPHNORMALS:false,
+//     USE_UV:false,
+//     USE_MORPHCOLORS:false,
+//     FLIP_SIDED:false,
+//     FLAT_SHADED:false,
+//     USE_ENVMAP:false,
+//     DISTANCE:false,
+//     USE_TRANSMISSION:false,
+//     SPECULAR:false,////////
+//     USE_SHEEN:false,
+//     USE_CLEARCOAT_NORMALMAP:false,
+//     USE_NORMALMAP:false,
+//     IOR:false,
+//     USE_CLEARCOAT:false,
+//     USE_IRIDESCENCE:false,
+//     OBJECTSPACE_NORMALMAP:false,
+//     USE_ALPHATEST:false,
+//     STANDARD:false,
+//     DITHERING:false,
+//     ENVMAP_TYPE_CUBE_UV:false,
+//     ENVMAP_TYPE_CUBE:false,
+//     USE_BUMPMAP:false,
+//     TANGENTSPACE_NORMALMAP:false,
+//     USE_MAP:false,
+//     DECODE_VIDEO_TEXTURE:false,
+//     USE_ROUGHNESSMAP:false,
+//     USE_METALNESSMAP:false,
+//     DOUBLE_SIDED:false,
+//     USE_EMISSIVEMAP:false,
+//     USE_SPECULARINTENSITYMAP:false,
+//     USE_SPECULARCOLORMAP:false,
+//     USE_CLEARCOATMAP:false,
+//     USE_CLEARCOAT_ROUGHNESSMAP:false,
+//     USE_IRIDESCENCEMAP:false,
+//     USE_IRIDESCENCE_THICKNESSMAP:false,
+//     USE_SHEENCOLORMAP:false,
+//     USE_SHEENROUGHNESSMAP:false,
+//     USE_TRANSMISSIONMAP:false,
+//     USE_THICKNESSMAP:false,
+//     TONE_MAPPING:false,
+//     PREMULTIPLIED_ALPHA:false,
 
-    USE_LIGHTMAP:false,
-    USE_AOMAP:false,
-    uv2Location:0,
-    instanceMatrixLocation:1,
-    instanceColorLocation:2,
-    tangentLocation:3,
-    colorLocation:4,
-    morphTarget0Location:5,
-    morphTarget1Location:6,
-    morphTarget2Location:7,
-    morphTarget3Location:8,
-    morphNormal0Location:9,
-    morphNormal1Location:10,
-    morphNormal2Location:11,
-    morphNormal3Location:12,
-    morphTarget4Location:13,
-    morphTarget5Location:14,
-    morphTarget6Location:15,
-    morphTarget7Location:16,
-    skinIndexLocation:17,
-    skinWeightLocation:18,
-    //vert
-    samplerBinding:0,
-    boneTextureBinding:1,
-    displacementMapBinding:2,
-    morphTargetsTextureBinding:3,
+//     USE_LIGHTMAP:false,
+//     USE_AOMAP:false,
+//     uv2Location:0,
+//     instanceMatrixLocation:1,
+//     instanceColorLocation:2,
+//     tangentLocation:3,
+//     colorLocation:4,
+//     morphTarget0Location:5,
+//     morphTarget1Location:6,
+//     morphTarget2Location:7,
+//     morphTarget3Location:8,
+//     morphNormal0Location:9,
+//     morphNormal1Location:10,
+//     morphNormal2Location:11,
+//     morphNormal3Location:12,
+//     morphTarget4Location:13,
+//     morphTarget5Location:14,
+//     morphTarget6Location:15,
+//     morphTarget7Location:16,
+//     skinIndexLocation:17,
+//     skinWeightLocation:18,
+//     //vert
+//     samplerBinding:0,
+//     boneTextureBinding:1,
+//     displacementMapBinding:2,
+//     morphTargetsTextureBinding:3,
 
-    //frag
-    transmissionMapBinding:0,
-    thicknessMapBinding:1,
-    transmissionSamplerMapBinding:2,
-    envMapBinding:3,
-    normalMapBinding:4,
-    clearcoatMapBinding:5,
-    clearcoatRoughnessMapBinding:6,
-    clearcoatNormalMapBinding:7,
-    iridescenceMapBinding:8,
-    iridescenceThicknessMapBinding:9,
-    roughnessMapBinding:10,
-    metalnessMapBinding:11,
-    specularIntensityMapBinding:12,
-    specularColorMapBinding:13,
-    sheenColorMapBinding:14,
-    sheenRoughnessMapBinding:15,
-    baseTextureBinding:16,
-    alphaMapBinding:17,
-    aoMapBinding:18,
-    lightMapBinding:19,
-    emissiveMapBinding:20,
-}
+//     //frag
+//     transmissionMapBinding:0,
+//     thicknessMapBinding:1,
+//     transmissionSamplerMapBinding:2,
+//     envMapBinding:3,
+//     normalMapBinding:4,
+//     clearcoatMapBinding:5,
+//     clearcoatRoughnessMapBinding:6,
+//     clearcoatNormalMapBinding:7,
+//     iridescenceMapBinding:8,
+//     iridescenceThicknessMapBinding:9,
+//     roughnessMapBinding:10,
+//     metalnessMapBinding:11,
+//     specularIntensityMapBinding:12,
+//     specularColorMapBinding:13,
+//     sheenColorMapBinding:14,
+//     sheenRoughnessMapBinding:15,
+//     baseTextureBinding:16,
+//     alphaMapBinding:17,
+//     aoMapBinding:18,
+//     lightMapBinding:19,
+//     emissiveMapBinding:20,
+// }
