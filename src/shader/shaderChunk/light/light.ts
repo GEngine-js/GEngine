@@ -83,8 +83,12 @@ return wgslParseDefines`
         }
     #endif
     @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
+    #if ${defines.materialPhong}
+        fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
+    #elif ${defines.materialPbr}
+        fn parseLights(geometry:GeometricContext,material:PhysicalMaterial)->ReflectedLight{
+    #endif
 
-    fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
         var  incidentLight:IncidentLight;
         var reflectedLight:ReflectedLight;
         #if ${defines.dirtectLight}
@@ -112,7 +116,7 @@ return wgslParseDefines`
                 #if ${defines.materialPhong}
                     let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 #elif ${defines.materialPbr}
-                    let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+                    let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
                 #endif
                 reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
                 reflectedLight.directSpecular+=poiReflectedLight.directSpecular;

@@ -9,6 +9,7 @@ import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 import Context from "../render/Context";
 import { CullMode } from "../core/WebGPUConstant";
+import PbrBaseMaterial from "./PbrBaseMaterial";
 export default class PbrMaterial extends Material{
 
     public boneTexture:Texture;
@@ -42,8 +43,6 @@ export default class PbrMaterial extends Material{
     private _clearcoatRoughness: number;
 
     private _clearcoatNormalScale: Vector2;
-
-    private _ior: number;
 
     private _iridescenceIOR: number;
 
@@ -93,13 +92,6 @@ export default class PbrMaterial extends Material{
         this._clearcoatNormalScale = v;
     }
     
-    public get ior() : number {
-        return this._ior
-    }
-    
-    public set ior(v : number) {
-        this._ior = v;
-    }
     
     public get iridescenceIOR() : number {
         return this._iridescenceIOR
@@ -230,7 +222,6 @@ export default class PbrMaterial extends Material{
 /*****************************iridescence*********************************/
 		this._iridescence = 0;
 
-        this._ior = 1.5;
  
 		this._iridescenceIOR = 1.3;
 
@@ -272,18 +263,18 @@ export default class PbrMaterial extends Material{
         this.updateTexture(context);
         if(this.uniforms.length==0) this.createUniforms(mesh);
         super.update(frameState,mesh)
-        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
+        //if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
         this.setUniforms(); 
     }
-    private createBindGroupAndLayout(device:GPUDevice){
-        this.createUniformBuffer(device);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
-        this.groupLayouts.push(groupLayout);
-        this.bindGroups.push(bindGroup);
-    }
-    private createUniformBuffer(device:GPUDevice){
-         this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
-    }
+    // private createBindGroupAndLayout(device:GPUDevice){
+    //     this.createUniformBuffer(device);
+    //     const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
+    //     this.groupLayouts.push(groupLayout);
+    //     this.bindGroups.push(bindGroup);
+    // }
+    // private createUniformBuffer(device:GPUDevice){
+    //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
+    //}
     protected createUniforms(mesh:Mesh){
         this.totalUniformCount=this.getUniformSize();
         super.createUniforms(mesh);
@@ -372,7 +363,7 @@ export default class PbrMaterial extends Material{
             if (this.clearcoatNormalTexture ) {
                 this.uniforms.push(new UniformFloatVec2('clearcoatNormalScale',this.uniformsDataBuffer,this.byteOffset,this));
                 this.byteOffset+=8;
-                
+
                 this.uniforms.push(new UniformTexture('clearcoatNormalTexture',this.textureBindingCount,this));
                 this.defines.clearcoatNormalTextureBinding=this.textureBindingCount;
                 this.textureBindingCount+=1;

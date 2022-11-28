@@ -1,5 +1,15 @@
+import { wgslParseDefines } from "../WgslPreprocessor";
+
 export default function pbrFrag(defines){
-    return  `
+    return wgslParseDefines `
+    #include <lightCommon>
+    #include <light>
+    #include <brdf>
+    #include <pbrStruct>
+    #include <pbrUtils>
+    #include <pbrFunction>
+    #include <pbrTexture>
+
     // uniform vec3 ambientLightColor,
     // uniform vec3 lightProbe[9],
 ////////////////////////////////////
@@ -14,6 +24,7 @@ export default function pbrFrag(defines){
                 clearcoatF0:vec3<f32>,
                 clearcoatF90:f32,
             #endif
+
             #if ${defines.USE_IRIDESCENCE}
                 iridescence:f32,
                 iridescenceIOR:f32,
@@ -21,13 +32,16 @@ export default function pbrFrag(defines){
                 iridescenceFresnel:vec3<f32>,
                 iridescenceF0:vec3<f32>,
             #endif
+
             #if ${defines.USE_SHEEN}
                 sheenColor:vec3<f32>,
                 sheenRoughness:f32,
             #endif
+
             #if ${defines.IOR}
                  ior:f32,
             #endif
+
             #if ${defines.USE_TRANSMISSION}
                 transmission:f32,
                 transmissionAlpha:f32,
@@ -36,21 +50,9 @@ export default function pbrFrag(defines){
                 attenuationColor:vec3<f32>,
             #endif
         };
-////////////////////////////////////////////////////////////////////////////////////////////////
-    // #if ${defines.OBJECTSPACE_NORMALTEXTURE}
-    //     uniform mat3 normalMatrix;
-    // #endif
-    // #if ${defines.USE_ALPHATEST}
-    //    uniform float alphaTest;
-    // #endif
-
-
-
-
-    // #define STANDARD
 @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
-
-void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
+@fragment
+fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0) vec4<f32> {
         let diffuseColor:vec4<f32> = vec4(materialUniform.diffuse, materialUniform.opacity );
        // ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
         var reflectedLight:ReflectedLight;
@@ -60,6 +62,7 @@ void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
             #if ${defines.DECODE_VIDEO_TEXTURE}
                 sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
             #endif
+
             diffuseColor *= sampledDiffuseColor;
         #endif
 
@@ -72,13 +75,13 @@ void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
 
         let metalnessFactor:vec3<f32> = materialUniform.metalness;
     
-        #ifdef ${defines.USE_METALNESSTEXTURE}
+        #if ${defines.USE_METALNESSTEXTURE}
             let texelMetalness:vec4<f32> =textureSample(metalnessTexture, baseSampler, vUv);
             metalnessFactor *= texelMetalness.b;
         #endif
 
-        let faceDirection:f32 = is_front ? 1.0 : - 1.0;
-    
+       // let faceDirection:f32 = is_front ? 1.0 : - 1.0;
+        const faceDirection:f32 =select(-1.0,1.0,is_front);
         #if ${defines.FLAT_SHADED}
             let fdx:vec3<f32> = dpdx( vViewPosition );
             let fdy:vec3<f32> = dpdy( vViewPosition );
@@ -88,6 +91,7 @@ void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
             #if ${defines.DOUBLE_SIDED}
                 normal = normal * faceDirection;
             #endif
+
             #if ${defines.USE_TANGENT}
                 let tangent:vec3<f32> = normalize( input.vTangent );
                 let bitangent:vec3<f32> = normalize( input.vBitangent );
@@ -98,7 +102,6 @@ void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
                 #if ${defines.TANGENTSPACE_NORMALTEXTURE||defines.USE_CLEARCOAT_NORMALTEXTURE}
                     let vTBN:mat3x3<f32> = mat3x3<f32>( tangent, bitangent, normal );
                 #endif
-
             #endif
         #endif
     
@@ -241,8 +244,8 @@ void main(input:VertexOutput,@builtin(front_facing) is_front: bool) {
             }
         #endif
 
-        let iblIrradiance::vec3<f32> = vec3<f32>( 0.0 );
-        let irradiance::vec3<f32> = getAmbientLightIrradiance( ambientLightColor );
+        let iblIrradiance:vec3<f32> = vec3<f32>( 0.0 );
+        let irradiance:vec3<f32> = getAmbientLightIrradiance( ambientLightColor );
         irradiance += getLightProbeIrradiance( lightProbe, geometry.normal );
 
         let radiance:vec3<f32> = vec3<f32>( 0.0 );

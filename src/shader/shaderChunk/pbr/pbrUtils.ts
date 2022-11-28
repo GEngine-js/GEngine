@@ -7,7 +7,7 @@ export default function pbrUtils(defines){
     const PI_HALF:f32= 1.5707963267948966;
     const RECIPROCAL_PI:f32= 0.3183098861837907;
     const RECIPROCAL_PI2:f32= 0.15915494309189535;
-    const EPSILON:f32= 1e-6
+    const EPSILON:f32= 1e-6;
 
     fn pow2(x:f32 )->f32 {
         return x*x;
@@ -22,47 +22,51 @@ export default function pbrUtils(defines){
         let x2:f32 = x*x;
         return x2*x2;
     }
-    fn max3( const in vec3 v )->f32 {
+    fn max3( v:vec3<f32> )->f32 {
         return max( max( v.x, v.y ), v.z );
     }
     fn average(v:vec3<f32> )->f32 {
         return dot( v, vec3<f32>( 0.3333333 ) );
     }
-    highp float rand( const in vec2 uv ) {
-        const highp float a = 12.9898, b = 78.233, c = 43758.5453;
-        highp float dt = dot( uv.xy, vec2( a, b ) ), sn = mod( dt, PI );
+    fn rand( uv:vec2<f32> )->f32 {
+        let a:f32 = 12.9898;
+        let b:f32 = 78.233;
+        let c:f32 = 43758.5453;
+        let dt:f32 = dot( uv.xy, vec2<f32>( a, b ) );
+        let sn:f32 = mod( dt, PI );
         return fract( sin( sn ) * c );
     }
     struct IncidentLight {
-        vec3 color;
-        vec3 direction;
-        bool visible;
-    };
+        color:vec3<f32>,
+        direction:vec3<f32>,
+        visible:bool,
+    }
+
     struct ReflectedLight {
-        vec3 directDiffuse;
-        vec3 directSpecular;
-        vec3 indirectDiffuse;
-        vec3 indirectSpecular;
-    };
+        directDiffuse:vec3<f32>,
+        directSpecular:vec3<f32>,
+        indirectDiffuse:vec3<f32>,
+        indirectSpecular:vec3<f32>,
+    }
     struct GeometricContext {
-        vec3 position;
-        vec3 normal;
-        vec3 viewDir;
+        position:vec3<f32>,
+        normal:vec3<f32>,
+        viewDir:vec3<f32>,
         #if ${defines.USE_CLEARCOAT}
-            vec3 clearcoatNormal;
+             clearcoatNormal:vec3<f32>,
         #endif
-    };
+    }
     fn transformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
-        return normalize( ( matrix * vec4( dir, 0.0 ) ).xyz );
+        return normalize( ( matrix * vec4<f32>( dir, 0.0 ) ).xyz );
     }
     fn inverseTransformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
         return normalize( ( vec4<f32>( dir, 0.0 ) * matrix ).xyz );
     }
-    mat3 transposeMat3( const in mat3 m ) {
-        mat3 tmp;
-        tmp[ 0 ] = vec3( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );
-        tmp[ 1 ] = vec3( m[ 0 ].y, m[ 1 ].y, m[ 2 ].y );
-        tmp[ 2 ] = vec3( m[ 0 ].z, m[ 1 ].z, m[ 2 ].z );
+    fn transposeMat3( m:mat3x3<f32> )->mat3x3<f32> {
+        var tmp:mat3x3<f32>;
+        tmp[ 0 ] = vec3<f32>( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );
+        tmp[ 1 ] = vec3<f32>( m[ 0 ].y, m[ 1 ].y, m[ 2 ].y );
+        tmp[ 2 ] = vec3<f32>( m[ 0 ].z, m[ 1 ].z, m[ 2 ].z );
         return tmp;
     }
     fn luminance( rgb:vec3<f32> )->f32 {
@@ -88,7 +92,7 @@ export default function pbrUtils(defines){
         return value;
     }
     fn LinearTosRGB( value:vec4<f32> )->vec4<f32> {
-        return vec4<f32>( mix( pow( value.rgb, vec3<f32>( 0.41666 ) ) * 1.055 - vec3<f32>( 0.055 ), value.rgb * 12.92, vec3<f32>( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );
+        return vec4<f32>( mix( pow( value.rgb, vec3<f32>( 0.41666 ) ) * 1.055 - vec3<f32>( 0.055 ), value.rgb * 12.92, vec3<f32>( lessThanEqual( value.rgb, vec3<f32>( 0.0031308 ) ) ) ), value.a );
     }
     fn linearToOutputTexel(value:vec4<f32> )->vec4<f32> {
         return LinearTosRGB( value );

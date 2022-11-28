@@ -1,8 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
 export default function pbrTexture(defines) {
-     return wgslParseDefines`
-            @group(0) @binding(${defines.baseSamplerBinding}) var baseSampler: sampler;
+     return wgslParseDefines`        
             #if ${defines.USE_BUMPTEXTURE}
                 // uniform sampler2D bumpMap;
                 @group(0) @binding(${defines.bumpTextureBinding}) var bumpTexture: texture_2d<f32>;
@@ -74,6 +73,7 @@ export default function pbrTexture(defines) {
                     //uniform sampler2D specularIntensityTexture;
                     @group(0) @binding(${defines.specularIntensityTextureBinding}) var specularIntensityTexture: texture_2d<f32>;
                 #endif
+
                 #if ${defines.USE_SPECULARCOLORTEXTURE}
                     @group(0) @binding(${defines.specularColorTextureBinding}) var specularColorTexture: texture_2d<f32>;
                     //uniform sampler2D specularColorTexture;
@@ -92,6 +92,7 @@ export default function pbrTexture(defines) {
             #endif
 
             #if ${defines.USE_TEXTURE}
+                @group(0) @binding(${defines.baseSamplerBinding}) var baseSampler: sampler;
                 @group(0) @binding(${defines.baseTextureBinding}) var baseTexture: texture_2d<f32>;
             #endif
 

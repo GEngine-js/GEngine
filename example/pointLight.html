@@ -46,8 +46,8 @@
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
         const phongMaterial=new PhongMaterial(imageBitmap);
-
-        const primitive=new Mesh(geometry,phongMaterial)
+        const pbr=new PbrBaseMaterial();
+        const primitive=new Mesh(geometry,pbr)
         primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
         camera.position=new Vector3(20,20,20);
