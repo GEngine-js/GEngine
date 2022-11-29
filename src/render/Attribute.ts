@@ -3,7 +3,7 @@ class Attribute {
     this.name=name;
     this.format=format;
     this.offset=offset;
-    this.shaderLocation=shaderLocation
+    this.shaderLocation=shaderLocation;
   }
   getGPUAttribute(){
     return {

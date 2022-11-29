@@ -80,11 +80,10 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             metalnessFactor *= texelMetalness.b;
         #endif
 
-       // let faceDirection:f32 = is_front ? 1.0 : - 1.0;
         const faceDirection:f32 =select(-1.0,1.0,is_front);
         #if ${defines.FLAT_SHADED}
-            let fdx:vec3<f32> = dpdx( vViewPosition );
-            let fdy:vec3<f32> = dpdy( vViewPosition );
+            let fdx:vec3<f32> = dpdx( input.vViewPosition );
+            let fdy:vec3<f32> = dpdy( input.vViewPosition );
             let normal:vec3<f32> = normalize( cross( fdx, fdy ) );
         #else
             let normal:vec3<f32> = normalize( input.vNormal );
@@ -124,12 +123,12 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             #if ${defines.USE_TANGENT}
                 normal = normalize( vTBN * mapN );
             #else
-                normal = perturbNormal2Arb( - vViewPosition, normal, mapN, faceDirection );
+                normal = perturbNormal2Arb( - input.vViewPosition, normal, mapN, faceDirection );
             #endif
 
             #elif ${defines.USE_BUMPTEXTURE}
 
-            normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
+                normal = perturbNormalArb( - input.vViewPosition, normal, dHdxy_fwd(), faceDirection );
         #endif
 
         #if ${defines.USE_CLEARCOAT}
@@ -141,7 +140,7 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             #if ${defines.USE_TANGENT}
                 clearcoatNormal = normalize( vTBN * clearcoatMapN );
             #else
-                clearcoatNormal = perturbNormal2Arb( - vViewPosition, clearcoatNormal, clearcoatMapN, faceDirection );
+                clearcoatNormal = perturbNormal2Arb( - input.vViewPosition, clearcoatNormal, clearcoatMapN, faceDirection );
             #endif
         #endif
         #if ${defines.USE_EMISSIVETEXTURE}
@@ -221,10 +220,10 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         #endif
         
         var geometry:GeometricContext;
-        geometry.position = - vViewPosition;
+        geometry.position = - input.vViewPosition;
         geometry.normal = normal;
-       // geometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );
-        geometry.viewDir = normalize( vViewPosition); 
+       // geometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( input.vViewPosition );
+        geometry.viewDir = normalize( input.vViewPosition); 
 
         #if ${defines.USE_CLEARCOAT}
             geometry.clearcoatNormal = clearcoatNormal;
