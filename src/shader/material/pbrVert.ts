@@ -98,7 +98,7 @@ export default function pbrVert(defines){
     #if ${defines.USE_SKINNING}
         fn getBoneMatrix( i:f32 )->mat4x4<f32> {
             let j:f32 = i * 4.0;
-            let x:f32 = mod( j, f32( materialUniform.boneTextureSize ) );
+            let x:f32 = j%f32( materialUniform.boneTextureSize );
             let y:f32 = floor( j / f32( materialUniform.boneTextureSize ) );
             let dx:f32 = 1.0 / f32( materialUniform.boneTextureSize );
             let dy:f32 = 1.0 / f32( materialUniform.boneTextureSize );

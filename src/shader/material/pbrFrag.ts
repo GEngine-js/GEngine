@@ -244,8 +244,8 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         #endif
 
         let iblIrradiance:vec3<f32> = vec3<f32>( 0.0 );
-        let irradiance:vec3<f32> = getAmbientLightIrradiance( ambientLightColor );
-        irradiance += getLightProbeIrradiance( lightProbe, geometry.normal );
+        let irradiance:vec3<f32> = getAmbientLightIrradiance(ambientLightColor );
+        irradiance += getLightProbeIrradiance( lightProbe, geometry.normal,systemUniform.viewMatrix );
 
         let radiance:vec3<f32> = vec3<f32>( 0.0 );
         let clearcoatRadiance:vec3<f32> = vec3<f32>( 0.0 );

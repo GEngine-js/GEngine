@@ -33,35 +33,33 @@ export default function pbrUtils(defines){
         let b:f32 = 78.233;
         let c:f32 = 43758.5453;
         let dt:f32 = dot( uv.xy, vec2<f32>( a, b ) );
-        let sn:f32 = mod( dt, PI );
+        let sn:f32 = dt % PI;
         return fract( sin( sn ) * c );
     }
-    struct IncidentLight {
-        color:vec3<f32>,
-        direction:vec3<f32>,
-        visible:bool,
-    }
+    // struct IncidentLight {
+    //     color:vec3<f32>,
+    //     direction:vec3<f32>,
+    //     visible:bool,
+    // }
 
-    struct ReflectedLight {
-        directDiffuse:vec3<f32>,
-        directSpecular:vec3<f32>,
-        indirectDiffuse:vec3<f32>,
-        indirectSpecular:vec3<f32>,
-    }
-    struct GeometricContext {
-        position:vec3<f32>,
-        normal:vec3<f32>,
-        viewDir:vec3<f32>,
-        #if ${defines.USE_CLEARCOAT}
-             clearcoatNormal:vec3<f32>,
-        #endif
-    }
+    // struct ReflectedLight {
+    //     directDiffuse:vec3<f32>,
+    //     directSpecular:vec3<f32>,
+    //     indirectDiffuse:vec3<f32>,
+    //     indirectSpecular:vec3<f32>,
+    // }
+    // struct GeometricContext {
+    //     position:vec3<f32>,
+    //     normal:vec3<f32>,
+    //     viewDir:vec3<f32>,
+    //     #if ${defines.USE_CLEARCOAT}
+    //          clearcoatNormal:vec3<f32>,
+    //     #endif
+    // }
     fn transformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
         return normalize( ( matrix * vec4<f32>( dir, 0.0 ) ).xyz );
     }
-    fn inverseTransformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
-        return normalize( ( vec4<f32>( dir, 0.0 ) * matrix ).xyz );
-    }
+
     fn transposeMat3( m:mat3x3<f32> )->mat3x3<f32> {
         var tmp:mat3x3<f32>;
         tmp[ 0 ] = vec3<f32>( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );

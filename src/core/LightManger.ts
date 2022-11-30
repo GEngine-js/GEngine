@@ -5,6 +5,7 @@ import { SpotLight } from "../light/SpotLight";
 import Manger from "./Manger";
 import { DirtectData, PointData, SpotData } from "../light/DataHelper";
 import { FrameState } from "./FrameState";
+import Vector3 from "../math/Vector3";
 
 export default class LightManger extends Manger{
 
@@ -67,7 +68,7 @@ export default class LightManger extends Manger{
         this.spotDatas=new WeakMap();
         this.pointDatas=new WeakMap();
         this.dirtectDatas=new WeakMap();
-        this.ambientLight=undefined;
+        this.ambientLight=new AmbientLight(new Vector3(0,0,0),1.0);
         this.lightDefines={
             ambientLight:false,
             spotLight:false,
@@ -159,11 +160,11 @@ export default class LightManger extends Manger{
         //common
         if (ambientSize>0) {
             this.commonLightBuffer=new Float32Array(ambientSize+lightCount);
-            this.commonTatalByte=0;     
+            this.commonTatalByte=0; 
+            this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
+            this.commonTatalByte+=16;    
             this.ambient=new Float32Array(this.commonLightBuffer.buffer,this.commonTatalByte,3);
             this.commonTatalByte+=12;  
-            this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
-            this.commonTatalByte+=16;
             this.lightDefines.ambientLight=true;
         }else{
             this.commonLightBuffer=new Float32Array(lightCount);

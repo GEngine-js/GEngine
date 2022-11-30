@@ -250,64 +250,37 @@ export default function pbrFunction(defines){
     }
     #endif
 
-    fn shGetIrradianceAt( normal:vec3<f32>, shCoefficients:array<vec3<f32>,9>)->vec3<f32> {
-    let x:f32 = normal.x; 
-    let y:f32 = normal.y; 
-    let z:f32 = normal.z;
-    let result:vec3<f32> = shCoefficients[ 0 ] * 0.886227;
-    result += shCoefficients[ 1 ] * 2.0 * 0.511664 * y;
-    result += shCoefficients[ 2 ] * 2.0 * 0.511664 * z;
-    result += shCoefficients[ 3 ] * 2.0 * 0.511664 * x;
-    result += shCoefficients[ 4 ] * 2.0 * 0.429043 * x * y;
-    result += shCoefficients[ 5 ] * 2.0 * 0.429043 * y * z;
-    result += shCoefficients[ 6 ] * ( 0.743125 * z * z - 0.247708 );
-    result += shCoefficients[ 7 ] * 2.0 * 0.429043 * x * z;
-    result += shCoefficients[ 8 ] * 0.429043 * ( x * x - y * y );
-    return result;
-    }
-    fn getLightProbeIrradiance( lightProbe:array<vec3<f32>,9>, normal:vec3<f32> )->vec3<f32> {
-    let worldNormal:vec3<f32> = inverseTransformDirection( normal, viewMatrix );
-    let irradiance:vec3<f32> = shGetIrradianceAt( worldNormal, lightProbe );
-    return irradiance;
-    }
-    fn getAmbientLightIrradiance( ambientLightColor:vec3<f32> )->vec3<f32> {
-    let irradiance:vec3<f32> = ambientLightColor;
-    return irradiance;
-    }
-    /////////////////////直接灯光接入
-
-
     const clearcoatSpecular:vec3<f32> = vec3<f32>( 0.0 );
     const sheenSpecular:vec3<f32> = vec3<f32>( 0.0 );
 
     fn IBLSheenBRDF( normal:vec3<f32>, viewDir:vec3<f32>, roughness:f32 )->f32 {
-    let dotNV:f32 = saturate( dot( normal, viewDir ) );
-    let r2:f32 = roughness * roughness;
-    let a:f32 =select(-8.48 * r2 + 14.3 * roughness - 9.95,-339.2 * r2 + 161.4 * roughness - 25.9,roughness < 0.25);
-    //let a:f32 = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;
-    let b:f32=select(1.97 * r2 - 3.27 * roughness + 0.72,44.0 * r2 - 23.7 * roughness + 3.26, roughness < 0.25);
-    //let b:f32 = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;
-    //let DG:f32 = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );
-    let DG:f32 = exp( a * dotNV + b ) + select(0.1 * ( roughness - 0.25 ),0.0,roughness < 0.25);
-    return saturate( DG * RECIPROCAL_PI );
+        let dotNV:f32 = saturate( dot( normal, viewDir ) );
+        let r2:f32 = roughness * roughness;
+        let a:f32 =select(-8.48 * r2 + 14.3 * roughness - 9.95,-339.2 * r2 + 161.4 * roughness - 25.9,roughness < 0.25);
+        //let a:f32 = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;
+        let b:f32=select(1.97 * r2 - 3.27 * roughness + 0.72,44.0 * r2 - 23.7 * roughness + 3.26, roughness < 0.25);
+        //let b:f32 = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;
+        //let DG:f32 = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );
+        let DG:f32 = exp( a * dotNV + b ) + select(0.1 * ( roughness - 0.25 ),0.0,roughness < 0.25);
+        return saturate( DG * RECIPROCAL_PI );
     }
     fn DFGApprox( normal:vec3<f32>, viewDir:vec3<f32>,roughness:f32 )->vec2<f32> {
-    let dotNV:f32 = saturate( dot( normal, viewDir ) );
-    const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
-    let c1:vec4<f32> = vec4<f32>( 1, 0.0425, 1.04, - 0.04 );
-    let r:vec4<f32> = roughness * c0 + c1;
-    let a004:f32 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
-    let fab:vec2<f32> = vec2<f32>( - 1.04, 1.04 ) * a004 + r.zw;
-    return fab;
+        let dotNV:f32 = saturate( dot( normal, viewDir ) );
+        const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
+        let c1:vec4<f32> = vec4<f32>( 1, 0.0425, 1.04, - 0.04 );
+        let r:vec4<f32> = roughness * c0 + c1;
+        let a004:f32 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
+        let fab:vec2<f32> = vec2<f32>( - 1.04, 1.04 ) * a004 + r.zw;
+        return fab;
     }
     fn EnvironmentBRDF( normal:vec3<f32>,viewDir:vec3<f32>,specularColor:vec3<f32>, specularF90:f32,roughness:f32 )->vec3<f32> {
-    let fab:vec2<f32> = DFGApprox( normal, viewDir, roughness );
-    return specularColor * fab.x + specularF90 * fab.y;
+        let fab:vec2<f32> = DFGApprox( normal, viewDir, roughness );
+        return specularColor * fab.x + specularF90 * fab.y;
     }
 
 
     fn computeSpecularOcclusion( dotNV:f32, ambientOcclusion:f32, roughness:f32 )->f32 {
-    return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );
+        return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );
     }
     #if ${defines.USE_TRANSMISSION}
 
