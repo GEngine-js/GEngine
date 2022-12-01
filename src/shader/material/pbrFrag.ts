@@ -9,7 +9,12 @@ export default function pbrFrag(defines){
     #include <pbrUtils>
     #include <pbrFunction>
     #include <pbrTexture>
-
+    struct SystemUniform {
+        projectionMatrix: mat4x4<f32>,
+        viewMatrix: mat4x4<f32>,
+        inverseViewMatrix: mat4x4<f32>,
+        cameraPosition: vec3<f32>,
+    }; 
     // uniform vec3 ambientLightColor,
     // uniform vec3 lightProbe[9],
 ////////////////////////////////////
@@ -51,6 +56,7 @@ export default function pbrFrag(defines){
             #endif
         };
 @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
+@binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
 @fragment
 fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0) vec4<f32> {
         let diffuseColor:vec4<f32> = vec4(materialUniform.diffuse, materialUniform.opacity );
@@ -60,7 +66,7 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         #if ${defines.USE_TEXTURE}
             let sampledDiffuseColor:vec4<f32> =textureSample(baseTexture, baseSampler, vUv);
             #if ${defines.DECODE_VIDEO_TEXTURE}
-                sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
+                sampledDiffuseColor = vec4<f32>( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3<f32>( 0.0521327014 ), vec3<f32>( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3<f32>( lessThanEqual( sampledDiffuseColor.rgb, vec3<f32>( 0.04045 ) ) ) ), sampledDiffuseColor.w );
             #endif
 
             diffuseColor *= sampledDiffuseColor;
@@ -331,10 +337,10 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         let finnalColor:vec4<f32> = vec4<f32>( outgoingLight, diffuseColor.a );
 
         #if ${defines.TONE_MAPPING}
-           finnalColor.rgb = toneMapping( finnalColor.rgb );
+           finnalColor.rgb = toneMapping( finnalColor.rgb, );
         #endif
 
-          finnalColor = linearToOutputTexel( finnalColor );
+          finnalColor = linearToOutputTexel( finnalColor,materialUniform.toneMappingExposure );
 
         #if ${defines.PREMULTIPLIED_ALPHA}
             finnalColor.rgb *= finnalColor.a;

@@ -36,26 +36,6 @@ export default function pbrUtils(defines){
         let sn:f32 = dt % PI;
         return fract( sin( sn ) * c );
     }
-    // struct IncidentLight {
-    //     color:vec3<f32>,
-    //     direction:vec3<f32>,
-    //     visible:bool,
-    // }
-
-    // struct ReflectedLight {
-    //     directDiffuse:vec3<f32>,
-    //     directSpecular:vec3<f32>,
-    //     indirectDiffuse:vec3<f32>,
-    //     indirectSpecular:vec3<f32>,
-    // }
-    // struct GeometricContext {
-    //     position:vec3<f32>,
-    //     normal:vec3<f32>,
-    //     viewDir:vec3<f32>,
-    //     #if ${defines.USE_CLEARCOAT}
-    //          clearcoatNormal:vec3<f32>,
-    //     #endif
-    // }
     fn transformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
         return normalize( ( matrix * vec4<f32>( dir, 0.0 ) ).xyz );
     }
@@ -71,23 +51,29 @@ export default function pbrUtils(defines){
         let weights:vec3<f32> = vec3<f32>(0.2126729, 0.7151522, 0.0721750 );
         return dot( weights, rgb );
     }
-    fn LinearToneMapping( color:vec3<f32> )->vec3<f32> {
+    fn LinearToneMapping( color:vec3<f32>,toneMappingExposure:f32  )->vec3<f32> {
         return toneMappingExposure * color;
     }
 
-    fn ReinhardToneMapping( color:vec3<f32> )->vec3<f32> {
+    fn ReinhardToneMapping( color:vec3<f32>,toneMappingExposure:f32 )->vec3<f32> {
         color *= toneMappingExposure;
         return saturate( color / ( vec3<f32>( 1.0 ) + color ) );
     }
     fn CustomToneMapping( color:vec3<f32> )->vec3<f32> {
         return color;
     }
-    fn toneMapping( color:vec3<f32> )->vec3<f32> {
-        return ReinhardToneMapping( color );
+    fn toneMapping( color:vec3<f32>,toneMappingExposure:f32  )->vec3<f32> {
+        return ReinhardToneMapping( color,toneMappingExposure );
     }
 
     fn LinearToLinear( value:vec4<f32> )->vec4<f32> {
         return value;
+    }
+    fn lessThanEqual(a:vec3<f32>,b:vec3<f32>)->vec3<f32>{
+       const xValue:f32=select(b.x,a.x,a.x<=b.x);
+       const yValue:f32=select(b.y,a.y,a.y<=b.y);
+       const zValue:f32=select(b.z,a.z,a.z<=b.z);
+       return vec3<f32>(xValue,yValue,zValue);    
     }
     fn LinearTosRGB( value:vec4<f32> )->vec4<f32> {
         return vec4<f32>( mix( pow( value.rgb, vec3<f32>( 0.41666 ) ) * 1.055 - vec3<f32>( 0.055 ), value.rgb * 12.92, vec3<f32>( lessThanEqual( value.rgb, vec3<f32>( 0.0031308 ) ) ) ), value.a );

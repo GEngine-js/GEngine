@@ -147,7 +147,6 @@ export default class LightManger extends Manger{
     }
     private initBuffer(){
         const ambientSize=this.ambientLight!=undefined?3:0;
-        //const ambientSize=3;
         const lightCount=4;
         const pointLightCount=this.pointLights.length;
         const spotLightCount=this.spotLights.length;
