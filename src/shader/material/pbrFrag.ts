@@ -79,14 +79,14 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             roughnessFactor *= texelRoughness.g;
         #endif
 
-        let metalnessFactor:vec3<f32> = materialUniform.metalness;
+        let metalnessFactor:f32 = materialUniform.metalness;
     
         #if ${defines.USE_METALNESSTEXTURE}
             let texelMetalness:vec4<f32> =textureSample(metalnessTexture, baseSampler, vUv);
             metalnessFactor *= texelMetalness.b;
         #endif
 
-        const faceDirection:f32 =select(-1.0,1.0,is_front);
+        let faceDirection:f32 =select(-1.0,1.0,is_front);
         #if ${defines.FLAT_SHADED}
             let fdx:vec3<f32> = dpdx( input.vViewPosition );
             let fdy:vec3<f32> = dpdy( input.vViewPosition );
@@ -250,8 +250,8 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         #endif
 
         let iblIrradiance:vec3<f32> = vec3<f32>( 0.0 );
-        let irradiance:vec3<f32> = getAmbientLightIrradiance(ambientLightColor );
-        irradiance += getLightProbeIrradiance( lightProbe, geometry.normal,systemUniform.viewMatrix );
+        let irradiance:vec3<f32> = getAmbientLightIrradiance(commonLightsParms.ambient);
+        //irradiance += getLightProbeIrradiance( lightProbe, geometry.normal,systemUniform.viewMatrix );
 
         let radiance:vec3<f32> = vec3<f32>( 0.0 );
         let clearcoatRadiance:vec3<f32> = vec3<f32>( 0.0 );
@@ -334,13 +334,13 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             diffuseColor.a *= material.transmissionAlpha + 0.1;
         #endif
 
-        let finnalColor:vec4<f32> = vec4<f32>( outgoingLight, diffuseColor.a );
-
+        var finnalColor:vec4<f32>;
+        finnalColor = vec4<f32>( outgoingLight, diffuseColor.a );
         #if ${defines.TONE_MAPPING}
-           finnalColor.rgb = toneMapping( finnalColor.rgb, );
+           finnalColor.rgb = toneMapping( finnalColor.rgb,materialUniform.toneMappingExposure );
         #endif
 
-          finnalColor = linearToOutputTexel( finnalColor,materialUniform.toneMappingExposure );
+          finnalColor = linearToOutputTexel( finnalColor);
 
         #if ${defines.PREMULTIPLIED_ALPHA}
             finnalColor.rgb *= finnalColor.a;

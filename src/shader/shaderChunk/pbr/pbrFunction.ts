@@ -58,10 +58,10 @@ export default function pbrFunction(defines){
             return ( vec3<f32>( 1.0 ) + sqrtF0 ) / ( vec3<f32>( 1.0 ) - sqrtF0 );
         }
         fn IorToFresnel0(transmittedIor:vec3<f32>,incidentIor:f32 )->vec3<f32> {
-            return pow2( ( transmittedIor - vec3<f32>( incidentIor ) ) / ( transmittedIor + vec3<f32>( incidentIor ) ) );
+            return pow2Vector( ( transmittedIor - vec3<f32>( incidentIor ) ) / ( transmittedIor + vec3<f32>( incidentIor ) ) );
         }
         fn IorToFresnel0(transmittedIor:f32, incidentIor:f32 )->f32 {
-            return pow2( ( transmittedIor - incidentIor ) / ( transmittedIor + incidentIor ));
+            return pow2Vector( ( transmittedIor - incidentIor ) / ( transmittedIor + incidentIor ));
         }
         fn evalSensitivity(OPD:f32,shift:vec3<f32> )->vec3<f32> {
             let phase:f32 = 2.0 * PI * OPD * 1.0e-9;
@@ -433,8 +433,8 @@ export default function pbrFunction(defines){
        #if ${defines.USE_SHEEN}
            sheenSpecular += irradiance * material.sheenColor * IBLSheenBRDF( geometry.normal, geometry.viewDir, material.sheenRoughness );
        #endif
-       let singleScattering:vec3<f32> = vec3<f32>( 0.0 );
-       let multiScattering:vec3<f32> = vec3<f32>( 0.0 );
+       var singleScattering:vec3<f32>;
+       var multiScattering:vec3<f32>;
        let cosineWeightedIrradiance:vec3<f32> = irradiance * RECIPROCAL_PI;
        var tempMultiAndSingleScatter:MultiAndSingleScatter;
        #if ${defines.USE_IRIDESCENCE}
@@ -442,8 +442,8 @@ export default function pbrFunction(defines){
        #else
             tempMultiAndSingleScatter= computeMultiscattering( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.roughness );
        #endif
-       singleScattering+=tempMultiAndSingleScatter.singleScattering; 
-       multiScattering+=tempMultiAndSingleScatter.multiScattering;
+       singleScattering=tempMultiAndSingleScatter.singleScatter; 
+       multiScattering=tempMultiAndSingleScatter.multiScatter;
        let totalScattering:vec3<f32> = singleScattering + multiScattering;
        let diffuse:vec3<f32> = material.diffuseColor * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );
        reflectedLight.indirectSpecular = radiance * singleScattering;

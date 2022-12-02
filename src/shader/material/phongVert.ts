@@ -9,7 +9,7 @@ export default function phongVert(defines){
             @location(3) color: vec4<f32>,
             @location(4) normal: vec3<f32>,
             @location(5) viewPosition: vec3<f32>,
-            };
+      };
       struct SelfUniform {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,

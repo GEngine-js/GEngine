@@ -40,8 +40,10 @@ export default function pbrStruct(defines){
     
             metalness:f32,
     
-            toneMappingExposure:f32,
-    
+            #if ${defines.TONE_MAPPING}
+                toneMappingExposure:f32,
+            #endif
+           
             #if ${defines.SPECULAR}
     
                  specularColor:vec3<f32>,

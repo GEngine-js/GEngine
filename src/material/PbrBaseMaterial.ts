@@ -223,6 +223,7 @@ export default class PbrBaseMaterial extends Material{
     protected createUniforms(mesh:Mesh){
         // let totalUniformSize=this.getUniformSize();
         this.totalUniformCount=this.getUniformSize();
+        debugger
         super.createUniforms(mesh);
         this.uniforms.push(new UniformColor("emissive",this.uniformsDataBuffer,this.byteOffset,this));
         this.byteOffset+=12;
@@ -382,7 +383,7 @@ export default class PbrBaseMaterial extends Material{
     }
     protected getUniformSize(){
         let parentByteSize=super.getUniformSize()
-        let byteSize=parentByteSize+16+16+3+1+3+1+1;
+        let byteSize=parentByteSize+3+1+1;
         if (this.bumpTexture) byteSize+=1;
         if (this.aoTexture) byteSize+=1;
         if (this.lightTexture ) byteSize+=1;
@@ -396,7 +397,7 @@ export default class PbrBaseMaterial extends Material{
             byteSize+=1;
             byteSize+=1;
 		}
-       return Math.ceil(byteSize/16)*16;
+       return Math.ceil(byteSize/4)*4;
     }
     destory(){
 

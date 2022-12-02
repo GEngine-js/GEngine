@@ -12,7 +12,7 @@ export default function pbrUtils(defines){
     fn pow2(x:f32 )->f32 {
         return x*x;
     }
-    fn pow2(x:vec3<f32> )->vec3<f32> {
+    fn pow2Vector(x:vec3<f32> )->vec3<f32> {
         return x*x;
     }
     fn pow3( x:f32 )->f32 {
@@ -56,8 +56,10 @@ export default function pbrUtils(defines){
     }
 
     fn ReinhardToneMapping( color:vec3<f32>,toneMappingExposure:f32 )->vec3<f32> {
-        color *= toneMappingExposure;
-        return saturate( color / ( vec3<f32>( 1.0 ) + color ) );
+        var tempColor:vec3<f32>;
+        tempColor=color;
+        tempColor *= toneMappingExposure;
+        return saturate( tempColor / ( vec3<f32>( 1.0 ) + tempColor ) );
     }
     fn CustomToneMapping( color:vec3<f32> )->vec3<f32> {
         return color;
@@ -70,9 +72,9 @@ export default function pbrUtils(defines){
         return value;
     }
     fn lessThanEqual(a:vec3<f32>,b:vec3<f32>)->vec3<f32>{
-       const xValue:f32=select(b.x,a.x,a.x<=b.x);
-       const yValue:f32=select(b.y,a.y,a.y<=b.y);
-       const zValue:f32=select(b.z,a.z,a.z<=b.z);
+       let xValue:f32=select(b.x,a.x,a.x<=b.x);
+       let yValue:f32=select(b.y,a.y,a.y<=b.y);
+       let zValue:f32=select(b.z,a.z,a.z<=b.z);
        return vec3<f32>(xValue,yValue,zValue);    
     }
     fn LinearTosRGB( value:vec4<f32> )->vec4<f32> {

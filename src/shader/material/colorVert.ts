@@ -15,10 +15,10 @@ export default function colorVert(defines){
       normalMatrix: mat3x3<f32>,
    }
    struct SystemUniform {
-    projectionMatrix: mat4x4<f32>,
-    viewMatrix: mat4x4<f32>,
-    inverseViewMatrix: mat4x4<f32>,
-    cameraPosition: vec3<f32>,
+      projectionMatrix: mat4x4<f32>,
+      viewMatrix: mat4x4<f32>,
+      inverseViewMatrix: mat4x4<f32>,
+      cameraPosition: vec3<f32>,
    }; 
    @binding(0) @group(0) var<uniform> selfUniform : SelfUniform;
    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;

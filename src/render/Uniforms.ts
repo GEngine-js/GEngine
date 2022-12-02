@@ -28,7 +28,7 @@ export class Uniform<T> {
         this.name = uniformName;
         this.cb=cb;
         this.binding=binding||0;
-        this.visibility=ShaderStage.Vertex;
+        this.visibility=ShaderStage.Vertex|ShaderStage.Fragment;
         this.type='number'      
     }
     setBuffer(array:Array<number>){

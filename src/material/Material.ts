@@ -188,11 +188,11 @@ export class Material{
         }));
         this.byteOffset+=48;
 
-        this.byteOffset= Math.ceil(this.byteOffset/64)*64;
+        // this.byteOffset= Math.ceil(this.byteOffset/16)*16;
     }
     protected getUniformSize(){
        let byteSize= 16+9+3+1;
-       return Math.ceil(byteSize/16)*16;
+       return Math.ceil(byteSize/4)*4;
     }
     private updateShader(frameState:FrameState,mesh:Mesh){
         if (mesh.geometry) {
@@ -309,6 +309,7 @@ export class Material{
     }
     static creayeOneGroupEntity(uniform,uniformBuffer,uniforms){
         let groupEntity;
+        debugger
         if(uniform.type==='number'){
             groupEntity=new BindGroupEntity({
                 binding:uniform.binding,
