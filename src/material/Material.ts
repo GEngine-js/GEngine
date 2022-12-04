@@ -15,9 +15,10 @@ import RenderObject from "../core/RenderObject";
 import { UniformColor, UniformFloat, UniformMat3, UniformMat4 } from "../render/Uniforms";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
+import UniformBuffer from "../render/UniformBuffer";
 export class Material{
 
-    public uniformBuffer:Buffer;
+    public uniformBuffer:UniformBuffer;
 
     color?: Color;
 
@@ -78,6 +79,7 @@ export class Material{
     byteOffset:number;
 
     totalUniformCount:number;
+
 
     constructor(){
         //
@@ -168,6 +170,20 @@ export class Material{
         this.updateShader(frameState,mesh);
         this.updateRenderState(frameState);
     }
+    protected createUniformBuffer(size:number,mesh:Mesh){
+         this.uniformBuffer=new UniformBuffer(size);
+         this.uniformBuffer.setMatrix4('modelMatrix',()=>{
+            return mesh.modelMatrix;
+        });
+        this.uniformBuffer.setColor("color",this);
+        this.uniformBuffer.setFloat("opacity",this);
+        this.uniformBuffer.setMatrix3("normalMtrix",()=>{
+            return mesh.normalMatrix;
+        });
+    }
+    protected setUniforms(device:GPUDevice){
+        this.uniformBuffer.update(device);
+    }
     protected createUniforms(mesh?:Mesh){
         this.byteOffset=0;
 
@@ -222,13 +238,6 @@ export class Material{
             this.createRenderState(frameState);
         }
     }
-    setUniforms(){
-        this.uniforms.forEach((uniform)=>{
-            uniform.set();
-        });
-        this.uniformBuffer.setSubData(0,this.uniformsDataBuffer);
-
-    }
     createRenderState(frameState:FrameState){
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
         depthStencil=defaultValue(this.depthStencil,RenderState.defaultDepthStencil);
@@ -239,109 +248,6 @@ export class Material{
         viewport=frameState.viewport; 
         targets=frameState?.pass?.colorTargets!=undefined?frameState.pass.colorTargets:[RenderState.defaultTarget]
         this.renderState={depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant}
-    }
-    static createBindGroupAndLayout(device:GPUDevice,uniforms:any[],uniformBuffer:Buffer,label:string,index:number){
-        const layoutEntities=Material.createBindGroupLayoutEntry(uniforms,uniformBuffer);
-        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,label,layoutEntities,index);
-        const groupEntities=Material.createBindGroupEntity(uniforms,uniformBuffer);
-        const bindGroup=BindGroup.getBindGroupFromCache({
-            label:label,
-            entires:groupEntities,
-            device:device,
-            layout:groupLayout,
-            index:index
-           });
-       return {groupLayout,bindGroup}
-    }
-    static createBindGroupLayoutEntry(uniforms,uniformBuffer){
-        const result=new Map()
-        uniforms.forEach((uniform)=>{
-          if(!result.has(uniform.binding)){
-               result.set(uniform.binding,Material.createOneLayoutEntry(uniform,uniformBuffer))
-          }
-        })
-        const lauoutEntityArray=[]
-        result.forEach((value)=>{
-            lauoutEntityArray.push(value)
-        })
-    
-       return lauoutEntityArray;
-    }
-    static createBindGroupEntity(uniforms,uniformBuffer) {
-        const result=new Map()
-        uniforms.forEach((uniform)=>{
-          if(!result.has(uniform.binding)){
-               result.set(uniform.binding,Material.creayeOneGroupEntity(uniform,uniformBuffer,uniforms))
-          }
-        })
-        const groupEntityArray=[]
-        result.forEach((value)=>{
-            groupEntityArray.push(value)
-        })
-    
-       return groupEntityArray;
-    }
-    static createOneLayoutEntry(uniform,uniformBuffer){
-        let layoutEntity;
-        if(uniform.type==='number'){
-            layoutEntity= new BindGroupLayoutEntry({
-                binding: uniform.binding,
-                buffer:uniform?.buffer?.layoutType||uniformBuffer.layoutType,
-                visibility: uniform.visibility,
-                // uniforms: this.uniforms,
-            });
-        } else if(uniform.type==='texture'){
-            layoutEntity = new BindGroupLayoutEntry({
-                binding: uniform.binding,
-                visibility: uniform.visibility,
-                texture:uniform.value.layoutType
-            });
-        } else if(uniform.type==='sampler'){
-            layoutEntity= new BindGroupLayoutEntry({
-                binding: uniform.binding,
-                visibility: uniform.visibility,
-                sampler: {
-                    type:uniform.value.layoutType,
-                }
-            });
-        }
-       return layoutEntity;
-    }
-    static creayeOneGroupEntity(uniform,uniformBuffer,uniforms){
-        let groupEntity;
-        debugger
-        if(uniform.type==='number'){
-            groupEntity=new BindGroupEntity({
-                binding:uniform.binding,
-                resource:{
-                    buffer:uniform?.buffer?.gpuBuffer||uniformBuffer.gpuBuffer,
-                    offset: 0,
-                    //兼容灯光
-                    size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
-                }
-              });
-        } else if(uniform.type==='texture'){
-            groupEntity = new BindGroupEntity({
-                binding:uniform.binding,
-                resource:uniform.value.gpuTexture.createView()
-            });
-        } else if(uniform.type==='sampler'){
-            groupEntity= new BindGroupEntity({
-                binding:uniform.binding,
-                resource:uniform.value.gpuSampler
-            });
-        }
-       return groupEntity;
-    }
-    static getBindingSize(uniforms){
-        let size= uniforms
-        .map((uniform) =>{ if(uniform.type==='number') { 
-            return uniform.size
-        }else{
-            return 0;
-        }
-    }).reduce((a, b) => a + b, 0);
-        return size;
     }
     public destroy(){
         this.label=undefined;

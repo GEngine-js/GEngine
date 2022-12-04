@@ -163,7 +163,7 @@ export default class LightManger extends Manger{
             this.lightCount=new Uint32Array(this.commonLightBuffer.buffer,this.commonTatalByte,4);
             this.commonTatalByte+=16;    
             this.ambient=new Float32Array(this.commonLightBuffer.buffer,this.commonTatalByte,3);
-            this.commonTatalByte+=12;  
+            this.commonTatalByte+=16;  
             this.lightDefines.ambientLight=true;
         }else{
             this.commonLightBuffer=new Float32Array(lightCount);

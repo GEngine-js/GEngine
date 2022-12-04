@@ -18,7 +18,7 @@ export default class ColorMaterial extends Material{
 
     bindGroups: BindGroup[];
     
-    uniformBuffer: Buffer;
+    // uniformBuffer: Buffer;
 
     constructor(){
         super();
@@ -32,16 +32,14 @@ export default class ColorMaterial extends Material{
     update(frameState:FrameState,primitive:Mesh){
         if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,primitive);
         super.update(frameState,primitive)
-        this.setUniforms();
+        this.setUniforms(frameState.context.device);
     }
-    private createUniformBuffer(device:GPUDevice,primitive:Mesh){
+
+    private createBindGroupAndLayout(device:GPUDevice,mesh:Mesh){
         this.totalUniformCount=super.getUniformSize();
-        super.createUniforms(primitive)
-        this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
-    }
-    private createBindGroupAndLayout(device:GPUDevice,primitive:Mesh){
-        this.createUniformBuffer(device,primitive);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,'axes',0);
+        this.createUniformBuffer(this.totalUniformCount,mesh);
+        this.uniformBuffer.update(device)
+        const {groupLayout,bindGroup}= this.uniformBuffer.createBindGroupAndLayout(device,'axes',0);
         this.groupLayouts.push(groupLayout);
         this.bindGroups.push(bindGroup);
     }

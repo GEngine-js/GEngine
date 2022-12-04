@@ -31,27 +31,32 @@ export default class BaseMaterial extends Material {
     update(frameState:FrameState,mesh:Mesh) { 
         const {device}=frameState.context;
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
-        if(this.uniforms.length==0) this.createUniforms(mesh);
+        if(!this.uniformBuffer) this.createUniforms(mesh);
+        this.uniformBuffer.update(device)
         super.update(frameState,mesh)
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
-        this.setUniforms();
+        this.setUniforms(device);
     }
     private createBindGroupAndLayout(device:GPUDevice){
-      this.createUniformBuffer(device);
-      const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
+      // this.createUniformBuffer(device);
+      //const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0,);
+      const {groupLayout,bindGroup}= this.uniformBuffer.createBindGroupAndLayout(device,this.type,0,);
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }
     protected createUniforms(mesh?:Mesh){
         this.totalUniformCount=this.getUniformSize();
-        super.createUniforms(mesh);
-        this.uniforms.push(new UniformTexture('baseTexture',1,this));
-        this.uniforms.push(new UniformSampler('sampler',2,this.baseTexture));
+        // super.createUniforms(mesh);
+        super.createUniformBuffer(this.totalUniformCount,mesh);
+        this.uniformBuffer.setTexture('baseTexture',this,1);
+        this.uniformBuffer.setSampler('sampler',this.baseTexture,2)
+        // this.uniforms.push(new UniformTexture('baseTexture',1,this));
+        // this.uniforms.push(new UniformSampler('sampler',2,this.baseTexture,));
         this.byteOffset=this.getUniformSize()*4;
      }
-     private createUniformBuffer(device:GPUDevice){
-         this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
-     }
+    //  private createUniformBuffer(device:GPUDevice){
+    //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
+    //  }
      private ceateTextureAndSampler(context:Context){
         const baseSampler=new Sampler({
             magFilter: 'linear',

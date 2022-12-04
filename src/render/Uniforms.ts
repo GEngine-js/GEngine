@@ -24,11 +24,11 @@ export class Uniform<T> {
     visibility?:number;
     type?:string;
 
-    constructor(uniformName:string,cb:Function|number|Object,binding?:number) {
+    constructor(uniformName:string,cb?:Function|number|Object,binding?:number) {
         this.name = uniformName;
         this.cb=cb;
         this.binding=binding||0;
-        this.visibility=ShaderStage.Vertex|ShaderStage.Fragment;
+        this.visibility=ShaderStage.Vertex;
         this.type='number'      
     }
     setBuffer(array:Array<number>){
@@ -60,13 +60,7 @@ export class Uniform<T> {
 }
 
 export class UniformFloat extends Uniform<number>{
-    _value:number;
-    name: string;
-    value: number;
-    offset: number;
-    dataBuffer: DataBuffer;
-    size: number;
-
+    static align=4;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -83,6 +77,7 @@ export class UniformFloat extends Uniform<number>{
       };
 }
 export class UniformFloatVec2 extends Uniform<Vector2>{
+    static align=8;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -100,6 +95,7 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
       };
 }
 export class UniformFloatVec3 extends Uniform<Vector3>{
+    static align=16;
     constructor(uniformName:string,buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -117,6 +113,7 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
       };
 }
 export class UniformFloatVec4 extends Uniform<Vector4>{
+    static align=16;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -134,6 +131,7 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
       };
 }
 export class UniformColor extends Uniform<Color>{
+    static align=16;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -152,6 +150,7 @@ export class UniformColor extends Uniform<Color>{
 }
 
 export class UniformMat2 extends Uniform<Matrix2>{
+    static align=8;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -169,6 +168,7 @@ export class UniformMat2 extends Uniform<Matrix2>{
       };
 }
 export class UniformMat3 extends Uniform<Matrix3>{
+    static align=8;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -186,6 +186,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
       };
 }
 export class UniformMat4 extends Uniform<Matrix4>{
+    static align=16;
     constructor(uniformName:string,buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;
@@ -223,11 +224,11 @@ export class UniformSampler extends Uniform<Sampler>{
 }
 export class UniformLight extends Uniform<Light>{
     bufferSize: number;
-    constructor(uniformName:string,binding:number,cb:Function|number|Object,size:number) {
-        super(uniformName,cb);
-        this.buffer =this.getValue();
+    lightBuffer:Buffer;
+    constructor(uniformName:string,binding:number,buffer:Buffer,size:number) {
+        super(uniformName);
+        this.lightBuffer =buffer;
         this.binding=binding;
-        // this.type='light';
         this.visibility=ShaderStage.Fragment;
         this.bufferSize=size;
     }

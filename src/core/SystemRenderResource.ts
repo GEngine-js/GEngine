@@ -1,50 +1,36 @@
-import { Material } from "../material/Material";
 import BindGroup from "../render/BindGroup";
 import BindGroupLayout from "../render/BindGroupLayout";
-import { UniformFloatVec3, UniformLight, UniformMat4 } from "../render/Uniforms";
 import { Scene } from "../Scene";
 import { FrameState } from "./FrameState";
 import LightManger from "./LightManger";
 import Buffer from "../render/Buffer"
 import PerspectiveCamera from "../camera/PerspectiveCamera";
-import { BufferUsage } from "./WebGPUConstant";
+import Vector4 from "../math/Vector4";
+import UniformBuffer from "../render/UniformBuffer";
+import LightUniformBuffer from "../render/LightUniformBuffer";
 
 export default class SystemRenderResource{
 
-    matrixGroup:BindGroup;
+    systemGroup:BindGroup;
 
-    matrixLayout:BindGroupLayout;
+    systemLayout:BindGroupLayout;
 
     lightGroup:BindGroup;
 
     lightLayout:BindGroupLayout;
 
-    lightUniforms: any[];
+    lightUniformBuffer:LightUniformBuffer;
 
-    systemUniforms:any[];
-    
-    globalBuffer:Buffer;
-
-    systemDataBuffer:Float32Array;
-
-    globalLightsBuffer: Buffer;
-
-    commonGPUBuffer:Buffer;
-
-    spotLightsGPUBuffer:Buffer;
-
-    pointLightsGPUBuffer:Buffer;
-
-    dirtectLightsGPUBuffer:Buffer;
+    systemUniformBuffer: UniformBuffer;
     
     constructor(){
     }
     get layouts():BindGroupLayout[]{
-        return [this.matrixLayout,this.lightLayout]
+        return [this.systemLayout,this.lightLayout]
     }
     
    get groups() : BindGroup[] {
-        return [this.matrixGroup,this.lightGroup]
+        return [this.systemGroup,this.lightGroup]
     }
     
     update(frameState:FrameState,scene:Scene){
@@ -56,93 +42,62 @@ export default class SystemRenderResource{
     // camera
 
     private updateCamera(device:GPUDevice,camera:PerspectiveCamera){
-        if(!this.globalBuffer)this.createSystemBindGroupAndLayout(device,camera);
-        this.systemUniforms.forEach((uniform)=>{
-            uniform.set();
-        });
-        this.updateGlobalBufferData();
-    }
-    private updateGlobalBufferData(){
-        this.globalBuffer.setSubData(0,this.systemDataBuffer);
-    }
-    private createSystemUniforms(camera:PerspectiveCamera){
-        if(!this.systemDataBuffer) this.systemDataBuffer=new Float32Array(51)
-        this.systemUniforms=[
-            new UniformMat4('projectionMatrix',this.systemDataBuffer,0,()=>{
-                return camera.projectionMatrix
-            }),
-            new UniformMat4('viewMatrix',this.systemDataBuffer,64,()=>{
-                return camera.viewMatrix
-            }),
-            new UniformMat4('inverseViewMatrix',this.systemDataBuffer,128,()=>{
-                return camera.inverseViewMatrix
-            }),
-            new UniformFloatVec3('position',this.systemDataBuffer,192,()=>{       
-                return camera.position
-            })
-        ]
-    }
-    private createSystemUniformBuffer(device:GPUDevice,){
-        this.globalBuffer=Buffer.createUniformBuffer(device,204);
-    }
-    private createSystemBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
-        this.createSystemUniforms(camera);
-        this.createSystemUniformBuffer(device);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.systemUniforms,this.globalBuffer,'system',1);
-        this.matrixGroup=bindGroup;
-        this.matrixLayout=groupLayout;
-    }
-
-    // light
-    private updateLight(device:GPUDevice,lightManger:LightManger){
-        if (lightManger.lightCountDirty&&!this.lightUniforms) {
-              this.createLightBindGroupAndLayout(device,lightManger);
-              this.setLightData(lightManger)
-        } else {
-           this.setLightData(lightManger)
+        if(!this.systemUniformBuffer){
+            this.createSystemBindGroupAndLayout(device,camera);
+        }else{
+           this.systemUniformBuffer.update(device)
         }
     }
-    private setLightData(lightManger:LightManger){
-         this.commonGPUBuffer.setSubData(0,lightManger.commonLightBuffer);
-         if(this.pointLightsGPUBuffer)this.pointLightsGPUBuffer.setSubData(0,lightManger.pointLightsBuffer);
-         if(this.spotLightsGPUBuffer)this.spotLightsGPUBuffer.setSubData(0,lightManger.spotLightsBuffer);
-         if(this.dirtectLightsGPUBuffer)this.dirtectLightsGPUBuffer.setSubData(0,lightManger.dirtectLightsBuffer);
+    // light
+    private updateLight(device:GPUDevice,lightManger:LightManger){
+        if (lightManger.lightCountDirty) {
+                lightManger.lightCountDirty=false
+                this.createLightBindGroupAndLayout(device,lightManger);
+        } else {
+            this.lightUniformBuffer.update(device,lightManger);
+        }
+    }
+    private createSystemBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
+
+        this.systemUniformBuffer=new UniformBuffer(208);
+
+        this.systemUniformBuffer.update(device);
+
+        this.systemUniformBuffer.setMatrix4('projectionMatrix',()=>{
+            return camera.projectionMatrix
+        });
+        this.systemUniformBuffer.setMatrix4('viewMatrix',()=>{
+            return camera.viewMatrix
+        });
+        this.systemUniformBuffer.setMatrix4('inverseViewMatrix',()=>{
+            return camera.inverseViewMatrix
+        });
+        this.systemUniformBuffer.setFloatVec3('position',()=>{       
+            return new Vector4(camera.position.x,camera.position.y,camera.position.z,1.0)
+        });
+        const {groupLayout,bindGroup}= this.systemUniformBuffer.createBindGroupAndLayout(device,'system',1);
+        this.systemGroup=bindGroup;
+        this.systemLayout=groupLayout;
+
     }
     private createLightBindGroupAndLayout(device:GPUDevice,lightManger:LightManger){
-        lightManger.lightCountDirty=false;
-        this.resetLightBufferAndUnifroms();
-        this.createLightUniformBuffer(device,lightManger);
-        this.createLightUniforms(lightManger);
-        const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.lightUniforms,null,'light',2);
-        this.lightLayout=groupLayout;
-        this.lightGroup=bindGroup;
-    }
-    private createLightUniforms(lightManger:LightManger){
-       this.lightUniforms=[
-         new UniformLight('commonGPUBuffer',0,this,lightManger.commonTatalByte),
-       ]
-       if(lightManger.lightDefines.spotLight){
-            this.lightUniforms.push(new UniformLight('spotLightsGPUBuffer',lightManger.lightDefines.spotLightBinding,this,lightManger.spotLightsByte));
-       }
-       if(lightManger.lightDefines.pointLight){
-            this.lightUniforms.push(new UniformLight('pointLightsGPUBuffer',lightManger.lightDefines.pointLightBinding,this,lightManger.pointLightsByte))
+        if(!this.lightUniformBuffer)this.lightUniformBuffer=new LightUniformBuffer(lightManger);
+
+        this.lightUniformBuffer.update(device,lightManger);
+
+        this.lightUniformBuffer.setLight('commonBuffer',0,lightManger.commonTatalByte);
+        if(lightManger.lightDefines.spotLight){
+            this.lightUniformBuffer.setLight('spotLightsBuffer',lightManger.lightDefines.spotLightBinding,lightManger.spotLightsByte);
+        }
+        if(lightManger.lightDefines.pointLight){
+            this.lightUniformBuffer.setLight('pointLightsBuffer',lightManger.lightDefines.pointLightBinding,lightManger.pointLightsByte)
        }
        if(lightManger.lightDefines.dirtectLight){
-             this.lightUniforms.push(new UniformLight('dirtectLightsGPUBuffer',lightManger.lightDefines.dirtectLightBinding,this,lightManger.dirtectLightsByte))
+            this.lightUniformBuffer.setLight('dirtectLightsBuffer',lightManger.lightDefines.dirtectLightBinding,lightManger.dirtectLightsByte)
        }
-    }
-    private createLightUniformBuffer(device:GPUDevice,lightManger:LightManger){
-        this.commonGPUBuffer=Buffer.createUniformBuffer(device,lightManger.commonTatalByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        if(lightManger.lightDefines.spotLight)this.spotLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.spotLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        if(lightManger.lightDefines.pointLight)this.pointLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.pointLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
-        if(lightManger.lightDefines.dirtectLight)this.dirtectLightsGPUBuffer=Buffer.createUniformBuffer(device,lightManger.dirtectLightsByte,{type: 'read-only-storage'},BufferUsage.Storage);
-    }
-    private resetLightBufferAndUnifroms(){
-        this.lightUniforms=[];
-        this.commonGPUBuffer=undefined;
-        this.spotLightsGPUBuffer=undefined;
-        this.pointLightsGPUBuffer=undefined;
-        this.dirtectLightsGPUBuffer=undefined;
+        const {groupLayout,bindGroup}= this.lightUniformBuffer.createBindGroupAndLayout(device,'light',2);
+        this.lightLayout=groupLayout;
+        this.lightGroup=bindGroup;
     }
     destroy(){
 
