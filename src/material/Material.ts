@@ -184,28 +184,6 @@ export class Material{
     protected setUniforms(device:GPUDevice){
         this.uniformBuffer.update(device);
     }
-    protected createUniforms(mesh?:Mesh){
-        this.byteOffset=0;
-
-        this.uniformsDataBuffer=new Float32Array(this.totalUniformCount);
-        this.uniforms.push(new UniformMat4("modelMatrix",this.uniformsDataBuffer,this.byteOffset,()=>{
-            return mesh.modelMatrix;
-        }));
-        this.byteOffset+=64;
-
-        this.uniforms.push(new UniformColor("color",this.uniformsDataBuffer,this.byteOffset,this));
-        this.byteOffset+=12;
-        
-        this.uniforms.push(new UniformFloat("opacity",this.uniformsDataBuffer,this.byteOffset,this));
-        this.byteOffset+=4;
-
-        this.uniforms.push(new UniformMat3("normalMtrix",this.uniformsDataBuffer,this.byteOffset,()=>{
-            return mesh.normalMatrix;
-        }));
-        this.byteOffset+=48;
-
-        // this.byteOffset= Math.ceil(this.byteOffset/16)*16;
-    }
     protected getUniformSize(){
        let byteSize= 16+9+3+1;
        return Math.ceil(byteSize/4)*4;

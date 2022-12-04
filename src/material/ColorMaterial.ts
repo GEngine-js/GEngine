@@ -17,8 +17,6 @@ export default class ColorMaterial extends Material{
     groupLayouts: BindGroupLayout[];
 
     bindGroups: BindGroup[];
-    
-    // uniformBuffer: Buffer;
 
     constructor(){
         super();

@@ -46,17 +46,11 @@ export default class BaseMaterial extends Material {
     }
     protected createUniforms(mesh?:Mesh){
         this.totalUniformCount=this.getUniformSize();
-        // super.createUniforms(mesh);
         super.createUniformBuffer(this.totalUniformCount,mesh);
         this.uniformBuffer.setTexture('baseTexture',this,1);
         this.uniformBuffer.setSampler('sampler',this.baseTexture,2)
-        // this.uniforms.push(new UniformTexture('baseTexture',1,this));
-        // this.uniforms.push(new UniformSampler('sampler',2,this.baseTexture,));
         this.byteOffset=this.getUniformSize()*4;
      }
-    //  private createUniformBuffer(device:GPUDevice){
-    //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4)
-    //  }
      private ceateTextureAndSampler(context:Context){
         const baseSampler=new Sampler({
             magFilter: 'linear',
