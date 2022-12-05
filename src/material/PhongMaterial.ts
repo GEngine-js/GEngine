@@ -33,7 +33,7 @@ export default class BaseMaterial extends Material {
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
         if(!this.uniformBuffer) this.createUniforms(mesh);
         this.uniformBuffer.update(device)
-        super.update(frameState,mesh)
+        this.updateShaderAndRenderState(frameState,mesh)
         if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
         this.setUniforms(device);
     }

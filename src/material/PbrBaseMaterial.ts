@@ -5,14 +5,12 @@ import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Context from "../render/Context";
 import Texture from "../render/Texture";
-import { UniformColor, UniformFloat, UniformFloatVec2, UniformSampler, UniformTexture } from "../render/Uniforms";
 import { Material } from "./Material";
-import Buffer from '../render/Buffer';
 import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
-import UniformBuffer from "../render/UniformBuffer";
 
 export default class PbrBaseMaterial extends Material{
+
     public baseTexture:Texture;
 
     public bumpTexture:Texture;
@@ -207,7 +205,7 @@ export default class PbrBaseMaterial extends Material{
     update(frameState:FrameState,mesh:Mesh){
        const {context}=frameState; 
        this.updateTexture(context);
-       super.update(frameState,mesh)
+       this.updateShaderAndRenderState(frameState,mesh)
        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device,mesh);
        this.setUniforms(context.device);   
     }

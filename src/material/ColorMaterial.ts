@@ -27,9 +27,9 @@ export default class ColorMaterial extends Material{
             defines:this.defines
         });
     }
-    update(frameState:FrameState,primitive:Mesh){
-        if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,primitive);
-        super.update(frameState,primitive)
+    update(frameState:FrameState,mesh:Mesh){
+        if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,mesh);
+        this.updateShaderAndRenderState(frameState,mesh)
         this.setUniforms(frameState.context.device);
     }
 

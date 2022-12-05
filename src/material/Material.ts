@@ -170,6 +170,10 @@ export class Material{
         this.updateShader(frameState,mesh);
         this.updateRenderState(frameState);
     }
+    protected updateShaderAndRenderState(frameState:FrameState,mesh:Mesh){
+        this.updateShader(frameState,mesh);
+        this.updateRenderState(frameState);
+    }
     protected createUniformBuffer(size:number,mesh:Mesh){
          this.uniformBuffer=new UniformBuffer(size);
          this.uniformBuffer.setMatrix4('modelMatrix',()=>{
