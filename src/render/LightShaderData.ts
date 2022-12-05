@@ -1,10 +1,9 @@
 import LightManger from "../core/LightManger";
-import UniformBuffer from "./UniformBuffer";
 import { UniformLight } from "./Uniforms";
 import Buffer from './Buffer';
 import { BufferUsage } from "../core/WebGPUConstant";
-export default class LightUniformBuffer extends UniformBuffer{
-
+import ShaderData from "./ShaderData";
+export default class LightShaderData extends ShaderData{
 
     lightManger:LightManger;
 

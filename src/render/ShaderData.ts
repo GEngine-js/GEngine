@@ -5,7 +5,7 @@ import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
 import BindGroupLayout from "./BindGroupLayout";
 import BindGroup from "./BindGroup";
 import defaultValue from "../utils/defaultValue";
-export default class UniformBuffer{
+export default class ShaderData{
 
     byteOffset:number;
 
@@ -15,7 +15,15 @@ export default class UniformBuffer{
 
     buffer: Buffer;
 
+    textureBinding:number;
+
+    defines:{[prop: string]: boolean|number};
+
+    defineDirty:boolean;
+
     protected _uniforms:Map<string,any>;
+
+    private uniformDirty:boolean;
 
     constructor(size?:number,buffer?:Buffer,data?:Float32Array){
        this.byteOffset=0;
@@ -25,8 +33,11 @@ export default class UniformBuffer{
        }else{
          this.data=defaultValue(data,undefined);
        }
-      
        this.buffer=defaultValue(buffer,undefined);
+       this.textureBinding=1;
+       this.defineDirty=true;
+       this.uniformDirty=true;
+       this.defines={};
        this._uniforms=new Map(); 
     }
     setFloat(name:string,value:Function|number|Object,binding?:number){
@@ -86,20 +97,42 @@ export default class UniformBuffer{
     }
     setTexture(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
-        const uniform=new UniformTexture(name,binding,value);
+        const uniform=new UniformTexture(name,this.textureBinding,value);
+        this.setDefine(name.concat('Binding'),this.textureBinding);
+        this.textureBinding+=1;
         this._uniforms.set(name,uniform)
     }
     setSampler(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
-        const uniform=new UniformSampler(name,binding,value);
-        this._uniforms.set(name,uniform)
+        const uniform=new UniformSampler(name,this.textureBinding,value);
+        this.setDefine(name.concat('Binding'),this.textureBinding);
+        this.textureBinding+=1;
+        this._uniforms.set(name,uniform);
+    }
+    setDefine(name:string,value:boolean|number){
+        if (this.defines[name]===undefined) {
+            this.defineDirty=true;
+            this.defines[name]=value;
+        }else{
+            if (this.defines[name]===value) {
+                return;
+            }else{
+                this.defineDirty=true;
+                this.defines[name]=value;
+            }
+        }
+        debugger
     }
     update(device:GPUDevice,other?:any){
         this._uniforms.forEach((uniform)=>{
-            uniform.set();
+           const result= uniform.set();
+           if(result!=undefined) this.uniformDirty=result;
         });
         if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
-        this.buffer.setSubData(0,this.data);
+        if(this.uniformDirty){
+             this.uniformDirty=false;
+            this.buffer.setSubData(0,this.data);
+        }
     }
     destroy(){
         this.byteOffset=0;

@@ -8,9 +8,6 @@ import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
 import RenderObject from "../core/RenderObject";
 export default class ColorMaterial extends Material{
-    uniforms:any[];
-
-    uniformsDataBuffer: Float32Array;
 
     shaderSource: ShaderSource;
 
@@ -28,16 +25,16 @@ export default class ColorMaterial extends Material{
         });
     }
     update(frameState:FrameState,mesh:Mesh){
-        if(!this.uniformBuffer) this.createBindGroupAndLayout(frameState.context.device,mesh);
+        if(!this.shaderData) this.createBindGroupAndLayout(frameState.context.device,mesh);
         this.updateShaderAndRenderState(frameState,mesh)
-        this.setUniforms(frameState.context.device);
+        this.setShaderData(frameState.context.device);
     }
 
     private createBindGroupAndLayout(device:GPUDevice,mesh:Mesh){
         this.totalUniformCount=super.getUniformSize();
-        this.createUniformBuffer(this.totalUniformCount,mesh);
-        this.uniformBuffer.update(device)
-        const {groupLayout,bindGroup}= this.uniformBuffer.createBindGroupAndLayout(device,'axes',0);
+        this.createShaderData(this.totalUniformCount,mesh);
+        this.shaderData.update(device)
+        const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,'axes',0);
         this.groupLayouts.push(groupLayout);
         this.bindGroups.push(bindGroup);
     }

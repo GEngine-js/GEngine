@@ -264,7 +264,7 @@ export default class PbrMaterial extends Material{
         // if(this.uniforms.length==0) this.createUniforms(mesh);
         super.update(frameState,mesh)
         //if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
-        this.setUniforms(context.device); 
+        this.setShaderData(context.device); 
     }
     // private createBindGroupAndLayout(device:GPUDevice){
     //     this.createUniformBuffer(device);
@@ -275,173 +275,119 @@ export default class PbrMaterial extends Material{
     // private createUniformBuffer(device:GPUDevice){
     //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
     //}
-    protected createUniformBuffer(size:number,mesh:Mesh){
+    protected createShaderData(size:number,mesh:Mesh){
         // this.totalUniformCount=this.getUniformSize();
-        super.createUniformBuffer(size,mesh);
-        this.defines.IOR=true;
-        this.defines.SPECULAR=true;
-        this.uniformBuffer.setFloat('specularIntensity',this);
-        this.uniformBuffer.setFloat('specularColor',this);
+        super.createShaderData(size,mesh);
+        this.shaderData.setDefine('IOR',true);
+        this.shaderData.setDefine('SPECULAR',true);
+        this.shaderData.setFloat('specularIntensity',this);
+        this.shaderData.setFloat('specularColor',this);
         if ( this.sheen > 0 ) {
             this.defines.USE_SHEEN=true;
+            this.shaderData.setDefine('USE_SHEEN',true);
            // uniforms.sheenColor.value.copy( material.sheenColor ).multiplyScalar( material.sheen );
             
-            this.uniformBuffer.setColor('sheenColor',this);
+            this.shaderData.setColor('sheenColor',this);
             //uniforms.sheenRoughness.value = material.sheenRoughness;
-            this.uniformBuffer.setFloat('sheenRoughness',this);
+            this.shaderData.setFloat('sheenRoughness',this);
 
-            if (this.sheenRoughnessTexture) {
-                this.uniformBuffer.setTexture('sheenRoughnessTexture',this,this.textureBindingCount);
-                this.defines.sheenRoughnessTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
-            }
+            if (this.sheenRoughnessTexture) this.shaderData.setTexture('sheenRoughnessTexture',this);
     
-            if (this.sheenColorTexture) {
-                this.uniformBuffer.setTexture('sheenColorTexture',this,this.textureBindingCount);
-                this.defines.sheenColorTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
-            }
+            if (this.sheenColorTexture) this.shaderData.setTexture('sheenColorTexture',this);
         }
         if (this.transmission > 0) {
             this.defines.USE_TRANSMISSION=true;
+            this.shaderData.setDefine('USE_TRANSMISSION',true);
             // uniforms.transmission.value = material.transmission;
-            this.uniformBuffer.setFloat('transmission',this);
-			//uniforms.transmissionSamplerMap.value = transmissionRenderTarget.texture;
-			//uniforms.transmissionSamplerSize.value.set( transmissionRenderTarget.width, transmissionRenderTarget.height );
-            // if(this.transmissionSamplerMapTexture){
-            //     this.uniforms.push(new UniformTexture('transmissionSamplerMapTexture',this.textureBindingCount,this));
-            //     this.defines.transmissionSamplerMapTextureBinding=this.textureBindingCount;
-            //     this.textureBindingCount+=1;
-            // }
-            // this.uniforms.push(new UniformFloatVec2('transmissionSamplerSize',this.uniformsDataBuffer,this.byteOffset,()=>{
-
-            // }));
-            // this.byteOffset+=8;
-            if (this.thicknessTexture) {
-                this.uniformBuffer.setTexture('thicknessTexture',this,this.textureBindingCount);
-                this.defines.thicknessTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
-            }
-            if(this.transmissionTexture){
-                this.uniformBuffer.setTexture('transmissionTexture',this,this.textureBindingCount);
-                this.defines.transmissionTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
-            }
+            this.shaderData.setFloat('transmission',this);
+			// uniforms.transmissionSamplerMap.value = transmissionRenderTarget.texture;
+			// uniforms.transmissionSamplerSize.value.set( transmissionRenderTarget.width, transmissionRenderTarget.height );
+            //if(this.transmissionSamplerMapTexture)this.shaderData.setTexture('transmissionSamplerMapTexture',this)
+            //this.shaderData.setFloatVec2('transmissionSamplerSize',()=>{transmissionRenderTarget.width, transmissionRenderTarget.height})
+            if (this.thicknessTexture) this.shaderData.setTexture('thicknessTexture',this);
+            if(this.transmissionTexture) this.shaderData.setTexture('transmissionTexture',this);
             // uniforms.attenuationDistance.value = material.attenuationDistance;
-            this.uniformBuffer.setFloat('attenuationDistance',this);
+            this.shaderData.setFloat('attenuationDistance',this);
 			// uniforms.attenuationColor.value.copy( material.attenuationColor );
-            this.uniformBuffer.setColor('attenuationColor',this);
-
+            this.shaderData.setColor('attenuationColor',this);
         }
         if (this.clearcoat > 0 ) {
-            this.defines.USE_CLEARCOAT=true;
-            // uniforms.clearcoat.value = material.clearcoat;
-            this.uniformBuffer.setFloat('clearcoat',this);
+            this.shaderData.setDefine('USE_CLEARCOAT',true);
+            this.shaderData.setFloat('clearcoat',this);
 
-			// uniforms.clearcoatRoughness.value = material.clearcoatRoughness;
-            this.uniformBuffer.setFloat('clearcoatRoughness',this);
+            this.shaderData.setFloat('clearcoatRoughness',this);
 
-            if (this.clearcoatTexture) {
-                this.uniformBuffer.setTexture('clearcoatTexture',this,this.textureBindingCount)
-                this.defines.clearcoatTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
-            }
-            if (this.clearcoatRoughnessTexture) {
-                this.uniformBuffer.setTexture('clearcoatRoughnessTexture',this,this.textureBindingCount);
-               this.defines.clearcoatRoughnessTextureBinding=this.textureBindingCount;
-               this.textureBindingCount+=1;
-            }
+            if (this.clearcoatTexture)this.shaderData.setTexture('clearcoatTexture',this)
+            if (this.clearcoatRoughnessTexture) this.shaderData.setTexture('clearcoatRoughnessTexture',this);
             if (this.clearcoatNormalTexture ) {
-                this.uniformBuffer.setFloatVec2('clearcoatNormalScale',this);
-                this.uniformBuffer.setTexture('clearcoatNormalTexture',this,this.textureBindingCount)
-                this.defines.clearcoatNormalTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1;
+                this.shaderData.setFloatVec2('clearcoatNormalScale',this);
+                this.shaderData.setTexture('clearcoatNormalTexture',this);
             }
         }
         if (this.iridescence > 0) {
-            this.defines.USE_IRIDESCENCE=true;
+            this.shaderData.setDefine('USE_IRIDESCENCE',true);
             // uniforms.iridescence.value = material.iridescence;
-            this.uniforms.push(new UniformFloat('iridescence',this.uniformsDataBuffer,this.byteOffset,this));
-            this.byteOffset+=4;
+            this.shaderData.setFloat('iridescence',this);
 			// uniforms.iridescenceIOR.value = material.iridescenceIOR;
-            this.uniforms.push(new UniformFloat('iridescenceIOR',this.uniformsDataBuffer,this.byteOffset,this));
-            this.byteOffset+=4;
+            this.shaderData.setFloat('iridescenceIOR',this);;
 			// uniforms.iridescenceThicknessMinimum.value = material.iridescenceThicknessRange[ 0 ];
-            this.uniforms.push(new UniformFloat('iridescenceThicknessMinimum',this.uniformsDataBuffer,this.byteOffset,()=>{
+            this.shaderData.setFloat('iridescenceThicknessMinimum',()=>{
                 return this.iridescenceThicknessRange[0];
-            }));
-            this.byteOffset+=4;
+            })
 			// uniforms.iridescenceThicknessMaximum.value = material.iridescenceThicknessRange[ 1 ];
-            this.uniforms.push(new UniformFloat('iridescenceThicknessMaximum',this.uniformsDataBuffer,this.byteOffset,()=>{
+            this.shaderData.setFloat('iridescenceThicknessMaximum',()=>{
                 return this.iridescenceThicknessRange[1];
-            }));
-            this.byteOffset+=4;
-            if ( this.iridescenceTexture ) {
-                this.uniforms.push(new UniformTexture('iridescenceTexture',this.textureBindingCount,this));
-                this.defines.iridescenceTextureBinding=this.textureBindingCount;
-                this.textureBindingCount+=1
-            }
-            if ( this.iridescenceThicknessTexture ) {
-                 this.uniforms.push(new UniformTexture('iridescenceThicknessTexture',this.textureBindingCount,this));
-                 this.defines.iridescenceThicknessTextureBinding=this.textureBindingCount;
-                 this.textureBindingCount+=1;
-            }
+            })
+            if ( this.iridescenceTexture ) this.shaderData.setTexture('iridescenceTexture',this);
+            if ( this.iridescenceThicknessTexture )this.shaderData.setTexture('iridescenceThicknessTexture',this);
         }
-        if (this.specularIntensityTexture) {
-            this.uniforms.push(new UniformTexture('specularIntensityTexture',this.textureBindingCount,this));
-            this.defines.specularIntensityTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
-		}
-        if (this.specularColorTexture ) {
-            this.uniforms.push(new UniformTexture('specularColorTexture',this.textureBindingCount,this));
-            this.defines.specularColorTextureBinding=this.textureBindingCount;
-            this.textureBindingCount+=1;
-		}
+        if (this.specularIntensityTexture) this.shaderData.setTexture('specularIntensityTexture',this);
+        if (this.specularColorTexture ) this.shaderData.setTexture('specularColorTexture',this);
     }
     private updateTexture(context:Context){
         if (this.sheenRoughnessTexture) {
-            this.defines.USE_SHEENROUGHNESSTEXTURE=true;
+            this.shaderData.setDefine('USE_SHEENROUGHNESSTEXTURE',true);
             this.sheenRoughnessTexture.update(context);
         }
         if (this.sheenColorTexture) {
+            this.shaderData.setDefine('USE_SHEENCOLORTEXTURE',true);
             this.sheenColorTexture.update(context);
-            this.defines.USE_SHEENCOLORTEXTURE=true;
         }
         if (this.thicknessTexture) {
+            this.shaderData.setDefine('USE_THICKNESSTEXTURE',true);
             this.thicknessTexture.update(context);
-            this.defines.USE_THICKNESSTEXTURE=true;
         }
         if(this.transmissionTexture){
+            this.shaderData.setDefine('USE_TRANSMISSIONTEXTURE',true);
             this.transmissionTexture.update(context);
-            this.defines.USE_TRANSMISSIONTEXTURE=true;
         }
         if (this.clearcoatTexture) {
+            this.shaderData.setDefine('USE_CLEARCOATTEXTURE',true);
             this.clearcoatTexture.update(context);
-            this.defines.USE_CLEARCOATTEXTURE=true;
         }
         if (this.clearcoatRoughnessTexture) {
+            this.shaderData.setDefine('USE_CLEARCOAT_ROUGHNESSTEXTURE',true);
             this.clearcoatRoughnessTexture.update(context);
-            this.defines.USE_CLEARCOAT_ROUGHNESSTEXTURE=true;
         }
         if (this.clearcoatNormalTexture) {
+            this.shaderData.setDefine('USE_CLEARCOAT_NORMALTEXTURE',true);
             this.clearcoatNormalTexture.update(context);
-            this.defines.USE_CLEARCOAT_NORMALTEXTURE=true;
         }
         if (this.iridescenceTexture ) {
+            this.shaderData.setDefine('USE_IRIDESCENCETEXTURE',true);
             this.iridescenceTexture.update(context);
-            this.defines.USE_IRIDESCENCETEXTURE=true;
         }
         if (this.iridescenceThicknessTexture) {
+            this.shaderData.setDefine('USE_IRIDESCENCE_THICKNESSTEXTURE',true);
             this.iridescenceThicknessTexture.update(context);
-            this.defines.USE_IRIDESCENCE_THICKNESSTEXTURE=true;
         }
         if (this.specularIntensityTexture){
+            this.shaderData.setDefine('USE_SPECULARINTENSITYTEXTURE',true);
             this.specularIntensityTexture.update(context);
-            this.defines.USE_SPECULARINTENSITYTEXTURE=true;
         }
         if (this.specularColorTexture) {
+            this.shaderData.setDefine('USE_SPECULARCOLORTEXTURE',true);
             this.specularColorTexture.update(context);
-            this.defines.USE_SPECULARCOLORTEXTURE=true;
         }
     }
     protected getUniformSize():number{

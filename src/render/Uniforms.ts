@@ -28,7 +28,7 @@ export class Uniform<T> {
         this.name = uniformName;
         this.cb=cb;
         this.binding=binding||0;
-        this.visibility=ShaderStage.Vertex;
+        this.visibility=ShaderStage.Vertex|ShaderStage.Fragment;
         this.type='number'      
     }
     setBuffer(array:Array<number>){
@@ -85,14 +85,16 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,2)
         this.size=8;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Vector2.equals(v, this._value)) {
             Vector2.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+    }
 }
 export class UniformFloatVec3 extends Uniform<Vector3>{
     static align=16;
@@ -103,14 +105,16 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,3)
         this.size=12;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Vector3.equals(v, this._value)) {
             Vector3.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+      }
 }
 export class UniformFloatVec4 extends Uniform<Vector4>{
     static align=16;
@@ -121,13 +125,15 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,4)
         this.size=16;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Vector4.equals(v, this._value)) {
             Vector4.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
+        return false;
       };
 }
 export class UniformColor extends Uniform<Color>{
@@ -139,14 +145,16 @@ export class UniformColor extends Uniform<Color>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,3)
         this.size=12;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Color.equals(v, this._value)) {
             Color.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+      }
 }
 
 export class UniformMat2 extends Uniform<Matrix2>{
@@ -158,14 +166,16 @@ export class UniformMat2 extends Uniform<Matrix2>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,4)
         this.size=12;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Matrix2.equals(v, this._value)) {
             Matrix2.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+      }
 }
 export class UniformMat3 extends Uniform<Matrix3>{
     static align=8;
@@ -176,14 +186,16 @@ export class UniformMat3 extends Uniform<Matrix3>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,9)
         this.size=48;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Matrix3.equals(v, this._value)) {
             Matrix3.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+      }
 }
 export class UniformMat4 extends Uniform<Matrix4>{
     static align=16;
@@ -194,14 +206,16 @@ export class UniformMat4 extends Uniform<Matrix4>{
         this.buffer=new Float32Array(buffer.buffer,byteOffset,16)
         this.size=64;
     }
-    set () {
+    set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
         const v = this.value;
         if (!Matrix4.equals(v, this._value)) {
             Matrix4.clone(v, this._value);
             this.setBuffer(this._value.toArray());
+            return true;
         }
-      };
+        return false;
+      }
 }
 
 export class UniformTexture extends Uniform<Texture>{
@@ -212,6 +226,9 @@ export class UniformTexture extends Uniform<Texture>{
         this.type='texture';
         this.visibility=ShaderStage.Fragment;
     }
+    set(){
+        return undefined;
+     }
 }
 export class UniformSampler extends Uniform<Sampler>{
     constructor(uniformName:string,binding:number,cb:Function|number|Object) {
@@ -221,6 +238,9 @@ export class UniformSampler extends Uniform<Sampler>{
         this.type='sampler';
         this.visibility=ShaderStage.Fragment;
     }
+    set(){
+        return undefined;
+     }
 }
 export class UniformLight extends Uniform<Light>{
     bufferSize: number;
@@ -231,6 +251,9 @@ export class UniformLight extends Uniform<Light>{
         this.binding=binding;
         this.visibility=ShaderStage.Fragment;
         this.bufferSize=size;
+    }
+    set(){
+       return undefined;
     }
 }
 

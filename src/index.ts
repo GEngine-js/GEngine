@@ -20,8 +20,8 @@ export {default as BoxGeometry} from "./geometry/BoxGeometry";
 
 //Material
 export {default as PhongMaterial} from "./material/PhongMaterial";
-// export {default as PbrMaterial }from "./material/PbrMaterial";
-// export {default as PbrBaseMaterial } from "./material/PbrBaseMaterial";
+export {default as PbrMaterial }from "./material/PbrMaterial";
+export {default as PbrBaseMaterial } from "./material/PbrBaseMaterial";
 
 export {Scene} from './Scene';
 
