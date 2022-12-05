@@ -2,11 +2,8 @@ import BindGroup from "../render/BindGroup";
 import BindGroupLayout from "../render/BindGroupLayout";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
-import Buffer from "../render/Buffer";
-import { UniformMat4 } from "../render/Uniforms";
 import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
-import RenderObject from "../core/RenderObject";
 export default class ColorMaterial extends Material{
 
     shaderSource: ShaderSource;

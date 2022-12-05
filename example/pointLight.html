@@ -36,7 +36,16 @@
 <body>
     <div id="app"></div>
     <script type="module">
-     import {BoxGeometry,Mesh, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,SpotLight,PointLight,PbrBaseMaterial} from '../dist/index.js';
+     import {
+        BoxGeometry,Mesh, 
+        PerspectiveCamera,
+        Scene,PhongMaterial,
+        Vector3,Color,
+        SpotLight,PointLight,
+        PbrBaseMaterial,
+        Texture,
+        Sampler
+    } from '../dist/index.js';
 
      const  init= async()=>{
         const geometry=new BoxGeometry(10,10,10);
@@ -45,8 +54,20 @@
         img.src ='./uv.jpg';
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
-        const phongMaterial=new PhongMaterial(imageBitmap);
+        //const phongMaterial=new PhongMaterial(imageBitmap);
+        const baseSampler=new Sampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+          });
+        const baseTexture=new Texture({
+            size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
+            data:imageBitmap,
+            format: 'rgba8unorm',
+            sampler:baseSampler
+          });
         const pbr=new PbrBaseMaterial();
+        pbr.baseTexture=baseTexture;
+        pbr.baseSampler=baseSampler
         const primitive=new Mesh(geometry,pbr)
         primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)

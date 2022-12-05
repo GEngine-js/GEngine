@@ -15,7 +15,6 @@ export default function pbrFrag(defines){
         inverseViewMatrix: mat4x4<f32>,
         cameraPosition: vec3<f32>,
     }; 
-    // uniform vec3 ambientLightColor,
     // uniform vec3 lightProbe[9],
 ////////////////////////////////////
         struct PhysicalMaterial {
@@ -150,7 +149,7 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             #endif
         #endif
         #if ${defines.USE_EMISSIVETEXTURE}
-            let emissiveColor:vec4<f32> =textureSample(clearcoatNormalTexture, baseSampler, input.vUv);
+            let emissiveColor:vec4<f32> =textureSample(emissiveTexture, baseSampler, input.vUv);
             totalEmissiveRadiance *= emissiveColor.rgb;
         #endif
 

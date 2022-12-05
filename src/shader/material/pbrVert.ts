@@ -119,11 +119,9 @@ export default function pbrVert(defines){
     fn main(input:VertexInput)->VertexOutput {
         var vertexOutput:VertexOutput;
         #if ${defines.USE_UV}
-            //vertexOutput.vUv = ( uvTransform * vec3(input.uv, 1 ) ).xy;
             vertexOutput.vUv = input.uv;
         #endif
         #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
-            //vertexOutput.vUv2 = ( uv2Transform * vec3(input.uv2, 1 ) ).xy;
             vertexOutput.vUv2 input.uv2;
         #endif
         #if ${defines.USE_COLOR_ALPHA}

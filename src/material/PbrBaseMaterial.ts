@@ -11,8 +11,6 @@ import { CullMode } from "../core/WebGPUConstant";
 
 export default class PbrBaseMaterial extends Material{
 
-    public baseTexture:Texture;
-
     public bumpTexture:Texture;
 
     public normalTexture:Texture;
@@ -204,22 +202,21 @@ export default class PbrBaseMaterial extends Material{
     }
     update(frameState:FrameState,mesh:Mesh){
        const {context}=frameState; 
-       this.updateTexture(context);
+       this.updateTexture(context)
        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device,mesh);
        this.updateShaderAndRenderState(frameState,mesh);
        this.setShaderData(context.device);   
     }
     private createBindGroupAndLayout(device:GPUDevice,mesh:Mesh){
-
         this.totalUniformCount=this.getUniformSize();
-        this.createUniformBuffer(this.totalUniformCount,mesh);
+        this.createShaderData(this.totalUniformCount,mesh);
         this.shaderData.update(device);
 
         const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,this.type,0);
         this.groupLayouts.push(groupLayout);
         this.bindGroups.push(bindGroup);
     }
-    protected createUniformBuffer(size:number,mesh:Mesh){
+    protected createShaderData(size:number,mesh:Mesh){
         
         super.createShaderData(size,mesh);
         
@@ -230,23 +227,27 @@ export default class PbrBaseMaterial extends Material{
         this.shaderData.setFloat("roughness",this);
 
         if (this.baseTexture) {
+            this.shaderData.setDefine('USE_TEXTURE',true);
             this.shaderData.setTexture('baseTexture',this);
-
-            this.shaderData.setSampler('sampler',this.baseTexture);   
+            this.shaderData.setSampler('baseSampler',this);   
         }
         if(this.metalnessTexture){
+            this.shaderData.setDefine('USE_METALNESSTEXTURE',true);
             this.shaderData.setTexture('metalnessTexture',this);
         }
         if (this.roughnessTexture) {
+            this.shaderData.setDefine('USE_ROUGHNESSTEXTURE',true);
             this.shaderData.setTexture('roughnessTexture',this);
         }
         if ( this.bumpTexture) {
             //if ( material.side === BackSide ) uniforms.bumpScale.value *= - 1;
             this.shaderData.setFloat("bumpScale",this);
-
+            this.shaderData.setDefine('USE_BUMPTEXTURE',true);
             this.shaderData.setTexture('bumpTexture',this);
 		}
         if (this.aoTexture ) {
+            this.shaderData.setDefine('USE_AOTEXTURE',true);
+            this.shaderData.setDefine('vUv2OutLocation',4);
             this.shaderData.setFloat("aoMapIntensity",this);
             this.shaderData.setTexture('aoTexture',this);
 		}
@@ -255,92 +256,86 @@ export default class PbrBaseMaterial extends Material{
 			//const scaleFactor = ( renderer.physicallyCorrectLights !== true ) ? Math.PI : 1;
 			//uniforms.lightMapIntensity.value = material.lightMapIntensity * scaleFactor;
             this.shaderData.setFloat("lightMapIntensity",this);
-
+            this.shaderData.setDefine('USE_LIGHTTEXTURE',true);
+            this.shaderData.setDefine('vUv2OutLocation',4);
             this.shaderData.setTexture('lightTexture',this);
 		}
         if (this.displacementTexture ) {
             this.shaderData.setFloat("displacementBias",this);
              
             this.shaderData.setFloat("displacementScale",this);
-
+            this.shaderData.setDefine('USE_DISPLACEMENTTEXTURE',true);
             this.shaderData.setTexture('displacementTexture',this);
 		}
         if (this.normalTexture ) {
 			// uniforms.normalScale.value.copy( material.normalScale );
 			// if ( material.side === BackSide ) uniforms.normalScale.value.negate();
             this.shaderData.setFloatVec2("normalScale",this);
-
+            this.shaderData.setDefine('USE_NORMALTEXTURE',true);
             this.shaderData.setTexture('normalTexture',this);
 		}
         if (this.envTexture ) {
 			// uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
 			// uniforms.refractionRatio.value = material.refractionRatio;
             this.shaderData.setFloat("flipEnvTexture",this);
-
+            this.shaderData.setDefine('USE_ENVTEXTURE',true);
             this.shaderData.setFloat("ior",this);
 
             this.shaderData.setFloat("reflectivity",this);
             this.shaderData.setTexture('envTexture',this);
 		}
+        if(this.emissiveTexture){
+            this.shaderData.setDefine('USE_EMISSIVETEXTURE',true);
+            this.shaderData.setTexture('emissiveTexture',this)
+        }
     }
     private updateTexture(context:Context){
-        if(this.baseTexture) {
-            this.shaderData.setDefine('USE_TEXTURE',true);
+        if(this.baseTexture) {     
             this.baseTexture.update(context);
         }
         if(this.bumpTexture) {
-            this.shaderData.setDefine('USE_BUMPTEXTURE',true);
+            
             this.bumpTexture.update(context);
         }
         if(this.normalTexture) {
-            this.shaderData.setDefine('USE_NORMALTEXTURE',true);
             this.normalTexture.update(context);
         }
  
         if(this.aoTexture) {
-            this.shaderData.setDefine('USE_AOTEXTURE',true);
-            this.shaderData.setDefine('vUv2OutLocation',4);
             this.aoTexture.update(context);
         }
 
-        if(this.specularTexture) {
-            this.shaderData.setDefine('USE_SPECULARTEXTURE',true);
-            this.specularTexture.update(context);
-        }
+        // if(this.specularTexture) {
+        //     this.shaderData.setDefine('USE_SPECULARTEXTURE',true);
+        //     this.specularTexture.update(context);
+        // }
   
-        if(this.alphaTexture){
-            this.shaderData.setDefine('USE_ALPHATEXTURE',true);
-            this.alphaTexture.update(context);
-        }
+        // if(this.alphaTexture){
+        //     this.shaderData.setDefine('USE_ALPHATEXTURE',true);
+        //     this.alphaTexture.update(context);
+        // }
  
         if(this.envTexture){
-            this.shaderData.setDefine('USE_ENVTEXTURE',true);
             this.envTexture.update(context);
         }
 
         if(this.emissiveTexture){
-            this.shaderData.setDefine('USE_EMISSIVETEXTURE',true);
             this.emissiveTexture.update(context);
         }
 
         if(this.roughnessTexture){
-            this.shaderData.setDefine('USE_ROUGHNESSTEXTURE',true);
             this.roughnessTexture.update(context);
  
         }
         if(this.displacementTexture){
-            this.shaderData.setDefine('USE_DISPLACEMENTTEXTURE',true);
             this.displacementTexture.update(context);
         }
   
         if(this.metalnessTexture) {
-            this.shaderData.setDefine('USE_METALNESSTEXTURE',true);
             this.metalnessTexture.update(context);
         }
  
         if(this.lightTexture) {
-            this.shaderData.setDefine('USE_LIGHTTEXTURE',true);
-            this.shaderData.setDefine('vUv2OutLocation',4);
             this.lightTexture.update(context);
         }
     }

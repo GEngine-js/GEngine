@@ -97,6 +97,7 @@ export default class ShaderData{
     }
     setTexture(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
+        debugger
         const uniform=new UniformTexture(name,this.textureBinding,value);
         this.setDefine(name.concat('Binding'),this.textureBinding);
         this.textureBinding+=1;
