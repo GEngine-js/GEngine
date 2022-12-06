@@ -129,10 +129,10 @@ class Context {
     }
 
     if (command.bindGroups) {
-      const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups).sort((group1,group2)=>group1.index-group2.index)
-      for (let i = 0; i < combineBindGroups.length; i++) {
-        passEncoder.setBindGroup(combineBindGroups[i].index, combineBindGroups[i].gpuBindGroup);
-      }
+      const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups);
+      combineBindGroups.forEach(bindGroup => {
+            bindGroup.bind(passEncoder as GPURenderPassEncoder)
+      });
     }
     if (command.indexBuffer) {
       (passEncoder as GPURenderPassEncoder).drawIndexed(

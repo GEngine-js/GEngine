@@ -18,7 +18,7 @@ export default class ColorMaterial extends Material{
         this.shaderSource=new ShaderSource({
             type:this.type,
             render:true,
-            defines:this.defines
+            defines:{}
         });
     }
     update(frameState:FrameState,mesh:Mesh){

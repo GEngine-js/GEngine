@@ -18,11 +18,12 @@ export default class PhongMaterial extends Material {
         this.imageBitmap=imageBitmap;
         this.color = new Color(1.0,0.0,0.0,1.0);
         this.alpha = undefined;
-        this.defines.materialPhong=true;
         this.shaderSource=new ShaderSource({
             type:this.type,
             render:true,
-            defines:this.defines
+            defines:{
+              materialPhong:true
+            }
         });
 
         this.baseTexture = undefined;
@@ -46,11 +47,9 @@ export default class PhongMaterial extends Material {
     protected createShaderData(size:number,mesh?:Mesh){
         this.totalUniformCount=this.getUniformSize();
         super.createShaderData(this.totalUniformCount,mesh);
+        // this.shaderData.setDefine('materialPhong',true);
         this.shaderData.setTexture('baseTexture',this);
         this.shaderData.setSampler('sampler',this.baseTexture)
-        // this.uniformBuffer.setTexture('baseTexture',this,1);
-        // this.uniformBuffer.setSampler('sampler',this.baseTexture,2)
-        // this.byteOffset=this.getUniformSize()*4;
      }
      private ceateTextureAndSampler(context:Context){
         const baseSampler=new Sampler({

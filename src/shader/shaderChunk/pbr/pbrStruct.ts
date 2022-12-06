@@ -2,28 +2,6 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 
 export default function pbrStruct(defines){
    return  wgslParseDefines`
-    struct VertexOutput {
-            @builtin(position) position: vec4<f32>,
-            @location(0) vUv: vec2<f32>,
-            @location(1) vViewPosition: vec3<f32>, // Vector from vertex to camera.
-            @location(2) vWorldPosition: vec3<f32>,
-            @location(3) vNormal: vec3<f32>,
-            // 可选
-            #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
-                @location(${defines.vUv2OutLocation}) vUv2: vec2<f32>,
-            #endif
-
-            #if ${defines.USE_COLOR_ALPHA}
-                @location(${defines.vColorOutLocation}) vColor: vec4<f32>,
-            #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
-                @location(${defines.vColorOutLocation}) vColor: vec3<f32>,
-            #endif
-
-            #if ${defines.USE_TANGENT}
-                @location(${defines.vTangentOutLocation}) vTangent: vec3<f32>,
-                @location(${defines.vBitangentOutLocation}) vBitangent: vec3<f32>,
-            #endif
-        };
         struct MaterialUniform{
 
             modelMatrix: mat4x4<f32>,

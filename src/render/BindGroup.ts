@@ -13,6 +13,9 @@ class BindGroup{
       entries:options.entires.map((entity)=>({binding:entity.binding, resource:entity.resource})),
     });
   }
+  bind(passEncoder :GPURenderPassEncoder){
+    passEncoder.setBindGroup(this.index, this.gpuBindGroup);
+  }
   static getBindGroupFromCache(options:BindGroupCacheOptions):BindGroup{
     if (bindGroupCache.has(options.label)) {
       return bindGroupCache.get(options.label)

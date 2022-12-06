@@ -11,6 +11,7 @@ import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
+import Context from "../render/Context";
 export class Material{
 
     public shaderData:ShaderData;
@@ -61,7 +62,6 @@ export class Material{
 
     private _depthStencil:DepthStencil;
 
-    private _defines:{[prop: string]: boolean|number};
 
     private _opacity:number;
 
@@ -69,6 +69,11 @@ export class Material{
 
     totalUniformCount:number;
 
+    specular:Color;
+
+    shininess:number;
+
+    emissive:Color;
 
     constructor(){
         //
@@ -85,10 +90,12 @@ export class Material{
         this.shaderSource=undefined;
         this.renderStateDirty=true;
         this.definesDirty=true;
-        this._defines={};
         this.groupLayouts=[];
         this.bindGroups=[];
         this.dirty=true;
+        this.specular=new Color(1.0,1.0,1.0,0.0);
+        this.emissive=new Color(0,0.0,0,1.0);
+        this.shininess=30.0
 
     }
     
@@ -97,14 +104,6 @@ export class Material{
     }
     public set opacity(v : number) {
         this._opacity = v;
-    }
-    
-    get defines(){
-        return this._defines;
-    }
-    set defines(value){
-        this.definesDirty=true;
-        this._defines=combine(value,this._defines,false);
     }
     get blendConstant(){
         return this._blendConstant;
@@ -170,13 +169,24 @@ export class Material{
         this.shaderData.setMatrix3("normalMtrix",()=>{
             return mesh.normalMatrix;
         });
+        this.shaderData.setColor('specular',this);
+        this.shaderData.setFloat('shininess',this);
+        this.shaderData.setColor('emissive',this);
+        // specular:vec3<f32>,
+        // shininess:f32,
+        // emissive:vec3<f32>,
+        
     }
     protected setShaderData(device:GPUDevice){
         this.shaderData.update(device);
     }
+    protected updateTexture(context:Context):void{
+        
+    }
     protected getUniformSize(){
-       let byteSize= 16+9+3+1;
-       return Math.ceil(byteSize/4)*4;
+       let size= 16+12+3+1+3+1+3;
+       //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+       return Math.ceil(size/4)*4;
     }
     private updateShader(frameState:FrameState,mesh:Mesh){
         if (mesh.geometry) {
@@ -185,14 +195,14 @@ export class Material{
                 this.shaderData.defineDirty=false;
                 mesh.geometry.definesDirty=false;
                 this.dirty=true;
-                this.shaderSource.update(frameState.defines,this.defines,mesh.geometry.defines);
+                this.shaderSource.update(frameState.defines,this.shaderData.defines,mesh.geometry.defines);
             }
         } else {
             if (frameState.definesDirty||this.shaderData.defineDirty) {
                 frameState.definesDirty=false;
                 this.shaderData.defineDirty=false;
                 this.dirty=true;
-                this.shaderSource.update(frameState.defines,this.defines);
+                this.shaderSource.update(frameState.defines,this.shaderData.defines);
             }
         }
 

@@ -46,7 +46,7 @@ export class ShaderSource{
     private updateShaderStr(){
         if (this.render) {
             const source=getVertFrag(this.type,this.defines);
-            console.log(source.frag);
+            console.log(source.vert);
                                          
             this.vert=source.vert;
             this.frag=source.frag; 

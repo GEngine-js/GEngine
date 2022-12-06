@@ -1,44 +1,40 @@
 import { FrameState } from "../core/FrameState";
 import Color from "../math/Color";
 import Vector2 from "../math/Vector2";
-import Vector3 from "../math/Vector3";
 import { Mesh } from "../mesh/Mesh";
 import Texture from "../render/Texture";
-import { UniformColor, UniformFloat, UniformFloatVec2, UniformMat4, UniformTexture } from "../render/Uniforms";
-import { Material } from "./Material";
-import Buffer from '../render/Buffer';
 import Context from "../render/Context";
 import { CullMode } from "../core/WebGPUConstant";
 import PbrBaseMaterial from "./PbrBaseMaterial";
-export default class PbrMaterial extends Material{
+export default class PbrMaterial extends PbrBaseMaterial {
 
-    public boneTexture:Texture;
+    public boneTexture: Texture;
 
-    public morphTargetsTexture:Texture;
+    public morphTargetsTexture: Texture;
 
-    public transmissionTexture:Texture;
+    public transmissionTexture: Texture;
 
-    public thicknessTexture:Texture;
+    public thicknessTexture: Texture;
 
-    public transmissionSamplerMapTexture:Texture;
+    public transmissionSamplerMapTexture: Texture;
 
-    public clearcoatTexture:Texture;
+    public clearcoatTexture: Texture;
 
-    public clearcoatRoughnessTexture:Texture;
+    public clearcoatRoughnessTexture: Texture;
 
-    public clearcoatNormalTexture:Texture;
+    public clearcoatNormalTexture: Texture;
 
-    public iridescenceTexture:Texture;
+    public iridescenceTexture: Texture;
 
-    public iridescenceThicknessTexture:Texture;
+    public iridescenceThicknessTexture: Texture;
 
-    public specularIntensityTexture:Texture;
+    public specularIntensityTexture: Texture;
 
-    public specularColorTexture:Texture;
+    public specularColorTexture: Texture;
 
-    public sheenColorTexture:Texture;
+    public sheenColorTexture: Texture;
 
-    public sheenRoughnessTexture:Texture;
+    public sheenRoughnessTexture: Texture;
 
     private _clearcoatRoughness: number;
 
@@ -72,199 +68,199 @@ export default class PbrMaterial extends Material{
 
     textureBindingCount: number;
 
-    
-    public get clearcoatRoughness() : number {
+
+    public get clearcoatRoughness(): number {
         return this._clearcoatRoughness
     }
-    
-    public set clearcoatRoughness(v : number) {
+
+    public set clearcoatRoughness(v: number) {
         this._clearcoatRoughness = v;
     }
-    
-    public get clearcoatNormalScale() : Vector2 {
-        if(this.renderState.primitive.cullMode==CullMode.Back){
-            return Vector2.negate(this._clearcoatNormalScale,new Vector2());
+
+    public get clearcoatNormalScale(): Vector2 {
+        if (this.renderState.primitive.cullMode == CullMode.Back) {
+            return Vector2.negate(this._clearcoatNormalScale, new Vector2());
         }
         return this._clearcoatNormalScale
     }
-    
-    public set clearcoatNormalScale(v : Vector2) {
+
+    public set clearcoatNormalScale(v: Vector2) {
         this._clearcoatNormalScale = v;
     }
-    
-    
-    public get iridescenceIOR() : number {
+
+
+    public get iridescenceIOR(): number {
         return this._iridescenceIOR
     }
-    
-    public set iridescenceIOR(v : number) {
+
+    public set iridescenceIOR(v: number) {
         this._iridescenceIOR = v;
     }
-    
-    public get iridescenceThicknessRange() : number[] {
+
+    public get iridescenceThicknessRange(): number[] {
         return this._iridescenceThicknessRange
     }
-    
-    public set iridescenceThicknessRange(v : number[]) {
+
+    public set iridescenceThicknessRange(v: number[]) {
         this._iridescenceThicknessRange = v;
     }
-    
-    public get sheenColor() : Color {
+
+    public get sheenColor(): Color {
         return this._sheenColor
     }
-    
-    public set sheenColor(v : Color) {
+
+    public set sheenColor(v: Color) {
         this._sheenColor = v;
     }
-    
-    public get thickness() : number {
+
+    public get thickness(): number {
         return this._thickness
     }
-    
-    public set thickness(v : number) {
+
+    public set thickness(v: number) {
         this._thickness = v;
     }
-    
-    public get sheenRoughness() : number {
+
+    public get sheenRoughness(): number {
         return this._sheenRoughness
     }
-    
-    public set sheenRoughness(v : number) {
+
+    public set sheenRoughness(v: number) {
         this._sheenRoughness = v;
     }
-    
-    public get attenuationDistance() : number {
+
+    public get attenuationDistance(): number {
         return this._attenuationDistance
     }
-    
-    public set attenuationDistance(v : number) {
+
+    public set attenuationDistance(v: number) {
         this._attenuationDistance = v;
     }
-    
-    public get attenuationColor() : Color {
+
+    public get attenuationColor(): Color {
         return this._attenuationColor
     }
-    
-    public set attenuationColor(v : Color) {
+
+    public set attenuationColor(v: Color) {
         this._attenuationColor = v;
     }
-    
-    public get specularIntensity() : number {
+
+    public get specularIntensity(): number {
         return this._specularIntensity;
     }
-    
-    public set specularIntensity(v : number) {
+
+    public set specularIntensity(v: number) {
         this._specularIntensity = v;
     }
-    
-    public get specularColor() : Color {
+
+    public get specularColor(): Color {
         return this._specularColor
     }
-    
-    public set specularColor(v : Color) {
+
+    public set specularColor(v: Color) {
         this._specularColor = v;
     }
-    
-    public get sheen() : number {
+
+    public get sheen(): number {
         return this._sheen
     }
-    
-    public set sheen(v : number) {
+
+    public set sheen(v: number) {
         this._sheen = v;
     }
-    
-    public get clearcoat() : number {
+
+    public get clearcoat(): number {
         return this._clearcoat
     }
-    
-    public set clearcoat(v : number) {
+
+    public set clearcoat(v: number) {
         this._clearcoat = v;
     }
-    
-    public get iridescence() : number {
+
+    public get iridescence(): number {
         return this._iridescence
     }
-    
-    public set iridescence(v : number) {
+
+    public set iridescence(v: number) {
         this._iridescence = v;
     }
-    
-    public get transmission() : number {
+
+    public get transmission(): number {
         return this._transmission
     }
-    
-    public set transmission(v : number) {
+
+    public set transmission(v: number) {
         this._transmission = v;
     }
-    
-    constructor(){
+
+    constructor() {
 
         super();
 
-		this._specularIntensity = 1.0;
+        this._specularIntensity = 1.0;
 
-		this._specularColor = new Color( 1, 1, 1 );
+        this._specularColor = new Color(1, 1, 1);
 
-/*****************************clearcoat*********************************/
-		this._clearcoat = 0;
+        /*****************************clearcoat*********************************/
+        this._clearcoat = 0;
 
         this._clearcoatRoughness = 0.0;
 
-		this._clearcoatNormalScale = new Vector2( 1, 1 );
+        this._clearcoatNormalScale = new Vector2(1, 1);
 
-        this.clearcoatTexture=undefined;
+        this.clearcoatTexture = undefined;
 
-        this.clearcoatRoughnessTexture=undefined;
+        this.clearcoatRoughnessTexture = undefined;
 
-        this.clearcoatNormalTexture=undefined;
-/**************************************************************/
+        this.clearcoatNormalTexture = undefined;
+        /**************************************************************/
 
-/*****************************iridescence*********************************/
-		this._iridescence = 0;
-
- 
-		this._iridescenceIOR = 1.3;
-
-		this._iridescenceThicknessRange = [ 100, 400 ];
-
-        this.iridescenceTexture=undefined;
-
-        this.iridescenceThicknessTexture=undefined;
-/**************************************************************/
+        /*****************************iridescence*********************************/
+        this._iridescence = 0;
 
 
-/*****************************sheen*********************************/
-		this._sheenColor = new Color( 1,1,1,0 );
+        this._iridescenceIOR = 1.3;
 
-		this._sheenRoughness = 1.0;
+        this._iridescenceThicknessRange = [100, 400];
 
-		this._sheen = 0.0;
+        this.iridescenceTexture = undefined;
 
-        this.sheenColorTexture=undefined;
+        this.iridescenceThicknessTexture = undefined;
+        /**************************************************************/
 
-        this.sheenRoughnessTexture=undefined;
-/**************************************************************/
 
-		this._transmission = 0;
+        /*****************************sheen*********************************/
+        this._sheenColor = new Color(1, 1, 1, 0);
+
+        this._sheenRoughness = 1.0;
+
+        this._sheen = 0.0;
+
+        this.sheenColorTexture = undefined;
+
+        this.sheenRoughnessTexture = undefined;
+        /**************************************************************/
+
+        this._transmission = 0;
 
         this._thickness = 0;
-        
-		this._attenuationDistance = 0.0;
 
-		this._attenuationColor = new Color( 1, 1, 1 );
+        this._attenuationDistance = 0.0;
 
-        this.transmissionTexture=undefined;
+        this._attenuationColor = new Color(1, 1, 1);
 
-        this.transmissionSamplerMapTexture=undefined;
+        this.transmissionTexture = undefined;
+
+        this.transmissionSamplerMapTexture = undefined;
 
     }
-    update(frameState:FrameState,mesh:Mesh){
-        const {context}=frameState; 
+    update(frameState: FrameState, mesh: Mesh) {
+        const { context } = frameState;
         this.updateTexture(context);
         // if(this.uniforms.length==0) this.createUniforms(mesh);
-        super.update(frameState,mesh)
+        super.update(frameState, mesh)
         //if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
-        this.setShaderData(context.device); 
+        this.setShaderData(context.device);
     }
     // private createBindGroupAndLayout(device:GPUDevice){
     //     this.createUniformBuffer(device);
@@ -275,127 +271,129 @@ export default class PbrMaterial extends Material{
     // private createUniformBuffer(device:GPUDevice){
     //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
     //}
-    protected createShaderData(size:number,mesh:Mesh){
+    protected createShaderData(size: number, mesh: Mesh) {
         // this.totalUniformCount=this.getUniformSize();
-        super.createShaderData(size,mesh);
-        this.shaderData.setDefine('IOR',true);
-        this.shaderData.setDefine('SPECULAR',true);
-        this.shaderData.setFloat('specularIntensity',this);
-        this.shaderData.setFloat('specularColor',this);
-        if ( this.sheen > 0 ) {
-            this.defines.USE_SHEEN=true;
-            this.shaderData.setDefine('USE_SHEEN',true);
-           // uniforms.sheenColor.value.copy( material.sheenColor ).multiplyScalar( material.sheen );
-            
-            this.shaderData.setColor('sheenColor',this);
-            //uniforms.sheenRoughness.value = material.sheenRoughness;
-            this.shaderData.setFloat('sheenRoughness',this);
+        super.createShaderData(size, mesh);
+        this.shaderData.setDefine('IOR', true);
+        this.shaderData.setDefine('SPECULAR', true);
+        this.shaderData.setFloat('specularIntensity', this);
+        this.shaderData.setFloat('specularColor', this);
+        if (this.sheen > 0) {
+            this.shaderData.setDefine('USE_SHEEN', true);
+            // uniforms.sheenColor.value.copy( material.sheenColor ).multiplyScalar( material.sheen );
 
-            if (this.sheenRoughnessTexture) this.shaderData.setTexture('sheenRoughnessTexture',this);
-    
-            if (this.sheenColorTexture) this.shaderData.setTexture('sheenColorTexture',this);
+            this.shaderData.setColor('sheenColor', this);
+            //uniforms.sheenRoughness.value = material.sheenRoughness;
+            this.shaderData.setFloat('sheenRoughness', this);
+
+            if (this.sheenRoughnessTexture) {
+                this.shaderData.setDefine('USE_SHEENROUGHNESSTEXTURE', true);
+                this.shaderData.setTexture('sheenRoughnessTexture', this);
+            }
+            if (this.sheenColorTexture) {
+                this.shaderData.setDefine('USE_SHEENCOLORTEXTURE', true);
+                this.shaderData.setTexture('sheenColorTexture', this);
+            }
         }
         if (this.transmission > 0) {
-            this.defines.USE_TRANSMISSION=true;
-            this.shaderData.setDefine('USE_TRANSMISSION',true);
+            this.shaderData.setDefine('USE_TRANSMISSION', true);
             // uniforms.transmission.value = material.transmission;
-            this.shaderData.setFloat('transmission',this);
-			// uniforms.transmissionSamplerMap.value = transmissionRenderTarget.texture;
-			// uniforms.transmissionSamplerSize.value.set( transmissionRenderTarget.width, transmissionRenderTarget.height );
+            this.shaderData.setFloat('transmission', this);
+            // uniforms.transmissionSamplerMap.value = transmissionRenderTarget.texture;
+            // uniforms.transmissionSamplerSize.value.set( transmissionRenderTarget.width, transmissionRenderTarget.height );
             //if(this.transmissionSamplerMapTexture)this.shaderData.setTexture('transmissionSamplerMapTexture',this)
             //this.shaderData.setFloatVec2('transmissionSamplerSize',()=>{transmissionRenderTarget.width, transmissionRenderTarget.height})
-            if (this.thicknessTexture) this.shaderData.setTexture('thicknessTexture',this);
-            if(this.transmissionTexture) this.shaderData.setTexture('transmissionTexture',this);
+            if (this.thicknessTexture) {
+                this.shaderData.setDefine('USE_THICKNESSTEXTURE', true);
+                this.shaderData.setTexture('thicknessTexture', this);
+            }
+            if (this.transmissionTexture) {
+                this.shaderData.setDefine('USE_TRANSMISSIONTEXTURE', true);
+                this.shaderData.setTexture('transmissionTexture', this);
+            }
             // uniforms.attenuationDistance.value = material.attenuationDistance;
-            this.shaderData.setFloat('attenuationDistance',this);
-			// uniforms.attenuationColor.value.copy( material.attenuationColor );
-            this.shaderData.setColor('attenuationColor',this);
+            this.shaderData.setFloat('attenuationDistance', this);
+            // uniforms.attenuationColor.value.copy( material.attenuationColor );
+            this.shaderData.setColor('attenuationColor', this);
         }
-        if (this.clearcoat > 0 ) {
-            this.shaderData.setDefine('USE_CLEARCOAT',true);
-            this.shaderData.setFloat('clearcoat',this);
+        if (this.clearcoat > 0) {
+            this.shaderData.setDefine('USE_CLEARCOAT', true);
+            this.shaderData.setFloat('clearcoat', this);
 
-            this.shaderData.setFloat('clearcoatRoughness',this);
+            this.shaderData.setFloat('clearcoatRoughness', this);
 
-            if (this.clearcoatTexture)this.shaderData.setTexture('clearcoatTexture',this)
-            if (this.clearcoatRoughnessTexture) this.shaderData.setTexture('clearcoatRoughnessTexture',this);
-            if (this.clearcoatNormalTexture ) {
-                this.shaderData.setFloatVec2('clearcoatNormalScale',this);
-                this.shaderData.setTexture('clearcoatNormalTexture',this);
+            if (this.clearcoatTexture) {
+                this.shaderData.setDefine('USE_CLEARCOATTEXTURE', true);
+                this.shaderData.setTexture('clearcoatTexture', this);
+            }
+            if (this.clearcoatRoughnessTexture) {
+                this.shaderData.setDefine('USE_CLEARCOAT_ROUGHNESSTEXTURE', true);
+                this.shaderData.setTexture('clearcoatRoughnessTexture', this);
+            }
+            if (this.clearcoatNormalTexture) {
+                this.shaderData.setDefine('USE_CLEARCOAT_NORMALTEXTURE', true);
+                this.shaderData.setFloatVec2('clearcoatNormalScale', this);
+                this.shaderData.setTexture('clearcoatNormalTexture', this);
             }
         }
         if (this.iridescence > 0) {
-            this.shaderData.setDefine('USE_IRIDESCENCE',true);
+            this.shaderData.setDefine('USE_IRIDESCENCE', true);
             // uniforms.iridescence.value = material.iridescence;
-            this.shaderData.setFloat('iridescence',this);
-			// uniforms.iridescenceIOR.value = material.iridescenceIOR;
-            this.shaderData.setFloat('iridescenceIOR',this);;
-			// uniforms.iridescenceThicknessMinimum.value = material.iridescenceThicknessRange[ 0 ];
-            this.shaderData.setFloat('iridescenceThicknessMinimum',()=>{
+            this.shaderData.setFloat('iridescence', this);
+            // uniforms.iridescenceIOR.value = material.iridescenceIOR;
+            this.shaderData.setFloat('iridescenceIOR', this);;
+            // uniforms.iridescenceThicknessMinimum.value = material.iridescenceThicknessRange[ 0 ];
+            this.shaderData.setFloat('iridescenceThicknessMinimum', () => {
                 return this.iridescenceThicknessRange[0];
             })
-			// uniforms.iridescenceThicknessMaximum.value = material.iridescenceThicknessRange[ 1 ];
-            this.shaderData.setFloat('iridescenceThicknessMaximum',()=>{
+            // uniforms.iridescenceThicknessMaximum.value = material.iridescenceThicknessRange[ 1 ];
+            this.shaderData.setFloat('iridescenceThicknessMaximum', () => {
                 return this.iridescenceThicknessRange[1];
             })
-            if ( this.iridescenceTexture ) this.shaderData.setTexture('iridescenceTexture',this);
-            if ( this.iridescenceThicknessTexture )this.shaderData.setTexture('iridescenceThicknessTexture',this);
+            if (this.iridescenceTexture) {
+                this.shaderData.setDefine('USE_IRIDESCENCETEXTURE', true);
+                this.shaderData.setTexture('iridescenceTexture', this);
+            }
+            if (this.iridescenceThicknessTexture) {
+                this.shaderData.setDefine('USE_IRIDESCENCE_THICKNESSTEXTURE', true);
+                this.shaderData.setTexture('iridescenceThicknessTexture', this);
+            }
         }
-        if (this.specularIntensityTexture) this.shaderData.setTexture('specularIntensityTexture',this);
-        if (this.specularColorTexture ) this.shaderData.setTexture('specularColorTexture',this);
-    }
-    private updateTexture(context:Context){
-        if (this.sheenRoughnessTexture) {
-            this.shaderData.setDefine('USE_SHEENROUGHNESSTEXTURE',true);
-            this.sheenRoughnessTexture.update(context);
-        }
-        if (this.sheenColorTexture) {
-            this.shaderData.setDefine('USE_SHEENCOLORTEXTURE',true);
-            this.sheenColorTexture.update(context);
-        }
-        if (this.thicknessTexture) {
-            this.shaderData.setDefine('USE_THICKNESSTEXTURE',true);
-            this.thicknessTexture.update(context);
-        }
-        if(this.transmissionTexture){
-            this.shaderData.setDefine('USE_TRANSMISSIONTEXTURE',true);
-            this.transmissionTexture.update(context);
-        }
-        if (this.clearcoatTexture) {
-            this.shaderData.setDefine('USE_CLEARCOATTEXTURE',true);
-            this.clearcoatTexture.update(context);
-        }
-        if (this.clearcoatRoughnessTexture) {
-            this.shaderData.setDefine('USE_CLEARCOAT_ROUGHNESSTEXTURE',true);
-            this.clearcoatRoughnessTexture.update(context);
-        }
-        if (this.clearcoatNormalTexture) {
-            this.shaderData.setDefine('USE_CLEARCOAT_NORMALTEXTURE',true);
-            this.clearcoatNormalTexture.update(context);
-        }
-        if (this.iridescenceTexture ) {
-            this.shaderData.setDefine('USE_IRIDESCENCETEXTURE',true);
-            this.iridescenceTexture.update(context);
-        }
-        if (this.iridescenceThicknessTexture) {
-            this.shaderData.setDefine('USE_IRIDESCENCE_THICKNESSTEXTURE',true);
-            this.iridescenceThicknessTexture.update(context);
-        }
-        if (this.specularIntensityTexture){
-            this.shaderData.setDefine('USE_SPECULARINTENSITYTEXTURE',true);
-            this.specularIntensityTexture.update(context);
+        if (this.specularIntensityTexture) {
+            this.shaderData.setDefine('USE_SPECULARINTENSITYTEXTURE', true);
+            this.shaderData.setTexture('specularIntensityTexture', this);
         }
         if (this.specularColorTexture) {
-            this.shaderData.setDefine('USE_SPECULARCOLORTEXTURE',true);
-            this.specularColorTexture.update(context);
+            this.shaderData.setDefine('USE_SPECULARCOLORTEXTURE', true);
+            this.shaderData.setTexture('specularColorTexture', this);
         }
     }
-    protected getUniformSize():number{
-       let parentByteSize=super.getUniformSize();
-       let byteSize=parentByteSize;
-       return Math.ceil(byteSize/16)*16;
+    protected updateTexture(context: Context):void {
+        if (this.sheenRoughnessTexture) this.sheenRoughnessTexture.update(context);
+        if (this.sheenColorTexture) this.sheenColorTexture.update(context);
+        if (this.thicknessTexture) this.thicknessTexture.update(context);
+        if (this.transmissionTexture) this.transmissionTexture.update(context);
+        if (this.clearcoatTexture) this.clearcoatTexture.update(context);
+        if (this.clearcoatRoughnessTexture) this.clearcoatRoughnessTexture.update(context);
+        if (this.clearcoatNormalTexture) this.clearcoatNormalTexture.update(context);
+        if (this.iridescenceTexture) this.iridescenceTexture.update(context);
+        if (this.iridescenceThicknessTexture) this.iridescenceThicknessTexture.update(context);
+        if (this.specularIntensityTexture) this.specularIntensityTexture.update(context);
+        if (this.specularColorTexture) this.specularColorTexture.update(context);
     }
-    destory(){
+    protected getUniformSize(): number {
+        let parentSize = super.getUniformSize();
+        let size = parentSize + 1 + 1;
+        if (this.sheen > 0) size += 4;
+        if (this.transmission > 0) size += 5;
+        if (this.clearcoat > 0) {
+            size += 2;
+            if (this.clearcoatNormalTexture) size += 2;
+        }
+        if (this.iridescence > 0) size += 4;
+        return Math.ceil(size / 16) * 16;
+    }
+    destory() {
 
     }
 

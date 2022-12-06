@@ -17,6 +17,29 @@ export default function pbrFrag(defines){
     }; 
     // uniform vec3 lightProbe[9],
 ////////////////////////////////////
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @builtin(front_facing) is_front: bool,
+    @location(0) vUv: vec2<f32>,
+    @location(1) vViewPosition: vec3<f32>, // Vector from vertex to camera.
+    @location(2) vWorldPosition: vec3<f32>,
+    @location(3) vNormal: vec3<f32>,
+    // 可选
+    #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
+        @location(${defines.vUv2OutLocation}) vUv2: vec2<f32>,
+    #endif
+
+    #if ${defines.USE_COLOR_ALPHA}
+        @location(${defines.vColorOutLocation}) vColor: vec4<f32>,
+    #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
+        @location(${defines.vColorOutLocation}) vColor: vec3<f32>,
+    #endif
+
+    #if ${defines.USE_TANGENT}
+        @location(${defines.vTangentOutLocation}) vTangent: vec3<f32>,
+        @location(${defines.vBitangentOutLocation}) vBitangent: vec3<f32>,
+    #endif
+};
         struct PhysicalMaterial {
              diffuseColor:vec3<f32>,
              roughness:f32,
@@ -57,35 +80,35 @@ export default function pbrFrag(defines){
 @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
 @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
 @fragment
-fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0) vec4<f32> {
-        let diffuseColor:vec4<f32> = vec4(materialUniform.diffuse, materialUniform.opacity );
+fn main(input:VertexOutput)-> @location(0) vec4<f32> {
+        var diffuseColor:vec4<f32> = vec4(materialUniform.diffuse, materialUniform.opacity );
        // ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
         var reflectedLight:ReflectedLight;
-        let totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
+        var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         #if ${defines.USE_TEXTURE}
-            let sampledDiffuseColor:vec4<f32> =textureSample(baseTexture, baseSampler, vUv);
+            var sampledDiffuseColor:vec4<f32> =textureSample(baseTexture, baseSampler, input.vUv);
             #if ${defines.DECODE_VIDEO_TEXTURE}
                 sampledDiffuseColor = vec4<f32>( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3<f32>( 0.0521327014 ), vec3<f32>( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3<f32>( lessThanEqual( sampledDiffuseColor.rgb, vec3<f32>( 0.04045 ) ) ) ), sampledDiffuseColor.w );
             #endif
 
-            diffuseColor *= sampledDiffuseColor;
+            diffuseColor = sampledDiffuseColor;
         #endif
 
-        let roughnessFactor:f32 = materialUniform.roughness;
+        var roughnessFactor:f32 = materialUniform.roughness;
     
         #if ${defines.USE_ROUGHNESSTEXTURE}
-            let texelRoughness:vec4<f32>=textureSample(roughnessTexture, baseSampler, vUv);
+            let texelRoughness:vec4<f32>=textureSample(roughnessTexture, baseSampler, input.vUv);
             roughnessFactor *= texelRoughness.g;
         #endif
 
-        let metalnessFactor:f32 = materialUniform.metalness;
+        var metalnessFactor:f32 = materialUniform.metalness;
     
         #if ${defines.USE_METALNESSTEXTURE}
-            let texelMetalness:vec4<f32> =textureSample(metalnessTexture, baseSampler, vUv);
+            let texelMetalness:vec4<f32> =textureSample(metalnessTexture, baseSampler, input.vUv);
             metalnessFactor *= texelMetalness.b;
         #endif
 
-        let faceDirection:f32 =select(-1.0,1.0,is_front);
+        let faceDirection:f32 =select(-1.0,1.0,input.is_front);
         #if ${defines.FLAT_SHADED}
             let fdx:vec3<f32> = dpdx( input.vViewPosition );
             let fdy:vec3<f32> = dpdy( input.vViewPosition );
@@ -95,7 +118,6 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             #if ${defines.DOUBLE_SIDED}
                 normal = normal * faceDirection;
             #endif
-
             #if ${defines.USE_TANGENT}
                 let tangent:vec3<f32> = normalize( input.vTangent );
                 let bitangent:vec3<f32> = normalize( input.vBitangent );
@@ -137,10 +159,10 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
         #endif
 
         #if ${defines.USE_CLEARCOAT}
-            let clearcoatNormal:vec3<f32> = geometryNormal;
+            var clearcoatNormal:vec3<f32> = geometryNormal;
         #endif
         #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
-            let clearcoatMapN:vec3<f32> =textureSample(clearcoatNormalTexture, baseSampler, input.vUv).xyz * 2.0 - 1.0;
+            var clearcoatMapN:vec3<f32> =textureSample(clearcoatNormalTexture, baseSampler, input.vUv).xyz * 2.0 - 1.0;
             clearcoatMapN.xy *= materialUniform.clearcoatNormalScale;
             #if ${defines.USE_TANGENT}
                 clearcoatNormal = normalize( vTBN * clearcoatMapN );
@@ -208,7 +230,7 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
                 material.iridescence *=textureSample(iridescenceTexture, baseSampler, input.vUv).r;
             #endif
             #if ${defines.USE_IRIDESCENCE_THICKNESSTEXTURE}
-                material.iridescenceThickness = (materialUniform.iridescenceThicknessMaximum - materialUniform.iridescenceThicknessMinimum) * textureSample(iridescenceThicknessTexture, baseSampler, vUv).g + materialUniform.iridescenceThicknessMinimum;
+                material.iridescenceThickness = (materialUniform.iridescenceThicknessMaximum - materialUniform.iridescenceThicknessMinimum) * textureSample(iridescenceThicknessTexture, baseSampler, input.vUv).g + materialUniform.iridescenceThicknessMinimum;
             #else
                 material.iridescenceThickness = materialUniform.iridescenceThicknessMaximum;
             #endif
@@ -248,12 +270,12 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             }
         #endif
 
-        let iblIrradiance:vec3<f32> = vec3<f32>( 0.0 );
-        let irradiance:vec3<f32> = getAmbientLightIrradiance(commonLightsParms.ambient);
+        var iblIrradiance:vec3<f32> = vec3<f32>( 0.0 );
+        var irradiance:vec3<f32> = getAmbientLightIrradiance(commonLightsParms.ambient);
         //irradiance += getLightProbeIrradiance( lightProbe, geometry.normal,systemUniform.viewMatrix );
 
-        let radiance:vec3<f32> = vec3<f32>( 0.0 );
-        let clearcoatRadiance:vec3<f32> = vec3<f32>( 0.0 );
+        var radiance:vec3<f32> = vec3<f32>( 0.0 );
+        var clearcoatRadiance:vec3<f32> = vec3<f32>( 0.0 );
 
         #if ${defines.USE_LIGHTTEXTURE}
             let lightMapTexel:vec4<f32> =textureSample(lightTexture, baseSampler, input.vUv2);
@@ -292,8 +314,8 @@ fn main(input:VertexOutput,@builtin(front_facing) is_front: bool)-> @location(0)
             #endif
         #endif
 
-        let totalDiffuse:vec3<f32> = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
-        let totalSpecular:vec3<f32> = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
+        var totalDiffuse:vec3<f32> = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
+        var totalSpecular:vec3<f32> = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
         //透射
         #if ${defines.USE_TRANSMISSION}
             material.transmission = materialUniform.transmission;

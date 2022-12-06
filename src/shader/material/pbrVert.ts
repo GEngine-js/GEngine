@@ -3,6 +3,28 @@ import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbrVert(defines){
     return  wgslParseDefines`
     #include <pbrStruct>
+    struct VertexOutput {
+        @builtin(position) position: vec4<f32>,
+        @location(0) vUv: vec2<f32>,
+        @location(1) vViewPosition: vec3<f32>, // Vector from vertex to camera.
+        @location(2) vWorldPosition: vec3<f32>,
+        @location(3) vNormal: vec3<f32>,
+        // 可选
+        #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
+            @location(${defines.vUv2OutLocation}) vUv2: vec2<f32>,
+        #endif
+
+        #if ${defines.USE_COLOR_ALPHA}
+            @location(${defines.vColorOutLocation}) vColor: vec4<f32>,
+        #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
+            @location(${defines.vColorOutLocation}) vColor: vec3<f32>,
+        #endif
+
+        #if ${defines.USE_TANGENT}
+            @location(${defines.vTangentOutLocation}) vTangent: vec3<f32>,
+            @location(${defines.vBitangentOutLocation}) vBitangent: vec3<f32>,
+        #endif
+    };
     struct GlobalUniform {
         projectionMatrix: mat4x4<f32>,
         viewMatrix: mat4x4<f32>,
@@ -118,7 +140,7 @@ export default function pbrVert(defines){
     @vertex
     fn main(input:VertexInput)->VertexOutput {
         var vertexOutput:VertexOutput;
-        #if ${defines.USE_UV}
+        #if ${defines.USE_TEXTURE}
             vertexOutput.vUv = input.uv;
         #endif
         #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
@@ -145,8 +167,7 @@ export default function pbrVert(defines){
                 #endif
             }
         #endif
-        let objectNormal:vec3<f32> = vec3<f32>(input.normal);
-        // objectNormal+=vec3<f32>(0.0);
+        var objectNormal:vec3<f32> = vec3<f32>(input.normal);
         #if ${defines.USE_TANGENT}
             let objectTangent:vec3<f32> = vec3<f32>( input.tangent.xyz );
         #endif
@@ -198,8 +219,8 @@ export default function pbrVert(defines){
                 transformedTangent = - transformedTangent;
             #endif
         #endif
+        vertexOutput.vNormal = normalize( transformedNormal );
         #if ${defines.FLAT_SHADED}
-            vertexOutput.vNormal = normalize( transformedNormal );
             #if ${defines.USE_TANGENT}
                 vTangent = normalize( transformedTangent );
                 vBitangent = normalize( cross( vNormal, vTangent ) * input.tangent.w );

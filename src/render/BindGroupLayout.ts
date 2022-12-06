@@ -29,35 +29,6 @@ class BindGroupLayout {
        return bindGroupLayout;
     }
   }
-  public getBindGroupSize(): number {
-    let size = 0;
-    for (let i = 0; i < this.entries.length; i++) {
-      const entry = this.entries[i];
-
-      if (
-        entry.buffer &&
-        (!entry.buffer.type || entry.buffer.type === BufferBindingType.Uniform)
-      ) {
-        size += this.getBindingSize(entry);
-      }
-    }
-
-    return size;
-  }
-  public getBindingSize(entry: BindGroupLayoutEntry): number {
-    let size = 0;
-
-    if (
-      entry.buffer &&
-      (!entry.buffer.type || entry.buffer.type === BufferBindingType.Uniform)
-    ) {
-      size += entry.uniforms
-        .map((uniform) =>{ if(uniform.type==='number') { return uniform.size}})
-        .reduce((a, b) => a + b, 0);
-    }
-
-    return size;
-  }
 }
 
 export default BindGroupLayout;

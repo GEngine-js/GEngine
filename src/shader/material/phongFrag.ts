@@ -14,27 +14,38 @@ export default function phongFrag (defines){
     #include <brdf>
     #include <phongUtils>
     #include <phongFunction>
+    struct MaterialUniform {
+      modelMatrix: mat4x4<f32>,
+      color: vec3<f32>,
+      opacity:f32,
+      normalMatrix: mat3x3<f32>,
+      specular:vec3<f32>,
+      shininess:f32,
+      emissive:vec3<f32>,
+   }
+
     @group(0) @binding(2) var mySampler: sampler;
     @group(0) @binding(1) var myTexture: texture_2d<f32>;
-
+    @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
     @fragment
     fn main(input:VertexOutput) -> @location(0) vec4<f32> {
+        var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         let color=textureSample(myTexture, mySampler, input.vUv);
         var material:BlinnPhongMaterial;
         
         material.diffuseColor =color.xyz;
-        material.specularColor = vec3<f32>(1.0, 1.0, 1.0);
-        material.specularShininess = 0.9;
-        material.specularStrength = 0.3;
+        material.specularColor = materialUniform.specular;
+        material.specularShininess = materialUniform.shininess;
+        material.specularStrength = 1.0;
 
         var geometry:GeometricContext;
-        geometry.position = input.viewPosition;
+        geometry.position = -input.viewPosition;
         geometry.normal = input.normal;
-        geometry.viewDir =normalize(input.view);
+        geometry.viewDir =normalize(input.viewPosition);
 
         let reflectedLight:ReflectedLight= parseLights(geometry,material);
 
-        let finnalColor=reflectedLight.directDiffuse+reflectedLight.directSpecular;
+        let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
 
         return vec4<f32>(finnalColor,1.0);
     }`

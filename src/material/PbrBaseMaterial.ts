@@ -189,13 +189,16 @@ export default class PbrBaseMaterial extends Material{
 
         this.currentBinding=1;
 ;
-        this.defines.materialPbr=true;
+        
 
         this.shaderSource=new ShaderSource({
             type:this.type,
             render:true,
-            defines:this.defines
+            defines:{
+                materialPbr:true
+            }
         });
+        //this.shaderData.setDefine('materialPbr',true);
         // uniforms.reflectivity.value = material.reflectivity;
         // uniforms.ior.value = material.ior;
         // uniforms.refractionRatio.value = material.refractionRatio;
@@ -289,21 +292,12 @@ export default class PbrBaseMaterial extends Material{
             this.shaderData.setTexture('emissiveTexture',this)
         }
     }
-    private updateTexture(context:Context){
-        if(this.baseTexture) {     
-            this.baseTexture.update(context);
-        }
-        if(this.bumpTexture) {
-            
-            this.bumpTexture.update(context);
-        }
-        if(this.normalTexture) {
-            this.normalTexture.update(context);
-        }
+    protected updateTexture(context:Context):void{
+        if(this.baseTexture) this.baseTexture.update(context);
+        if(this.bumpTexture) this.bumpTexture.update(context);
+        if(this.normalTexture)  this.normalTexture.update(context);
  
-        if(this.aoTexture) {
-            this.aoTexture.update(context);
-        }
+        if(this.aoTexture) this.aoTexture.update(context);
 
         // if(this.specularTexture) {
         //     this.shaderData.setDefine('USE_SPECULARTEXTURE',true);
@@ -315,47 +309,35 @@ export default class PbrBaseMaterial extends Material{
         //     this.alphaTexture.update(context);
         // }
  
-        if(this.envTexture){
-            this.envTexture.update(context);
-        }
+        if(this.envTexture)this.envTexture.update(context);
 
-        if(this.emissiveTexture){
-            this.emissiveTexture.update(context);
-        }
+        if(this.emissiveTexture) this.emissiveTexture.update(context);
 
-        if(this.roughnessTexture){
-            this.roughnessTexture.update(context);
- 
-        }
-        if(this.displacementTexture){
-            this.displacementTexture.update(context);
-        }
+        if(this.roughnessTexture)this.roughnessTexture.update(context);
+
+        if(this.displacementTexture)this.displacementTexture.update(context);
   
-        if(this.metalnessTexture) {
-            this.metalnessTexture.update(context);
-        }
+        if(this.metalnessTexture) this.metalnessTexture.update(context);
  
-        if(this.lightTexture) {
-            this.lightTexture.update(context);
-        }
+        if(this.lightTexture) this.lightTexture.update(context);
     }
     protected getUniformSize(){
         let parentByteSize=super.getUniformSize()
-        let byteSize=parentByteSize+3+1+1;
-        if (this.bumpTexture) byteSize+=1;
-        if (this.aoTexture) byteSize+=1;
-        if (this.lightTexture ) byteSize+=1;
-        if (this.normalTexture )  byteSize+=1;
+        let size=parentByteSize+3+1+1;
+        if (this.bumpTexture) size+=1;
+        if (this.aoTexture) size+=1;
+        if (this.lightTexture )size+=1;
+        if (this.normalTexture ) size+=1;
         if (this.displacementTexture ) {
-             byteSize+=1;
-             byteSize+=1;
+            size+=1;
+            size+=1;
 		}
         if (this.envTexture ) {
-            byteSize+=1;
-            byteSize+=1;
-            byteSize+=1;
+            size+=1;
+            size+=1;
+            size+=1;
 		}
-       return Math.ceil(byteSize/4)*4;
+       return Math.ceil(size/4)*4;
     }
     destory(){
 
