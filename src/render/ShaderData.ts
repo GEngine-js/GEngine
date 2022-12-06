@@ -127,7 +127,7 @@ export default class ShaderData{
     update(device:GPUDevice,other?:any){
         this._uniforms.forEach((uniform)=>{
            const result= uniform.set();
-           if(result!=undefined) this.uniformDirty=result;
+           if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
         });
         if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
         if(this.uniformDirty){

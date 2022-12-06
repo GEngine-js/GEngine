@@ -73,7 +73,9 @@ export class UniformFloat extends Uniform<number>{
         if (this.value !== this._value) {
           this._value = this.value;
           this.buffer[0]=this.value;
+          return true;
         }
+        return false;
       };
 }
 export class UniformFloatVec2 extends Uniform<Vector2>{

@@ -69,8 +69,14 @@
         scene.setCamera(camera);
         scene.addLight(dirtectLight);
         function animate() {
-            primitive.rotateY(0.01)
-           primitive.rotateZ(-0.01)
+        //     primitive.rotateY(0.01)
+        //    primitive.rotateZ(-0.01)
+        if (phongMaterial.shininess>100) {
+            phongMaterial.shininess=0.0;
+        } else {
+            phongMaterial.shininess+=0.1;
+        }
+        phongMaterial.shininess+=0.1;
             requestAnimationFrame( animate );
             scene.render()
         }
