@@ -8,7 +8,7 @@ export default function phongFunction(defines){
     }
     fn D_BlinnPhong( shininess:f32, dotNH:f32 )->f32 {
 
-        return RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * pow(dotNH, shininess );
+        return RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * pow(dotNH, shininess);
 
     }
     fn BRDF_BlinnPhong( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, specularColor:vec3<f32>, shininess:f32 )->vec3<f32> {

@@ -50,6 +50,7 @@
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
         const phongMaterial=new PhongMaterial(imageBitmap);
+        phongMaterial.shininess=0.1;
         const axes=new Axes();
         axes.scale.set(10,10,10)
         const primitive=new Mesh(geometry,phongMaterial)
@@ -68,15 +69,16 @@
         scene.add(axes)
         scene.setCamera(camera);
         scene.addLight(dirtectLight);
+        primitive.rotateY(0.01)
+           primitive.rotateZ(1.8)
         function animate() {
-        //     primitive.rotateY(0.01)
-        //    primitive.rotateZ(-0.01)
-        if (phongMaterial.shininess>100) {
-            phongMaterial.shininess=0.0;
-        } else {
-            phongMaterial.shininess+=0.1;
-        }
-        phongMaterial.shininess+=0.1;
+         
+        // if (phongMaterial.shininess>100) {
+        //     phongMaterial.shininess=0.0;
+        // } else {
+        //     phongMaterial.shininess+=0.1;
+        // }
+        // phongMaterial.shininess+=0.1;
             requestAnimationFrame( animate );
             scene.render()
         }

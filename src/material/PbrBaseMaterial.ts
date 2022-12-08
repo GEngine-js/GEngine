@@ -37,15 +37,12 @@ export default class PbrBaseMaterial extends Material{
     private _metalness: number;
     private _lightTextureIntensity: number;
     private _aoTextureIntensity: number;
-    private _emissiveIntensity: number;
     private _bumpScale: number;
     private _normalScale: Vector2;
     private _displacementScale: number;
     private _displacementBias: number;
     private _envTextureIntensity: number;
     private _flatShading: boolean;
-    private _diffuse:Color;
-    private _emissive:Color;
     private _ior: number;
     private _flipEnvTexture: number;
     currentBinding: number;
@@ -61,29 +58,11 @@ export default class PbrBaseMaterial extends Material{
     public set metalness(v : number) {
         this._metalness = v;
     } 
-    public get diffuse() : Color {
-        return this._diffuse
-    }  
-    public set diffuse(v : Color) {
-        this._diffuse = v;
-    }
-    public get emissive() : Color {
-        return this._emissive
-    }
-    public set emissive(v : Color) {
-        this._emissive = v;
-    }
     public get lightTextureIntensity() : number {
         return this._lightTextureIntensity
     }
     public set lightTextureIntensity(v : number) {
         this._lightTextureIntensity = v;
-    }
-    public get emissiveIntensity() : number {
-        return this._emissiveIntensity
-    }
-    public set emissiveIntensity(v : number) {
-        this._emissiveIntensity = v;
     }
     public get aoTextureIntensity() : number {
         return this._aoTextureIntensity
@@ -95,9 +74,7 @@ export default class PbrBaseMaterial extends Material{
         if(this.renderState&&this.renderState.primitive){
             if(this.renderState.primitive.cullMode==CullMode.Back) return this._bumpScale*-1;
         }
-        return this._bumpScale;
-        
-        
+        return this._bumpScale;    
     }
     public set bumpScale(v : number) {
         this._bumpScale = v;
@@ -168,8 +145,6 @@ export default class PbrBaseMaterial extends Material{
 
         this._aoTextureIntensity=1.0;
 
-        this._emissiveIntensity = 1.0;
-
         this._bumpScale = 1;
 
         this._normalScale = new Vector2( 1, 1 );
@@ -188,8 +163,6 @@ export default class PbrBaseMaterial extends Material{
         this._flipEnvTexture=-1;
 
         this.currentBinding=1;
-;
-        
 
         this.shaderSource=new ShaderSource({
             type:this.type,

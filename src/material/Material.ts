@@ -61,9 +61,14 @@ export class Material{
     private _stencilReference:number;
 
     private _depthStencil:DepthStencil;
-
+    
+    private _emissive:Color;
 
     private _opacity:number;
+
+    private _emissiveIntensity:number;
+
+    private _diffuse:Color;
 
     definesDirty: boolean;
 
@@ -73,8 +78,6 @@ export class Material{
 
     shininess:number;
 
-    emissive:Color;
-
     constructor(){
         //
         this.label=undefined;
@@ -82,7 +85,7 @@ export class Material{
         this.baseTexture=undefined;
         this.baseSampler=undefined;
         this.renderState=undefined;
-        this.color=new Color(1,1,1,0);
+        this._diffuse=new Color(1,1,1,0);
         this.alpha=undefined;
         this._opacity=1.0;
         //Buffer
@@ -94,11 +97,29 @@ export class Material{
         this.bindGroups=[];
         this.dirty=true;
         this.specular=new Color(1.0,1.0,1.0,0.0);
-        this.emissive=new Color(0,0.0,0,1.0);
-        this.shininess=30.0
+        this._emissive=new Color(0,0.0,0,1.0);
+        this.shininess=30.0;
+        this._emissiveIntensity = 1.0;
 
     }
-    
+    public get diffuse() : Color {
+        return this._diffuse
+    }  
+    public set diffuse(v : Color) {
+        this._diffuse = v;
+    }
+    public get emissive() : Color {
+        return this._emissive
+    }
+    public set emissive(v : Color) {
+        this._emissive = v;
+    }
+    public get emissiveIntensity() : number {
+        return this._emissiveIntensity
+    }
+    public set emissiveIntensity(v : number) {
+        this._emissiveIntensity = v;
+    }
     public get opacity() : number {
         return this._opacity
     }
@@ -164,18 +185,14 @@ export class Material{
         this.shaderData.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;
         });
-        this.shaderData.setColor("color",this);
+        this.shaderData.setColor("diffuse",this);
         this.shaderData.setFloat("opacity",this);
         this.shaderData.setMatrix3("normalMtrix",()=>{
             return mesh.normalMatrix;
         });
         this.shaderData.setColor('specular',this);
         this.shaderData.setFloat('shininess',this);
-        this.shaderData.setColor('emissive',this);
-        // specular:vec3<f32>,
-        // shininess:f32,
-        // emissive:vec3<f32>,
-        
+        this.shaderData.setColor('emissive',this);  
     }
     protected setShaderData(device:GPUDevice){
         this.shaderData.update(device);

@@ -46,7 +46,7 @@
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
         const phongMaterial=new PhongMaterial(imageBitmap);
-
+        phongMaterial.shininess=100;
         const primitive=new Mesh(geometry,phongMaterial)
         primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
@@ -63,15 +63,16 @@
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,20,1)
         pointLight.position=new Vector3(25,0,0);
         const scene=new Scene({container:'app'});
-
+      primitive.rotateY(0.1)
+            primitive.rotateX(0.4)
         scene.add(primitive);
         scene.setCamera(camera);
-        // scene.addLight(pointLight);
+        scene.addLight(pointLight);
         scene.addLight(spotLight);
         scene.addLight(spotLight1)
         function animate() {
-            primitive.rotateY(0.01)
-            primitive.rotateX(0.01)
+            // primitive.rotateY(0.01)
+            // primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }
