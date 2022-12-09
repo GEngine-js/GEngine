@@ -62,7 +62,9 @@
           debugger
         const baseTexture=new Texture({
             size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
-            data:imageBitmap,
+            data:{
+                source:imageBitmap
+            },
             format: 'rgba8unorm',
             sampler:baseSampler
           });
@@ -76,7 +78,7 @@
         camera.position=new Vector3(20,20,20);
         camera.target=new Vector3(0,0,0);
 
-        const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,25,1)
+        const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),6,65,1)
         pointLight.position=new Vector3(0,25,0);
         const scene=new Scene({container:'app'});
 
@@ -84,8 +86,8 @@
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
-            // primitive.rotateY(0.01)
-            // primitive.rotateX(0.01)
+            primitive.rotateY(0.01)
+            primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }

@@ -11,7 +11,10 @@ import { FrameState } from "../core/FrameState";
 import Color from "../math/Color";
 export default class PhongMaterial extends Material {
     imageBitmap: ImageBitmap;
-    uniformTotalByte: number;
+
+    specular:Color;
+
+    shininess:number;
     constructor(imageBitmap:ImageBitmap) {
         super();
         this.type = 'phong';
@@ -25,7 +28,8 @@ export default class PhongMaterial extends Material {
               materialPhong:true
             }
         });
-
+        this.specular=new Color(1.0,1.0,1.0,0.0);
+        this.shininess=30.0;
         this.baseTexture = undefined;
         this.baseSampler = undefined;
     }
@@ -47,7 +51,8 @@ export default class PhongMaterial extends Material {
     protected createShaderData(size:number,mesh?:Mesh){
         this.totalUniformCount=this.getUniformSize();
         super.createShaderData(this.totalUniformCount,mesh);
-        // this.shaderData.setDefine('materialPhong',true);
+        this.shaderData.setFloat('shininess',this);
+        this.shaderData.setColor('specular',this);
         this.shaderData.setTexture('baseTexture',this);
         this.shaderData.setSampler('sampler',this.baseTexture)
      }
@@ -58,7 +63,9 @@ export default class PhongMaterial extends Material {
           });
         this.baseTexture=new Texture({
             size: {width:this.imageBitmap.width, height:this.imageBitmap.height, depth:1},
-            data:this.imageBitmap,
+            data:{
+              source:this.imageBitmap
+            },
             format: 'rgba8unorm',
             usage:
               GPUTextureUsage.TEXTURE_BINDING |
@@ -69,8 +76,8 @@ export default class PhongMaterial extends Material {
           this.baseTexture.update(context);
      }
      protected getUniformSize(){
-        let uniformSize= super.getUniformSize()
-        return uniformSize;
+        let uniformSize= super.getUniformSize()+4;
+        return Math.ceil(uniformSize/4)*4;
      }
     destroy() {
 

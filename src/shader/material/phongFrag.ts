@@ -19,9 +19,9 @@ export default function phongFrag (defines){
       color: vec3<f32>,
       opacity:f32,
       normalMatrix: mat3x3<f32>,
-      specular:vec3<f32>,
-      shininess:f32,
       emissive:vec3<f32>,
+      shininess:f32,
+      specular:vec3<f32>,      
    }
 
     @group(0) @binding(2) var mySampler: sampler;

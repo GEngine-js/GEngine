@@ -74,10 +74,6 @@ export class Material{
 
     totalUniformCount:number;
 
-    specular:Color;
-
-    shininess:number;
-
     constructor(){
         //
         this.label=undefined;
@@ -96,9 +92,7 @@ export class Material{
         this.groupLayouts=[];
         this.bindGroups=[];
         this.dirty=true;
-        this.specular=new Color(1.0,1.0,1.0,0.0);
         this._emissive=new Color(0,0.0,0,1.0);
-        this.shininess=30.0;
         this._emissiveIntensity = 1.0;
 
     }
@@ -190,8 +184,6 @@ export class Material{
         this.shaderData.setMatrix3("normalMtrix",()=>{
             return mesh.normalMatrix;
         });
-        this.shaderData.setColor('specular',this);
-        this.shaderData.setFloat('shininess',this);
         this.shaderData.setColor('emissive',this);  
     }
     protected setShaderData(device:GPUDevice){
@@ -201,7 +193,7 @@ export class Material{
         
     }
     protected getUniformSize(){
-       let size= 16+12+3+1+3+1+3;
+       let size= 16+12+3+1+3;
        //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
        return Math.ceil(size/4)*4;
     }

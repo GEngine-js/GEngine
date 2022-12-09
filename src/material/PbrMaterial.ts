@@ -277,6 +277,7 @@ export default class PbrMaterial extends PbrBaseMaterial {
         this.shaderData.setDefine('IOR', true);
         this.shaderData.setDefine('SPECULAR', true);
         this.shaderData.setFloat('specularIntensity', this);
+        this.shaderData.setFloat('ior',this);
         this.shaderData.setFloat('specularColor', this);
         if (this.sheen > 0) {
             this.shaderData.setDefine('USE_SHEEN', true);

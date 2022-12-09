@@ -91,6 +91,21 @@ export type BindGroupCacheOptions={
     entires:BindGroupEntity[],
     index?:number
 }
+export type ImageData={
+    source: ImageBitmap | HTMLCanvasElement;
+    width?: number;
+    height?: number;
+    depth?: number;
+    sourceX?: number;
+    sourceY?: number;
+    mipLevel?: number;
+    x?: number;
+    y?: number;
+    z?: number;
+    aspect?: 'all' | 'stencil-only' | 'depth-only';
+    colorSpace?: 'srgb';
+    premultipliedAlpha?: boolean;
+}
 export type WebGPUTextureProps ={
 
   size: extent3DDict;
@@ -101,7 +116,7 @@ export type WebGPUTextureProps ={
 
   sampler?:Sampler;
 
-  data?:ImageBitmap
+  data?:ImageData|Array<ImageData>
 
   mipLevelCount?: number;
 

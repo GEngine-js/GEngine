@@ -1,5 +1,5 @@
 import { TextureFormat } from "../core/WebGPUConstant";
-import { WebGPUTextureProps } from "../core/WebGPUTypes";
+import { WebGPUTextureProps,ImageData } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import Context from "./Context";
 import Sampler from "./Sampler";
@@ -10,6 +10,7 @@ export default class Texture{
     public sampler:Sampler;
     context: Context;
     textureProp: WebGPUTextureProps;
+    dirty:boolean;
     constructor(textureProp:WebGPUTextureProps){    
        this.textureProp=Object.assign({
         format: TextureFormat.RGBA8Unorm,
@@ -18,6 +19,7 @@ export default class Texture{
                GPUTextureUsage.RENDER_ATTACHMENT,
         },textureProp);
        this.sampler=textureProp.sampler;
+       this.dirty=true;
     }
     get layoutType(){
       const {dimension,sampleType,sampleCount}=this.textureProp;
@@ -28,28 +30,24 @@ export default class Texture{
       }
     }
     update(context:Context){
-        if (!this.gpuTexture) {
-          this.context=context;
-          this.gpuTexture=this.createGPUTexture();
-          if(this.textureProp.data) this.setData({source:this.textureProp.data});
-          if(this.sampler)this.sampler.update(context);
+        if(!this.context)this.context=context;
+        if(!this.gpuTexture)this.gpuTexture=this.createGPUTexture();
+        debugger
+        if (this.dirty) {
+            this.dirty=false
+            if(this.textureProp.data) {
+              if (Array.isArray(this.textureProp.data)) {
+                this.textureProp.data.forEach(imageData => {
+                  this.setData(imageData);
+                });
+              } else {
+                this.setData(this.textureProp.data);
+              }
+            }
+            if(this.sampler)this.sampler.update(context);
         }
     }
-    setData(options: {
-        source: ImageBitmap | HTMLCanvasElement;
-        width?: number;
-        height?: number;
-        depth?: number;
-        sourceX?: number;
-        sourceY?: number;
-        mipLevel?: number;
-        x?: number;
-        y?: number;
-        z?: number;
-        aspect?: 'all' | 'stencil-only' | 'depth-only';
-        colorSpace?: 'srgb';
-        premultipliedAlpha?: boolean;
-      }){
+    private setData(options:ImageData){
         const {
             source,
             width = options.source.width,

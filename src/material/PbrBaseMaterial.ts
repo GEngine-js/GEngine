@@ -34,18 +34,29 @@ export default class PbrBaseMaterial extends Material{
     public lightTexture:Texture;
 
     private _roughness: number;
+
     private _metalness: number;
+
     private _lightTextureIntensity: number;
+
     private _aoTextureIntensity: number;
+
     private _bumpScale: number;
+
     private _normalScale: Vector2;
+
     private _displacementScale: number;
+
     private _displacementBias: number;
+
     private _envTextureIntensity: number;
+
     private _flatShading: boolean;
+
     private _ior: number;
+
     private _flipEnvTexture: number;
-    currentBinding: number;
+
     public get roughness():number{
         return this._roughness
     }
@@ -137,9 +148,9 @@ export default class PbrBaseMaterial extends Material{
         super();
         this.type='pbr';
 
-        this._roughness = 1.0;
+        this._roughness = 0.1;
 
-		this._metalness = 0.0;
+		this._metalness = 0.1;
 
         this._lightTextureIntensity = 1.0;
 
@@ -161,8 +172,6 @@ export default class PbrBaseMaterial extends Material{
 
         // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
         this._flipEnvTexture=-1;
-
-        this.currentBinding=1;
 
         this.shaderSource=new ShaderSource({
             type:this.type,
@@ -195,12 +204,10 @@ export default class PbrBaseMaterial extends Material{
     protected createShaderData(size:number,mesh:Mesh){
         
         super.createShaderData(size,mesh);
-        
-        this.shaderData.setColor("emissive",this);
-
-        this.shaderData.setFloat("metalness",this);
 
         this.shaderData.setFloat("roughness",this);
+
+        this.shaderData.setFloat("metalness",this);
 
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE',true);
@@ -296,7 +303,7 @@ export default class PbrBaseMaterial extends Material{
     }
     protected getUniformSize(){
         let parentByteSize=super.getUniformSize()
-        let size=parentByteSize+3+1+1;
+        let size=parentByteSize+1+1;
         if (this.bumpTexture) size+=1;
         if (this.aoTexture) size+=1;
         if (this.lightTexture )size+=1;
