@@ -68,7 +68,7 @@ export default class LightManger extends Manger{
         this.spotDatas=new WeakMap();
         this.pointDatas=new WeakMap();
         this.dirtectDatas=new WeakMap();
-        this.ambientLight=new AmbientLight(new Vector3(0,0,0),1.0);
+        this.ambientLight=new AmbientLight(new Vector3(1,1,1),0.1);
         this.lightDefines={
             ambientLight:false,
             spotLight:false,

@@ -17,7 +17,7 @@ export {default as Axes} from "./mesh/Axes";
 
 //geometry
 export {default as BoxGeometry} from "./geometry/BoxGeometry";
-
+export {default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 //Material
 export {default as PhongMaterial} from "./material/PhongMaterial";
 export {default as PbrMaterial }from "./material/PbrMaterial";

@@ -398,7 +398,7 @@ export default function pbrFunction(defines){
    //直接光照
    fn RE_Direct_Physical( directLight:IncidentLight, geometry:GeometricContext,  material:PhysicalMaterial)->ReflectedLight {
        var reflectedLight:ReflectedLight;
-       let dotNL:f32 = saturate( dot( geometry.normal, directLight.direction ) );
+       let dotNL:f32 = saturate(dot( geometry.normal, directLight.direction));
        let irradiance:vec3<f32> = dotNL * directLight.color;
        #if ${defines.USE_CLEARCOAT}
            let dotNLcc:f32 = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );

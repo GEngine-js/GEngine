@@ -264,7 +264,7 @@ export default function pbrVert(defines){
         #endif
         mvPosition = globalUniform.viewMatrix*materialUniform.modelMatrix * mvPosition;
         vertexOutput.position = globalUniform.projectionMatrix * mvPosition;
-        vertexOutput.vViewPosition = - mvPosition.xyz;
+        vertexOutput.vViewPosition = - mvPosition.xyz/mvPosition.w;
         #if ${defines.USE_ENVTEXTURE||defines.DISTANCE||defines.USE_TRANSMISSION} 
             vec4 worldPosition = vec4( transformed, 1.0 );
             #if ${defines.USE_INSTANCING}
