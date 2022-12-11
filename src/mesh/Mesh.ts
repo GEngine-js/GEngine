@@ -65,7 +65,8 @@ export class Mesh extends RenderObject {
             shaderSource:this.material.shaderSource,
             groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
-            type:'render'      
+            type:'render',
+            onwer:this       
         });
         drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);
         this.drawCommand = drawCommand;

@@ -4,9 +4,11 @@ import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState } from "./core/FrameState";
 import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
+import SkyBox from "./mesh/SkyBox";
 import Context from "./render/Context";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
+import defaultValue from "./utils/defaultValue";
 
 export class Scene extends EventDispatcher {
     lightManger: LightManger;
@@ -20,7 +22,8 @@ export class Scene extends EventDispatcher {
     frameState: FrameState;
     currentRenderPipeline:IBaseRenderLine;
     private ready: boolean;
-    viewport: { x: number; y: number; width: number; height: number; };
+    viewport: { x: number; y: number; width: number; height: number;};
+    skybox:SkyBox;
     constructor(options) {
         super();
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
@@ -32,6 +35,7 @@ export class Scene extends EventDispatcher {
         this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;
         this.ready=false;
+        this.skybox=defaultValue(options.skybox,undefined);
         this.init();
     }
     private async init() {
@@ -81,10 +85,12 @@ export class Scene extends EventDispatcher {
         this.context.systemRenderResource.update(this.frameState,this)
 
         //update primitive and select
+        if(this.skybox) this.skybox.update(this.frameState);
         this.primitiveManger.update(this.frameState)
         
         //selct renderPipeline
         this.currentRenderPipeline.setRenderList(this.frameState.commandList);
+        if(this.skybox) this.currentRenderPipeline.setSkyBox(this.skybox);
         this.currentRenderPipeline.render();
     }
 

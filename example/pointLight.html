@@ -45,7 +45,8 @@
         PbrBaseMaterial,
         Texture,
         Sampler,
-        TorusKnotGeometry
+        TorusKnotGeometry,
+        SkyBox
     } from '../dist/index.js';
 
      const  init= async()=>{
@@ -85,14 +86,23 @@
 
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
         pointLight.position=new Vector3(0,25,0);
-        const scene=new Scene({container:'app'});
+        const urls=[
+        `./skybox/px.png`,
+        `./skybox/nx.png`,
+        `./skybox/py.png`,
+        `./skybox/ny.png`,
+        `./skybox/pz.png`,
+        `./skybox/nz.png`,
+        ]
+        const skybox=new SkyBox(urls);
+        const scene=new Scene({container:'app',skybox});
 
         scene.add(primitive);
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
             // primitive.rotateY(0.01)
-            primitive.rotateX(0.001)
+            // primitive.rotateX(0.001)
             requestAnimationFrame( animate );
             scene.render()
         }

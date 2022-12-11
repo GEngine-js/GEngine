@@ -14,6 +14,7 @@ export { default as DataBuffer } from "./utils/DataBuffer";
 //mesh
 export {Mesh} from "./mesh/Mesh";
 export {default as Axes} from "./mesh/Axes";
+export {default as SkyBox} from "./mesh/SkyBox"
 
 //geometry
 export {default as BoxGeometry} from "./geometry/BoxGeometry";

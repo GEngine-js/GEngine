@@ -8,14 +8,19 @@ import { Mesh } from "./Mesh";
 export default class SkyBox extends Mesh {
     type:string;
     material: SkyBoxMaterial;
-    constructor() {
+    isSkyBox:boolean
+    constructor(urls?:Array<string>) {
         super();
         this.distanceToCamera=10;
         this.material=new SkyBoxMaterial();
+        if(urls) this.material.loadTexture(urls);
         this.geometry=new SkyBoxGeometry();
+        this.isSkyBox=true;
     }
+
     update(frameState: FrameState){
         this.updateMatrix();
+        this.geometry.update(frameState);
         this.material.update(frameState,this);
         if(!this.drawCommand) this.createDrawComand(frameState);
         frameState.commandList.opaque.push(this.drawCommand);
@@ -34,7 +39,8 @@ export default class SkyBox extends Mesh {
             shaderSource:this.material.shaderSource,
             groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
-            type:'render'      
+            type:'render',
+            onwer:this      
         });
         this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };

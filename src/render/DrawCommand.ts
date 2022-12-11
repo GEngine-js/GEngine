@@ -10,6 +10,7 @@ import BindGroupLayout from "./BindGroupLayout";
 import { ShaderSource } from "../shader/ShaderSource";
 
 class DrawCommand {
+
   public type?: string;
 
   public pipeline?: Pipeline;
@@ -42,7 +43,9 @@ class DrawCommand {
 
   public dirty?:boolean;
 
-  public distanceToCamera?:number
+  public distanceToCamera?:number;
+
+  public onwer?:Object;
 
   constructor(options: DrawCommand) {
     Object.assign(this, options);

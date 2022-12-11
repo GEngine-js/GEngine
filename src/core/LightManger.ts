@@ -79,6 +79,7 @@ export default class LightManger extends Manger{
             dirtectLightBinding:3,
         }
         this.totalByte=0;
+        this.lightCountDirty=true;
 
     }
     update(frameState:FrameState){

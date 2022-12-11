@@ -4,27 +4,27 @@ import DrawCommand from "../render/DrawCommand";
 import Pass from "../pass/Pass";
 import { BasicPass } from "../pass/BasicPass";
 import IBaseRenderLine from "./IBaseRenderLine";
+import SkyBox from "../mesh/SkyBox";
 
 export default class ForwardRenderLine implements IBaseRenderLine{
-    private passList:Pass[];;
+    private basicPass:BasicPass;
     private commandList:CommandList;
        constructor(public context:Context){
-       this.passList=[];
-       this.passList.push(new BasicPass(context))
+        this.basicPass=new BasicPass(context)
+    }
+    setSkyBox(skybox: SkyBox): void {
+       this.basicPass.skyboxDrawComand=skybox.drawCommand;
     }
     setRenderList(commandList:CommandList){
         this.commandList=commandList
     }
-    addPass(){}
     render() {
-        this.passList.forEach((pass)=>{
-             pass.beforRender();
-             pass.render(this.commandList);
-             pass.afterRender();
-        });       
+        this.basicPass.beforRender();
+        this.basicPass.render(this.commandList);
+        this.basicPass.afterRender();       
     }
     destroy(){
-        this.passList=[];
+        this.basicPass=undefined;
     }
     
 }

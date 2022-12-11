@@ -5,6 +5,8 @@ import colorFrag from './material/colorFrag';
 import colorVert from './material/colorVert';
 import pbrFrag from './material/pbrFrag';
 import pbrVert from './material/pbrVert';
+import skyBoxFrag from './material/skyBoxFrag';
+import skyBoxVert from './material/skyBoxVert';
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -24,6 +26,10 @@ const shaders = {
 	pbr:{
         frag:pbrFrag,
 		vert:pbrVert,
+	},
+	skybox:{
+		frag:skyBoxFrag,
+		vert:skyBoxVert
 	}
 }
 

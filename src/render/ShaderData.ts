@@ -97,7 +97,6 @@ export default class ShaderData{
     }
     setTexture(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
-        debugger
         const uniform=new UniformTexture(name,this.textureBinding,value);
         this.setDefine(name.concat('Binding'),this.textureBinding);
         this.textureBinding+=1;
@@ -122,7 +121,6 @@ export default class ShaderData{
                 this.defines[name]=value;
             }
         }
-        debugger
     }
     update(device:GPUDevice,other?:any){
         this._uniforms.forEach((uniform)=>{
@@ -229,7 +227,7 @@ export default class ShaderData{
         } else if(uniform.type==='texture'){
             groupEntity = new BindGroupEntity({
                 binding:uniform.binding,
-                resource:uniform.value.gpuTexture.createView()
+                resource:uniform.value.texureView
             });
         } else if(uniform.type==='sampler'){
             groupEntity= new BindGroupEntity({

@@ -40,11 +40,11 @@ class Pass {
   }
   protected excuteCommands(commands:DrawCommand[]){
     commands.forEach((command)=>{
-      this.excuteCommand(command,this.passRenderEncoder);
+      this.excuteCommand(command,);
     });
   }
-  protected excuteCommand(command,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder){
-    this.context.render(command,passEncoder);
+  protected excuteCommand(command){
+    this.context.render(command,this.passRenderEncoder);
   }
 }
 

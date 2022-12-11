@@ -22,17 +22,22 @@ export default class Texture{
        this.dirty=true;
     }
     get layoutType(){
-      const {dimension,sampleType,sampleCount}=this.textureProp;
+      const {viewFormats,sampleType,sampleCount}=this.textureProp;
+      // const 
       return {
         sampleType: defaultValue(sampleType,"float"),
-        viewDimension: defaultValue(dimension,"2d"),
+        viewDimension: defaultValue(viewFormats,"2d"),
         multisampled: sampleCount&&sampleCount>1?true:false
       }
+    }
+    get texureView(){
+      return this.gpuTexture.createView({
+        dimension:<GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats,'2d')
+      })
     }
     update(context:Context){
         if(!this.context)this.context=context;
         if(!this.gpuTexture)this.gpuTexture=this.createGPUTexture();
-        debugger
         if (this.dirty) {
             this.dirty=false
             if(this.textureProp.data) {

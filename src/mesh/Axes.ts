@@ -76,7 +76,8 @@ export default class Axes extends Mesh {
             shaderSource:this.material.shaderSource,
             groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
-            type:'render'      
+            type:'render',
+            onwer:this       
         });
         this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };

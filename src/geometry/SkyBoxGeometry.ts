@@ -1,13 +1,16 @@
 import { VertextBuffers } from "../core/VertextBuffers";
-import { InputStepMode, VertexFormat } from "../core/WebGPUConstant";
+import { IndexFormat, InputStepMode, PrimitiveTopology, VertexFormat } from "../core/WebGPUConstant";
 import Attribute from "../render/Attribute";
 import Geometry from "./Geometry";
 import Buffer from "../render/Buffer";
 export default class SkyBoxGeometry extends Geometry{
     position:Float32Array;
     indices:Uint16Array|Uint32Array|Uint8Array;
+    
     constructor(){
-        super()
+        super({});
+        this.stripIndexFormat=IndexFormat.Uint16;
+        this.topology=PrimitiveTopology.TriangleList;
     }
     public update(frameState){
         const {device}=frameState.context;
