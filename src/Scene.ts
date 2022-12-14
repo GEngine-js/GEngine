@@ -6,6 +6,7 @@ import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
 import SkyBox from "./mesh/SkyBox";
 import Context from "./render/Context";
+import Texture from "./render/Texture";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 import defaultValue from "./utils/defaultValue";
@@ -24,6 +25,7 @@ export class Scene extends EventDispatcher {
     private ready: boolean;
     viewport: { x: number; y: number; width: number; height: number;};
     skybox:SkyBox;
+    environment:Texture;
     constructor(options) {
         super();
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);

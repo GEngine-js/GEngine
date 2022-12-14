@@ -51,211 +51,6 @@ class Color {
  * @type {Number}
  */
   public static packedLength = 4;
-  /**
-   * An immutable Color instance initialized to CSS color #F0F8FF
-   * <span class="colorSwath" style="background: #F0F8FF;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static ALICEBLUE = Object.freeze(Color.fromCssColorString("#F0F8FF"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #FAEBD7
-   * <span class="colorSwath" style="background: #FAEBD7;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static ANTIQUEWHITE = Object.freeze(Color.fromCssColorString("#FAEBD7"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #00FFFF
-   * <span class="colorSwath" style="background: #00FFFF;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static AQUA = Object.freeze(Color.fromCssColorString("#00FFFF"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #7FFFD4
-   * <span class="colorSwath" style="background: #7FFFD4;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static AQUAMARINE = Object.freeze(Color.fromCssColorString("#7FFFD4"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #F0FFFF
-   * <span class="colorSwath" style="background: #F0FFFF;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static AZURE = Object.freeze(Color.fromCssColorString("#F0FFFF"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #F5F5DC
-   * <span class="colorSwath" style="background: #F5F5DC;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BEIGE = Object.freeze(Color.fromCssColorString("#F5F5DC"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #FFE4C4
-   * <span class="colorSwath" style="background: #FFE4C4;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BISQUE = Object.freeze(Color.fromCssColorString("#FFE4C4"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #000000
-   * <span class="colorSwath" style="background: #000000;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BLACK = Object.freeze(Color.fromCssColorString("#000000"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #FFEBCD
-   * <span class="colorSwath" style="background: #FFEBCD;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BLANCHEDALMOND = Object.freeze(Color.fromCssColorString("#FFEBCD"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #0000FF
-   * <span class="colorSwath" style="background: #0000FF;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BLUE = Object.freeze(Color.fromCssColorString("#0000FF"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #8A2BE2
-   * <span class="colorSwath" style="background: #8A2BE2;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BLUEVIOLET = Object.freeze(Color.fromCssColorString("#8A2BE2"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #A52A2A
-   * <span class="colorSwath" style="background: #A52A2A;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BROWN = Object.freeze(Color.fromCssColorString("#A52A2A"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #DEB887
-   * <span class="colorSwath" style="background: #DEB887;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static BURLYWOOD = Object.freeze(Color.fromCssColorString("#DEB887"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #5F9EA0
-   * <span class="colorSwath" style="background: #5F9EA0;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CADETBLUE = Object.freeze(Color.fromCssColorString("#5F9EA0"));
-  /**
-   * An immutable Color instance initialized to CSS color #7FFF00
-   * <span class="colorSwath" style="background: #7FFF00;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CHARTREUSE = Object.freeze(Color.fromCssColorString("#7FFF00"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #D2691E
-   * <span class="colorSwath" style="background: #D2691E;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CHOCOLATE = Object.freeze(Color.fromCssColorString("#D2691E"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #FF7F50
-   * <span class="colorSwath" style="background: #FF7F50;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CORAL = Object.freeze(Color.fromCssColorString("#FF7F50"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #6495ED
-   * <span class="colorSwath" style="background: #6495ED;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CORNFLOWERBLUE = Object.freeze(Color.fromCssColorString("#6495ED"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #FFF8DC
-   * <span class="colorSwath" style="background: #FFF8DC;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CORNSILK = Object.freeze(Color.fromCssColorString("#FFF8DC"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #DC143C
-   * <span class="colorSwath" style="background: #DC143C;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CRIMSON = Object.freeze(Color.fromCssColorString("#DC143C"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #00FFFF
-   * <span class="colorSwath" style="background: #00FFFF;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static CYAN = Object.freeze(Color.fromCssColorString("#00FFFF"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #00008B
-   * <span class="colorSwath" style="background: #00008B;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static DARKBLUE = Object.freeze(Color.fromCssColorString("#00008B"));
-
-  /**
-   * An immutable Color instance initialized to CSS color #008B8B
-   * <span class="colorSwath" style="background: #008B8B;"></span>
-   *
-   * @constant
-   * @type {Color}
-   */
-  public static DARKCYAN = Object.freeze(Color.fromCssColorString("#008B8B"));
   green: number;
   red: number;
   blue: number;
@@ -285,7 +80,7 @@ class Color {
      * @type {Number}
      * @default 1.0
      */
-    this.alpha =alpha;
+    this.alpha =1.0;
   }
   set(value){
       if (typeof value==='string') {
@@ -317,50 +112,6 @@ class Color {
   };
 
   /**
-   * Returns <code>true</code> if this Color equals other componentwise within the specified epsilon.
-   *
-   * @param {Color} other The Color to compare for equality.
-   * @param {Number} [epsilon=0.0] The epsilon to use for equality testing.
-   * @returns {Boolean} <code>true</code> if the Colors are equal within the specified epsilon; otherwise, <code>false</code>.
-   */
-  equalsEpsilon(other, epsilon) {
-    return (
-      this === other || //
-      (defined(other) && //
-        Math.abs(this.red - other.red) <= epsilon && //
-        Math.abs(this.green - other.green) <= epsilon && //
-        Math.abs(this.blue - other.blue) <= epsilon && //
-        Math.abs(this.alpha - other.alpha) <= epsilon)
-    );
-  };
-
-  /**
-   * Creates a string representing this Color in the format '(red, green, blue, alpha)'.
-   *
-   * @returns {String} A string representing this Color in the format '(red, green, blue, alpha)'.
-   */
-  toString() {
-    return `(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
-  };
-
-  /**
-   * Creates a string containing the CSS color value for this color.
-   *
-   * @returns {String} The CSS equivalent of this color.
-   *
-   * @see {@link http://www.w3.org/TR/css3-color/#rgba-color|CSS RGB or RGBA color values}
-   */
-  toCssColorString() {
-    const red = Color.floatToByte(this.red);
-    const green = Color.floatToByte(this.green);
-    const blue = Color.floatToByte(this.blue);
-    if (this.alpha === 1) {
-      return `rgb(${red},${green},${blue})`;
-    }
-    return `rgba(${red},${green},${blue},${this.alpha})`;
-  };
-
-  /**
    * Creates a string containing CSS hex string color value for this color.
    *
    * @returns {String} The CSS hex string equivalent of this color.
@@ -377,13 +128,6 @@ class Color {
     let b = Color.floatToByte(this.blue).toString(16);
     if (b.length < 2) {
       b = `0${b}`;
-    }
-    if (this.alpha < 1) {
-      let hexAlpha = Color.floatToByte(this.alpha).toString(16);
-      if (hexAlpha.length < 2) {
-        hexAlpha = `0${hexAlpha}`;
-      }
-      return `#${r}${g}${b}${hexAlpha}`;
     }
     return `#${r}${g}${b}`;
   };
@@ -558,34 +302,6 @@ class Color {
     return result;
   };
 
-
-
-
-  /**
-   * Creates a new Color from a single numeric unsigned 32-bit RGBA value, using the endianness
-   * of the system.
-   *
-   * @param {Number} rgba A single numeric unsigned 32-bit RGBA value.
-   * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-   * @returns {Color} The color object.
-   *
-   * @example
-   * const color = Cesium.Color.fromRgba(0x67ADDFFF);
-   *
-   * @see Color#toRgba
-   */
-  static fromRgba(rgba, result) {
-    // scratchUint32Array and scratchUint8Array share an underlying array buffer
-    scratchUint32Array[0] = rgba;
-    return Color.fromBytes(
-      scratchUint8Array[0],
-      scratchUint8Array[1],
-      scratchUint8Array[2],
-      scratchUint8Array[3],
-      result
-    );
-  };
-
   /**
    * Creates a Color instance from hue, saturation, and lightness.
    *
@@ -660,17 +376,17 @@ class Color {
    *
    * @example
    * //Create a completely random color
-   * const color = Cesium.Color.fromRandom();
+   * const color = Color.fromRandom();
    *
    * //Create a random shade of yellow.
-   * const color1 = Cesium.Color.fromRandom({
+   * const color1 = Color.fromRandom({
    *     red : 1.0,
    *     green : 1.0,
    *     alpha : 1.0
    * });
    *
    * //Create a random bright color.
-   * const color2 = Cesium.Color.fromRandom({
+   * const color2 = Color.fromRandom({
    *     minimumRed : 0.75,
    *     minimumGreen : 0.75,
    *     minimumBlue : 0.75,
@@ -758,7 +474,6 @@ class Color {
       result.red = parseInt(matches[1], 16) / 15;
       result.green = parseInt(matches[2], 16) / 15.0;
       result.blue = parseInt(matches[3], 16) / 15.0;
-      result.alpha = parseInt(defaultValue(matches[4], "f"), 16) / 15.0;
       return result;
     }
 
@@ -767,7 +482,6 @@ class Color {
       result.red = parseInt(matches[1], 16) / 255.0;
       result.green = parseInt(matches[2], 16) / 255.0;
       result.blue = parseInt(matches[3], 16) / 255.0;
-      result.alpha = parseInt(defaultValue(matches[4], "ff"), 16) / 255.0;
       return result;
     }
 
@@ -779,7 +493,6 @@ class Color {
         parseFloat(matches[2]) / ("%" === matches[2].substr(-1) ? 100.0 : 255.0);
       result.blue =
         parseFloat(matches[3]) / ("%" === matches[3].substr(-1) ? 100.0 : 255.0);
-      result.alpha = parseFloat(defaultValue(matches[4], "1.0"));
       return result;
     }
 
@@ -797,48 +510,6 @@ class Color {
     result = undefined;
     return result;
   };
-
-  /**
-   * Stores the provided instance into the provided array.
-   *
-   * @param {Color} value The value to pack.
-   * @param {Number[]} array The array to pack into.
-   * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
-   *
-   * @returns {Number[]} The array that was packed into
-   */
-  static pack(value, array, startingIndex) {
-
-    startingIndex = defaultValue(startingIndex, 0);
-    array[startingIndex++] = value.red;
-    array[startingIndex++] = value.green;
-    array[startingIndex++] = value.blue;
-    array[startingIndex] = value.alpha;
-
-    return array;
-  };
-
-  /**
-   * Retrieves an instance from a packed array.
-   *
-   * @param {Number[]} array The packed array.
-   * @param {Number} [startingIndex=0] The starting index of the element to be unpacked.
-   * @param {Color} [result] The object into which to store the result.
-   * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-   */
-  static unpack(array, startingIndex, result) {
-
-    startingIndex = defaultValue(startingIndex, 0);
-    if (!defined(result)) {
-      result = new Color();
-    }
-    result.red = array[startingIndex++];
-    result.green = array[startingIndex++];
-    result.blue = array[startingIndex++];
-    result.alpha = array[startingIndex];
-    return result;
-  };
-
   /**
    * Converts a 'byte' color component in the range of 0 to 255 into
    * a 'float' color component in the range of 0 to 1.0.

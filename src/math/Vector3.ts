@@ -16,6 +16,18 @@ import GMath from "./Math";
  * @see Packable
  */
 class Vector3 {
+    sub(target: any) {
+        throw new Error("Method not implemented.");
+    }
+    applyQuaternion(quat: any) {
+        throw new Error("Method not implemented.");
+    }
+    setFromSpherical(spherical: any) {
+        throw new Error("Method not implemented.");
+    }
+    distanceToSquared(position: any) {
+        throw new Error("Method not implemented.");
+    }
   /**
  * An immutable Vector3 instance initialized to (0.0, 0.0, 0.0).
  *
