@@ -9,6 +9,7 @@ import RenderState from "./RenderState";
 import BindGroupLayout from "./BindGroupLayout";
 import BindGroup from "./BindGroup";
 import SystemRenderResource from "../core/SystemRenderResource";
+import { MipmapGenerator } from "../utils/MipmapGenerator";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -32,6 +33,8 @@ class Context {
   public presentationSize:{width:number, height:number, depth:number};
   
   public presentationFormat :GPUTextureFormat
+
+  public mipmapTools:MipmapGenerator;
 
   constructor({ canvas,container, context, pixelRatio, }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
@@ -70,7 +73,7 @@ class Context {
         console.log(error);
         //State.error = true;
       });
-
+      this.mipmapTools=new MipmapGenerator(this.device);
       this.context.configure({
         device: this.device,
        // format: navigator.gpu.getPreferredCanvasFormat(),

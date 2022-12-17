@@ -126,7 +126,9 @@ export type WebGPUTextureProps ={
 
   viewFormats?: string;
 
-  sampleType?:string
+  sampleType?:string;
+
+  needMipMap?:boolean;
 };
 export type extent3DDict= {
   width:number;

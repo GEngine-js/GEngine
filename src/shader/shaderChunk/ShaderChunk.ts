@@ -7,6 +7,7 @@ import pbrTexture from './pbr/pbrTexture';
 import pbrUtils from './pbr/pbrUtils';
 import phongFunction from './phong/phongFunction';
 import phongUtils from './phong/phongUtils';
+import environment from './environment/environment';
 const ShaderChunk={
     light:light,
     brdf:brdf,
@@ -16,6 +17,7 @@ const ShaderChunk={
     pbrStruct:pbrStruct,
     pbrFunction:pbrFunction,
     pbrTexture:pbrTexture,
-    pbrUtils:pbrUtils
+    pbrUtils:pbrUtils,
+    environment:environment
 }
 export default ShaderChunk;

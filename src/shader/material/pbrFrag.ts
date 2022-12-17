@@ -9,6 +9,7 @@ export default function pbrFrag(defines){
     #include <pbrUtils>
     #include <pbrFunction>
     #include <pbrTexture>
+    #include <environment>
     struct SystemUniform {
         projectionMatrix: mat4x4<f32>,
         viewMatrix: mat4x4<f32>,
@@ -282,7 +283,8 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
             let lightMapIrradiance:vec3<f32> = lightMapTexel.rgb * materialUniform.lightTextureIntensity;
             irradiance += lightMapIrradiance;
         #endif
-        #if ${defines.USE_ENVTEXTURE&& defines.STANDARD&&defines.ENVTEXTURE_TYPE_CUBE_UV} 
+        //&& defines.STANDARD&&defines.ENVTEXTURE_TYPE_CUBE_UV
+        #if ${defines.USE_ENVTEXTURE} 
             iblIrradiance += getIBLIrradiance( geometry.normal );
         #endif
         #if ${defines.USE_ENVTEXTURE}
@@ -308,7 +310,8 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
             let ambientOcclusion:f32 = (textureSample(aoTexture, baseSampler, input.vUv2).r - 1.0 ) * materialUniform.aoTextureIntensity + 1.0;
 
             reflectedLight.indirectDiffuse *= ambientOcclusion;
-            #if ${defines.USE_ENVTEXTURE&&defines.STANDARD} 
+            //&&defines.STANDARD
+            #if ${defines.USE_ENVTEXTURE} 
                 let dotNV:f32 = saturate( dot( geometry.normal, geometry.viewDir ) );
                 reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
             #endif

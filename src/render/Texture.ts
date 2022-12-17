@@ -49,6 +49,9 @@ export default class Texture{
                 this.setData(this.textureProp.data);
               }
             }
+            if(this.textureProp.needMipMap) {
+              this.gpuTexture=context.mipmapTools.generateMipmap(this);
+            }
             if(this.sampler)this.sampler.update(context);
         }
     }

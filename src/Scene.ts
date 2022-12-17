@@ -25,20 +25,24 @@ export class Scene extends EventDispatcher {
     private ready: boolean;
     viewport: { x: number; y: number; width: number; height: number;};
     skybox:SkyBox;
-    environment:Texture;
     constructor(options) {
         super();
         this.container = options.container instanceof HTMLDivElement? options.container:document.getElementById(options.container);
         this.lightManger = new LightManger();
         this.primitiveManger = new PrimitiveManger();
         this.context = new Context({ canvas: null,container:this.container,pixelRatio:1});
-        // this.container.appendChild(this.context.canvas);
         this.requestAdapter = options.requestAdapter||{};
         this.deviceDescriptor = options.deviceDescriptor||{};
         this.presentationContextDescriptor = options.presentationContextDescriptor;
         this.ready=false;
         this.skybox=defaultValue(options.skybox,undefined);
         this.init();
+    }
+    set environment(value){
+       this.frameState.environment=value;
+    }
+    get environment(){
+        return this.frameState.environment;
     }
     private async init() {
         if (!(await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor))) {

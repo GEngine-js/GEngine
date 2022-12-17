@@ -1,3 +1,5 @@
+import Texture from "../render/Texture";
+
 export class MipmapGenerator {
     device: GPUDevice;
     sampler: GPUSampler;
@@ -9,8 +11,7 @@ export class MipmapGenerator {
       // We'll need a new pipeline for every texture format used.
       this.pipelines = {};
     }
-  
-    getMipmapPipeline(format) {
+    private getMipmapPipeline(format) {
       let pipeline = this.pipelines[format];
       if (!pipeline) {
         // Shader modules is shared between all pipelines, so only create once.
@@ -64,7 +65,9 @@ export class MipmapGenerator {
      * @param {object} textureDescriptor - GPUTextureDescriptor the texture was created with.
      * @returns {module:External.GPUTexture} - The originally passed texture
      */
-    generateMipmap(texture, textureDescriptor) {
+    generateMipmap(sourceTexture:Texture) {
+      const texture=sourceTexture.gpuTexture;
+      const textureDescriptor=sourceTexture.textureProp;
       // TODO: Does this need to handle sRGB formats differently?
       const pipeline = this.getMipmapPipeline(textureDescriptor.format);
   
@@ -73,7 +76,7 @@ export class MipmapGenerator {
       }
   
       let mipTexture = texture;
-      const arrayLayerCount = textureDescriptor.size.depthOrArrayLayers || 1; // Only valid for 2D textures.
+      const arrayLayerCount = textureDescriptor.size.depth || 1; // Only valid for 2D textures.
   
       // If the texture was created with RENDER_ATTACHMENT usage we can render directly between mip levels.
       const renderToSource = textureDescriptor.usage & GPUTextureUsage.RENDER_ATTACHMENT;
@@ -86,7 +89,7 @@ export class MipmapGenerator {
             height: Math.ceil(textureDescriptor.size.height / 2),
             depthOrArrayLayers: arrayLayerCount,
           },
-          format: textureDescriptor.format,
+          format: <GPUTextureFormat>textureDescriptor.format,
           usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
           mipLevelCount: textureDescriptor.mipLevelCount - 1,
         };
