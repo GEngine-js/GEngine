@@ -47,6 +47,7 @@ export default class OrbitControl extends EventDispatcher{
     onPointerDown: (event: any) => void;
     onMouseWheel: (event: any) => void;
     onKeyDown: (event: any) => void;
+    getAutoRotationAngle: () => number;
     constructor( object, domElement ) {
 
 		super();
@@ -156,16 +157,20 @@ export default class OrbitControl extends EventDispatcher{
 
     saveState () {
 
-        this.target0.copy( this.target );
-        this.position0.copy( this.object.position );
+        Vector3.clone(this.target,this.target0);
+        //this.target0.copy( this.target );
+        Vector3.clone(this.object.position,this.position0)
+        //this.position0.copy( this.object.position );
         this.zoom0 = this.object.zoom;
 
     };
 
     reset() {
 
-        this.target.copy( this.target0 );
-        this.object.position.copy( this.position0 );
+        Vector3.clone(this.target0,this.target);
+        //this.target.copy( this.target0 );
+        Vector3.clone(this.position0,this.object.position)
+        //this.object.position.copy( this.position0 );
         this.object.zoom = this.zoom0;
 
         this.object.updateProjectionMatrix();
@@ -205,7 +210,7 @@ export default class OrbitControl extends EventDispatcher{
 
             if ( this.autoRotate && state === STATE.NONE ) {
 
-                rotateLeft( getAutoRotationAngle() );
+                rotateLeft( this.getAutoRotationAngle() );
 
             }
 
@@ -283,7 +288,8 @@ export default class OrbitControl extends EventDispatcher{
                 sphericalDelta.theta *= ( 1 - this.dampingFactor );
                 sphericalDelta.phi *= ( 1 - this.dampingFactor );
 
-                panOffset.multiplyScalar( 1 - this.dampingFactor );
+                Vector3.multiplyByScalar(panOffset,1 - this.dampingFactor,panOffset);
+               // panOffset.multiplyScalar( 1 - this.dampingFactor );
 
             } else {
 
@@ -305,8 +311,10 @@ export default class OrbitControl extends EventDispatcher{
 
                 this.dispatchEvent( _changeEvent );
 
-                lastPosition.copy( this.object.position );
-                lastQuaternion.copy( this.object.quaternion );
+                //lastPosition.copy( this.object.position );
+                Vector3.clone(this.object.position,lastPosition)
+                Quaternion.clone(this.object.quaternion,lastQuaternion)
+                //lastQuaternion.copy( this.object.quaternion );
                 zoomChanged = false;
 
                 return true;
@@ -364,7 +372,9 @@ export default class OrbitControl extends EventDispatcher{
 
             rotateEnd.set( event.clientX, event.clientY );
         
-            rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
+            Vector2.subtract(rotateEnd, rotateStart,rotateDelta);
+            Vector2.multiplyByScalar(rotateDelta,this.rotateSpeed,rotateDelta);
+            //rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
         
             const element = this.domElement;
         
@@ -372,7 +382,8 @@ export default class OrbitControl extends EventDispatcher{
         
             rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
         
-            rotateStart.copy( rotateEnd );
+            Vector2.clone(rotateEnd,rotateStart);
+            //rotateStart.copy( rotateEnd );
         
             this.update();
         
@@ -382,7 +393,8 @@ export default class OrbitControl extends EventDispatcher{
         
             dollyEnd.set( event.clientX, event.clientY );
         
-            dollyDelta.subVectors( dollyEnd, dollyStart );
+            Vector2.subtract(dollyEnd, dollyStart,dollyDelta)
+           // dollyDelta.subVectors( dollyEnd, dollyStart );
         
             if ( dollyDelta.y > 0 ) {
         
@@ -394,7 +406,8 @@ export default class OrbitControl extends EventDispatcher{
         
             }
         
-            dollyStart.copy( dollyEnd );
+            Vector2.clone(dollyEnd,dollyStart);
+            // dollyStart.copy( dollyEnd );
         
             this.update();
         
@@ -404,11 +417,14 @@ export default class OrbitControl extends EventDispatcher{
         
             panEnd.set( event.clientX, event.clientY );
         
-            panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
+            Vector2.subtract(panEnd, panStart,panDelta);
+            Vector2.multiplyByScalar(panDelta, this.panSpeed,panDelta)
+            //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
         
             pan( panDelta.x, panDelta.y );
         
-            panStart.copy( panEnd );
+            Vector2.clone(panEnd,panStart);
+            //panStart.copy( panEnd );
         
             this.update();
         
@@ -503,15 +519,17 @@ export default class OrbitControl extends EventDispatcher{
         
             }
         
-            rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
+            Vector2.subtract(rotateEnd, rotateStart,rotateDelta);
+            Vector2.multiplyByScalar(rotateDelta,this.rotateSpeed,rotateDelta);
+            //rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
         
             const element = this.domElement;
         
             rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
         
             rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
-        
-            rotateStart.copy( rotateEnd );
+            Vector2.clone(rotateEnd,rotateStart);
+            //rotateStart.copy( rotateEnd );
         
         }
         
@@ -531,12 +549,15 @@ export default class OrbitControl extends EventDispatcher{
                 panEnd.set( x, y );
         
             }
+            Vector2.subtract(panEnd, panStart,panDelta);
+            Vector2.multiplyByScalar(panDelta,this.panSpeed,panDelta)
         
-            panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
+            //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
         
             pan( panDelta.x, panDelta.y );
         
-            panStart.copy( panEnd );
+            Vector2.clone(panEnd,panStart)
+            // panStart.copy( panEnd );
         
         }
         
@@ -555,7 +576,8 @@ export default class OrbitControl extends EventDispatcher{
         
             dollyOut( dollyDelta.y );
         
-            dollyStart.copy( dollyEnd );
+            Vector2.clone(dollyEnd,dollyStart)
+            //dollyStart.copy( dollyEnd );
         
         }
         
@@ -587,8 +609,8 @@ export default class OrbitControl extends EventDispatcher{
         
                 this.domElement.setPointerCapture( event.pointerId );
         
-                this.domElement.addEventListener( 'pointermove', onPointerMove );
-                this.domElement.addEventListener( 'pointerup', onPointerUp );
+                this.domElement.addEventListener( 'pointermove', this.onPointerMove );
+                this.domElement.addEventListener( 'pointerup', this.onPointerUp );
         
             }
         
@@ -941,7 +963,7 @@ export default class OrbitControl extends EventDispatcher{
             event.preventDefault();
         
         }
-        const getAutoRotationAngle=()=> {
+        this.getAutoRotationAngle=()=> {
 
             return 2 * Math.PI / 60 / 60 * this.autoRotateSpeed;
         

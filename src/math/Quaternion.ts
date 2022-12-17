@@ -47,13 +47,75 @@ export class Quaternion {
 
   }
   /**
- * Duplicates this Quaternion instance.
- *
- * @param {Quaternion} [result] The object onto which to store the result.
- * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
+ * Computes the normalized form of the provided quaternion.
  */
-  clone(result) {
-    return Quaternion.clone(this, result);
+normalize() {
+    const inverseMagnitude = 1.0 / Quaternion.magnitude(this);
+    const x = this.x * inverseMagnitude;
+    const y = this.y * inverseMagnitude;
+    const z = this.z * inverseMagnitude;
+    const w = this.w * inverseMagnitude;
+
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.w = w;
+    return this;
+  }
+  invert(){
+		this.x *= - 1;
+		this.y *= - 1;
+		this.z *= - 1;
+
+		this._onChangeCallback();
+
+		return this;
+  }
+  setFromUnitVectors( vFrom:Vector3, vTo:Vector3 ) {
+
+		// assumes direction vectors vFrom and vTo are normalized
+    let r =Vector3.dot(vFrom,vTo)+1
+		if ( r < Number.EPSILON ) {
+
+			// vFrom and vTo point in opposite directions
+
+			r = 0;
+
+			if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+
+				this.x = - vFrom.y;
+				this.y = vFrom.x;
+				this.z = 0;
+				this.w = r;
+
+			} else {
+
+				this.x = 0;
+				this.y = - vFrom.z;
+				this.z = vFrom.y;
+				this.w = r;
+
+			}
+
+		} else {
+
+			// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
+
+			this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+			this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+			this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
+			this._w = r;
+
+		}
+
+		return this.normalize();
+
+	}
+  /**
+ * Duplicates this Quaternion instance.
+ */
+  clone() {
+    return Quaternion.clone(this, this);
   };
 
   /**
@@ -80,14 +142,7 @@ export class Quaternion {
     return Quaternion.equalsEpsilon(this, right, epsilon);
   };
 
-  /**
-   * Returns a string representing this quaternion in the format (x, y, z, w).
-   *
-   * @returns {String} A string representing this Quaternion.
-   */
-  toString() {
-    return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
-  };
+
   /**
    * Computes a quaternion representing a rotation around an axis.
    *
