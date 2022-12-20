@@ -188,20 +188,21 @@ export default class PbrBaseMaterial extends Material{
     update(frameState:FrameState,mesh:Mesh){
        const {context}=frameState; 
        this.updateTexture(context)
-       if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device,mesh);
+       if(this.groupLayouts.length==0)this.createBindGroupAndLayout(frameState,mesh);
        this.updateShaderAndRenderState(frameState,mesh);
        this.setShaderData(context.device);   
     }
-    private createBindGroupAndLayout(device:GPUDevice,mesh:Mesh){
+    private createBindGroupAndLayout(frameState:FrameState,mesh:Mesh){
+        const {device}=frameState.context;
         this.totalUniformCount=this.getUniformSize();
-        this.createShaderData(this.totalUniformCount,mesh);
+        this.createShaderData(this.totalUniformCount,mesh,frameState);
         this.shaderData.update(device);
 
         const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,this.type,0);
         this.groupLayouts.push(groupLayout);
         this.bindGroups.push(bindGroup);
     }
-    protected createShaderData(size:number,mesh:Mesh){
+    protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
         
         super.createShaderData(size,mesh);
 
@@ -257,15 +258,19 @@ export default class PbrBaseMaterial extends Material{
             this.shaderData.setDefine('USE_NORMALTEXTURE',true);
             this.shaderData.setTexture('normalTexture',this);
 		}
-        if (this.envTexture ) {
+        if (frameState.environment ) {
 			// uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
 			// uniforms.refractionRatio.value = material.refractionRatio;
             this.shaderData.setFloat("flipEnvTexture",this);
             this.shaderData.setDefine('USE_ENVTEXTURE',true);
+            
+            this.shaderData.setDefine('ENVTEXTURE_TYPE_CUBE_UV',true);
             this.shaderData.setFloat("ior",this);
 
             this.shaderData.setFloat("reflectivity",this);
-            this.shaderData.setTexture('envTexture',this);
+            this.shaderData.setTexture('envTexture',()=>{
+                return frameState.environment;
+            });
 		}
         if(this.emissiveTexture){
             this.shaderData.setDefine('USE_EMISSIVETEXTURE',true);

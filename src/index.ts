@@ -38,6 +38,9 @@ export {SpotLight} from './light/SpotLight';
 export {PointLight} from './light/PointLight';
 export {DirtectLight} from './light/DirtectLight';
 
+//loader
+export {default as CubeTextureLoader} from './loader/CubeTextureLoader'
+
 //webgpucontant
 export {
     FilterMode,

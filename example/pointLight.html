@@ -46,7 +46,8 @@
         Texture,
         Sampler,
         TorusKnotGeometry,
-        SkyBox
+        SkyBox,
+        CubeTextureLoader
     } from '../dist/index.js';
 
      const  init= async()=>{
@@ -73,11 +74,11 @@
             sampler:baseSampler
           });
         const pbr=new PbrBaseMaterial();
-        // pbr.baseTexture=baseTexture;
-        // pbr.baseSampler=baseSampler;
+        pbr.baseTexture=baseTexture;
+        pbr.baseSampler=baseSampler;
         pbr.roughness = 0.0;
 
-		pbr.metalness = 0.999;
+		pbr.metalness =1.0;
         const primitive=new Mesh(geometry,pbr)
         // primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
@@ -96,7 +97,9 @@
         ]
         const skybox=new SkyBox(urls);
         const scene=new Scene({container:'app',skybox});
-
+        await scene.init();
+        const env=await CubeTextureLoader(urls);
+        scene.environment=env.texture;
         scene.add(primitive);
         scene.setCamera(camera);
         scene.addLight(pointLight);

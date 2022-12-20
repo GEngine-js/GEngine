@@ -36,7 +36,7 @@ export class Scene extends EventDispatcher {
         this.presentationContextDescriptor = options.presentationContextDescriptor;
         this.ready=false;
         this.skybox=defaultValue(options.skybox,undefined);
-        this.init();
+        //this.init();
     }
     set environment(value){
        this.frameState.environment=value;

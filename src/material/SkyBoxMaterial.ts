@@ -6,6 +6,7 @@ import { getImageBitMap } from "../utils/request";
 import Texture from "../render/Texture";
 import Sampler from "../render/Sampler";
 import { CompareFunction, TextureFormat } from "../core/WebGPUConstant";
+import CubeTextureLoader from "../loader/CubeTextureLoader";
 export default class SkyBoxMaterial extends Material{
     images: any[];
     constructor(){
@@ -24,42 +25,9 @@ export default class SkyBoxMaterial extends Material{
         }
     }
     async loadTexture(urls){
-        const promises = urls.map((src) => {
-            const img = document.createElement('img');
-            img.src = src;
-            return img.decode().then(() => createImageBitmap(img));
-          });
-        this.images = await Promise.all(promises);
-        await Promise.all(this.images);
-        this.baseSampler=new Sampler({
-            magFilter: 'linear',
-            minFilter: 'linear',
-        })
-        const data=this.images.map((image,i)=>{
-           return{
-            source: image,
-            width: image.width,
-            height: image.height,
-            depth: 1,
-            x: 0,
-            y: 0,
-            z: i,
-           }
-        })
-        this.baseTexture=new Texture({
-            size:{
-                width:this.images[0].width,
-                height:this.images[0].height,
-                depth:6
-            },
-            format:  'rgba8unorm',
-            usage:GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST |
-            GPUTextureUsage.RENDER_ATTACHMENT,     
-            sampler:this.baseSampler,       
-            data,
-            viewFormats:'cube'
-        })
+        const result= await CubeTextureLoader(urls);
+        this.baseTexture=result.texture;
+        this.baseSampler=result.sampler;
     }
     update(frameState:FrameState,mesh:Mesh){
         if(this.baseTexture) this.baseTexture.update(frameState.context)

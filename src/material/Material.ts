@@ -174,7 +174,7 @@ export class Material{
         this.updateShader(frameState,mesh);
         this.updateRenderState(frameState);
     }
-    protected createShaderData(size:number,mesh:Mesh){
+    protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
         this.shaderData=new ShaderData(size);
         this.shaderData.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;

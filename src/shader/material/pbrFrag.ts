@@ -285,12 +285,12 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
         #endif
         //&& defines.STANDARD&&defines.ENVTEXTURE_TYPE_CUBE_UV
         #if ${defines.USE_ENVTEXTURE} 
-            iblIrradiance += getIBLIrradiance( geometry.normal );
+            iblIrradiance += getIBLIrradiance( geometry.normal,baseSampler,systemUniform.viewMatrix );
         #endif
         #if ${defines.USE_ENVTEXTURE}
-            radiance += getIBLRadiance( geometry.viewDir, geometry.normal, material.roughness );
+            radiance += getIBLRadiance( geometry.viewDir,baseSampler,systemUniform.viewMatrix, geometry.normal, materialUniform.roughness );
             #if ${defines.USE_CLEARCOAT}
-                clearcoatRadiance += getIBLRadiance( geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness );
+                clearcoatRadiance += getIBLRadiance( geometry.viewDir,baseSampler,systemUniform.viewMatrix, geometry.clearcoatNormal, material.clearcoatRoughness );
             #endif
         #endif
         //直接光照
@@ -334,9 +334,9 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
             #endif
             let pos:vec3<f32> = vWorldPosition;
             let v:vec3<f32> = normalize( cameraPosition - pos );
-            let n:vec3<f32> = inverseTransformDirection( normal, viewMatrix );
+            let n:vec3<f32> = inverseTransformDirection( normal, systemUniform.viewMatrix );
             let transmission:vec4<f32> = getIBLVolumeRefraction(
-            n, v, material.roughness, material.diffuseColor, material.specularColor, material.specularF90, pos, modelMatrix, viewMatrix, projectionMatrix, material.ior, material.thickness, material.attenuationColor, material.attenuationDistance );
+            n, v, material.roughness, material.diffuseColor, material.specularColor, material.specularF90, pos, modelMatrix, systemUniform.viewMatrix, systemUniform.projectionMatrix, material.ior, material.thickness, material.attenuationColor, material.attenuationDistance );
             material.transmissionAlpha = mix( material.transmissionAlpha, transmission.a, material.transmission );
             totalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );
         #endif

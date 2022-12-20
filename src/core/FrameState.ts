@@ -35,6 +35,7 @@ export class FrameState{
         this._defines=combine(value,this._defines,false)
     }
     update(camera:PerspectiveCamera){
+        if(this.environment) this.environment.update(this.context)
         this.camera=camera;
         this.commandList.reset();
         this.cullingVolume=this.camera.getCullingVolume();
