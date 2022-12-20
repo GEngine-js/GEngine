@@ -2,9 +2,6 @@ import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
-import { getImageBitMap } from "../utils/request";
-import Texture from "../render/Texture";
-import Sampler from "../render/Sampler";
 import { CompareFunction, TextureFormat } from "../core/WebGPUConstant";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 export default class SkyBoxMaterial extends Material{
