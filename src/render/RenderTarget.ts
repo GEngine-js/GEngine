@@ -1,3 +1,4 @@
+import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import { PassType } from "../core/WebGPUTypes";
 import Attachment from "./Attachment"
 import Context from "./Context";
@@ -8,12 +9,34 @@ export default class RenderTarget {
   renderPassDescriptor: GPURenderPassDescriptor;
   constructor(
     public type: PassType,
+    public context:Context,
     public colorAttachments?: Attachment[],
     public depthAttachment?: Attachment,
     public stencilAttachment?: Attachment,
     public querySet?: QuerySet
   ) {
+    this.init()
     this.renderPassDescriptor = this.getRenderPassDescriptor();
+  }
+  private init(){
+    if (this?.colorAttachments[0]?.texture==undefined) {
+        const colorTexture=new Texture({
+            size:this.context.presentationSize,
+            format:this.context.presentationFormat,
+            usage:TextureUsage.RenderAttachment|TextureUsage.TextureBinding
+        });
+        colorTexture.update(this.context);
+        this.colorAttachments[0].texture=colorTexture;
+    }
+   if (this.depthAttachment&&this.depthAttachment?.texture==undefined) {
+        const depthTexture=new Texture({
+          size:this.context.presentationSize,
+          format:TextureFormat.Depth24Plus,
+          usage:TextureUsage.RenderAttachment
+        });
+        depthTexture.update(this.context);
+        this.depthAttachment.texture=depthTexture;
+   }
   }
   public getColorTexture(index:number=0):Texture{
     const colAtt=this.colorAttachments[index];

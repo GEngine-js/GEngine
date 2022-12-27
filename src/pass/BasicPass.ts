@@ -24,26 +24,11 @@ export class BasicPass extends Pass{
         this.createRenderTarget(context);
     }
     private createRenderTarget(context:Context){
-        const colorTexture=new Texture({
-            size:this.context.presentationSize,
-            format:this.context.presentationFormat,
-            usage:TextureUsage.RenderAttachment|TextureUsage.TextureBinding
-        });
-        colorTexture.update(context);
-        const colorAttachment=new Attachment({ r: 0.14, g: 0.14, b: 0.14, a: 1 },{
-            texture:colorTexture,
-        })
-        const depthTexture=new Texture({
-            size:this.context.presentationSize,
-            format:TextureFormat.Depth24Plus,
-            usage:TextureUsage.RenderAttachment
-        });
-        depthTexture.update(context)
-        const depthAttachment=new Attachment(1.0,{
-            texture:depthTexture,
-        })
+        const colorAttachment=new Attachment({ r: 0.14, g: 0.14, b: 0.14, a: 1 })
+        const depthAttachment=new Attachment(1.0)
         this.renderTarget=new RenderTarget(
             'render',
+            context,
             [colorAttachment],
              depthAttachment
         )
