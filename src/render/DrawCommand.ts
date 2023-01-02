@@ -8,10 +8,13 @@ import { VertextBuffers } from "../core/VertextBuffers";
 import { FrameState } from "../core/FrameState";
 import BindGroupLayout from "./BindGroupLayout";
 import { ShaderSource } from "../shader/ShaderSource";
+import RenderTarget from "./RenderTarget";
 
 class DrawCommand {
 
   public type?: string;
+
+  public renderTarget?:RenderTarget;
 
   public pipeline?: Pipeline;
 

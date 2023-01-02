@@ -23,8 +23,10 @@ class Pass {
   beforRender(){
     const {device}=this.context;
     this.commandEncoder = device.createCommandEncoder();
+    //暂时这么写
     this.renderTarget.renderPassDescriptor.colorAttachments[0].view = this.context.context.getCurrentTexture().createView();
-    this.passRenderEncoder = this.commandEncoder.beginRenderPass(this.renderTarget.renderPassDescriptor);
+    //this.passRenderEncoder = this.commandEncoder.beginRenderPass(this.renderTarget.renderPassDescriptor);
+    this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.commandEncoder);
   }
   getColorTexture(index:number=0):Texture{
      return this.renderTarget.getColorTexture(index)
@@ -33,8 +35,7 @@ class Pass {
     return this.renderTarget.getDepthTexture();
   }
   afterRender(){
-    this.passRenderEncoder?.end();
-    this.passRenderEncoder = null;
+    this.renderTarget.endRenderPassEncoder();
     this.context.device.queue.submit([this.commandEncoder.finish()]);
     this.commandEncoder = null;
   }
@@ -43,8 +44,15 @@ class Pass {
       this.excuteCommand(command,);
     });
   }
-  protected excuteCommand(command){
-    this.context.render(command,this.passRenderEncoder);
+  protected excuteCommand(command:DrawCommand){
+    if (command.renderTarget) {
+      const currentRenderPassEncoder=command.renderTarget.getRenderPassEncoder(this.commandEncoder);
+      this.context.render(command,currentRenderPassEncoder);
+      command.renderTarget.endRenderPassEncoder();
+    } else {
+      this.context.render(command,this.passRenderEncoder);
+    }
+    
   }
 }
 

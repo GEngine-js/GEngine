@@ -7,6 +7,7 @@ import Texture from "./Texture";
 
 export default class RenderTarget {
   renderPassDescriptor: GPURenderPassDescriptor;
+  private renderEncoder:GPURenderPassEncoder;
   constructor(
     public type: PassType,
     public context:Context,
@@ -15,8 +16,9 @@ export default class RenderTarget {
     public stencilAttachment?: Attachment,
     public querySet?: QuerySet
   ) {
-    this.init()
+    this.init();
     this.renderPassDescriptor = this.getRenderPassDescriptor();
+    this.renderEncoder=undefined;
   }
   private init(){
     if (this?.colorAttachments[0]?.texture==undefined) {
@@ -81,6 +83,14 @@ export default class RenderTarget {
       };
     }
     return null;
+  }
+  public getRenderPassEncoder(commandEncoder:GPUCommandEncoder){
+        this.renderEncoder=commandEncoder.beginRenderPass(this.renderPassDescriptor);
+        return this.renderEncoder;
+  }
+  public endRenderPassEncoder(){
+    this.renderEncoder?.end();
+    this.renderEncoder = null;
   }
   resize(context:Context) {
     const {width,height}=context.canvas;
