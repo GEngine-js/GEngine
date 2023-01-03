@@ -10,6 +10,7 @@ import BindGroupLayout from "./BindGroupLayout";
 import BindGroup from "./BindGroup";
 import SystemRenderResource from "../core/SystemRenderResource";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
+import Pipeline from "./Pipeline";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -115,7 +116,9 @@ class Context {
   public render(command: DrawCommand,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder): void {
 
     if (command.pipeline) {
-        command.pipeline.bind(passEncoder)
+        command.pipeline.bind(passEncoder);
+        // const pipeline=Pipeline.getRenderPipelineFromCache(this.device,command,this.systemRenderResource.layouts);
+        // pipeline.bind(passEncoder)
     }
     if (command.renderState) {
       RenderState.applyRenderState(passEncoder as GPURenderPassEncoder,command.renderState)
@@ -130,7 +133,7 @@ class Context {
         command.indexFormat
       );
     }
-
+    //command.shaderData.getBindGroupAndLayout()
     if (command.bindGroups) {
       const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups);
       combineBindGroups.forEach(bindGroup => {

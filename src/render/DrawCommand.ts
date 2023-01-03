@@ -9,10 +9,13 @@ import { FrameState } from "../core/FrameState";
 import BindGroupLayout from "./BindGroupLayout";
 import { ShaderSource } from "../shader/ShaderSource";
 import RenderTarget from "./RenderTarget";
+import ShaderData from "./ShaderData";
 
 class DrawCommand {
 
   public type?: string;
+
+  public shaderData?:ShaderData;
 
   public renderTarget?:RenderTarget;
 

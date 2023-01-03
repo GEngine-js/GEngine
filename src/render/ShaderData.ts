@@ -144,9 +144,9 @@ export default class ShaderData{
         //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
        return Math.ceil(byteSize/Align)*Align-byteSize;
     }
-    public createBindGroupAndLayout(device:GPUDevice,label:string,index:number){
+    public getBindGroupAndLayout(device:GPUDevice,label:string,index:number){
         const layoutEntities=this.createBindGroupLayoutEntry();
-        const groupLayout= BindGroupLayout.getBindGroupFromCache(device,label,layoutEntities,index);
+        const groupLayout= BindGroupLayout.getBindGroupLayoutFromCache(device,label,layoutEntities,index);
         const groupEntities=this.createBindGroupEntity();
         const bindGroup=BindGroup.getBindGroupFromCache({
             label:label,
@@ -154,6 +154,19 @@ export default class ShaderData{
             device:device,
             layout:groupLayout,
             index:index
+           });
+       return {groupLayout,bindGroup}
+    }
+    public createBindGroupAndLayout(device:GPUDevice,label:string,layoutIndex?:number,groupIndex?:number){
+        const layoutEntities=this.createBindGroupLayoutEntry();
+        const groupLayout= BindGroupLayout.getBindGroupLayoutFromCache(device,label,layoutEntities,layoutIndex||0);
+        const groupEntities=this.createBindGroupEntity();
+        const bindGroup=BindGroup.getBindGroupFromCache({
+            label:label,
+            entires:groupEntities,
+            device:device,
+            layout:groupLayout,
+            index:layoutIndex||0//后续改成groupIndex
            });
        return {groupLayout,bindGroup}
     }

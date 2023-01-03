@@ -44,7 +44,7 @@ export default class PhongMaterial extends Material {
     }
     private createBindGroupAndLayout(device:GPUDevice){
 
-      const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,this.type,0,);
+      const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,this.type,0);
       this.groupLayouts.push(groupLayout);
       this.bindGroups.push(bindGroup);
     }

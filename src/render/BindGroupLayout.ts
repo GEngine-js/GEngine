@@ -20,7 +20,7 @@ class BindGroupLayout {
       )
     });
   }
-  static getBindGroupFromCache(device:GPUDevice,label:string,entires:BindGroupLayoutEntry[],index):BindGroupLayout{
+  static getBindGroupLayoutFromCache(device:GPUDevice,label:string,entires:BindGroupLayoutEntry[],index):BindGroupLayout{
     if (layoutCache.has(label)) {
       return layoutCache.get(label)
     } else {
