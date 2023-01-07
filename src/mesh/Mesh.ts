@@ -50,10 +50,8 @@ export class Mesh extends RenderObject {
         
     }
     private createCommand(frameState: FrameState) {
-        const {context,pass}=frameState;
-        const {device,systemRenderResource}=context;
         if (this.material.dirty) this.material.dirty=false;
-        const drawCommand = new DrawCommand({
+        this.drawCommand= new DrawCommand({
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,
@@ -63,12 +61,10 @@ export class Mesh extends RenderObject {
             renderState:this.material.renderState,
             topology:this.geometry.topology as GPUPrimitiveTopology,
             shaderSource:this.material.shaderSource,
-            uuid:this.material.type+this.material.shaderSource.uid,
             type:'render',
             onwer:this,
             materialType:this.material.type       
         });
-        this.drawCommand = drawCommand;
     }
     destroy() {
         this.geometry.destroy();

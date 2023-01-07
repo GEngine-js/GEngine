@@ -198,7 +198,6 @@ export default class PbrBaseMaterial extends Material{
         super.createShaderData(size,mesh);
 
         this.shaderData.setFloat("roughness",this);
-
         this.shaderData.setFloat("metalness",this);
 
         if (this.baseTexture) {

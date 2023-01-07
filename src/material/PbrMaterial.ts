@@ -255,24 +255,12 @@ export default class PbrMaterial extends PbrBaseMaterial {
 
     }
     update(frameState: FrameState, mesh: Mesh) {
-        const { context } = frameState;
-        // this.updateTexture(context);
-        // if(this.uniforms.length==0) this.createUniforms(mesh);
+        const { context } = frameState;        
+        this.totalUniformCount=this.getUniformSize();
+        if(!this.shaderData) this.createShaderData(this.totalUniformCount,mesh);
         super.update(frameState, mesh)
-        //if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
-        // this.setShaderData(context.device);
     }
-    // private createBindGroupAndLayout(device:GPUDevice){
-    //     this.createUniformBuffer(device);
-    //     const {groupLayout,bindGroup}= Material.createBindGroupAndLayout(device,this.uniforms,this.uniformBuffer,this.type,0);
-    //     this.groupLayouts.push(groupLayout);
-    //     this.bindGroups.push(bindGroup);
-    // }
-    // private createUniformBuffer(device:GPUDevice){
-    //      this.uniformBuffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
-    //}
     protected createShaderData(size: number, mesh: Mesh) {
-        // this.totalUniformCount=this.getUniformSize();
         super.createShaderData(size, mesh);
         this.shaderData.setDefine('IOR', true);
         this.shaderData.setDefine('SPECULAR', true);
@@ -368,19 +356,6 @@ export default class PbrMaterial extends PbrBaseMaterial {
             this.shaderData.setDefine('USE_SPECULARCOLORTEXTURE', true);
             this.shaderData.setTexture('specularColorTexture', this);
         }
-    }
-    protected updateTexture(context: Context):void {
-        if (this.sheenRoughnessTexture) this.sheenRoughnessTexture.update(context);
-        if (this.sheenColorTexture) this.sheenColorTexture.update(context);
-        if (this.thicknessTexture) this.thicknessTexture.update(context);
-        if (this.transmissionTexture) this.transmissionTexture.update(context);
-        if (this.clearcoatTexture) this.clearcoatTexture.update(context);
-        if (this.clearcoatRoughnessTexture) this.clearcoatRoughnessTexture.update(context);
-        if (this.clearcoatNormalTexture) this.clearcoatNormalTexture.update(context);
-        if (this.iridescenceTexture) this.iridescenceTexture.update(context);
-        if (this.iridescenceThicknessTexture) this.iridescenceThicknessTexture.update(context);
-        if (this.specularIntensityTexture) this.specularIntensityTexture.update(context);
-        if (this.specularColorTexture) this.specularColorTexture.update(context);
     }
     protected getUniformSize(): number {
         let parentSize = super.getUniformSize();

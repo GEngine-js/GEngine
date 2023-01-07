@@ -33,10 +33,11 @@ export default class Pipeline{
        
     }
     static getRenderPipelineFromCache(device:GPUDevice,drawComand:DrawCommand,groupLayouts:BindGroupLayout[]):Pipeline{ 
-        const {renderState,uuid}=drawComand; 
-        const rs=RenderState.getFromRenderStateCache(renderState)
+        const {renderState,shaderSource,materialType}=drawComand; 
+        const rs=RenderState.getFromRenderStateCache(renderState);
         const rsStr=JSON.stringify(rs);
-        const combineStr=uuid.concat(rsStr);
+        
+        const combineStr=materialType.concat(shaderSource.uid).concat(rsStr);
         const hashId= stringToHash(combineStr);
         const combineLayouts=groupLayouts.sort((layout1,layout2)=>layout1.index-layout2.index)
         let pipeline = renderPipelines.get(hashId);
@@ -48,8 +49,8 @@ export default class Pipeline{
         return pipeline;
       }
      static getComputePipelineFromCache(device:GPUDevice,drawComand:DrawCommand,groupLayouts:BindGroupLayout[]):Pipeline{
-        
-        const hashId= stringToHash(drawComand.uuid);
+      const {shaderSource,materialType}=drawComand;
+        const hashId= stringToHash(materialType.concat(shaderSource.uid));
         let pipeline =computePipelines.get(hashId);
         if(!pipeline){
           const {shaderSource}=drawComand;
