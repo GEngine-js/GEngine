@@ -32,13 +32,13 @@ export default class Pipeline{
         }
        
     }
-    static getRenderPipelineFromCache(device:GPUDevice,drawComand:DrawCommand,systemGroupLayouts:BindGroupLayout[]):Pipeline{ 
-        const {renderState,uuid,groupLayouts}=drawComand; 
+    static getRenderPipelineFromCache(device:GPUDevice,drawComand:DrawCommand,groupLayouts:BindGroupLayout[]):Pipeline{ 
+        const {renderState,uuid}=drawComand; 
         const rs=RenderState.getFromRenderStateCache(renderState)
         const rsStr=JSON.stringify(rs);
         const combineStr=uuid.concat(rsStr);
         const hashId= stringToHash(combineStr);
-        const combineLayouts=groupLayouts.concat(systemGroupLayouts).sort((layout1,layout2)=>layout1.index-layout2.index)
+        const combineLayouts=groupLayouts.sort((layout1,layout2)=>layout1.index-layout2.index)
         let pipeline = renderPipelines.get(hashId);
         if(!pipeline){
           const descriptor=Pipeline.getPipelineDescriptor(device,drawComand,rs,combineLayouts,hashId.toString());
@@ -47,12 +47,12 @@ export default class Pipeline{
         }
         return pipeline;
       }
-     static getComputePipelineFromCache(device:GPUDevice,drawComand:DrawCommand):Pipeline{
+     static getComputePipelineFromCache(device:GPUDevice,drawComand:DrawCommand,groupLayouts:BindGroupLayout[]):Pipeline{
         
         const hashId= stringToHash(drawComand.uuid);
         let pipeline =computePipelines.get(hashId);
         if(!pipeline){
-          const {shaderSource,groupLayouts}=drawComand;
+          const {shaderSource}=drawComand;
           pipeline =device.createComputePipeline({
             layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId.toString(),groupLayouts).gpuPipelineLayout,
             compute: {
@@ -65,7 +65,7 @@ export default class Pipeline{
         return pipeline;
       }
      private static getPipelineDescriptor(device:GPUDevice,drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
-        const {vertexBuffers,topology,indexFormat,shaderSource}=drawComand;
+        const {vertexBuffers,topology,shaderSource}=drawComand;
         const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}
         const primitiveState: GPUPrimitiveState = {
           topology:topology as GPUPrimitiveTopology,

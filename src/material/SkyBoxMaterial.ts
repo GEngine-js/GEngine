@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-12-10 20:24:50
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-07 14:43:47
+ * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 import { Mesh } from "../mesh/Mesh";
@@ -27,10 +35,8 @@ export default class SkyBoxMaterial extends Material{
         this.baseSampler=result.sampler;
     }
     update(frameState:FrameState,mesh:Mesh){
-        if(this.baseTexture) this.baseTexture.update(frameState.context)
         if(!this.shaderData) this.createBindGroupAndLayout(frameState.context.device,mesh);
         this.updateShaderAndRenderState(frameState,mesh);
-        this.setShaderData(frameState.context.device);
     }
 
     private createBindGroupAndLayout(device:GPUDevice,mesh:Mesh){
@@ -38,9 +44,5 @@ export default class SkyBoxMaterial extends Material{
         this.createShaderData(this.totalUniformCount,mesh);
         this.shaderData.setTexture('baseTexture',this);
         this.shaderData.setSampler('baseSampler',this)
-        this.shaderData.update(device)
-        const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,'axes',0);
-        this.groupLayouts.push(groupLayout);
-        this.bindGroups.push(bindGroup);
     }
 }

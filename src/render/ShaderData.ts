@@ -5,6 +5,7 @@ import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
 import BindGroupLayout from "./BindGroupLayout";
 import BindGroup from "./BindGroup";
 import defaultValue from "../utils/defaultValue";
+import Context from "./Context";
 export default class ShaderData{
 
     byteOffset:number;
@@ -21,11 +22,17 @@ export default class ShaderData{
 
     defineDirty:boolean;
 
+    label:string;
+
+    bindGroup:BindGroup;
+
+    groupLayout:BindGroupLayout;
+
     protected _uniforms:Map<string,any>;
 
     private uniformDirty:boolean;
 
-    constructor(size?:number,buffer?:Buffer,data?:Float32Array){
+    constructor(label:string,size?:number,buffer?:Buffer,data?:Float32Array){
        this.byteOffset=0;
        this.totalUniformCount=size;
        if(this.totalUniformCount>0){
@@ -34,6 +41,7 @@ export default class ShaderData{
          this.data=defaultValue(data,undefined);
        }
        this.buffer=defaultValue(buffer,undefined);
+       this.label=label;
        this.textureBinding=1;
        this.defineDirty=true;
        this.uniformDirty=true;
@@ -124,8 +132,12 @@ export default class ShaderData{
     }
     update(device:GPUDevice,other?:any){
         this._uniforms.forEach((uniform)=>{
-           const result= uniform.set();
-           if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
+            if (uniform.type=='texture'||uniform.type=='sampler') {
+                //uniform.update(context)
+            } else {
+                const result= uniform.set();
+                if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
+            }
         });
         if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
         if(this.uniformDirty){
@@ -133,12 +145,35 @@ export default class ShaderData{
             this.buffer.setSubData(0,this.data);
         }
     }
+
+    bind(context:Context,passEncoder:GPURenderPassEncoder){
+       this.uploadUniform(context);
+       const {groupLayout,bindGroup}=this.createBindGroupAndLayout(context.device,this.label,0,0);
+       bindGroup.bind(passEncoder)
+       this.bindGroup=bindGroup;
+       this.groupLayout=groupLayout;
+    }
     destroy(){
         this.byteOffset=0;
         this.totalUniformCount=0;
         this.data=undefined;
         this.buffer.destroy();
         this._uniforms=new Map(); 
+    }
+    private uploadUniform(context:Context){
+        this._uniforms.forEach((uniform)=>{
+            if (uniform.type=='texture'||uniform.type=='sampler') {
+                uniform.update(context)
+            } else {
+                const result= uniform.set();
+                if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
+            }
+        });
+        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.totalUniformCount*4);
+        if(this.uniformDirty){
+             this.uniformDirty=false;
+            this.buffer.setSubData(0,this.data);
+        }
     }
     private checkUniformOffset(byteSize:number,Align:number):number{
         //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
@@ -166,7 +201,7 @@ export default class ShaderData{
             entires:groupEntities,
             device:device,
             layout:groupLayout,
-            index:layoutIndex||0//后续改成groupIndex
+            index:groupIndex||0//后续改成groupIndex
            });
        return {groupLayout,bindGroup}
     }

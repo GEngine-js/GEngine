@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-12-10 20:02:44
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-07 14:44:14
+ * @FilePath: \GEngine\src\mesh\SkyBox.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { FrameState } from "../core/FrameState";
 import { PrimitiveTopology} from "../core/WebGPUConstant";
 import SkyBoxGeometry from "../geometry/SkyBoxGeometry";
@@ -26,22 +34,19 @@ export default class SkyBox extends Mesh {
         frameState.commandList.opaque.push(this.drawCommand);
     }
     private createDrawComand(frameState: FrameState) {
-        const {device,systemRenderResource}=frameState.context
         this.drawCommand = new DrawCommand({
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,
-            bindGroups: this.material.bindGroups,
+            shaderData:this.material.shaderData,
             instances: 1,
             count: this.geometry.count,
             renderState:this.material.renderState,
             topology:PrimitiveTopology.TriangleList,
             shaderSource:this.material.shaderSource,
-            groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
             type:'render',
             onwer:this      
         });
-        this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };
 }

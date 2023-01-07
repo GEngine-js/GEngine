@@ -49,7 +49,6 @@ export default class Texture{
                 this.setData(this.textureProp.data);
               }
             }
-            debugger
             if(this.textureProp.needMipMap) {
               this.gpuTexture=context.mipmapTools.generateMipmap(this);
             }

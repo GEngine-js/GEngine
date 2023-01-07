@@ -57,18 +57,17 @@ export class Mesh extends RenderObject {
             vertexBuffers: this.geometry.vertexBuffers,
             indexBuffer: this.geometry.indexBuffer,
             indexFormat: this.geometry.stripIndexFormat,
-            bindGroups: this.material.bindGroups,
+            shaderData:this.material.shaderData,
             instances: this.instances,
             count: this.geometry.count,
             renderState:this.material.renderState,
             topology:this.geometry.topology as GPUPrimitiveTopology,
             shaderSource:this.material.shaderSource,
-            groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
             type:'render',
-            onwer:this       
+            onwer:this,
+            materialType:this.material.type       
         });
-        drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,drawCommand,systemRenderResource.layouts);
         this.drawCommand = drawCommand;
     }
     destroy() {

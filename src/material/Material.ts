@@ -175,7 +175,7 @@ export class Material{
         this.updateRenderState(frameState);
     }
     protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
-        this.shaderData=new ShaderData(size);
+        this.shaderData=new ShaderData(this.type,size);
         this.shaderData.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;
         });
@@ -185,12 +185,6 @@ export class Material{
             return mesh.normalMatrix;
         });
         this.shaderData.setColor('emissive',this);  
-    }
-    protected setShaderData(device:GPUDevice){
-        this.shaderData.update(device);
-    }
-    protected updateTexture(context:Context):void{
-        
     }
     protected getUniformSize(){
        let size= 16+12+3+1+3;

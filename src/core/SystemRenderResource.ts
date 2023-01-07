@@ -57,7 +57,7 @@ export default class SystemRenderResource{
     }
     private createSystemBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
 
-        this.systemShaderData=new ShaderData(208);
+        this.systemShaderData=new ShaderData('system',208);
 
         this.systemShaderData.update(device);
 
@@ -73,7 +73,7 @@ export default class SystemRenderResource{
         this.systemShaderData.setFloatVec3('position',()=>{       
             return camera.position;
         });
-        const {groupLayout,bindGroup}= this.systemShaderData.createBindGroupAndLayout(device,'system',1);
+        const {groupLayout,bindGroup}= this.systemShaderData.createBindGroupAndLayout(device,'system',1,1);
         this.systemGroup=bindGroup;
         this.systemLayout=groupLayout;
 
@@ -93,7 +93,7 @@ export default class SystemRenderResource{
        if(lightManger.lightDefines.dirtectLight){
             this.lightShaderData.setLight('dirtectLightsBuffer',lightManger.lightDefines.dirtectLightBinding,lightManger.dirtectLightsByte)
        }
-        const {groupLayout,bindGroup}= this.lightShaderData.createBindGroupAndLayout(device,'light',2);
+        const {groupLayout,bindGroup}= this.lightShaderData.createBindGroupAndLayout(device,'light',2,2);
         this.lightLayout=groupLayout;
         this.lightGroup=bindGroup;
     }

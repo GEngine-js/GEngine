@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-11-13 17:27:40
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-07 14:11:28
+ * @FilePath: \GEngine\src\mesh\Axes.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { FrameState } from "../core/FrameState";
 import RenderObject from "../core/RenderObject";
 import { VertextBuffers } from "../core/VertextBuffers";
@@ -68,17 +76,18 @@ export default class Axes extends Mesh {
             vertexBuffers: this.vertBuffers,
             indexBuffer: this.indexBuffer,
             indexFormat: IndexFormat.Uint16,
-            bindGroups: this.material.bindGroups,
+            // bindGroups: this.material.bindGroups,
+            shaderData:this.material.shaderData,
             instances: 1,
             count: this.count,
             renderState:this.material.renderState,
             topology:PrimitiveTopology.LineList,
             shaderSource:this.material.shaderSource,
-            groupLayouts:this.material.groupLayouts,
+            // groupLayouts:this.material.groupLayouts,
             uuid:this.material.type+this.material.shaderSource.uid,
             type:'render',
             onwer:this       
         });
-        this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
+        //this.drawCommand.pipeline=Pipeline.getRenderPipelineFromCache(device,this.drawCommand,systemRenderResource.layouts);
     };
 }

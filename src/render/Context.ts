@@ -1,7 +1,5 @@
-import {
-  GPUCanvasCompositingAlphaMode,
-} from "../core/WebGPUTypes";
-import{TextureUsage} from '../core/WebGPUConstant'
+import { GPUCanvasCompositingAlphaMode } from "../core/WebGPUTypes";
+import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
 import RenderTarget from "./RenderTarget";
@@ -19,39 +17,40 @@ class Context {
 
   public pixelRatio: number;
 
-  public device:GPUDevice;
+  public device: GPUDevice;
 
   private adapter: GPUAdapter;
 
   public commandEncoder: GPUCommandEncoder | null;
 
   private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
-  
-  public currentRenderTarget:RenderTarget;
 
-  public systemRenderResource:SystemRenderResource;
+  public currentRenderTarget: RenderTarget;
 
-  public presentationSize:{width:number, height:number, depth:number};
-  
-  public presentationFormat :GPUTextureFormat
+  public systemRenderResource: SystemRenderResource;
 
-  public mipmapTools:MipmapGenerator;
+  public presentationSize: { width: number; height: number; depth: number };
 
-  constructor({ canvas,container, context, pixelRatio, }: ContextOptions = {}) {
+  public presentationFormat: GPUTextureFormat;
+
+  public mipmapTools: MipmapGenerator;
+
+  constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
-    this.canvas.style.display = 'block';
-    this.canvas.width= window.innerWidth;
-    this.canvas.height=window.innerHeight;
+    this.canvas.style.display = "block";
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
     container.appendChild(this.canvas);
-    this.context =context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
-    this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;   
-    this.device=undefined;
+    this.context =
+      context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
+    this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
+    this.device = undefined;
   }
 
   public async init(
     requestAdapter = {},
     deviceDescriptor = {},
-    presentationContextDescriptor = {},
+    presentationContextDescriptor = {}
     // glslangPath: string
   ): Promise<boolean> {
     try {
@@ -65,26 +64,25 @@ class Context {
       this.adapter = await navigator.gpu.requestAdapter();
       this.device = await this.adapter.requestDevice();
       this.presentationSize = {
-        width:this.canvas.clientWidth * this.pixelRatio,
-        height:this.canvas.clientHeight * this.pixelRatio,
-        depth:1
+        width: this.canvas.clientWidth * this.pixelRatio,
+        height: this.canvas.clientHeight * this.pixelRatio,
+        depth: 1,
       };
       this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
       this.device.addEventListener("uncapturederror", (error) => {
         console.log(error);
         //State.error = true;
       });
-      this.mipmapTools=new MipmapGenerator(this.device);
+      this.mipmapTools = new MipmapGenerator(this.device);
       this.context.configure({
         device: this.device,
-       // format: navigator.gpu.getPreferredCanvasFormat(),
-        format:this.presentationFormat,
+        // format: navigator.gpu.getPreferredCanvasFormat(),
+        format: this.presentationFormat,
         usage: TextureUsage.RenderAttachment,
         alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
         ...presentationContextDescriptor,
       });
-      this.systemRenderResource=new SystemRenderResource();
-      
+      this.systemRenderResource = new SystemRenderResource();
     } catch (error) {
       console.error(error);
       return false;
@@ -113,18 +111,30 @@ class Context {
     });
   }
 
-  public render(command: DrawCommand,passEncoder:GPURenderPassEncoder | GPUComputePassEncoder): void {
-
-    if (command.pipeline) {
-        command.pipeline.bind(passEncoder);
-        // const pipeline=Pipeline.getRenderPipelineFromCache(this.device,command,this.systemRenderResource.layouts);
-        // pipeline.bind(passEncoder)
-    }
+  public render(
+    command: DrawCommand,
+    passEncoder: GPURenderPassEncoder | GPUComputePassEncoder
+  ): void {
+    if (command.shaderData)
+      command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
+    //设置系统
+    this.systemRenderResource.groups.forEach((bindGroup) => {
+      bindGroup.bind(passEncoder as GPURenderPassEncoder);
+    });
+    const pipeline = Pipeline.getRenderPipelineFromCache(
+      this.device,
+      command,
+      this.systemRenderResource.layouts.concat(command.shaderData.groupLayout)
+    );
+    pipeline.bind(passEncoder);
     if (command.renderState) {
-      RenderState.applyRenderState(passEncoder as GPURenderPassEncoder,command.renderState)
+      RenderState.applyRenderState(
+        passEncoder as GPURenderPassEncoder,
+        command.renderState
+      );
     }
     if (command.vertexBuffers) {
-      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder)
+      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
     }
 
     if (command.indexBuffer) {
@@ -132,13 +142,6 @@ class Context {
         command.indexBuffer.gpuBuffer,
         command.indexFormat
       );
-    }
-    //command.shaderData.getBindGroupAndLayout()
-    if (command.bindGroups) {
-      const combineBindGroups=command.bindGroups.concat(this.systemRenderResource.groups);
-      combineBindGroups.forEach(bindGroup => {
-            bindGroup.bind(passEncoder as GPURenderPassEncoder)
-      });
     }
     if (command.indexBuffer) {
       (passEncoder as GPURenderPassEncoder).drawIndexed(

@@ -53,6 +53,8 @@ class DrawCommand {
 
   public onwer?:Object;
 
+  public materialType?:string
+
   constructor(options: DrawCommand) {
     Object.assign(this, options);
   }

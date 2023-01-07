@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-19 16:03:28
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-07 13:59:42
+ * @FilePath: \GEngine\src\material\PhongMaterial.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { Material } from "./Material";
 import Buffer from '../render/Buffer';
 import {UniformFloatVec4,UniformMat4, UniformSampler, UniformTexture } from "../render/Uniforms";
@@ -37,10 +45,10 @@ export default class PhongMaterial extends Material {
         const {device}=frameState.context;
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
         if(!this.shaderData) this.createShaderData(0,mesh);
-        this.shaderData.update(device);
+        // this.shaderData.update(device);
         this.updateShaderAndRenderState(frameState,mesh)
-        if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
-        this.setShaderData(device);
+        // if(this.groupLayouts.length==0)this.createBindGroupAndLayout(device);
+        // this.setShaderData(device);
     }
     private createBindGroupAndLayout(device:GPUDevice){
 
@@ -73,7 +81,7 @@ export default class PhongMaterial extends Material {
               GPUTextureUsage.RENDER_ATTACHMENT,
             sampler:baseSampler
           });
-          this.baseTexture.update(context);
+          //this.baseTexture.update(context);
      }
      protected getUniformSize(){
         let uniformSize= super.getUniformSize()+4;

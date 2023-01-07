@@ -186,21 +186,12 @@ export default class PbrBaseMaterial extends Material{
         // uniforms.refractionRatio.value = material.refractionRatio;
     }
     update(frameState:FrameState,mesh:Mesh){
-       const {context}=frameState; 
-       this.updateTexture(context)
-       if(this.groupLayouts.length==0)this.createBindGroupAndLayout(frameState,mesh);
+       if(!this.shaderData)this.createBindGroupAndLayout(frameState,mesh);
        this.updateShaderAndRenderState(frameState,mesh);
-       this.setShaderData(context.device);   
     }
     private createBindGroupAndLayout(frameState:FrameState,mesh:Mesh){
-        const {device}=frameState.context;
         this.totalUniformCount=this.getUniformSize();
         this.createShaderData(this.totalUniformCount,mesh,frameState);
-        this.shaderData.update(device);
-
-        const {groupLayout,bindGroup}= this.shaderData.createBindGroupAndLayout(device,this.type,0);
-        this.groupLayouts.push(groupLayout);
-        this.bindGroups.push(bindGroup);
     }
     protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
         
@@ -276,35 +267,6 @@ export default class PbrBaseMaterial extends Material{
             this.shaderData.setDefine('USE_EMISSIVETEXTURE',true);
             this.shaderData.setTexture('emissiveTexture',this)
         }
-    }
-    protected updateTexture(context:Context):void{
-        if(this.baseTexture) this.baseTexture.update(context);
-        if(this.bumpTexture) this.bumpTexture.update(context);
-        if(this.normalTexture)  this.normalTexture.update(context);
- 
-        if(this.aoTexture) this.aoTexture.update(context);
-
-        // if(this.specularTexture) {
-        //     this.shaderData.setDefine('USE_SPECULARTEXTURE',true);
-        //     this.specularTexture.update(context);
-        // }
-  
-        // if(this.alphaTexture){
-        //     this.shaderData.setDefine('USE_ALPHATEXTURE',true);
-        //     this.alphaTexture.update(context);
-        // }
- 
-        if(this.envTexture)this.envTexture.update(context);
-
-        if(this.emissiveTexture) this.emissiveTexture.update(context);
-
-        if(this.roughnessTexture)this.roughnessTexture.update(context);
-
-        if(this.displacementTexture)this.displacementTexture.update(context);
-  
-        if(this.metalnessTexture) this.metalnessTexture.update(context);
- 
-        if(this.lightTexture) this.lightTexture.update(context);
     }
     protected getUniformSize(){
         let parentByteSize=super.getUniformSize()

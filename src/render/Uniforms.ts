@@ -11,6 +11,7 @@ import Texture from './Texture';
 import Sampler from './Sampler';
 import { Light } from '../light/Light';
 import Buffer from './Buffer';
+import Context from './Context';
 export class Uniform<T> {
     _value: T;
     name: string;
@@ -228,6 +229,9 @@ export class UniformTexture extends Uniform<Texture>{
         this.type='texture';
         this.visibility=ShaderStage.Fragment;
     }
+    update(context:Context){
+        this.value.update(context)
+    }
     set(){
         return undefined;
      }
@@ -239,6 +243,9 @@ export class UniformSampler extends Uniform<Sampler>{
         this.binding=binding;
         this.type='sampler';
         this.visibility=ShaderStage.Fragment;
+    }
+    update(context:Context){
+        this.value.update(context)
     }
     set(){
         return undefined;

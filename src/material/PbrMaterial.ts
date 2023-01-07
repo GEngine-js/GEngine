@@ -256,11 +256,11 @@ export default class PbrMaterial extends PbrBaseMaterial {
     }
     update(frameState: FrameState, mesh: Mesh) {
         const { context } = frameState;
-        this.updateTexture(context);
+        // this.updateTexture(context);
         // if(this.uniforms.length==0) this.createUniforms(mesh);
         super.update(frameState, mesh)
         //if(this.groupLayouts.length==0)this.createBindGroupAndLayout(context.device);
-        this.setShaderData(context.device);
+        // this.setShaderData(context.device);
     }
     // private createBindGroupAndLayout(device:GPUDevice){
     //     this.createUniformBuffer(device);
