@@ -133,9 +133,7 @@ class Context {
         command.renderState
       );
     }
-    if (command.vertexBuffers) {
-      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
-    }
+    if (command.vertexBuffers)command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
 
     if (command.indexBuffer) {
       (passEncoder as GPURenderPassEncoder).setIndexBuffer(

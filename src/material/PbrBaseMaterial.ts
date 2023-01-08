@@ -9,29 +9,29 @@ import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
 
-export default class PbrBaseMaterial extends Material{
+export default class PbrBaseMaterial extends Material {
 
-    public bumpTexture:Texture;
+    public bumpTexture: Texture;
 
-    public normalTexture:Texture;
+    public normalTexture: Texture;
 
-    public aoTexture:Texture;
+    public aoTexture: Texture;
 
-    public specularTexture:Texture;
+    public specularTexture: Texture;
 
-    public alphaTexture:Texture;
+    public alphaTexture: Texture;
 
-    public envTexture:Texture;
+    public envTexture: Texture;
 
-    public emissiveTexture:Texture;
+    public emissiveTexture: Texture;
 
-    public roughnessTexture:Texture;
+    public roughnessTexture: Texture;
 
-    public displacementTexture:Texture;
+    public displacementTexture: Texture;
 
-    public metalnessTexture:Texture;
+    public metalnessTexture: Texture;
 
-    public lightTexture:Texture;
+    public lightTexture: Texture;
 
     private _roughness: number;
 
@@ -57,112 +57,112 @@ export default class PbrBaseMaterial extends Material{
 
     private _flipEnvTexture: number;
 
-    public get roughness():number{
+    public get roughness(): number {
         return this._roughness
     }
-    public set roughness(value){
-        this._roughness=value;
+    public set roughness(value) {
+        this._roughness = value;
     }
-    public get metalness() : number {
+    public get metalness(): number {
         return this._metalness
     }
-    public set metalness(v : number) {
+    public set metalness(v: number) {
         this._metalness = v;
-    } 
-    public get lightTextureIntensity() : number {
+    }
+    public get lightTextureIntensity(): number {
         return this._lightTextureIntensity
     }
-    public set lightTextureIntensity(v : number) {
+    public set lightTextureIntensity(v: number) {
         this._lightTextureIntensity = v;
     }
-    public get aoTextureIntensity() : number {
+    public get aoTextureIntensity(): number {
         return this._aoTextureIntensity
     }
-    public set aoTextureIntensity(v : number) {
+    public set aoTextureIntensity(v: number) {
         this._aoTextureIntensity = v;
     }
-    public get bumpScale() : number {
-        if(this.renderState&&this.renderState.primitive){
-            if(this.renderState.primitive.cullMode==CullMode.Back) return this._bumpScale*-1;
+    public get bumpScale(): number {
+        if (this.renderState && this.renderState.primitive) {
+            if (this.renderState.primitive.cullMode == CullMode.Back) return this._bumpScale * -1;
         }
-        return this._bumpScale;    
+        return this._bumpScale;
     }
-    public set bumpScale(v : number) {
+    public set bumpScale(v: number) {
         this._bumpScale = v;
     }
-    public get normalScale() : Vector2 {
-        if(this.renderState&&this.renderState.primitive){
-            if(this.renderState.primitive.cullMode==CullMode.Back){
-                return Vector2.negate(this._normalScale,new Vector2());
+    public get normalScale(): Vector2 {
+        if (this.renderState && this.renderState.primitive) {
+            if (this.renderState.primitive.cullMode == CullMode.Back) {
+                return Vector2.negate(this._normalScale, new Vector2());
             };
         }
         return this._normalScale
     }
-    public set normalScale(v : Vector2) {
+    public set normalScale(v: Vector2) {
         this._normalScale = v;
     }
-    public get displacementScale() : number {
+    public get displacementScale(): number {
         return this._displacementScale
     }
-    public set displacementScale(v : number) {
+    public set displacementScale(v: number) {
         this._displacementScale = v;
     }
-    public get displacementBias() : number {
+    public get displacementBias(): number {
         return this._displacementBias
     }
-    public set displacementBias(v : number) {
+    public set displacementBias(v: number) {
         this._displacementBias = v;
     }
-    public get envTextureIntensity() : number {
+    public get envTextureIntensity(): number {
         return this._envTextureIntensity
     }
-    public set envTextureIntensity(v : number) {
+    public set envTextureIntensity(v: number) {
         this._envTextureIntensity = v;
     }
-    public get flatShading() : boolean {
+    public get flatShading(): boolean {
         return this._flatShading
     }
-    public set flatShading(v : boolean) {
+    public set flatShading(v: boolean) {
         this._flatShading = v;
     }
-    public get ior() : number {
+    public get ior(): number {
         return this._ior
     }
-    public set ior(v : number) {
+    public set ior(v: number) {
         this._ior = v;
     }
-    public get reflectivity() : number {
-        return ( GMath.clamp( 2.5 * ( this.ior - 1 ) / ( this.ior + 1 ), 0, 1 ) );
+    public get reflectivity(): number {
+        return (GMath.clamp(2.5 * (this.ior - 1) / (this.ior + 1), 0, 1));
     }
-    public set reflectivity(v : number) {
-        this.ior = ( 1 + 0.4 * v ) / ( 1 - 0.4 * v );
+    public set reflectivity(v: number) {
+        this.ior = (1 + 0.4 * v) / (1 - 0.4 * v);
     }
-    public get flipEnvTexture() : number {
+    public get flipEnvTexture(): number {
         return this._flipEnvTexture
     }
-    public set flipEnvTexture(v : number) {
+    public set flipEnvTexture(v: number) {
         this._flipEnvTexture = v;
     }
-    
-    constructor(){
+
+    constructor() {
         super();
-        this.type='pbr';
+        this.type = 'pbr';
 
         this._roughness = 0.1;
 
-		this._metalness = 0.1;
+        this._metalness = 0.1;
 
         this._lightTextureIntensity = 1.0;
 
-        this._aoTextureIntensity=1.0;
+        this._aoTextureIntensity = 1.0;
 
         this._bumpScale = 1;
 
-        this._normalScale = new Vector2( 1, 1 );
+        this._normalScale = new Vector2(1, 1);
 
         this._displacementScale = 1;
 
-		this._displacementBias = 0;
+        this._displacementBias = 0;
 
         this._envTextureIntensity = 1.0;
 
@@ -171,13 +171,13 @@ export default class PbrBaseMaterial extends Material{
         this._ior = 1.5;
 
         // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
-        this._flipEnvTexture=-1;
+        this._flipEnvTexture = -1;
 
-        this.shaderSource=new ShaderSource({
-            type:this.type,
-            render:true,
-            defines:{
-                materialPbr:true
+        this.shaderSource = new ShaderSource({
+            type: this.type,
+            render: true,
+            defines: {
+                materialPbr: true
             }
         });
         //this.shaderData.setDefine('materialPbr',true);
@@ -185,107 +185,99 @@ export default class PbrBaseMaterial extends Material{
         // uniforms.ior.value = material.ior;
         // uniforms.refractionRatio.value = material.refractionRatio;
     }
-    update(frameState:FrameState,mesh:Mesh){
-       if(!this.shaderData)this.createBindGroupAndLayout(frameState,mesh);
-       this.updateShaderAndRenderState(frameState,mesh);
+    update(frameState: FrameState, mesh: Mesh) {
+        if (!this.shaderData) {
+            this.totalUniformCount = this.getUniformSize();
+            this.createShaderData(this.totalUniformCount, mesh, frameState);
+        }
+        this.updateShaderAndRenderState(frameState, mesh);
     }
-    private createBindGroupAndLayout(frameState:FrameState,mesh:Mesh){
-        this.totalUniformCount=this.getUniformSize();
-        this.createShaderData(this.totalUniformCount,mesh,frameState);
-    }
-    protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
-        
-        super.createShaderData(size,mesh);
+    protected createShaderData(size: number, mesh: Mesh, frameState?: FrameState) {
 
-        this.shaderData.setFloat("roughness",this);
-        this.shaderData.setFloat("metalness",this);
+        super.createShaderData(size, mesh);
+
+        this.shaderData.setFloat("roughness", this);
+        this.shaderData.setFloat("metalness", this);
 
         if (this.baseTexture) {
-            this.shaderData.setDefine('USE_TEXTURE',true);
-            this.shaderData.setTexture('baseTexture',this);
-            this.shaderData.setSampler('baseSampler',this);   
+            this.shaderData.setDefine('USE_TEXTURE', true);
+            this.shaderData.setTexture('baseTexture', this);
+            this.shaderData.setSampler('baseSampler', this);
         }
-        if(this.metalnessTexture){
-            this.shaderData.setDefine('USE_METALNESSTEXTURE',true);
-            this.shaderData.setTexture('metalnessTexture',this);
+        if (this.metalnessTexture) {
+            this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
+            this.shaderData.setTexture('metalnessTexture', this);
         }
         if (this.roughnessTexture) {
-            this.shaderData.setDefine('USE_ROUGHNESSTEXTURE',true);
-            this.shaderData.setTexture('roughnessTexture',this);
+            this.shaderData.setDefine('USE_ROUGHNESSTEXTURE', true);
+            this.shaderData.setTexture('roughnessTexture', this);
         }
-        if ( this.bumpTexture) {
+        if (this.bumpTexture) {
             //if ( material.side === BackSide ) uniforms.bumpScale.value *= - 1;
-            this.shaderData.setFloat("bumpScale",this);
-            this.shaderData.setDefine('USE_BUMPTEXTURE',true);
-            this.shaderData.setTexture('bumpTexture',this);
-		}
-        if (this.aoTexture ) {
-            this.shaderData.setDefine('USE_AOTEXTURE',true);
-            this.shaderData.setDefine('vUv2OutLocation',4);
-            this.shaderData.setFloat("aoMapIntensity",this);
-            this.shaderData.setTexture('aoTexture',this);
-		}
-        if (this.lightTexture ) {
-			// artist-friendly light intensity scaling factor
-			//const scaleFactor = ( renderer.physicallyCorrectLights !== true ) ? Math.PI : 1;
-			//uniforms.lightMapIntensity.value = material.lightMapIntensity * scaleFactor;
-            this.shaderData.setFloat("lightMapIntensity",this);
-            this.shaderData.setDefine('USE_LIGHTTEXTURE',true);
-            this.shaderData.setDefine('vUv2OutLocation',4);
-            this.shaderData.setTexture('lightTexture',this);
-		}
-        if (this.displacementTexture ) {
-            this.shaderData.setFloat("displacementBias",this);
-             
-            this.shaderData.setFloat("displacementScale",this);
-            this.shaderData.setDefine('USE_DISPLACEMENTTEXTURE',true);
-            this.shaderData.setTexture('displacementTexture',this);
-		}
-        if (this.normalTexture ) {
-			// uniforms.normalScale.value.copy( material.normalScale );
-			// if ( material.side === BackSide ) uniforms.normalScale.value.negate();
-            this.shaderData.setFloatVec2("normalScale",this);
-            this.shaderData.setDefine('USE_NORMALTEXTURE',true);
-            this.shaderData.setTexture('normalTexture',this);
-		}
-        if (frameState.environment ) {
-			// uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
-			// uniforms.refractionRatio.value = material.refractionRatio;
-            this.shaderData.setFloat("flipEnvTexture",this);
-            this.shaderData.setDefine('USE_ENVTEXTURE',true);
-            
-            this.shaderData.setDefine('ENVTEXTURE_TYPE_CUBE_UV',true);
-            this.shaderData.setFloat("ior",this);
+            this.shaderData.setFloat("bumpScale", this);
+            this.shaderData.setDefine('USE_BUMPTEXTURE', true);
+            this.shaderData.setTexture('bumpTexture', this);
+        }
+        if (this.aoTexture) {
+            this.shaderData.setDefine('USE_AOTEXTURE', true);
+            this.shaderData.setDefine('vUv2OutLocation', 4);
+            this.shaderData.setFloat("aoMapIntensity", this);
+            this.shaderData.setTexture('aoTexture', this);
+        }
+        if (this.lightTexture) {
+            // artist-friendly light intensity scaling factor
+            //const scaleFactor = ( renderer.physicallyCorrectLights !== true ) ? Math.PI : 1;
+            //uniforms.lightMapIntensity.value = material.lightMapIntensity * scaleFactor;
+            this.shaderData.setFloat("lightMapIntensity", this);
+            this.shaderData.setDefine('USE_LIGHTTEXTURE', true);
+            this.shaderData.setDefine('vUv2OutLocation', 4);
+            this.shaderData.setTexture('lightTexture', this);
+        }
+        if (this.displacementTexture) {
+            this.shaderData.setFloat("displacementBias", this);
 
-            this.shaderData.setFloat("reflectivity",this);
-            this.shaderData.setTexture('envTexture',()=>{
+            this.shaderData.setFloat("displacementScale", this);
+            this.shaderData.setDefine('USE_DISPLACEMENTTEXTURE', true);
+            this.shaderData.setTexture('displacementTexture', this);
+        }
+        if (this.normalTexture) {
+            // uniforms.normalScale.value.copy( material.normalScale );
+            // if ( material.side === BackSide ) uniforms.normalScale.value.negate();
+            this.shaderData.setFloatVec2("normalScale", this);
+            this.shaderData.setDefine('USE_NORMALTEXTURE', true);
+            this.shaderData.setTexture('normalTexture', this);
+        }
+        if (frameState.environment) {
+            // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
+            // uniforms.refractionRatio.value = material.refractionRatio;
+            this.shaderData.setFloat("flipEnvTexture", this);
+            this.shaderData.setDefine('USE_ENVTEXTURE', true);
+
+            this.shaderData.setDefine('ENVTEXTURE_TYPE_CUBE_UV', true);
+            this.shaderData.setFloat("ior", this);
+
+            this.shaderData.setFloat("reflectivity", this);
+            this.shaderData.setTexture('envTexture', () => {
                 return frameState.environment;
             });
-		}
-        if(this.emissiveTexture){
-            this.shaderData.setDefine('USE_EMISSIVETEXTURE',true);
-            this.shaderData.setTexture('emissiveTexture',this)
+        }
+        if (this.emissiveTexture) {
+            this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
+            this.shaderData.setTexture('emissiveTexture', this)
         }
     }
-    protected getUniformSize(){
-        let parentByteSize=super.getUniformSize()
-        let size=parentByteSize+1+1;
-        if (this.bumpTexture) size+=1;
-        if (this.aoTexture) size+=1;
-        if (this.lightTexture )size+=1;
-        if (this.normalTexture ) size+=1;
-        if (this.displacementTexture ) {
-            size+=1;
-            size+=1;
-		}
-        if (this.envTexture ) {
-            size+=1;
-            size+=1;
-            size+=1;
-		}
-       return Math.ceil(size/4)*4;
+    protected getUniformSize() {
+        let parentByteSize = super.getUniformSize()
+        let size = parentByteSize + 1 + 1;
+        if (this.bumpTexture) size += 1;
+        if (this.aoTexture) size += 1;
+        if (this.lightTexture) size += 1;
+        if (this.normalTexture) size += 1;
+        if (this.displacementTexture) size + 2;
+        if (this.envTexture) size += 3
+        return Math.ceil(size / 4) * 4;
     }
-    destory(){
+    destory() {
 
     }
 }

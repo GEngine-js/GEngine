@@ -66,7 +66,6 @@ export class MipmapGenerator {
      * @returns {module:External.GPUTexture} - The originally passed texture
      */
     generateMipmap(sourceTexture:Texture) {
-      debugger
       const texture=sourceTexture.gpuTexture;
       const textureDescriptor=sourceTexture.textureProp;
       // TODO: Does this need to handle sRGB formats differently?

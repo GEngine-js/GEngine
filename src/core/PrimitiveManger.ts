@@ -41,7 +41,6 @@ export default class PrimitiveManger extends Manger{
         composites[this._guid] = {
             collection: this,
         };
-
         if (!hasIndex) {
             this._list.push(instance);
         } else {
@@ -62,7 +61,7 @@ export default class PrimitiveManger extends Manger{
             // if (this.destroyPrimitives) {
             //     instance.destroy();
             // }
-      
+            instance.destroy();
             return true;
           }
         }     

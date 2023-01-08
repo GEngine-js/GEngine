@@ -11,7 +11,6 @@ import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
-import Context from "../render/Context";
 export class Material{
 
     public shaderData:ShaderData;

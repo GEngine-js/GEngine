@@ -18,7 +18,7 @@ export default class LightShaderData extends ShaderData{
     dirty: boolean;
 
     constructor(lightManger:LightManger){
-        super();
+        super('light');
         this.lightManger=lightManger;
         this.dirty=true;
     }

@@ -37,8 +37,10 @@ export default class SystemRenderResource{
        this.updateLight(context.device,lightManger)
        this.updateCamera(context.device,camera)
     }
+    public bind(){
+        
+    }
     // camera
-
     private updateCamera(device:GPUDevice,camera:PerspectiveCamera){
         if(!this.systemShaderData){
             this.createSystemBindGroupAndLayout(device,camera);

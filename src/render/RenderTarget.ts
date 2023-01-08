@@ -7,6 +7,7 @@ import Texture from "./Texture";
 
 export default class RenderTarget {
   renderPassDescriptor: GPURenderPassDescriptor;
+  private _renderPassDescriptor:GPURenderPassDescriptor;
   private renderEncoder:GPURenderPassEncoder;
   constructor(
     public type: PassType,
