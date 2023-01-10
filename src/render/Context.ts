@@ -4,8 +4,6 @@ import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
 import RenderTarget from "./RenderTarget";
 import RenderState from "./RenderState";
-import BindGroupLayout from "./BindGroupLayout";
-import BindGroup from "./BindGroup";
 import SystemRenderResource from "../core/SystemRenderResource";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
 import Pipeline from "./Pipeline";

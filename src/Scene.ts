@@ -1,4 +1,11 @@
-import Camera from "./camera/Camera";
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-24 19:32:21
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-10 18:38:00
+ * @FilePath: \GEngine\src\Scene.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import PerspectiveCamera from "./camera/PerspectiveCamera";
 import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState } from "./core/FrameState";
@@ -6,7 +13,6 @@ import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
 import SkyBox from "./mesh/SkyBox";
 import Context from "./render/Context";
-import Texture from "./render/Texture";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 import defaultValue from "./utils/defaultValue";
@@ -91,13 +97,9 @@ export class Scene extends EventDispatcher {
         this.context.systemRenderResource.update(this.frameState,this)
 
         //update primitive and select
-        if(this.skybox) this.skybox.update(this.frameState);
-        this.primitiveManger.update(this.frameState)
-        
+        this.primitiveManger.update(this.frameState)   
         //selct renderPipeline
-        this.currentRenderPipeline.setRenderList(this.frameState.commandList);
-        if(this.skybox) this.currentRenderPipeline.setSkyBox(this.skybox);
-        this.currentRenderPipeline.render();
+        this.currentRenderPipeline.render(this.frameState);
     }
 
 }

@@ -101,6 +101,7 @@
         const env=await CubeTextureLoader(urls);
         scene.environment=env.texture;
         scene.add(primitive);
+        scene.add(skybox);
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {

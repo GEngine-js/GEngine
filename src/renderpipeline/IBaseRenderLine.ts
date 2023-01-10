@@ -1,9 +1,12 @@
-import CommandList from "../core/CommandList"
-import SkyBox from "../mesh/SkyBox";
-import DrawCommand from "../render/DrawCommand"
-
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-26 19:06:24
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-10 18:37:01
+ * @FilePath: \GEngine\src\renderpipeline\IBaseRenderLine.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
+import { FrameState } from "../core/FrameState";
 export default interface IBaseRenderLine{
-   render():void
-   setRenderList(commandList:CommandList):void
-   setSkyBox(skybox:SkyBox):void;
+   render(frameState:FrameState):void
 }

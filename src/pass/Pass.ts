@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-15 16:59:45
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-08 14:04:45
+ * @LastEditTime: 2023-01-10 18:36:40
  * @FilePath: \GEngine\src\pass\Pass.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -13,13 +13,13 @@ import Context from "../render/Context.js";
 import DrawCommand from "../render/DrawCommand.js";
 import { Target } from "../core/WebGPUTypes.js";
 import Texture from "../render/Texture.js";
+import RenderQueue from "../core/RenderQueue.js";
 
 class Pass {
   public renderTarget: RenderTarget;
   public context:Context;
   public overrideMaterial?:Material;
   public colorTargets?:Array<Target>;
-  private commandEncoder:GPUCommandEncoder |null;
   private passRenderEncoder: GPURenderPassEncoder |null;
   constructor(
     context:Context
@@ -27,7 +27,7 @@ class Pass {
      this.context=context;
      
   }
-  render(commandList: CommandList|DrawCommand): void{};
+  render(renderQueue: RenderQueue): void{};
   beforRender(){
     this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.context);
   }

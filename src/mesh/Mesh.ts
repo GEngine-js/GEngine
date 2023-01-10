@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-19 14:29:24
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-10 15:32:33
+ * @LastEditTime: 2023-01-10 18:35:57
  * @FilePath: \GEngine\src\mesh\Mesh.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -12,7 +12,6 @@ import RenderObject from "../core/RenderObject";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
-import Pipeline from "../render/Pipeline";
 export class Mesh extends RenderObject {
     [x: string]: any;
     geometry?: Geometry;
@@ -46,39 +45,42 @@ export class Mesh extends RenderObject {
         const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
         //视锥剔除
         if (visibility === Intersect.INTERSECTING||visibility===Intersect.INSIDE) {
-            //重新创建的条件
-            if (!this.drawCommand||this.material.dirty) this.createCommand(frameState);
             if (this.material.transparent) {
-                //frameState.renderQueue.transparent.push(this)
-                frameState.commandList.transparent.push(this.drawCommand);
+                frameState.renderQueue.transparent.push(this)
             } else {
-                //frameState.renderQueue.opaque.push(this)
-                frameState.commandList.opaque.push(this.drawCommand);
+                frameState.renderQueue.opaque.push(this)
             }
-            this.drawCommand.distanceToCamera=this.distanceToCamera;
         }
         
     }
     beforeRender(){
+        console.log('before');
         
     }
-    afterRender(){}
-    private createCommand(frameState: FrameState) {
-        if (this.material.dirty) this.material.dirty=false;
-        this.drawCommand= new DrawCommand({
-            vertexBuffers: this.geometry.vertexBuffers,
-            indexBuffer: this.geometry.indexBuffer,
-            indexFormat: this.geometry.stripIndexFormat,
-            shaderData:this.material.shaderData,
-            instances: this.instances,
-            count: this.geometry.count,
-            renderState:this.material.renderState,
-            topology:this.geometry.topology as GPUPrimitiveTopology,
-            shaderSource:this.material.shaderSource,
-            type:'render',
-            onwer:this,
-            materialType:this.material.type       
-        });
+    afterRender(){
+        console.log('after');
+    }
+    public getDrawCommand(){
+        if (!this.drawCommand||this.material.dirty) {
+            if (this.material.dirty) this.material.dirty=false;
+            this.drawCommand= new DrawCommand({
+                vertexBuffers: this.geometry.vertexBuffers,
+                indexBuffer: this.geometry.indexBuffer,
+                indexFormat: this.geometry.stripIndexFormat,
+                shaderData:this.material.shaderData,
+                instances: this.instances,
+                count: this.geometry.count,
+                renderState:this.material.renderState,
+                topology:this.geometry.topology as GPUPrimitiveTopology,
+                shaderSource:this.material.shaderSource,
+                type:'render',
+                onwer:this,
+                materialType:this.material.type       
+            });
+            return this.drawCommand;
+        } else {
+          return this.drawCommand;
+        }
     }
     destroy() {
         this.geometry.destroy();
