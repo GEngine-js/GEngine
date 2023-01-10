@@ -28,11 +28,15 @@ export default class ShaderData{
 
     groupLayout:BindGroupLayout;
 
+    layoutIndex:number;
+
+    groupIndex:number;
+
     protected _uniforms:Map<string,any>;
 
     private uniformDirty:boolean;
 
-    constructor(label:string,size?:number,buffer?:Buffer,data?:Float32Array){
+    constructor(label:string,size?:number,layoutIndex?:number,groupIndex?:number,buffer?:Buffer,data?:Float32Array){
        this.byteOffset=0;
        this.totalUniformCount=size;
        if(this.totalUniformCount>0){
@@ -47,6 +51,8 @@ export default class ShaderData{
        this.uniformDirty=true;
        this.defines={};
        this._uniforms=new Map(); 
+       this.groupIndex=defaultValue(groupIndex,0);
+       this.layoutIndex=defaultValue(layoutIndex,0)
     }
     setFloat(name:string,value:Function|number|Object,binding?:number){
          if (this._uniforms.get(name)) return;
@@ -148,7 +154,7 @@ export default class ShaderData{
 
     bind(context:Context,passEncoder:GPURenderPassEncoder){
        this.uploadUniform(context);
-       const {groupLayout,bindGroup}=this.createBindGroupAndLayout(context.device,this.label,0,0);
+       const {groupLayout,bindGroup}=this.createBindGroupAndLayout(context.device,this.label,this.layoutIndex,this.groupIndex);
        bindGroup.bind(passEncoder)
        this.bindGroup=bindGroup;
        this.groupLayout=groupLayout;
@@ -160,7 +166,7 @@ export default class ShaderData{
         this.buffer.destroy();
         this._uniforms=new Map(); 
     }
-    private uploadUniform(context:Context){
+    protected uploadUniform(context:Context){
         this._uniforms.forEach((uniform)=>{
             if (uniform.type=='texture'||uniform.type=='sampler') {
                 uniform.update(context)

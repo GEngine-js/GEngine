@@ -22,8 +22,6 @@ export default class PrimitiveManger extends Manger{
     }
     add(instance:Mesh, index?:number) {
         const hasIndex = defined(index);
-
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(instance)) {
             throw new Error("instance is required.");
         }
@@ -50,17 +48,12 @@ export default class PrimitiveManger extends Manger{
         return instance;
     }
     remove(instance) {
-        // PERFORMANCE_IDEA:  We can obviously make this a lot faster.
         if (this.contains(instance)) {
           const index = this._list.indexOf(instance);
           if (index !== -1) {
             this._list.splice(index, 1);
       
             delete instance._external._composites[this._guid];
-      
-            // if (this.destroyPrimitives) {
-            //     instance.destroy();
-            // }
             instance.destroy();
             return true;
           }

@@ -254,15 +254,16 @@ export class UniformSampler extends Uniform<Sampler>{
 export class UniformLight extends Uniform<Light>{
     bufferSize: number;
     lightBuffer:Buffer;
-    constructor(uniformName:string,binding:number,buffer:Buffer,size:number) {
+    constructor(uniformName:string,binding:number,buffer:Buffer|Function|Object,size:number) {
         super(uniformName);
-        this.lightBuffer =buffer;
+        this.cb=buffer;
+        //this.lightBuffer =buffer;
         this.binding=binding;
         this.visibility=ShaderStage.Fragment;
         this.bufferSize=size;
     }
     set(){
-       return undefined;
+      this.lightBuffer=this.getValue();
     }
 }
 

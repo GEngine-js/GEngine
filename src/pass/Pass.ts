@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-15 16:59:45
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-08 14:04:45
+ * @FilePath: \GEngine\src\pass\Pass.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import RenderTarget from "../render/RenderTarget.js";
 import { Material } from "../material/Material.js";
 import CommandList from "../core/CommandList.js";
@@ -21,12 +29,7 @@ class Pass {
   }
   render(commandList: CommandList|DrawCommand): void{};
   beforRender(){
-    const {device}=this.context;
-    this.commandEncoder = device.createCommandEncoder();
-    //暂时这么写
-    this.renderTarget.renderPassDescriptor.colorAttachments[0].view = this.context.context.getCurrentTexture().createView();
-    //this.passRenderEncoder = this.commandEncoder.beginRenderPass(this.renderTarget.renderPassDescriptor);
-    this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.commandEncoder);
+    this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.context);
   }
   getColorTexture(index:number=0):Texture{
      return this.renderTarget.getColorTexture(index)
@@ -36,8 +39,6 @@ class Pass {
   }
   afterRender(){
     this.renderTarget.endRenderPassEncoder();
-    this.context.device.queue.submit([this.commandEncoder.finish()]);
-    this.commandEncoder = null;
   }
   protected excuteCommands(commands:DrawCommand[]){
     commands.forEach((command)=>{
@@ -46,7 +47,7 @@ class Pass {
   }
   protected excuteCommand(command:DrawCommand){
     if (command.renderTarget) {
-      const currentRenderPassEncoder=command.renderTarget.getRenderPassEncoder(this.commandEncoder);
+      const currentRenderPassEncoder=command.renderTarget.getRenderPassEncoder(this.context);
       this.context.render(command,currentRenderPassEncoder);
       command.renderTarget.endRenderPassEncoder();
     } else {

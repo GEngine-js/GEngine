@@ -1,90 +1,72 @@
-import BindGroup from "../render/BindGroup";
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-28 09:47:18
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-10 17:37:36
+ * @FilePath: \GEngine\src\core\SystemRenderResource.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import BindGroupLayout from "../render/BindGroupLayout";
 import { Scene } from "../Scene";
 import { FrameState } from "./FrameState";
 import LightManger from "./LightManger";
-import PerspectiveCamera from "../camera/PerspectiveCamera";
 import LightShaderData from "../render/LightShaderData";
 import ShaderData from "../render/ShaderData";
+import Context from "../render/Context";
 
 export default class SystemRenderResource{
 
-    systemGroup:BindGroup;
-
-    systemLayout:BindGroupLayout;
-
-    lightGroup:BindGroup;
-
-    lightLayout:BindGroupLayout;
-
     lightShaderData:LightShaderData;
 
-    systemShaderData:ShaderData;
+    cameraShaderData:ShaderData;
     
     constructor(){
     }
     get layouts():BindGroupLayout[]{
-        return [this.systemLayout,this.lightLayout]
-    }
-    
-   get groups() : BindGroup[] {
-        return [this.systemGroup,this.lightGroup]
+        return [this.cameraShaderData.groupLayout,this.lightShaderData.groupLayout]
     }
     
     update(frameState:FrameState,scene:Scene){
-       const {camera,context}=frameState;
        const {lightManger}=scene;
-       this.updateLight(context.device,lightManger)
-       this.updateCamera(context.device,camera)
+       this.updateLight(lightManger)
+       this.updateCamera(frameState)
     }
-    public bind(){
-        
+    public bind(context: Context, passEncoder: GPURenderPassEncoder){
+        this.lightShaderData.bind(context, passEncoder);
+        this.cameraShaderData.bind(context, passEncoder);
     }
     // camera
-    private updateCamera(device:GPUDevice,camera:PerspectiveCamera){
-        if(!this.systemShaderData){
-            this.createSystemBindGroupAndLayout(device,camera);
-        }else{
-           this.systemShaderData.update(device)
+    private updateCamera(frameState:FrameState){
+        if(!this.cameraShaderData){
+            this.createCameraShaderData(frameState);
         }
     }
     // light
-    private updateLight(device:GPUDevice,lightManger:LightManger){
+    private updateLight(lightManger:LightManger){
         if (lightManger.lightCountDirty) {
                 lightManger.lightCountDirty=false
-                this.createLightBindGroupAndLayout(device,lightManger);
-        } else {
-            this.lightShaderData.update(device,lightManger);
-        }
+                this.createLightShaderData(lightManger);
+        } 
     }
-    private createSystemBindGroupAndLayout(device:GPUDevice,camera:PerspectiveCamera){
+    private createCameraShaderData(frameState:FrameState){
 
-        this.systemShaderData=new ShaderData('system',208);
+        this.cameraShaderData=new ShaderData('system',208,1,1);
 
-        this.systemShaderData.update(device);
-
-        this.systemShaderData.setMatrix4('projectionMatrix',()=>{
-            return camera.projectionMatrix
+        this.cameraShaderData.setMatrix4('projectionMatrix',()=>{
+            return frameState.camera.projectionMatrix
         });
-        this.systemShaderData.setMatrix4('viewMatrix',()=>{
-            return camera.viewMatrix
+        this.cameraShaderData.setMatrix4('viewMatrix',()=>{
+            return frameState.camera.viewMatrix
         });
-        this.systemShaderData.setMatrix4('inverseViewMatrix',()=>{
-            return camera.inverseViewMatrix
+        this.cameraShaderData.setMatrix4('inverseViewMatrix',()=>{
+            return frameState.camera.inverseViewMatrix
         });
-        this.systemShaderData.setFloatVec3('position',()=>{       
-            return camera.position;
+        this.cameraShaderData.setFloatVec3('position',()=>{       
+            return frameState.camera.position;
         });
-        const {groupLayout,bindGroup}= this.systemShaderData.createBindGroupAndLayout(device,'system',1,1);
-        this.systemGroup=bindGroup;
-        this.systemLayout=groupLayout;
-
     }
-    private createLightBindGroupAndLayout(device:GPUDevice,lightManger:LightManger){
-        if(!this.lightShaderData)this.lightShaderData=new LightShaderData(lightManger);
-
-        this.lightShaderData.update(device,lightManger);
-
+    private createLightShaderData(lightManger:LightManger){
+        if(!this.lightShaderData)this.lightShaderData=new LightShaderData(lightManger,2,2);
         this.lightShaderData.setLight('commonBuffer',0,lightManger.commonTatalByte);
         if(lightManger.lightDefines.spotLight){
             this.lightShaderData.setLight('spotLightsBuffer',lightManger.lightDefines.spotLightBinding,lightManger.spotLightsByte);
@@ -95,9 +77,6 @@ export default class SystemRenderResource{
        if(lightManger.lightDefines.dirtectLight){
             this.lightShaderData.setLight('dirtectLightsBuffer',lightManger.lightDefines.dirtectLightBinding,lightManger.dirtectLightsByte)
        }
-        const {groupLayout,bindGroup}= this.lightShaderData.createBindGroupAndLayout(device,'light',2,2);
-        this.lightLayout=groupLayout;
-        this.lightGroup=bindGroup;
     }
     destroy(){
 

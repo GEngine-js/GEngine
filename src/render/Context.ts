@@ -118,9 +118,7 @@ class Context {
     if (command.shaderData)
       command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
     //设置系统
-    this.systemRenderResource.groups.forEach((bindGroup) => {
-      bindGroup.bind(passEncoder as GPURenderPassEncoder);
-    });
+    this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
     const pipeline = Pipeline.getRenderPipelineFromCache(
       this.device,
       command,
@@ -133,7 +131,8 @@ class Context {
         command.renderState
       );
     }
-    if (command.vertexBuffers)command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
+    if (command.vertexBuffers)
+      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
 
     if (command.indexBuffer) {
       (passEncoder as GPURenderPassEncoder).setIndexBuffer(

@@ -46,7 +46,9 @@ export type ShaderStageBodyNameObjectKeys = {
 };
 export interface AttachmentOptions {
   op?: GPUStoreOp;
-  texture?: Texture;
+  texture?: Texture|{
+    gpuTexture:GPUTexture
+  };
   resolveTarget?: Texture;
 }
 
