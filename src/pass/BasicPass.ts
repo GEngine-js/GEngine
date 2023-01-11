@@ -2,17 +2,14 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-28 15:11:08
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-10 18:27:09
+ * @LastEditTime: 2023-01-11 16:33:08
  * @FilePath: \GEngine\src\pass\BasicPass.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-import CommandList from "../core/CommandList";
-import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
-import Texture from "../render/Texture";
 import DrawCommand from "../render/DrawCommand";
 import RenderQueue from "../core/RenderQueue";
 

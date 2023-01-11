@@ -788,202 +788,23 @@ class Matrix4 {
 		return matrix;
 
 	}
-  /**
-   * Computes a Matrix4 instance representing a perspective transformation matrix.
-   *
-   * @param {Number} fovY The field of view along the Y axis in radians.
-   * @param {Number} aspectRatio The aspect ratio.
-   * @param {Number} near The distance to the near plane in meters.
-   * @param {Number} far The distance to the far plane in meters.
-   * @param {Matrix4} result The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @exception {Error} fovY must be in (0, PI].
-   * @exception {Error} aspectRatio must be greater than zero.
-   * @exception {Error} near must be greater than zero.
-   * @exception {Error} far must be greater than zero.
-   */
-  static computePerspectiveFieldOfView(
-    fovY,
-    aspectRatio,
-    near,
-    far,
-    result
-  ) {
+  static makeOrthographic( left, right, top, bottom, near, far ) {
 
-    const bottom = Math.tan(fovY * 0.5);
+    const matrix = new Matrix4();
+		const w = 1.0 / ( right - left );
+		const h = 1.0 / ( top - bottom );
+		const p = 1.0 / ( far - near );
 
-    const column1Row1 = 1.0 / bottom;
-    const column0Row0 = column1Row1 / aspectRatio;
-    const column2Row2 = (far + near) / (near - far);
-    const column3Row2 = (2.0 * far * near) / (near - far);
+		const x = ( right + left ) * w;
+		const y = ( top + bottom ) * h;
+		const z = ( far + near ) * p;
 
-    result[0] = column0Row0;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = column1Row1;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = 0.0;
-    result[9] = 0.0;
-    result[10] = column2Row2;
-    result[11] = -1.0;
-    result[12] = 0.0;
-    result[13] = 0.0;
-    result[14] = column3Row2;
-    result[15] = 0.0;
-    return result;
-  };
-
-  /**
-   * Computes a Matrix4 instance representing an orthographic transformation matrix.
-   *
-   * @param {Number} left The number of meters to the left of the camera that will be in view.
-   * @param {Number} right The number of meters to the right of the camera that will be in view.
-   * @param {Number} bottom The number of meters below of the camera that will be in view.
-   * @param {Number} top The number of meters above of the camera that will be in view.
-   * @param {Number} near The distance to the near plane in meters.
-   * @param {Number} far The distance to the far plane in meters.
-   * @param {Matrix4} result The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static computeOrthographicOffCenter(
-    left,
-    right,
-    bottom,
-    top,
-    near,
-    far,
-    result
-  ) {
-
-    let a = 1.0 / (right - left);
-    let b = 1.0 / (top - bottom);
-    let c = 1.0 / (far - near);
-
-    const tx = -(right + left) * a;
-    const ty = -(top + bottom) * b;
-    const tz = -(far + near) * c;
-    a *= 2.0;
-    b *= 2.0;
-    c *= -2.0;
-
-    result[0] = a;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = b;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = 0.0;
-    result[9] = 0.0;
-    result[10] = c;
-    result[11] = 0.0;
-    result[12] = tx;
-    result[13] = ty;
-    result[14] = tz;
-    result[15] = 1.0;
-    return result;
-  };
-
-  /**
-   * Computes a Matrix4 instance representing an off center perspective transformation.
-   *
-   * @param {Number} left The number of meters to the left of the camera that will be in view.
-   * @param {Number} right The number of meters to the right of the camera that will be in view.
-   * @param {Number} bottom The number of meters below of the camera that will be in view.
-   * @param {Number} top The number of meters above of the camera that will be in view.
-   * @param {Number} near The distance to the near plane in meters.
-   * @param {Number} far The distance to the far plane in meters.
-   * @param {Matrix4} result The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static computePerspectiveOffCenter(
-    left,
-    right,
-    bottom,
-    top,
-    near,
-    far,
-    result
-  ) {
-
-    const column0Row0 = (2.0 * near) / (right - left);
-    const column1Row1 = (2.0 * near) / (top - bottom);
-    const column2Row0 = (right + left) / (right - left);
-    const column2Row1 = (top + bottom) / (top - bottom);
-    const column2Row2 = -(far + near) / (far - near);
-    const column2Row3 = -1.0;
-    const column3Row2 = (-2.0 * far * near) / (far - near);
-
-    result[0] = column0Row0;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = column1Row1;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = column2Row0;
-    result[9] = column2Row1;
-    result[10] = column2Row2;
-    result[11] = column2Row3;
-    result[12] = 0.0;
-    result[13] = 0.0;
-    result[14] = column3Row2;
-    result[15] = 0.0;
-    return result;
-  };
-
-  /**
-   * Computes a Matrix4 instance representing an infinite off center perspective transformation.
-   *
-   * @param {Number} left The number of meters to the left of the camera that will be in view.
-   * @param {Number} right The number of meters to the right of the camera that will be in view.
-   * @param {Number} bottom The number of meters below of the camera that will be in view.
-   * @param {Number} top The number of meters above of the camera that will be in view.
-   * @param {Number} near The distance to the near plane in meters.
-   * @param {Matrix4} result The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static computeInfinitePerspectiveOffCenter(
-    left,
-    right,
-    bottom,
-    top,
-    near,
-    result
-  ) {
-
-    const column0Row0 = (2.0 * near) / (right - left);
-    const column1Row1 = (2.0 * near) / (top - bottom);
-    const column2Row0 = (right + left) / (right - left);
-    const column2Row1 = (top + bottom) / (top - bottom);
-    const column2Row2 = -1.0;
-    const column2Row3 = -1.0;
-    const column3Row2 = -2.0 * near;
-
-    result[0] = column0Row0;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = column1Row1;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = column2Row0;
-    result[9] = column2Row1;
-    result[10] = column2Row2;
-    result[11] = column2Row3;
-    result[12] = 0.0;
-    result[13] = 0.0;
-    result[14] = column3Row2;
-    result[15] = 0.0;
-    return result;
-  };
+		matrix[ 0 ] = 2 * w;	matrix[ 4 ] = 0;	matrix[ 8 ] = 0;	matrix[ 12 ] = - x;
+		matrix[ 1 ] = 0;	matrix[ 5 ] = 2 * h;	matrix[ 9 ] = 0;	matrix[ 13 ] = - y;
+		matrix[ 2 ] = 0;	matrix[ 6 ] = 0;	matrix[ 10 ] = - 2 * p;	matrix[ 14 ] = - z;
+		matrix[ 3 ] = 0;	matrix[ 7 ] = 0;	matrix[ 11 ] = 0;	matrix[ 15 ] = 1;
+		return matrix;
+	}
 
   /**
    * Computes a Matrix4 instance that transforms from normalized device coordinates to window coordinates.
