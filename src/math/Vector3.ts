@@ -201,6 +201,14 @@ class Vector3 {
   toString() {
     return `(${this.x}, ${this.y}, ${this.z})`;
   };
+  fromBufferAttribute( attribute, index ) {
+
+		this.x = attribute.getX( index );
+		this.y = attribute.getY( index );
+		this.z = attribute.getZ( index );
+		return this;
+
+	}
   static fromVector4(vec4, result){
      result.x=vec4.x;
      result.y=vec4.y;

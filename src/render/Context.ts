@@ -117,27 +117,22 @@ class Context {
       command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
     //设置系统
     this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
-    const pipeline = Pipeline.getRenderPipelineFromCache(
-      this.device,
-      command,
-      this.systemRenderResource.layouts.concat(command.shaderData.groupLayout)
-    );
-    pipeline.bind(passEncoder);
     if (command.renderState) {
       RenderState.applyRenderState(
         passEncoder as GPURenderPassEncoder,
         command.renderState
       );
     }
-    if (command.vertexBuffers)
-      command.vertexBuffers.bind(passEncoder as GPURenderPassEncoder);
+    if (command.vertexBuffer)
+      command.vertexBuffer.bind(this.device, passEncoder as GPURenderPassEncoder);
 
-    if (command.indexBuffer) {
-      (passEncoder as GPURenderPassEncoder).setIndexBuffer(
-        command.indexBuffer.gpuBuffer,
-        command.indexFormat
-      );
-    }
+    if (command.indexBuffer) command.indexBuffer.bind(this.device, passEncoder as GPURenderPassEncoder)
+    const pipeline = Pipeline.getRenderPipelineFromCache(
+      this.device,
+      command,
+      this.systemRenderResource.layouts.concat(command.shaderData.groupLayout)
+    );
+    pipeline.bind(passEncoder);
     if (command.indexBuffer) {
       (passEncoder as GPURenderPassEncoder).drawIndexed(
         command.count || 0,

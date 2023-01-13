@@ -115,6 +115,20 @@ equalsEpsilon (
 toString() {
   return `(${this.x}, ${this.y})`;
 };
+fromBufferAttribute( attribute, index ) {
+
+  this.x = attribute.getX( index );
+  this.y = attribute.getY( index );
+  return this;
+
+}
+applyMatrix3(matrix3 ) {
+
+  const x = this.x, y = this.y;
+  this.x = matrix3[ 0 ] * x + matrix3[ 3 ] * y + matrix3[ 6 ];
+  this.y = matrix3[ 1 ] * x + matrix3[ 4 ] * y + matrix3[ 7 ];
+  return this;
+}
   /**
  * Creates a Vector2 instance from x and y coordinates.
  *

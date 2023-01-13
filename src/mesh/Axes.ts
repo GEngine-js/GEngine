@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-11-13 17:27:40
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-10 18:40:59
+ * @LastEditTime: 2023-01-12 20:00:31
  * @FilePath: \GEngine\src\mesh\Axes.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -15,9 +15,11 @@ import {
   VertexFormat,
 } from "../core/WebGPUConstant";
 import ColorMaterial from "../material/ColorMaterial";
-import Attribute from "../render/Attribute";
+import{Attribute}  from "../render/Attribute";
 import Buffer from "../render/Buffer";
 import DrawCommand from "../render/DrawCommand";
+import IndexBuffer from "../render/IndexBuffer";
+import VertextBuffer from "../render/VertextBuffer";
 import { Mesh } from "./Mesh";
 export default class Axes extends Mesh {
   private vertBuffers: VertextBuffers;
@@ -44,14 +46,14 @@ export default class Axes extends Mesh {
   private init(frameState: FrameState) {
     const { context, pass } = frameState;
     const { device, systemRenderResource } = context;
-    const data = new Float32Array([
+    const position = [
       /* position */ 0, 0, 0, /* color */ 1, 0, 0, 1, /* position */ 1, 0, 0,
       /* color */ 1, 0.5, 0.5, 1, /* position */ 0, 0, 0, /* color */ 0, 1, 0,
       1, /* position */ 0, 1, 0, /* color */ 0.5, 1, 0.5, 1, /* position */ 0,
       0, 0, /* color */ 0, 0, 1, 1, /* position */ 0, 0, 1, /* color */ 0.5,
       0.5, 1, 1,
-    ]);
-    const indices = new Uint16Array([0, 1, 2, 3, 4, 5]);
+    ];
+    const indices =[0, 1, 2, 3, 4, 5];
     const buffer = Buffer.createVertexBuffer(device, data);
     //attribute
     const pat = new Attribute("position", VertexFormat.Float32x3, 0, 0);
@@ -62,17 +64,8 @@ export default class Axes extends Mesh {
       1
     );
     // vertBuffer
-    const vertBuffers = new VertextBuffers([
-      {
-        index: 0,
-        arrayStride: 28,
-        stepMode: InputStepMode.Vertex,
-        buffer,
-        attributes: [pat, cat],
-      },
-    ]);
-    this.vertBuffers = vertBuffers;
-    this.indexBuffer = Buffer.createIndexBuffer(device, indices);
+    const vertBuffers = new VertextBuffer();
+    this.indexBuffer = new IndexBuffer(indices);
     this.count = indices.length;
     this.drawCommand = new DrawCommand({
       vertexBuffers: this.vertBuffers,

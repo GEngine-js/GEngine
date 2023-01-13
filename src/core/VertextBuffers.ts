@@ -1,4 +1,5 @@
-import Attribute from "../render/Attribute";
+
+import {Attribute} from "../render/Attribute";
 import Buffer from '../render/Buffer';
 export type vertextBuffer ={
         index:number,

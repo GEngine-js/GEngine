@@ -66,7 +66,8 @@ export default class Pipeline{
         return pipeline;
       }
      private static getPipelineDescriptor(device:GPUDevice,drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
-        const {vertexBuffers,topology,shaderSource}=drawComand;
+        const {vertexBuffer,shaderSource}=drawComand;
+        const {topology}=drawComand.indexBuffer;
         const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}
         const primitiveState: GPUPrimitiveState = {
           topology:topology as GPUPrimitiveTopology,
@@ -80,7 +81,7 @@ export default class Pipeline{
             vertex: {
               module:vert,
               entryPoint: shaderSource.vertEntryPoint,
-              buffers:vertexBuffers.getBuffers() as Iterable<GPUVertexBufferLayout>,
+              buffers:vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
             },
             primitive:primitiveState,
             depthStencil:renderState.depthStencil as GPUDepthStencilState,

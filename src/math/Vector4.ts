@@ -140,6 +140,16 @@ class Vector4 {
   toString() {
     return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
   };
+  fromBufferAttribute( attribute, index ) {
+
+		this.x = attribute.getX( index );
+		this.y = attribute.getY( index );
+		this.z = attribute.getZ( index );
+		this.w = attribute.getW( index );
+
+		return this;
+
+	}
   /**
    * Creates a Vector4 instance from x, y, z and w coordinates.
    *

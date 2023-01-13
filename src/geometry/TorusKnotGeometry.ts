@@ -1,10 +1,6 @@
-import { InputStepMode, VertexFormat } from "../core/WebGPUConstant";
 import Vector3 from "../math/Vector3";
-import Attribute from "../render/Attribute";
+import { Float32Attribute} from "../render/Attribute";
 import Geometry from "./Geometry";
-import Buffer from "../render/Buffer";
-import { VertextBuffers } from "../core/VertextBuffers";
-
 export default class TorusKnotGeometry extends Geometry{
     indices: Array<number>;
     vertices: Array<number>;
@@ -30,40 +26,18 @@ export default class TorusKnotGeometry extends Geometry{
 		this.uvs = [];
         this.createGeometry();
         this.computeBoundingSphere(this.vertices);
+        this.init();
     }
     public update(frameState){
         const {device}=frameState.context;
-        if(!this.vertexBuffers)this.createVertBufferAndIndices(device);
     }
-      private createVertBufferAndIndices(device:GPUDevice){
-          const layoutOffset=[3,3,2];
-          const dataBuffer=this.interleaveTypedArray(Float32Array,layoutOffset,this.vertices,this.normals,this.uvs);
-          //attribute
-          const pat=new Attribute('position',VertexFormat.Float32x3,0,this.shaderLocation);
-          this.shaderLocation+=1;
-          const nat=new Attribute('normal',VertexFormat.Float32x3,3*Float32Array.BYTES_PER_ELEMENT,this.shaderLocation);
-          this.shaderLocation+=1;
-          const uat=new Attribute('uv',VertexFormat.Float32x2,6*Float32Array.BYTES_PER_ELEMENT,this.shaderLocation);
-          this.shaderLocation+=1;
-         
-  
-          //buffer
-          const buffer=Buffer.createVertexBuffer(device,dataBuffer);
-          // vertBuffer
-          const vertBuffers=new VertextBuffers([
-              {   
-                  index:0,
-                  arrayStride: 32,
-                  stepMode: InputStepMode.Vertex,
-                  buffer,
-                  attributes:[pat,uat,nat],
-              }
-          ]);
-          const indexTypeArray=new Int32Array(this.indices);
-          this.indexBuffer=Buffer.createIndexBuffer(device,indexTypeArray);
-          this.count=indexTypeArray.length;
-          this.vertexBuffers=vertBuffers;
-      }
+    private init(){
+        this.setAttribute(new Float32Attribute('position',this.vertices,3));
+        this.setAttribute(new Float32Attribute('normal',this.normals,3));
+        this.setAttribute(new Float32Attribute('uv',this.uvs,2));
+        this.setIndice(this.indices);
+        this.count=this.indices.length
+    }
     private createGeometry(){
         const tubularSegments = Math.floor( this.tubularSegments );
 		const radialSegments = Math.floor( this.radialSegments );

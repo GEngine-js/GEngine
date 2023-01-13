@@ -1,23 +1,17 @@
-import { VertextBuffers } from "../core/VertextBuffers";
-import { IndexFormat, InputStepMode, PrimitiveTopology, VertexFormat } from "../core/WebGPUConstant";
-import Attribute from "../render/Attribute";
+import {Float32Attribute} from "../render/Attribute";
 import Geometry from "./Geometry";
-import Buffer from "../render/Buffer";
 export default class SkyBoxGeometry extends Geometry{
-    position:Float32Array;
-    indices:Uint16Array|Uint32Array|Uint8Array;
-    
+    position:number[];
+    indices:number[];
     constructor(){
         super({});
-        this.stripIndexFormat=IndexFormat.Uint16;
-        this.topology=PrimitiveTopology.TriangleList;
+        this.init();
     }
     public update(frameState){
         const {device}=frameState.context;
-        if(!this.vertexBuffers)this.createVertBufferAndIndices(device);
-      }
-    private createVertBufferAndIndices(device:GPUDevice) {
-        this.position = new Float32Array([
+    }
+    public init(){
+        this.position = [
             1.0,  1.0,  1.0, // 0
             -1.0,  1.0,  1.0, // 1
              1.0, -1.0,  1.0, // 2
@@ -26,8 +20,8 @@ export default class SkyBoxGeometry extends Geometry{
             -1.0,  1.0, -1.0, // 5
              1.0, -1.0, -1.0, // 6
             -1.0, -1.0, -1.0, // 7
-        ])
-        this.indices = new Uint16Array([
+        ]
+        this.indices = [
             // PosX (Right)
             0, 2, 4,
             6, 4, 2,
@@ -51,22 +45,9 @@ export default class SkyBoxGeometry extends Geometry{
             // NegZ (Back)
             6, 5, 4,
             5, 6, 7,
-        ]);
-        const buffer = Buffer.createVertexBuffer(device, this.position);
-        //attribute
-        const pat = new Attribute('position', VertexFormat.Float32x3, 0, 0);
-        // vertBuffer
-        const vertBuffers = new VertextBuffers([
-            {
-                index: 0,
-                arrayStride: 12,
-                stepMode: InputStepMode.Vertex,
-                buffer,
-                attributes: [pat],
-            }
-        ]);
-        this.vertexBuffers = vertBuffers;
-        this.indexBuffer = Buffer.createIndexBuffer(device, this.indices);
-        this.count = this.indices.length;
+        ];
+        this.setAttribute(new Float32Attribute('position',this.position,3));
+        this.setIndice(this.indices);
+        this.count=this.indices.length
     }
 }
