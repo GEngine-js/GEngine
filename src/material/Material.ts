@@ -39,10 +39,6 @@ export class Material{
 
     shaderSource: ShaderSource;
 
-    groupLayouts: BindGroupLayout[];
-
-    bindGroups: BindGroup[];
-
     transparent:boolean;
 
     renderStateDirty:boolean;
@@ -71,8 +67,6 @@ export class Material{
 
     definesDirty: boolean;
 
-    totalUniformCount:number;
-
     constructor(){
         //
         this.label=undefined;
@@ -88,8 +82,6 @@ export class Material{
         this.shaderSource=undefined;
         this.renderStateDirty=true;
         this.definesDirty=true;
-        this.groupLayouts=[];
-        this.bindGroups=[];
         this.dirty=true;
         this._emissive=new Color(0,0.0,0,1.0);
         this._emissiveIntensity = 1.0;
@@ -173,8 +165,8 @@ export class Material{
         this.updateShader(frameState,mesh);
         this.updateRenderState(frameState);
     }
-    protected createShaderData(size:number,mesh:Mesh,frameState?:FrameState){
-        this.shaderData=new ShaderData(this.type,size);
+    protected createShaderData(mesh:Mesh,frameState?:FrameState){
+        this.shaderData=new ShaderData(this.type,0);
         this.shaderData.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;
         });
@@ -184,11 +176,6 @@ export class Material{
             return mesh.normalMatrix;
         });
         this.shaderData.setColor('emissive',this);  
-    }
-    protected getUniformSize(){
-       let size= 16+12+3+1+3;
-       //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-       return Math.ceil(size/4)*4;
     }
     private updateShader(frameState:FrameState,mesh:Mesh){
         if (mesh.geometry) {

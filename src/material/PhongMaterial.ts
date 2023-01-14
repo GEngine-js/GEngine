@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-19 16:03:28
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-07 21:40:19
+ * @LastEditTime: 2023-01-14 13:36:38
  * @FilePath: \GEngine\src\material\PhongMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -43,12 +43,11 @@ export default class PhongMaterial extends Material {
     }
     update(frameState:FrameState,mesh:Mesh) { 
         if(!this.baseTexture) this.ceateTextureAndSampler(frameState.context);
-        if(!this.shaderData) this.createShaderData(0,mesh);
+        if(!this.shaderData) this.createShaderData(mesh);
         this.updateShaderAndRenderState(frameState,mesh)
     }
-    protected createShaderData(size:number,mesh?:Mesh){
-        this.totalUniformCount=this.getUniformSize();
-        super.createShaderData(this.totalUniformCount,mesh);
+    protected createShaderData(mesh?:Mesh){
+        super.createShaderData(mesh);
         this.shaderData.setFloat('shininess',this);
         this.shaderData.setColor('specular',this);
         this.shaderData.setTexture('baseTexture',this);
@@ -71,10 +70,6 @@ export default class PhongMaterial extends Material {
               GPUTextureUsage.RENDER_ATTACHMENT,
             sampler:baseSampler
           });
-     }
-     protected getUniformSize(){
-        let uniformSize= super.getUniformSize()+4;
-        return Math.ceil(uniformSize/4)*4;
      }
     destroy() {
 

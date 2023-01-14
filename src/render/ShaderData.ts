@@ -36,29 +36,35 @@ export default class ShaderData{
 
     private uniformDirty:boolean;
 
+    private uniformTotalSize:number;
+
+    private defaultUnifromTotalSize:number;
+
     constructor(label:string,size?:number,layoutIndex?:number,groupIndex?:number,buffer?:Buffer,data?:Float32Array){
        this.byteOffset=0;
-       this.totalUniformCount=size;
-       if(this.totalUniformCount>0){
-         this.data=defaultValue(data,new Float32Array(size));
-       }else{
-         this.data=defaultValue(data,undefined);
-       }
+       this.defaultUnifromTotalSize=size>0?size:400;
+       this.data=defaultValue(data,new Float32Array(this.defaultUnifromTotalSize))
        this.buffer=defaultValue(buffer,undefined);
        this.label=label;
        this.textureBinding=1;
        this.defineDirty=true;
        this.uniformDirty=true;
+       this.uniformTotalSize=0;
        this.defines={};
        this._uniforms=new Map(); 
        this.groupIndex=defaultValue(groupIndex,0);
        this.layoutIndex=defaultValue(layoutIndex,0)
+    }
+    get uniformsSize(){
+        //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+        return Math.ceil(this.uniformTotalSize/4)*4
     }
     setFloat(name:string,value:Function|number|Object,binding?:number){
          if (this._uniforms.get(name)) return;
          const uniform=new UniformFloat(name,this.data,this.byteOffset,value,binding);
          this._uniforms.set(name,uniform);
          this.byteOffset+=uniform.size;
+         this.uniformTotalSize+=1;
     }
     setFloatVec2(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -66,6 +72,7 @@ export default class ShaderData{
         const uniform=new UniformFloatVec2(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=2;
     }
     setFloatVec3(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -73,6 +80,7 @@ export default class ShaderData{
         const uniform=new UniformFloatVec3(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=3;
     }
     setColor(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -80,6 +88,7 @@ export default class ShaderData{
         const uniform=new UniformColor(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=3;
     }
     setFloatVec4(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -87,6 +96,7 @@ export default class ShaderData{
         const uniform=new UniformFloatVec4(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=4;
     }
     setMatrix2(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -94,6 +104,7 @@ export default class ShaderData{
         const uniform=new UniformMat2(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=4;
     }
     setMatrix3(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -101,6 +112,7 @@ export default class ShaderData{
         const uniform=new UniformMat3(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=12;
     }
     setMatrix4(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -108,6 +120,7 @@ export default class ShaderData{
         const uniform=new UniformMat4(name,this.data,this.byteOffset,value,binding);
         this._uniforms.set(name,uniform);
         this.byteOffset+=uniform.size;
+        this.uniformTotalSize+=16;
     }
     setTexture(name:string,value:Function|number|Object,binding?:number){
         if (this._uniforms.get(name)) return;
@@ -145,9 +158,10 @@ export default class ShaderData{
                 if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
             }
         });
-        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.totalUniformCount*4);
+        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.uniformsSize*4);
         if(this.uniformDirty){
              this.uniformDirty=false;
+             debugger
             this.buffer.setSubData(0,this.data);
         }
     }
@@ -161,7 +175,7 @@ export default class ShaderData{
     }
     destroy(){
         this.byteOffset=0;
-        this.totalUniformCount=0;
+        this.uniformTotalSize=0;
         this.data=undefined;
         this.buffer.destroy();
         this._uniforms=new Map(); 
@@ -175,10 +189,11 @@ export default class ShaderData{
                 if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
             }
         });
-        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.totalUniformCount*4);
+        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.uniformsSize*4);
         if(this.uniformDirty){
              this.uniformDirty=false;
-            this.buffer.setSubData(0,this.data);
+            debugger
+            this.buffer.setSubData(0,this.data.slice(0,this.uniformsSize));
         }
     }
     private checkUniformOffset(byteSize:number,Align:number):number{
@@ -275,7 +290,7 @@ export default class ShaderData{
                     offset: 0,
                     //兼容灯光
                     //size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
-                    size:uniform.bufferSize!=undefined?uniform.bufferSize:this.totalUniformCount*4
+                    size:uniform.bufferSize!=undefined?uniform.bufferSize:this.uniformsSize*4
                 }
               });
         } else if(uniform.type==='texture'){

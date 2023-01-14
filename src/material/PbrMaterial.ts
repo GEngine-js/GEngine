@@ -256,12 +256,11 @@ export default class PbrMaterial extends PbrBaseMaterial {
     }
     update(frameState: FrameState, mesh: Mesh) {
         const { context } = frameState;        
-        this.totalUniformCount=this.getUniformSize();
-        if(!this.shaderData) this.createShaderData(this.totalUniformCount,mesh);
+        if(!this.shaderData) this.createShaderData(mesh);
         super.update(frameState, mesh)
     }
-    protected createShaderData(size: number, mesh: Mesh) {
-        super.createShaderData(size, mesh);
+    protected createShaderData( mesh: Mesh) {
+        super.createShaderData(mesh);
         this.shaderData.setDefine('IOR', true);
         this.shaderData.setDefine('SPECULAR', true);
         this.shaderData.setFloat('specularIntensity', this);
@@ -356,18 +355,6 @@ export default class PbrMaterial extends PbrBaseMaterial {
             this.shaderData.setDefine('USE_SPECULARCOLORTEXTURE', true);
             this.shaderData.setTexture('specularColorTexture', this);
         }
-    }
-    protected getUniformSize(): number {
-        let parentSize = super.getUniformSize();
-        let size = parentSize + 1 + 1;
-        if (this.sheen > 0) size += 4;
-        if (this.transmission > 0) size += 5;
-        if (this.clearcoat > 0) {
-            size += 2;
-            if (this.clearcoatNormalTexture) size += 2;
-        }
-        if (this.iridescence > 0) size += 4;
-        return Math.ceil(size / 16) * 16;
     }
     destory() {
 

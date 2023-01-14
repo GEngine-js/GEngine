@@ -187,14 +187,13 @@ export default class PbrBaseMaterial extends Material {
     }
     update(frameState: FrameState, mesh: Mesh) {
         if (!this.shaderData) {
-            this.totalUniformCount = this.getUniformSize();
-            this.createShaderData(this.totalUniformCount, mesh, frameState);
+            this.createShaderData(mesh, frameState);
         }
         this.updateShaderAndRenderState(frameState, mesh);
     }
-    protected createShaderData(size: number, mesh: Mesh, frameState?: FrameState) {
+    protected createShaderData( mesh: Mesh, frameState?: FrameState) {
 
-        super.createShaderData(size, mesh);
+        super.createShaderData(mesh);
 
         this.shaderData.setFloat("roughness", this);
         this.shaderData.setFloat("metalness", this);
@@ -265,17 +264,6 @@ export default class PbrBaseMaterial extends Material {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
             this.shaderData.setTexture('emissiveTexture', this)
         }
-    }
-    protected getUniformSize() {
-        let parentByteSize = super.getUniformSize()
-        let size = parentByteSize + 1 + 1;
-        if (this.bumpTexture) size += 1;
-        if (this.aoTexture) size += 1;
-        if (this.lightTexture) size += 1;
-        if (this.normalTexture) size += 1;
-        if (this.displacementTexture) size + 2;
-        if (this.envTexture) size += 3
-        return Math.ceil(size / 4) * 4;
     }
     destory() {
 
