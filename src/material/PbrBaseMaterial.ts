@@ -1,9 +1,7 @@
 import { FrameState } from "../core/FrameState";
-import Color from "../math/Color";
 import GMath from "../math/Math";
 import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
-import Context from "../render/Context";
 import Texture from "../render/Texture";
 import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
@@ -189,7 +187,6 @@ export default class PbrBaseMaterial extends Material {
         if (!this.shaderData) {
             this.createShaderData(mesh, frameState);
         }
-        this.updateShaderAndRenderState(frameState, mesh);
     }
     protected createShaderData( mesh: Mesh, frameState?: FrameState) {
 

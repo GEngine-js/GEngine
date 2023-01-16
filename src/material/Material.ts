@@ -1,13 +1,10 @@
-import BindGroup from "../render/BindGroup";
-import  BindGroupLayout  from "../render/BindGroupLayout";
 import RenderState from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { ShaderSource } from "../shader/ShaderSource";
-import combine from "../utils/combine";
 import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
-import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target } from "../core/WebGPUTypes";
+import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target,RenderStateProps } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
@@ -17,21 +14,9 @@ export class Material{
 
     color?: Color;
 
-    renderState:{
-        depthStencil:DepthStencil,
-        primitive:PrimitiveState,
-        multisample:MultiSample,
-        stencilReference:number,
-        targets:Array<Target>,
-        viewport:{ x: number, y: number, width: number, height: number},
-        blendConstant:BlendConstant,
-    };
-
     baseSampler?: Sampler;
 
     baseTexture?: Texture;
-
-    alpha?: number;
 
     type: string;
 
@@ -41,13 +26,11 @@ export class Material{
 
     transparent:boolean;
 
-    renderStateDirty:boolean;
-
     dirty:boolean;
 
     private _blendConstant:BlendConstant;
 
-    private _targets:Target;
+    private _targets:Array<Target>;
 
     private _multisample:MultiSample;
     
@@ -65,27 +48,25 @@ export class Material{
 
     private _diffuse:Color;
 
-    definesDirty: boolean;
+    private _renderState:RenderStateProps;
 
     constructor(){
-        //
         this.label=undefined;
         this.type=undefined;
         this.baseTexture=undefined;
         this.baseSampler=undefined;
-        this.renderState=undefined;
         this._diffuse=new Color(0.01,0.5,1,0);
-        this.alpha=undefined;
         this._opacity=1.0;
         //Buffer
         this.shaderData=undefined;
         this.shaderSource=undefined;
-        this.renderStateDirty=true;
-        this.definesDirty=true;
         this.dirty=true;
         this._emissive=new Color(0,0.0,0,1.0);
         this._emissiveIntensity = 1.0;
-
+        this._renderState={};
+    }
+    public get renderState(){
+        return this._renderState;
     }
     public get diffuse() : Color {
         return this._diffuse
@@ -115,55 +96,46 @@ export class Material{
         return this._blendConstant;
     }
     set blendConstant(value){
-        this.renderStateDirty=true;
-        this._blendConstant=combine(value,this._blendConstant,false) as BlendConstant;
+        this._blendConstant=value;
     }
     get targets(){
         return this._targets;
     }
-    set targets(value:Target){
-        this.renderStateDirty=true;
-        this._targets=combine(value,this._targets,false) as Target;
+    set targets(value:Array<Target>){
+        this._targets=value;
     }
     get multisample(){
         return this._multisample;
     }
     set multisample(value){
-        this.renderStateDirty=true;
-        this._multisample=combine(value,this._multisample,false);
+        this._multisample=value;
     }
     get primitiveState(){
         return this._primitiveState;
     }
     set primitiveState(value){
-        this.renderStateDirty=true;
-        this._primitiveState=combine(value,this._primitiveState,false);
+        this._primitiveState=value;
     }
     get stencilReference(){
         return this._stencilReference;
     }
     set stencilReference(value){
-        this.renderStateDirty=true;
         this._stencilReference=value;
     }
     get depthStencil(){
         return this._depthStencil;
     }
     set depthStencil(value:DepthStencil){
-        this.renderStateDirty=true;
-        this._depthStencil=combine(value,this._depthStencil,false) as DepthStencil;
+        this._depthStencil=value;
     }
     onBeforeRender() {}
 
 	onBeforeCompile() {}
 
     update(frameState:FrameState,mesh:Mesh){
-        this.updateShader(frameState,mesh);
-        this.updateRenderState(frameState);
     }
     protected updateShaderAndRenderState(frameState:FrameState,mesh:Mesh){
-        this.updateShader(frameState,mesh);
-        this.updateRenderState(frameState);
+        // this.updateRenderState(frameState);
     }
     protected createShaderData(mesh:Mesh,frameState?:FrameState){
         this.shaderData=new ShaderData(this.type,0);
@@ -177,52 +149,21 @@ export class Material{
         });
         this.shaderData.setColor('emissive',this);  
     }
-    private updateShader(frameState:FrameState,mesh:Mesh){
-        if (mesh.geometry) {
-            if (frameState.definesDirty||this.shaderData.defineDirty||mesh.geometry.definesDirty) {
-                frameState.definesDirty=false;
-                this.shaderData.defineDirty=false;
-                mesh.geometry.definesDirty=false;
-                this.dirty=true;
-                this.shaderSource.update(frameState.defines,this.shaderData.defines,mesh.geometry.defines);
-            }
-        } else {
-            if (frameState.definesDirty||this.shaderData.defineDirty) {
-                frameState.definesDirty=false;
-                this.shaderData.defineDirty=false;
-                this.dirty=true;
-                this.shaderSource.update(frameState.defines,this.shaderData.defines);
-            }
-        }
-
-    }
-    private updateRenderState(frameState:FrameState){
-        if(this.renderStateDirty||!this.renderState) {
-            if (this.renderStateDirty) {
-                this.dirty=true;
-                this.renderStateDirty=false;
-            }
-            this.createRenderState(frameState);
-        }
-    }
-    createRenderState(frameState:FrameState){
+    createRenderState(){
         let  depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant;
         depthStencil=defaultValue(this.depthStencil,RenderState.defaultDepthStencil);
         primitive=defaultValue(this.primitiveState,RenderState.defaultPrimitiveState);
         multisample=defaultValue(this.multisample,RenderState.defaultMultisample);
         stencilReference=defaultValue(this.stencilReference,0);
         blendConstant=defaultValue(this.blendConstant,RenderState.defaultBlendConstant);
-        viewport=frameState.viewport; 
-        targets=frameState?.pass?.colorTargets!=undefined?frameState.pass.colorTargets:[RenderState.defaultTarget]
-        this.renderState={depthStencil,primitive,multisample,stencilReference,targets,viewport,blendConstant}
+        targets=defaultValue(this.targets,[RenderState.defaultTarget]);;
+        this._renderState={depthStencil,primitive,multisample,stencilReference,targets,blendConstant};
     }
     public destroy(){
         this.label=undefined;
         this.type=undefined;
         this.baseTexture=undefined;
         this.baseSampler=undefined;
-        this.renderState=undefined;
         this.color=undefined;
-        this.alpha=undefined;
     }
 }

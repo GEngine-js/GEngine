@@ -1,4 +1,8 @@
-import { GPUCanvasCompositingAlphaMode } from "../core/WebGPUTypes";
+import {
+  GPUCanvasCompositingAlphaMode,
+  ScissorTest,
+  ViewPort,
+} from "../core/WebGPUTypes";
 import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
@@ -32,6 +36,12 @@ class Context {
   public presentationFormat: GPUTextureFormat;
 
   public mipmapTools: MipmapGenerator;
+
+  private _viewPort: ViewPort;
+
+  private _scissorTest: ScissorTest;
+
+  private _scissorTestEnabled: boolean;
 
   constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
     this.canvas = canvas || document.createElement("canvas");
@@ -80,6 +90,13 @@ class Context {
         alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
         ...presentationContextDescriptor,
       });
+      this._viewPort = {
+        x: 0,
+        y: 0,
+        width: this.canvas.clientWidth * this.pixelRatio,
+        height: this.canvas.clientHeight * this.pixelRatio,
+      };
+      this._scissorTestEnabled = false;
       this.systemRenderResource = new SystemRenderResource();
     } catch (error) {
       console.error(error);
@@ -88,7 +105,13 @@ class Context {
 
     return true;
   }
-
+  public setViewPort(x: number, y: number, width: number, height: number) {
+    this._viewPort = { x, y, width, height };
+  }
+  public setScissorTest(x: number, y: number, width: number, height: number) {
+    this._scissorTestEnabled = true;
+    this._scissorTest = { x, y, width, height };
+  }
   public resize(
     width: number,
     height: number,
@@ -118,15 +141,24 @@ class Context {
     //设置系统
     this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
     if (command.renderState) {
+      command.renderState.viewport=this._viewPort;
+      command.renderState.scissorTestEnabled=this._scissorTestEnabled;
       RenderState.applyRenderState(
         passEncoder as GPURenderPassEncoder,
         command.renderState
       );
     }
     if (command.vertexBuffer)
-      command.vertexBuffer.bind(this.device, passEncoder as GPURenderPassEncoder);
+      command.vertexBuffer.bind(
+        this.device,
+        passEncoder as GPURenderPassEncoder
+      );
 
-    if (command.indexBuffer) command.indexBuffer.bind(this.device, passEncoder as GPURenderPassEncoder)
+    if (command.indexBuffer)
+      command.indexBuffer.bind(
+        this.device,
+        passEncoder as GPURenderPassEncoder
+      );
     const pipeline = Pipeline.getRenderPipelineFromCache(
       this.device,
       command,

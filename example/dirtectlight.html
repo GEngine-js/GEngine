@@ -40,7 +40,7 @@
 <body>
     <div id="app"></div>
     <script type="module">
-     import {BoxGeometry,Mesh, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,DirtectLight,Axes} from '../dist/index.js';
+     import {BoxGeometry,Mesh,Sampler,Texture, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,DirtectLight,Axes} from '../dist/index.js';
 
      const  init= async()=>{
         const geometry=new BoxGeometry(10,10,10);
@@ -49,7 +49,25 @@
         img.src ='./uv.jpg';
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
-        const phongMaterial=new PhongMaterial(imageBitmap);
+        const baseSampler=new Sampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+          });
+        const baseTexture=new Texture({
+            size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
+            data:{
+              source:imageBitmap
+            },
+            format: 'rgba8unorm',
+            usage:
+              GPUTextureUsage.TEXTURE_BINDING |
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.RENDER_ATTACHMENT,
+            sampler:baseSampler
+          });
+        const phongMaterial=new PhongMaterial();
+        phongMaterial.baseTexture=baseTexture;
+        phongMaterial.baseSampler=baseSampler;
         phongMaterial.shininess=0.1;
         const axes=new Axes();
         axes.scale.set(10,10,10)
