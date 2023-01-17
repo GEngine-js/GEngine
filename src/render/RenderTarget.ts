@@ -52,20 +52,18 @@ export default class RenderTarget {
   public getColorTexture(index: number = 0): Texture {
     const colAtt = this.colorAttachments[index];
     if (colAtt) {
-      return colAtt.texture;
+      return colAtt.texture as Texture;
     } else {
       return null;
     }
   }
-  public getDepthTexture(): Texture {
+  public getDepthTexture(): Texture{
     if (this.depthAttachment) {
-      return this.depthAttachment.texture;
+      return this.depthAttachment.texture as Texture;
     }
   }
   private getRenderPassDescriptor(): GPURenderPassDescriptor | null {
-    if (this.type === "render") {
-      console.log();
-      
+    if (this.type === "render") { 
       this.preParse();
       return {
         ...(this.colorAttachments && {
@@ -73,7 +71,7 @@ export default class RenderTarget {
             return {
               view:
               //暂时这么写
-              this.context.context.getCurrentTexture().createView() || undefined,
+              colorAttachment.texture.gpuTexture.createView() || undefined,
               resolveTarget:
                 colorAttachment.resolveTarget != undefined
                   ? colorAttachment.resolveTarget.gpuTexture.createView()
@@ -121,16 +119,16 @@ export default class RenderTarget {
     const size = {
       width,
       height,
-      depth: this.colorAttachments[0]?.texture?.textureProp?.size.depth || 0,
+      depth: (<Texture>this.colorAttachments[0]?.texture)?.textureProp?.size.depth || 0,
     };
     for (let i = 0; i < this.colorAttachments.length; ++i) {
       if (this.colorAttachments[i]) {
         const resizedTexture = new Texture({
-          ...this.colorAttachments[i].texture.textureProp,
+          ...(<Texture>this.colorAttachments[i].texture).textureProp,
           size,
         });
         resizedTexture.update(this.context);
-        this.colorAttachments[i].texture.destroy();
+        (<Texture>this.colorAttachments[i].texture).destroy();
         this.colorAttachments[i].texture = resizedTexture;
         this.renderPassDescriptor.colorAttachments[i].view =
           resizedTexture.gpuTexture.createView();
@@ -139,11 +137,11 @@ export default class RenderTarget {
 
     if (this.depthAttachment) {
       const resizedTexture = new Texture({
-        ...this.depthAttachment.texture.textureProp,
+        ...(<Texture>this.depthAttachment.texture).textureProp,
         size,
       });
       resizedTexture.update(this.context);
-      this.depthAttachment.texture.destroy();
+      (<Texture>this.depthAttachment.texture).destroy();
       this.depthAttachment.texture = resizedTexture;
       this.renderPassDescriptor.depthStencilAttachment.view =
         resizedTexture.gpuTexture.createView();

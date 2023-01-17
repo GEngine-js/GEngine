@@ -13,8 +13,10 @@ export default class PostProcessStage{
     public camera:Camera; 
     public geometry:Geometry;
     public quadMesh:Mesh;
-    constructor(){
+    public id:string|number;
+    constructor(id?:number|string){
         this.enabled=true;
+        this.id=id;
         this.geometry=new Geometry();
         this.geometry.setAttribute( new Float32Attribute( 'position', [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0],2 ) );
         this.geometry.count=6;
@@ -24,7 +26,7 @@ export default class PostProcessStage{
 
     }
     destroy(){
-        
+
     }
     render(context:Context){
 

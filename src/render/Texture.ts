@@ -5,11 +5,11 @@ import Context from "./Context";
 import Sampler from "./Sampler";
 
 export default class Texture{
-    public gpuTexture: GPUTexture;
-    public mipLevelCount: number;
-    public sampler:Sampler;
-    context: Context;
-    textureProp: WebGPUTextureProps;
+    public gpuTexture?: GPUTexture;
+    public mipLevelCount?: number;
+    public sampler?:Sampler;
+    context?: Context;
+    textureProp?: WebGPUTextureProps;
     dirty:boolean;
     constructor(textureProp:WebGPUTextureProps){    
        this.textureProp=Object.assign({

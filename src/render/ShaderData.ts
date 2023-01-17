@@ -160,8 +160,7 @@ export default class ShaderData{
         });
         if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.uniformsSize*4);
         if(this.uniformDirty){
-             this.uniformDirty=false;
-             debugger
+             this.uniformDirty=false; 
             this.buffer.setSubData(0,this.data);
         }
     }
@@ -191,8 +190,7 @@ export default class ShaderData{
         });
         if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.uniformsSize*4);
         if(this.uniformDirty){
-             this.uniformDirty=false;
-            debugger
+            this.uniformDirty=false;        
             this.buffer.setSubData(0,this.data.slice(0,this.uniformsSize));
         }
     }

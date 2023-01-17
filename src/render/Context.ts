@@ -174,7 +174,7 @@ class Context {
         0
       );
     } else if (command.count) {
-      (this.passEncoder as GPURenderPassEncoder).draw(
+      (passEncoder as GPURenderPassEncoder).draw(
         command.count,
         command.instances || 1,
         0,

@@ -1,11 +1,3 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-15 16:59:45
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-16 15:52:30
- * @FilePath: \GEngine\src\pass\Pass.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import RenderTarget from "../render/RenderTarget.js";
 import { Material } from "../material/Material.js";
 import Context from "../render/Context.js";
@@ -31,9 +23,9 @@ class Pass {
     this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.context);
   }
   getColorTexture(index:number=0):Texture{
-     return this.renderTarget.getColorTexture(index)
+     return this.renderTarget.getColorTexture(index) as Texture
   }
-  getDepthTexture():Texture{
+  getDepthTexture():Texture| { gpuTexture: GPUTexture; }{
     return this.renderTarget.getDepthTexture();
   }
   afterRender(){

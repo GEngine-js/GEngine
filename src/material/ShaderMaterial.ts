@@ -9,22 +9,26 @@ export default class ShaderMaterial extends Material {
   constructor(options: ShaderMaterialParms) {
     super();
     const { type, frag, vert, uniforms } = options;
+    this.type=type;
     this.shaderSource = new ShaderSource({
       type,
       frag,
       vert,
       customShader: true,
+      defines:{},
+      render:true
     });
     this.uniforms = uniforms;
   }
-  update(frameState: FrameState, mesh: Mesh) {
-    if(!this.shaderData) this.createShaderData(mesh)
+  update(frameState?: FrameState, mesh?: Mesh) {
+    if (!this.shaderData) this.createShaderData(mesh);
   }
   protected createShaderData(mesh?: Mesh) {
     super.createShaderData(mesh);
     const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
     uniformsNames.map((uniformsName) => {
-        this.addUniformToShaderData(uniformsName,this.uniforms[uniformsName])
+        debugger
+      this.addUniformToShaderData(uniformsName, this.uniforms[uniformsName]);
     });
   }
   private addUniformToShaderData(name, uniform) {
@@ -64,6 +68,12 @@ export default class ShaderMaterial extends Material {
         break;
       case "texture":
         this.shaderData.setTexture(name, () => {
+            debugger
+          return this.uniforms[name].value;
+        });
+        break;
+      case "sampler":
+        this.shaderData.setSampler(name, () => {
           return this.uniforms[name].value;
         });
         break;
