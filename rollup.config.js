@@ -4,12 +4,13 @@ import serve from "rollup-plugin-serve"
 import { terser } from "rollup-plugin-terser"
 import ts from "rollup-plugin-typescript2";
 import commonjs from '@rollup/plugin-commonjs';
+import { fileURLToPath } from 'url'
  
 export default {
   input: "./src/index.ts", 
  
   output: {
-    file: path.resolve(__dirname, "./dist/index.js"),
+    file: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "./dist/index.js"),
     sourcemap: false,
     format: "es",
     name:'index' 
