@@ -2,11 +2,12 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-11-13 17:27:40
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-16 14:28:51
+ * @LastEditTime: 2023-01-17 15:33:45
  * @FilePath: \GEngine\src\mesh\Axes.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { FrameState } from "../core/FrameState";
+import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import ColorMaterial from "../material/ColorMaterial";
 import { Float32Attribute } from "../render/Attribute";
@@ -43,10 +44,11 @@ export default class Axes extends Mesh {
       0.5, 0.5, 1, 1,
     ]
     const indices = [0, 1, 2, 3, 4, 5];
-    this.geometry = new Geometry();
+    this.geometry = new Geometry({});
     this.geometry.setAttribute(new Float32Attribute('position', position,3));
     this.geometry.setAttribute(new Float32Attribute('color', colors,4))
     this.geometry.setIndice(indices);
+    this.geometry.indexBuffer.topology=PrimitiveTopology.LineList;
     this.geometry.count=indices.length;
   }
 }

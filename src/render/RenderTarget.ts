@@ -88,7 +88,7 @@ export default class RenderTarget {
               this.depthAttachment?.texture?.gpuTexture?.createView() ||
               undefined,
             depthLoadOp: this.depthAttachment?.op || "clear",
-            depthClearValue: this.depthAttachment?.value || 0,
+            depthClearValue: this.depthAttachment?.value || 1.0,
             depthStoreOp: this.depthAttachment?.storeOp || "store",
             // stencilLoadOp: this.stencilAttachment?.op || "clear",
             // stencilClearValue: this.stencilAttachment?.value || 0,

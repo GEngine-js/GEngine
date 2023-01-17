@@ -75,9 +75,9 @@
         const pbr=new PbrBaseMaterial();
         pbr.baseTexture=baseTexture;
         pbr.baseSampler=baseSampler;
-        pbr.roughness = 0.0;
+        pbr.roughness = 1.0;
 
-		pbr.metalness =1.0;
+		pbr.metalness =0.1;
         const primitive=new Mesh(geometry,pbr)
         // primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
@@ -104,7 +104,7 @@
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
-            // primitive.rotateY(0.01)
+            primitive.rotateY(0.01)
             // primitive.rotateX(0.001)
             requestAnimationFrame( animate );
             scene.render()

@@ -40,11 +40,11 @@
 <body>
     <div id="app"></div>
     <script type="module">
-     import {BoxGeometry,Mesh,Sampler,Texture, PerspectiveCamera,Scene,PhongMaterial,Vector3,Color,DirtectLight,Axes} from '../dist/index.js';
+     import {BoxGeometry,Mesh,Sampler,Texture, PerspectiveCamera,TorusKnotGeometry,Scene,PhongMaterial,Vector3,Color,DirtectLight,Axes} from '../dist/index.js';
 
      const  init= async()=>{
-        const geometry=new BoxGeometry(10,10,10);
-
+        //const geometry=new BoxGeometry(10,10,10);
+        const geometry=new TorusKnotGeometry(7, 2, 300, 20,1,4)
         const img = document.createElement('img');
         img.src ='./uv.jpg';
         await img.decode();
@@ -66,8 +66,8 @@
             sampler:baseSampler
           });
         const phongMaterial=new PhongMaterial();
-        phongMaterial.baseTexture=baseTexture;
-        phongMaterial.baseSampler=baseSampler;
+        // phongMaterial.baseTexture=baseTexture;
+        // phongMaterial.baseSampler=baseSampler;
         phongMaterial.shininess=0.1;
         const axes=new Axes();
         axes.scale.set(10,10,10)
@@ -82,7 +82,7 @@
         // spotLight.position=new Vector3(0,16,0);
 
         const scene=new Scene({container:'app'});
-
+        await scene.init();
         scene.add(primitive);
         scene.add(axes)
         scene.setCamera(camera);
@@ -90,7 +90,7 @@
         primitive.rotateY(0.01)
            primitive.rotateZ(1.8)
         function animate() {
-         
+            primitive.rotateY(0.01)
         // if (phongMaterial.shininess>100) {
         //     phongMaterial.shininess=0.0;
         // } else {

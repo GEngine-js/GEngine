@@ -27,7 +27,6 @@ export default class ShaderMaterial extends Material {
     super.createShaderData(mesh);
     const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
     uniformsNames.map((uniformsName) => {
-        debugger
       this.addUniformToShaderData(uniformsName, this.uniforms[uniformsName]);
     });
   }
@@ -68,7 +67,6 @@ export default class ShaderMaterial extends Material {
         break;
       case "texture":
         this.shaderData.setTexture(name, () => {
-            debugger
           return this.uniforms[name].value;
         });
         break;
