@@ -123,7 +123,7 @@ export type WebGPUTextureProps = {
 
   format: string;
 
-  usage: number;
+  usage?: number;
 
   sampler?: Sampler;
 

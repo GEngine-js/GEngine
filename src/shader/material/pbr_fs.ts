@@ -43,9 +43,9 @@ export default function pbr_fs(defines){
         @group(0) @binding(${defines.diffuseEnvTextureBinding}) var diffuseEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.specularEnvTextureBinding}) var u_SpecularEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.brdfTextureBinding}) var u_brdfLUT: texture_2d<f32>;
-        @group(0) @binding(${defines.defaultSamplerBinding}) var defaultSampler: sampler;
-        #if ${defines.HAS_BASECOLORMAP}
-           @group(0) @binding(${defines.baseColorTextureBinding}) var u_baseColorTexture: texture_2d<f32>;
+        #if ${defines.USE_TEXTURE}
+           @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
+           @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         #endif
         // normal map
         #if ${defines.HAS_NORMALMAP}
@@ -53,17 +53,18 @@ export default function pbr_fs(defines){
         #endif
 
         // emmisve map
-        #if ${defines.HAS_EMISSIVEMAP}
+        #if ${defines.USE_EMISSIVETEXTURE}
             @group(0) @binding(${defines.emissiveTextureBinding}) var u_emissiveTexture: texture_2d<f32>;
         #endif
 
         // metal roughness
-        #if ${defines.HAS_METALROUGHNESSMAP}
-             @group(0) @binding(${defines.metallicTextureBinding}) var u_metallicRoughnessTexture: texture_2d<f32>;
+        #if ${defines.USE_METALNESSTEXTURE}
+        metalnessTexture
+             @group(0) @binding(${defines.metalnessRoughnessTextureBinding}) var metalnessRoughnessTexture: texture_2d<f32>;
         #endif
         // occlusion texture
-        #if ${defines.HAS_OCCLUSIONMAP}
-             @group(0) @binding(${defines.occlusionTextureBinding}) var u_occlusionTexture: texture_2d<f32>;
+        #if ${defines.USE_AOTEXTURE}
+             @group(0) @binding(${defines.aoTextureBinding}) var aoTexture: texture_2d<f32>;
         #endif
 
         // Find the normal for this fragment, pulling either from a predefined normal map
@@ -155,7 +156,7 @@ export default function pbr_fs(defines){
         #if ${defines.HAS_METALROUGHNESSMAP}
             // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
             // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-            let mrSample:vec4<f32> = textureSample(u_metallicRoughnessTexture,defaultSampler, v_uv);
+            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, v_uv);
             perceptualRoughness = mrSample.g * perceptualRoughness;
             metallic = mrSample.b * metallic;
         #endif
@@ -167,8 +168,8 @@ export default function pbr_fs(defines){
 
 
             // The albedo may be defined from a base texture or a flat color
-        #if ${defines.HAS_BASECOLORMAP}
-            let baseColor:vec4<f32> = textureSample(u_baseColorTexture,defaultSampler, v_uv) *vec4<f32>(materialUniform.color,1.0);
+        #if ${defines.USE_TEXTURE}
+            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, v_uv) *vec4<f32>(materialUniform.color,1.0);
         #else
             let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
         #endif
@@ -237,7 +238,7 @@ export default function pbr_fs(defines){
 
         // Apply optional PBR terms for additional (optional) shading
         #if ${defines.HAS_OCCLUSIONMAP}
-            let ao:f32 = textureSample(u_occlusionTexture,defaultSampler, v_uv).r;
+            let ao:f32 = textureSample(aoTexture,defaultSampler, v_uv).r;
             color = mix(color, color * ao, materialUniform.occlusionStrength);
         #endif
 
@@ -245,7 +246,7 @@ export default function pbr_fs(defines){
             let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,v_uv).rgb * materialUniform.emissive;
             color += emissive;
         #endif
-       return vec4<f32>(color, baseColor.a);
+       return vec4<f32>(color,materialUniform.opacity);
     }
    `
 }

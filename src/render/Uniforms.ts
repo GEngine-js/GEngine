@@ -1,4 +1,3 @@
-import DataBuffer from '../utils/DataBuffer';
 import Color from '../math/Color';
 import Matrix2 from '../math/Matrix2';
 import Matrix3 from '../math/Matrix3';
@@ -17,7 +16,6 @@ export class Uniform<T> {
     name: string;
     value: T;
     offset: number;
-    dataBuffer: DataBuffer;
     buffer:Float32Array|Uint16Array|Uint32Array|Uint8Array|Float64Array
     size: number;
     cb: Function|number|Object;
