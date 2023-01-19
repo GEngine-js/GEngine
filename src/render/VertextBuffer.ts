@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2023-01-12 10:07:57
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 11:10:18
+ * @LastEditTime: 2023-01-19 15:47:04
  * @FilePath: \GEngine\src\render\VertextBuffer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -42,6 +42,7 @@ export default class VertextBuffer{
             },0)*4;           
             this.buffer=Buffer.createVertexBuffer(device,typeArray);
         }
+        debugger
         passEncoder.setVertexBuffer(this.index,this.buffer.gpuBuffer);
     }
     destroy(){

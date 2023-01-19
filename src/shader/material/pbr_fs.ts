@@ -1,5 +1,6 @@
+import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbr_fs(defines){
-   return   `
+   return   wgslParseDefines`
         // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
         struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
@@ -17,9 +18,10 @@ export default function pbr_fs(defines){
             #endif
          }
         struct VertInput {
-            position:vec3<f32>,
-            normal:vec3<f32>,
-            uv:vec2<f32>
+            @builtin(position) position:vec4<f32>,
+            @location(0) worldPos:vec3<f32>,
+            @location(1) normal:vec3<f32>,
+            @location(2) uv:vec2<f32>
         }    
         struct PBRInfo
         {
@@ -41,10 +43,10 @@ export default function pbr_fs(defines){
         @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
         // IBL
         @group(0) @binding(${defines.diffuseEnvTextureBinding}) var diffuseEnvSampler: texture_cube<f32>;
-        @group(0) @binding(${defines.specularEnvTextureBinding}) var u_SpecularEnvSampler: texture_cube<f32>;
-        @group(0) @binding(${defines.brdfTextureBinding}) var u_brdfLUT: texture_2d<f32>;
+        @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvSampler: texture_cube<f32>;
+        @group(0) @binding(${defines.brdfTextureBinding}) var brdfLUT: texture_2d<f32>;
         #if ${defines.USE_TEXTURE}
-           @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
+           @group(0) @binding(${defines.baseTextureBinding}) var baseColorTexture: texture_2d<f32>;
            @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         #endif
         // normal map
@@ -69,21 +71,25 @@ export default function pbr_fs(defines){
 
         // Find the normal for this fragment, pulling either from a predefined normal map
         // or from the interpolated mesh normal and tangent attributes.
-        fn getNormal(position:vec3<f32>,uv:vec2<f32>,normalTexture:texture_2d<f32>,defaultSampler:sampler):vec3<f32>
+        fn getNormal(input:VertInput
+            #if ${defines.HAS_NORMALMAP}
+            ,normalTexture:texture_2d<f32>,defaultSampler:sampler
+            #endif
+            )->vec3<f32>
         {
             // Retrieve the tangent space matrix
-            let pos_dx:vec3<f32> = dpdx(position);
-            let pos_dy:vec3<f32> = dpdy(position);
-            let tex_dx:vec3<f32> = dpdx(vec3<f32>(uv, 0.0));
-            let tex_dy:vec3<f32> = dpdy(vec3<f32>(uv, 0.0));
-            var t:vec3<f32> = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
-            let ng = v_normal;
+            let pos_dx:vec3<f32> = dpdx(input.worldPos);
+            let pos_dy:vec3<f32> = dpdy(input.worldPos);
+            let tex_dx:vec3<f32> = dpdx(vec3<f32>(input.uv, 0.0));
+            let tex_dy:vec3<f32> = dpdy(vec3<f32>(input.uv, 0.0));
+            var t:vec3<f32> = (tex_dy.y * pos_dx - tex_dx.y * pos_dy) / (tex_dx.x * tex_dy.y - tex_dy.x * tex_dx.y);
+            let ng = input.normal;
             t = normalize(t - ng * dot(ng, t));
             let b:vec3<f32> = normalize(cross(ng, t));
             let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
         // TODO: TANGENTS
             #if ${defines.HAS_NORMALMAP}
-                var n:vec3<f32> = textureSample(normalTexture,defaultSampler, v_uv).rgb;
+                var n:vec3<f32> = textureSample(normalTexture,defaultSampler, input.uv).rgb;
                 n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, materialUniform.normalTextureScale, 1.0)));
             #else
                 var n:vec3<f32> = tbn[2].xyz;
@@ -148,7 +154,7 @@ export default function pbr_fs(defines){
             return roughnessSq / (M_PI * f * f);
         }
         @fragment
-        fn main(input:VertInput)-> @location(0) vec4<f32>
+        fn main(input:VertInput) -> @location(0) vec4<f32> 
         {
             var perceptualRoughness:f32 = materialUniform.roughness;
             var metallic:f32 = materialUniform.metallic;
@@ -156,7 +162,7 @@ export default function pbr_fs(defines){
         #if ${defines.HAS_METALROUGHNESSMAP}
             // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
             // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, v_uv);
+            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, input.uv);
             perceptualRoughness = mrSample.g * perceptualRoughness;
             metallic = mrSample.b * metallic;
         #endif
@@ -169,11 +175,11 @@ export default function pbr_fs(defines){
 
             // The albedo may be defined from a base texture or a flat color
         #if ${defines.USE_TEXTURE}
-            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, v_uv) *vec4<f32>(materialUniform.color,1.0);
+            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) *vec4<f32>(materialUniform.color,1.0);
         #else
             let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
         #endif
-
+        //let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             let f0:vec3<f32> = vec3<f32>(0.04);
             var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
             diffuseColor *= 1.0 - metallic;
@@ -188,16 +194,22 @@ export default function pbr_fs(defines){
             let reflectance90:f32 = clamp(reflectance * 25.0, 0.0, 1.0);
             let specularEnvironmentR0:vec3<f32> = specularColor.rgb;
             let specularEnvironmentR90:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0) * reflectance90;
+     
+                #if ${defines.HAS_NORMALMAP}
+                let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);  
+                #else
+                let n:vec3<f32> = getNormal(input);
+                #endif
 
-
-            let n:vec3<f32> = getNormal(input.position,input.uv,normalTexture,defaultSampler);                             // normal at surface point
+            //let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);                             // normal at surface point
             // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-            let v:vec3<f32> = normalize(-v_position);                       // Vector from surface point to camera
+            let v:vec3<f32> = normalize(-input.worldPos);                       // Vector from surface point to camera
             // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
-            let l:vec3<f32> = normalize(vec3( 1.0, 1.0, 1.0 ));             // Vector from surface point to light
+            let l:vec3<f32> =normalize(vec3( 1.0, 1.0, 1.0 )); 
+                      // Vector from surface point to light
             // vec3 l = vec3( 0.0, 0.0, 1.0 );             // Vector from surface point to light
             let h:vec3<f32> = normalize(l+v);                          // Half vector between both l and v
-            let reflection:f32 = -normalize(reflect(v, n));
+            let reflection:vec3<f32> = -normalize(reflect(v, n));
 
             let NdotL:f32 = clamp(dot(n, l), 0.001, 1.0);
             let NdotV:f32 = abs(dot(n, v)) + 0.001;
@@ -213,9 +225,9 @@ export default function pbr_fs(defines){
             pbrInputs.VdotH=VdotH;
             pbrInputs.perceptualRoughness=perceptualRoughness;
             pbrInputs.perceptualRoughness=perceptualRoughness;
-            pbrInputs.metallic=metallic;
-            pbrInputs.specularEnvironmentR0=specularEnvironmentR0;
-            pbrInputs.specularEnvironmentR90=specularEnvironmentR90;
+            pbrInputs.metalness=metallic;
+            pbrInputs.reflectance0=specularEnvironmentR0;
+            pbrInputs.reflectance90=specularEnvironmentR90;
             pbrInputs.alphaRoughness=alphaRoughness;
             pbrInputs.diffuseColor=diffuseColor;
             pbrInputs.specularColor=specularColor;
@@ -238,15 +250,15 @@ export default function pbr_fs(defines){
 
         // Apply optional PBR terms for additional (optional) shading
         #if ${defines.HAS_OCCLUSIONMAP}
-            let ao:f32 = textureSample(aoTexture,defaultSampler, v_uv).r;
+            let ao:f32 = textureSample(aoTexture,defaultSampler, input.uv).r;
             color = mix(color, color * ao, materialUniform.occlusionStrength);
         #endif
 
         #if ${defines.HAS_EMISSIVEMAP}
-            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,v_uv).rgb * materialUniform.emissive;
+            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb * materialUniform.emissive;
             color += emissive;
         #endif
-       return vec4<f32>(color,materialUniform.opacity);
+       return vec4<f32>(color.xyz,1.0);
     }
    `
 }

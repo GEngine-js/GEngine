@@ -72,9 +72,10 @@ export default class Pipeline{
         const primitiveState: GPUPrimitiveState = {
           topology:topology as GPUPrimitiveTopology,
           frontFace:renderState.primitive.frontFace,
-          cullMode:renderState.primitive.cullMode,
-          // stripIndexFormat: indexFormat as GPUIndexFormat,
-        };
+          // cullMode:renderState.primitive.cullMode,
+          //stripIndexFormat: drawComand.indexBuffer.indexFormat as GPUIndexFormat,
+          };
+          
           return {
             //需要改动
             layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId,groupLayouts).gpuPipelineLayout,   

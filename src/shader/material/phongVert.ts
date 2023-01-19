@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-12-02 19:05:56
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-19 15:42:12
+ * @FilePath: \GEngine\src\shader\material\phongVert.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { wgslParseDefines } from "../WgslPreprocessor"
 export default function phongVert(defines){
       return `
@@ -15,9 +23,9 @@ export default function phongVert(defines){
             color: vec3<f32>,
             opacity:f32,
             normalMatrix: mat3x3<f32>,
+            emissive:vec3<f32>,
             specular:vec3<f32>,
             shininess:f32,
-            emissive:vec3<f32>,
       }
       struct SystemUniform {
             projectionMatrix: mat4x4<f32>,

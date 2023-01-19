@@ -4,6 +4,7 @@ import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
 import DrawCommand from "../render/DrawCommand";
 import RenderQueue from "../core/RenderQueue";
+import { PrimitiveTopology } from "../core/WebGPUConstant";
 
 export class BasicPass extends Pass {
   skyboxDrawComand: DrawCommand;
@@ -21,7 +22,10 @@ export class BasicPass extends Pass {
     });
     preRender.map((mesh) => {
       mesh.beforeRender();
-      this.excuteCommand(mesh.getDrawCommand());
+    
+      const dr=mesh.getDrawCommand()
+      dr.topology=PrimitiveTopology.TriangleList 
+      this.excuteCommand(dr );
       mesh.afterRender();
     });
     opaque.map((mesh) => {
@@ -39,7 +43,7 @@ export class BasicPass extends Pass {
     this.createRenderTarget(context);
   }
   private createRenderTarget(context: Context) {
-    const colorAttachment = new Attachment({ r: 0.14, g: 0.14, b: 0.14, a: 1 });
+    const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0});
     const depthAttachment = new Attachment(1.0);
     this.renderTarget = new RenderTarget(
       "render",

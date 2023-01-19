@@ -173,7 +173,7 @@ export default class RenderState {
   };
 
   static readonly defaultPrimitiveState = {
-    frontFace: FrontFace.CW,
+    frontFace: FrontFace.CCW,
     cullMode: CullMode.None,
     unclippedDepth: false,
   };

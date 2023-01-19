@@ -1,30 +1,31 @@
+import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbr_vs(defines){
-   return   `
+   return   wgslParseDefines`
    struct MaterialUniform {
-    modelMatrix: mat4x4<f32>,
-    color: vec3<f32>,
-    opacity:f32,
-    normalMatrix: mat3x3<f32>,
-    emissive:vec3<f32>,
-    metallic:f32,
-    roughness:f32,
-    #if ${defines.HAS_NORMALMAP}
-        normalTextureScale:f32,
-    #endif
-    #if ${defines.HAS_OCCLUSIONMAP}
-        occlusionStrength:f32,
-    #endif
-    #if ${defines.HAS_SKIN} 
-        jointMatrixCount:f32,
-        jointMatrixs:array<mat4x4>,
-    #endif
+        modelMatrix: mat4x4<f32>,
+        color: vec3<f32>,
+        opacity:f32,
+        normalMatrix: mat3x3<f32>,
+        emissive:vec3<f32>,
+        metallic:f32,
+        roughness:f32,
+        #if ${defines.HAS_NORMALMAP}
+            normalTextureScale:f32,
+        #endif
+        #if ${defines.HAS_OCCLUSIONMAP}
+            occlusionStrength:f32,
+        #endif
+        #if ${defines.HAS_SKIN} 
+            jointMatrixCount:f32,
+            jointMatrixs:array<mat4x4>,
+        #endif
    }
 
    struct SystemUniform {
-    projectionMatrix: mat4x4<f32>,
-    viewMatrix: mat4x4<f32>,
-    inverseViewMatrix: mat4x4<f32>,
-    cameraPosition: vec3<f32>,
+        projectionMatrix: mat4x4<f32>,
+        viewMatrix: mat4x4<f32>,
+        inverseViewMatrix: mat4x4<f32>,
+        cameraPosition: vec3<f32>,
    }; 
    
    struct VertexInput {
@@ -42,7 +43,7 @@ export default function pbr_vs(defines){
 //    endif
    
    
-    struct VertOutput {
+    struct VertexOutput {
         @builtin(position) position:vec4<f32>,
         @location(0) worldPos:vec3<f32>,
         @location(1) normal:vec3<f32>,
@@ -51,7 +52,8 @@ export default function pbr_vs(defines){
 
     @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
     @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
-   fn main(input: VertexInput) -> VertexOutput
+    @vertex
+   fn main(input: VertexInput)-> VertexOutput
    {
        #if ${defines.HAS_SKIN} 
             mat4 skinMatrix = 
@@ -68,18 +70,18 @@ export default function pbr_vs(defines){
            #endif
         #endif
         var output: VertexOutput;
-        output.uv = uv;
+        output.uv = input.uv;
    
         #if ${defines.HAS_SKIN} 
             output.normal = normalize((materialUniform.normalMatrix * transpose(inverse(skinMatrix)) * vec4<f32>(input.normal, 0.0)).xyz);
-            let pos:vec4<f32> = systemUniform.projectionMatrix * systemUniform.viewMatrix * skinMatrix * vec4<f32>(input.position, 1.0);
+            let pos:vec4<f32> = systemUniform.viewMatrix *materialUniform.modelMatrix*skinMatrix * vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix*materialUniform.modelMatrix * skinMatrix * vec4<f32>(input.position,1.0);
         #else
-            output.normal = normalize((materialUniform.normalMatrix * vec4<f32>(input.normal,0.0)).xyz);
-            let pos:vec4<f32>= systemUniform.projectionMatrix * systemUniform.viewMatrix * vec4<F32>(input.position, 1.0);
+            output.normal = normalize((materialUniform.normalMatrix * input.normal).xyz);
+            let pos:vec4<f32>=systemUniform.viewMatrix *materialUniform.modelMatrix*vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix *materialUniform.modelMatrix* vec4<f32>(input.position, 1.0);
         #endif      
-        output.worldPos = vec3(pos.xyz) / pos.w; 
+        output.worldPos = pos.xyz/pos.w; 
         return output;   
    }
    `

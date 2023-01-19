@@ -47,22 +47,26 @@
         Sampler,
         TorusKnotGeometry,
         SkyBox,
-        CubeTextureLoader
+        CubeTextureLoader,
+        SphereGeometry,
+        PbrMat
     } from '../dist/index.js';
 
      const  init= async()=>{
-        //const geometry=new BoxGeometry(10,10,10);
-        const geometry=new TorusKnotGeometry(7, 2, 300, 20,1,4)
+         //const geometry=new BoxGeometry(10,10,10);
+        //const geometry=new TorusKnotGeometry(10, 3, 200, 32)
+        const geometry= new SphereGeometry();
         const img = document.createElement('img');
         img.src ='./brick_diffuse.jpg';
         await img.decode();
         const imageBitmap = await createImageBitmap(img);
         const phongMaterial=new PhongMaterial(imageBitmap);
         const baseSampler=new Sampler({
-            // magFilter: 'linear',
-            // minFilter: 'linear',
+            magFilter: 'linear',
+            minFilter: 'linear',
             addressModeU :"repeat",
-            addressModeV:"repeat"
+            addressModeV :"repeat",
+            addressModeW:"repeat",
           });
         const baseTexture=new Texture({
             size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
@@ -72,31 +76,55 @@
             format: 'rgba8unorm',
             sampler:baseSampler
           });
-        const pbr=new PbrBaseMaterial();
+          const scene=new Scene({
+            container:'app',
+            brdfUrl:'./textures/brdfLUT.png',
+            specularEnvUrls:[
+            `./textures/environment/px.jpg`,
+            `./textures/environment/nx.jpg`,
+            `./textures/environment/py.jpg`,
+            `./textures/environment/ny.jpg`,
+            `./textures/environment/pz.jpg`,
+            `./textures/environment/nz.jpg`,
+
+            ] ,
+            diffuseEnvUrls:[
+            `./textures/environment/diffuse/bakedDiffuse_01.jpg`,
+            `./textures/environment/diffuse/bakedDiffuse_02.jpg`,
+            `./textures/environment/diffuse/bakedDiffuse_03.jpg`,
+            `./textures/environment/diffuse/bakedDiffuse_04.jpg`,
+            `./textures/environment/diffuse/bakedDiffuse_05.jpg`,
+            `./textures/environment/diffuse/bakedDiffuse_06.jpg`,
+            ]
+        });
+        await scene.init();
+        const pbr=new PbrMat();
         pbr.baseTexture=baseTexture;
         pbr.baseSampler=baseSampler;
-        pbr.roughness = 1.0;
+        pbr.diffuseEnvTexture=scene.diffuseEnvTexture;
+        pbr.specularEnvTexture=scene.specularEnvTexture;
+        pbr.brdfTexture=scene.brdfTexture;
+        pbr.roughness = 0.0;
 
-		pbr.metalness =0.1;
-        const primitive=new Mesh(geometry,pbr)
+		pbr.metalness =1.0;
+        const primitive=new Mesh(geometry,pbr);
+        primitive.scale.set(15,15,15)
         // primitive.rotateY(Math.PI/3)
-        const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
-        camera.position=new Vector3(20,20,20);
+        const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
+        camera.position=new Vector3(25,25,25);
         camera.target=new Vector3(0,0,0);
 
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
         pointLight.position=new Vector3(0,25,0);
         const urls=[
-        `./skybox/px.png`,
-        `./skybox/nx.png`,
-        `./skybox/py.png`,
-        `./skybox/ny.png`,
-        `./skybox/pz.png`,
-        `./skybox/nz.png`,
+           `./textures/environment/px.jpg`,
+            `./textures/environment/nx.jpg`,
+            `./textures/environment/py.jpg`,
+            `./textures/environment/ny.jpg`,
+            `./textures/environment/pz.jpg`,
+            `./textures/environment/nz.jpg`,
         ]
         const skybox=new SkyBox(urls);
-        const scene=new Scene({container:'app',skybox});
-        await scene.init();
         const env=await CubeTextureLoader(urls);
         scene.environment=env.texture;
         scene.add(primitive);
@@ -105,12 +133,13 @@
         scene.addLight(pointLight);
         function animate() {
             primitive.rotateY(0.01)
-            // primitive.rotateX(0.001)
+            primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }
         // document.body.appendChild(scene.context.canvas);
         animate()
+        //scene.render()
      }
      init();
 

@@ -87,7 +87,7 @@ class Context {
         // format: navigator.gpu.getPreferredCanvasFormat(),
         format: this.presentationFormat,
         usage: TextureUsage.RenderAttachment,
-        alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
+        alphaMode: 'opaque',
         ...presentationContextDescriptor,
       });
       this._viewPort = {

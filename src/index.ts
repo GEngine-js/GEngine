@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-23 18:08:25
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-18 17:34:42
+ * @LastEditTime: 2023-01-19 17:12:14
  * @FilePath: \GEngine\src\index.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -24,12 +24,14 @@ export {default as Axes} from "./mesh/Axes";
 export {default as SkyBox} from "./mesh/SkyBox"
 
 //geometry
+export {default as SphereGeometry} from './geometry/SphereGeometry';
 export {default as BoxGeometry} from "./geometry/BoxGeometry";
 export {default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 //Material
 export {default as PhongMaterial} from "./material/PhongMaterial";
-export {default as PbrMaterial }from "./material/PbrMaterial";
+export {default as PbrMat }from "./material/PbrMat";
 export {default as PbrBaseMaterial } from "./material/PbrBaseMaterial";
+
 
 export {Scene} from './Scene';
 

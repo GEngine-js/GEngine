@@ -6,7 +6,7 @@ import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
 
-export default class PbrBaseMaterial extends Material {
+export default class PbrMat extends Material {
 
     public diffuseEnvTexture: Texture;
 
@@ -61,7 +61,7 @@ export default class PbrBaseMaterial extends Material {
     }
     constructor() {
         super();
-        this.type = 'pbr';
+        this.type = 'pbr_mat';
 
         this._roughness = 0.1;
 
@@ -87,9 +87,8 @@ export default class PbrBaseMaterial extends Material {
     protected createShaderData( mesh: Mesh, frameState?: FrameState) {
 
         super.createShaderData(mesh);
-
-        this.shaderData.setFloat("roughness", this);
         this.shaderData.setFloat("metalness", this);
+        this.shaderData.setFloat("roughness", this);
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE', true);
             this.shaderData.setTexture('baseTexture', this);
@@ -112,8 +111,17 @@ export default class PbrBaseMaterial extends Material {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
             this.shaderData.setTexture('emissiveTexture', this)
         }
+        if (this.specularEnvTexture) {
+            this.shaderData.setTexture('specularEnvTexture', this);
+        }
+        if (this.diffuseEnvTexture) {
+            this.shaderData.setTexture('diffuseEnvTexture', this)
+        }
+        if (this.brdfTexture) {
+            this.shaderData.setTexture('brdfTexture', this)
+        }
     }
-    destory() {
+    destroy() {
 
     }
 }

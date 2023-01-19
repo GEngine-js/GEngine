@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-18 16:30:53
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 14:38:21
+ * @LastEditTime: 2023-01-18 18:19:45
  * @FilePath: \GEngine\src\shader\Shaders.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -17,6 +17,8 @@ import skyBoxFrag from './material/skyBoxFrag';
 import skyBoxVert from './material/skyBoxVert';
 import quadFrag from './material/quadFrag';
 import quadVert from './material/quadVert';
+import pbr_vs from './material/pbr_vs';
+import pbr_fs from './material/pbr_fs';
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -44,6 +46,10 @@ const shaders = {
 	resolve:{
       frag:quadFrag,
 	  vert:quadVert
+	},
+	pbr_mat:{
+      frag:pbr_fs,
+	  vert:pbr_vs
 	}
 }
 
