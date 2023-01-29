@@ -573,12 +573,12 @@ function defined(value) {
 const renderStateCache = new WeakMap();
 class RenderState {
     constructor(renderState) {
-        const rs = defaultValue(renderState, defaultValue.EMPTY_OBJECT);
-        const targets = defaultValue(rs.targets, defaultValue.EMPTY_OBJECT);
+        const rs = defaultValue(renderState, {});
+        const targets = defaultValue(rs.targets, {});
         const blend = defaultValue(rs.blend, { color: {}, alpha: {} });
-        const depthStencil = defaultValue(rs.depthStencil, defaultValue.EMPTY_OBJECT);
-        const depthStencilFront = defaultValue(depthStencil.front, defaultValue.EMPTY_OBJECT);
-        const depthStencilBack = defaultValue(depthStencil.back, defaultValue.EMPTY_OBJECT);
+        const depthStencil = defaultValue(rs.depthStencil, {});
+        const depthStencilFront = defaultValue(depthStencil.front, {});
+        const depthStencilBack = defaultValue(depthStencil.back, {});
         const viewport = rs.viewport;
         this.stencilEnabled = defaultValue(rs.stencilEnabled, false);
         this.scissorTestEnabled = defaultValue(rs.scissorTestEnabled, false);
@@ -627,8 +627,8 @@ class RenderState {
         //已完善
         this.depthStencil = {
             format: defaultValue(depthStencil.format, TextureFormat.Depth24Plus),
-            depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, false),
-            depthCompare: defaultValue(depthStencil.depthCompare, CompareFunction.Always),
+            depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, true),
+            depthCompare: defaultValue(depthStencil.depthCompare, CompareFunction.Less),
             stencilReadMask: defaultValue(depthStencil.stencilReadMask, 0xffffffff),
             stencilWriteMask: defaultValue(depthStencil.stencilWriteMask, 0xffffffff),
             stencilFront: {
@@ -9621,14 +9621,7 @@ class Pipeline {
     }
     static getPipelineDescriptor(device, drawComand, renderState, groupLayouts, hashId) {
         const { vertexBuffer, shaderSource } = drawComand;
-        const topology = drawComand.topology || drawComand.indexBuffer.topology;
         const { vert, frag } = shaderSource.createShaderModule(device);
-        const primitiveState = {
-            topology: topology,
-            frontFace: renderState.primitive.frontFace,
-            // cullMode:renderState.primitive.cullMode,
-            //stripIndexFormat: drawComand.indexBuffer.indexFormat as GPUIndexFormat,
-        };
         return {
             //需要改动
             layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout,
@@ -9637,7 +9630,7 @@ class Pipeline {
                 entryPoint: shaderSource.vertEntryPoint,
                 buffers: vertexBuffer.getBufferDes(),
             },
-            primitive: primitiveState,
+            primitive: renderState.primitive,
             depthStencil: renderState.depthStencil,
             multisample: renderState.multisample,
             fragment: {
@@ -11328,7 +11321,7 @@ const fromPointsNaiveCenterScratch = new Vector3();
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2023-01-12 10:07:57
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-19 15:47:04
+ * @LastEditTime: 2023-01-29 17:45:53
  * @FilePath: \GEngine\src\render\VertextBuffer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11359,7 +11352,6 @@ class VertextBuffer {
             }, 0) * 4;
             this.buffer = Buffer.createVertexBuffer(device, typeArray);
         }
-        debugger;
         passEncoder.setVertexBuffer(this.index, this.buffer.gpuBuffer);
     }
     destroy() {
@@ -11530,6 +11522,14 @@ function combine(object1, object2, deep) {
     return result;
 }
 
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-17 16:04:17
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-29 17:26:20
+ * @FilePath: \GEngine\src\geometry\Geometry.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 class Geometry {
     constructor(options) {
         this.type = options.type || undefined;
@@ -11538,6 +11538,7 @@ class Geometry {
         this.definesDirty = true;
         this.attributes = new Attributes();
         this.vertBuffer = new VertextBuffer(this.attributes, 0);
+        // this.topology=PrimitiveTopology.TriangleList;
         this._defines = {};
     }
     get defines() {
@@ -14199,7 +14200,6 @@ class Material {
         this.doubleSided = false;
     }
     get renderState() {
-        this.createRenderState();
         return this._renderState;
     }
     get diffuse() {
@@ -14227,47 +14227,44 @@ class Material {
         this._opacity = v;
     }
     get blendConstant() {
-        return this._blendConstant;
+        return this._renderState.blendConstant;
     }
     set blendConstant(value) {
-        this._blendConstant = value;
+        this._renderState.blendConstant = value;
     }
     get targets() {
-        return this._targets;
+        return this._renderState.targets;
     }
     set targets(value) {
-        this._targets = value;
+        this._renderState.targets = value;
     }
     get multisample() {
-        return this._multisample;
+        return this._renderState.multisample;
     }
     set multisample(value) {
-        this._multisample = value;
+        this._renderState.multisample = value;
     }
     get primitiveState() {
-        return this._primitiveState;
+        return this._renderState.primitive;
     }
     set primitiveState(value) {
-        this._primitiveState = value;
+        this._renderState.primitive = value;
     }
     get stencilReference() {
-        return this._stencilReference;
+        return this._renderState.stencilReference;
     }
     set stencilReference(value) {
-        this._stencilReference = value;
+        this._renderState.stencilReference = value;
     }
     get depthStencil() {
-        return this._depthStencil;
+        return this._renderState.depthStencil;
     }
     set depthStencil(value) {
-        this._depthStencil = value;
+        this._renderState.depthStencil = value;
     }
     onBeforeRender() { }
     onBeforeCompile() { }
     update(frameState, mesh) {
-    }
-    updateShaderAndRenderState(frameState, mesh) {
-        // this.updateRenderState(frameState);
     }
     createShaderData(mesh, frameState) {
         this.shaderData = new ShaderData(this.type, 0);
@@ -14457,7 +14454,7 @@ async function CubeTextureLoader(urls) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-12-10 20:24:50
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-16 16:02:58
+ * @LastEditTime: 2023-01-29 18:14:46
  * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -16156,9 +16153,7 @@ class BasicPass extends Pass {
         });
         preRender.map((mesh) => {
             mesh.beforeRender();
-            const dr = mesh.getDrawCommand();
-            dr.topology = PrimitiveTopology.TriangleList;
-            this.excuteCommand(dr);
+            this.excuteCommand(mesh.getDrawCommand());
             mesh.afterRender();
         });
         opaque.map((mesh) => {

@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-17 16:04:17
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-29 17:26:20
+ * @FilePath: \GEngine\src\geometry\Geometry.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import BoundingSphere from "../core/BoundingSphere";
 import { FrameState } from "../core/FrameState";
 import VertextBuffer from "../render/VertextBuffer";
@@ -6,6 +14,7 @@ import {Attribute} from "../render/Attribute";
 import Attributes from "../render/Attributes";
 import IndexBuffer from "../render/IndexBuffer";
 import combine from "../utils/combine";
+import { PrimitiveTopology } from "../core/WebGPUConstant";
 export default class Geometry {
     type: string;
     dirty: boolean;
@@ -16,6 +25,7 @@ export default class Geometry {
     private  _defines:{[prop: string]: boolean|number};
     private attributes:Attributes;
     definesDirty: boolean;
+    topology:PrimitiveTopology;
     get defines(){
         return this._defines;
     }
@@ -29,7 +39,8 @@ export default class Geometry {
         this.dirty = false;
         this.definesDirty=true;
         this.attributes=new Attributes();
-        this.vertBuffer=new VertextBuffer(this.attributes,0)
+        this.vertBuffer=new VertextBuffer(this.attributes,0);
+        // this.topology=PrimitiveTopology.TriangleList;
         this._defines={};
     }
     getAttribute(name:string){

@@ -22,10 +22,7 @@ export class BasicPass extends Pass {
     });
     preRender.map((mesh) => {
       mesh.beforeRender();
-    
-      const dr=mesh.getDrawCommand()
-      dr.topology=PrimitiveTopology.TriangleList 
-      this.excuteCommand(dr );
+      this.excuteCommand(mesh.getDrawCommand());
       mesh.afterRender();
     });
     opaque.map((mesh) => {

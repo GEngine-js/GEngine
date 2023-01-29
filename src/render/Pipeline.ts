@@ -21,16 +21,14 @@ export default class Pipeline{
             this.gpuPipeline=this.device.createRenderPipeline(this.descriptor as GPURenderPipelineDescriptor );
         } else {
             this.gpuPipeline=this.device.createComputePipeline(this.descriptor as GPUComputePipelineDescriptor);
-        }
-        
+        }    
     }
     public bind(passEncoder:GPURenderPassEncoder|GPUComputePassEncoder){
         if (this.type=='render') {
             (passEncoder as GPURenderPassEncoder).setPipeline(this.gpuPipeline as GPURenderPipeline);
         } else {
             (passEncoder as GPUComputePassEncoder).setPipeline(this.gpuPipeline as GPUComputePipeline);
-        }
-       
+        } 
     }
     static getRenderPipelineFromCache(device:GPUDevice,drawComand:DrawCommand,groupLayouts:BindGroupLayout[]):Pipeline{ 
         const {renderState,shaderSource,materialType}=drawComand; 
@@ -67,15 +65,7 @@ export default class Pipeline{
       }
      private static getPipelineDescriptor(device:GPUDevice,drawComand:DrawCommand,renderState:RenderState,groupLayouts:BindGroupLayout[] ,hashId:string):GPURenderPipelineDescriptor{
         const {vertexBuffer,shaderSource}=drawComand;
-        const topology=drawComand.topology||drawComand.indexBuffer.topology;
-        const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}
-        const primitiveState: GPUPrimitiveState = {
-          topology:topology as GPUPrimitiveTopology,
-          frontFace:renderState.primitive.frontFace,
-          // cullMode:renderState.primitive.cullMode,
-          //stripIndexFormat: drawComand.indexBuffer.indexFormat as GPUIndexFormat,
-          };
-          
+        const {vert,frag}=shaderSource.createShaderModule(device) as {vert:GPUShaderModule,frag:GPUShaderModule}       
           return {
             //需要改动
             layout:PipelineLayout.getPipelineLayoutFromCache(device,hashId,groupLayouts).gpuPipelineLayout,   
@@ -84,7 +74,7 @@ export default class Pipeline{
               entryPoint: shaderSource.vertEntryPoint,
               buffers:vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
             },
-            primitive:primitiveState,
+            primitive:renderState.primitive,
             depthStencil:renderState.depthStencil as GPUDepthStencilState,
             multisample:renderState.multisample,
             fragment: {

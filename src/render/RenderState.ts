@@ -33,20 +33,20 @@ export default class RenderState {
   stencilEnabled: boolean;
   scissorTestEnabled: boolean;
   constructor(renderState) {
-    const rs = defaultValue(renderState, defaultValue.EMPTY_OBJECT);
-    const targets = defaultValue(rs.targets, defaultValue.EMPTY_OBJECT);
+    const rs = defaultValue(renderState, {});
+    const targets = defaultValue(rs.targets, {});
     const blend = defaultValue(rs.blend, { color: {}, alpha: {} });
     const depthStencil = defaultValue(
       rs.depthStencil,
-      defaultValue.EMPTY_OBJECT
+      {}
     );
     const depthStencilFront = defaultValue(
       depthStencil.front,
-      defaultValue.EMPTY_OBJECT
+     {}
     );
     const depthStencilBack = defaultValue(
       depthStencil.back,
-      defaultValue.EMPTY_OBJECT
+      {}
     );
     const viewport = rs.viewport;
     this.stencilEnabled = defaultValue(rs.stencilEnabled, false);
@@ -108,10 +108,10 @@ export default class RenderState {
     //已完善
     this.depthStencil = {
       format: defaultValue(depthStencil.format, TextureFormat.Depth24Plus),
-      depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, false),
+      depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, true),
       depthCompare: defaultValue(
         depthStencil.depthCompare,
-        CompareFunction.Always
+        CompareFunction.Less
       ),
       stencilReadMask: defaultValue(depthStencil.stencilReadMask, 0xffffffff),
       stencilWriteMask: defaultValue(depthStencil.stencilWriteMask, 0xffffffff),
