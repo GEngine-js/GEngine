@@ -54,8 +54,8 @@
 
      const  init= async()=>{
          //const geometry=new BoxGeometry(10,10,10);
-        //const geometry=new TorusKnotGeometry(10, 3, 200, 32)
-        const geometry= new SphereGeometry();
+        const geometry=new TorusKnotGeometry(10, 3, 200, 32)
+        //const geometry= new SphereGeometry();
         const img = document.createElement('img');
         img.src ='./brick_diffuse.jpg';
         await img.decode();
@@ -104,11 +104,11 @@
         pbr.diffuseEnvTexture=scene.diffuseEnvTexture;
         pbr.specularEnvTexture=scene.specularEnvTexture;
         pbr.brdfTexture=scene.brdfTexture;
-        pbr.roughness = 0.0;
+        pbr.roughness =0.0;
 
 		pbr.metalness =1.0;
         const primitive=new Mesh(geometry,pbr);
-        primitive.scale.set(15,15,15)
+        //primitive.scale.set(15,15,15)
         // primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
         camera.position=new Vector3(25,25,25);

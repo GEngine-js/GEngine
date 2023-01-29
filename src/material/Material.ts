@@ -28,6 +28,8 @@ export class Material{
 
     dirty:boolean;
 
+    doubleSided:boolean;
+
     private _blendConstant:BlendConstant;
 
     private _targets:Array<Target>;
@@ -64,8 +66,10 @@ export class Material{
         this._emissive=new Color(0,0.0,0,1.0);
         this._emissiveIntensity = 1.0;
         this._renderState={};
+        this.doubleSided=false;
     }
     public get renderState(){
+        this.createRenderState();
         return this._renderState;
     }
     public get diffuse() : Color {

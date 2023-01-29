@@ -189,13 +189,13 @@ export default class RenderState {
     blend: {
       color: {
         operation: BlendOperation.Add,
-        srcFactor: BlendFactor.One,
-        dstFactor: BlendFactor.Zero,
+        srcFactor: BlendFactor.SrcAlpha,
+        dstFactor: BlendFactor.OneMinusSrcAlpha,
       },
       alpha: {
         operation: BlendOperation.Add,
         srcFactor: BlendFactor.One,
-        dstFactor: BlendFactor.Zero,
+        dstFactor: BlendFactor.One,
       },
     },
     writeMask: ColorWriteFlags.All,

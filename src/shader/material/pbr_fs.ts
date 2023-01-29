@@ -18,7 +18,6 @@ export default function pbr_fs(defines){
             #endif
          }
         struct VertInput {
-            @builtin(position) position:vec4<f32>,
             @location(0) worldPos:vec3<f32>,
             @location(1) normal:vec3<f32>,
             @location(2) uv:vec2<f32>
@@ -174,12 +173,12 @@ export default function pbr_fs(defines){
 
 
             // The albedo may be defined from a base texture or a flat color
-        #if ${defines.USE_TEXTURE}
-            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) *vec4<f32>(materialUniform.color,1.0);
-        #else
-            let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
-        #endif
-        //let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        // #if ${defines.USE_TEXTURE}
+        //     let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) *vec4<f32>(materialUniform.color,1.0);
+        // #else
+        //     let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        // #endif
+        let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             let f0:vec3<f32> = vec3<f32>(0.04);
             var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
             diffuseColor *= 1.0 - metallic;
