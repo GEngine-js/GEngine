@@ -8,6 +8,8 @@ import {
   CompareFunction,
   CullMode,
   FrontFace,
+  IndexFormat,
+  PrimitiveTopology,
   StencilOperation,
   TextureFormat,
 } from "./WebGPUConstant";
@@ -179,6 +181,8 @@ export type PrimitiveState = {
   frontFace?: FrontFace;
   cullMode?: CullMode;
   unclippedDepth?: boolean;
+  topology?:PrimitiveTopology;
+  stripIndexFormat?:IndexFormat;
 };
 export type MultiSample = {
   count?: number;

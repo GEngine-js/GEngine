@@ -10986,7 +10986,7 @@ class Mesh extends RenderObject {
                 shaderSource: this.material.shaderSource,
                 type: 'render',
                 materialType: this.material.type,
-                topology: PrimitiveTopology.TriangleList
+                // topology: PrimitiveTopology.TriangleList  
             });
         }
         this.material.shaderSource.setDefines(Object.assign(this.material.shaderData.defines, this.geometry.defines));
@@ -11426,10 +11426,18 @@ class Attributes {
     }
 }
 
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2023-01-12 10:19:18
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-30 10:20:04
+ * @FilePath: \GEngine\src\render\IndexBuffer.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 class IndexBuffer {
     constructor(indices) {
         this.indices = indices;
-        this.topology = PrimitiveTopology.TriangleList;
+        //  this.topology=PrimitiveTopology.TriangleList;
         this.indexFormat = IndexFormat.Uint16;
         this.dirty = true;
     }
@@ -14196,8 +14204,25 @@ class Material {
         this.dirty = true;
         this._emissive = new Color(0, 0.0, 0, 1.0);
         this._emissiveIntensity = 1.0;
-        this._renderState = {};
-        this.doubleSided = false;
+        this._renderState = {
+            primitive: {
+                frontFace: FrontFace.CCW,
+                cullMode: CullMode.None,
+                unclippedDepth: false,
+                topology: PrimitiveTopology.TriangleList
+            }
+        };
+        this._doubleSided = true;
+    }
+    set wireframe(value) {
+        this._renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
+    }
+    get doubleSided() {
+        return this._doubleSided;
+    }
+    set doubleSided(value) {
+        this._renderState.primitive.cullMode = value ? CullMode.None : CullMode.Back;
+        this._doubleSided = value;
     }
     get renderState() {
         return this._renderState;
@@ -14244,10 +14269,10 @@ class Material {
     set multisample(value) {
         this._renderState.multisample = value;
     }
-    get primitiveState() {
+    get primitive() {
         return this._renderState.primitive;
     }
-    set primitiveState(value) {
+    set primitive(value) {
         this._renderState.primitive = value;
     }
     get stencilReference() {
@@ -14277,16 +14302,6 @@ class Material {
             return mesh.normalMatrix;
         });
         this.shaderData.setColor('emissive', this);
-    }
-    createRenderState() {
-        let depthStencil, primitive, multisample, stencilReference, targets, blendConstant;
-        depthStencil = defaultValue(this.depthStencil, RenderState.defaultDepthStencil);
-        primitive = defaultValue(this.primitiveState, RenderState.defaultPrimitiveState);
-        multisample = defaultValue(this.multisample, RenderState.defaultMultisample);
-        stencilReference = defaultValue(this.stencilReference, 0);
-        blendConstant = defaultValue(this.blendConstant, RenderState.defaultBlendConstant);
-        targets = defaultValue(this.targets, [RenderState.defaultTarget]);
-        this._renderState = { depthStencil, primitive, multisample, stencilReference, targets, blendConstant };
     }
     destroy() {
         this.label = undefined;
@@ -14326,6 +14341,7 @@ class Axes extends Mesh {
         super();
         this.distanceToCamera = 10;
         this.material = new ColorMaterial();
+        this.material.wireframe = true;
         this.init();
     }
     update(frameState) {
@@ -14355,7 +14371,7 @@ class Axes extends Mesh {
         this.geometry.setAttribute(new Float32Attribute('position', position, 3));
         this.geometry.setAttribute(new Float32Attribute('color', colors, 4));
         this.geometry.setIndice(indices);
-        this.geometry.indexBuffer.topology = PrimitiveTopology.LineList;
+        // this.geometry.indexBuffer.topology=PrimitiveTopology.LineList;
         this.geometry.count = indices.length;
     }
 }

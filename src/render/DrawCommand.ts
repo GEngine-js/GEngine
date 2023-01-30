@@ -4,7 +4,6 @@ import ShaderData from "./ShaderData";
 import VertextBuffer from "./VertextBuffer";
 import IndexBuffer from "./IndexBuffer";
 import { RenderStateProps } from "../core/WebGPUTypes";
-import { PrimitiveTopology } from "../core/WebGPUConstant";
 
 class DrawCommand {
 
@@ -31,8 +30,6 @@ class DrawCommand {
   public shaderSource?:ShaderSource;
 
   public dirty?:boolean;
-
-  public topology?:PrimitiveTopology;
 
   public materialType?:string
 

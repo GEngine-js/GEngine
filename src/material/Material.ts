@@ -8,6 +8,7 @@ import { BlendConstant, DepthStencil, MultiSample, PrimitiveState, Target,Render
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
+import { CullMode, FrontFace, PrimitiveTopology } from "../core/WebGPUConstant";
 export class Material{
 
     public shaderData:ShaderData;
@@ -28,20 +29,6 @@ export class Material{
 
     dirty:boolean;
 
-    doubleSided:boolean;
-
-    private _blendConstant:BlendConstant;
-
-    private _targets:Array<Target>;
-
-    private _multisample:MultiSample;
-    
-    private _primitiveState:PrimitiveState
-
-    private _stencilReference:number;
-
-    private _depthStencil:DepthStencil;
-    
     private _emissive:Color;
 
     private _opacity:number;
@@ -51,6 +38,8 @@ export class Material{
     private _diffuse:Color;
 
     private _renderState:RenderStateProps;
+
+    private _doubleSided:boolean;
 
     constructor(){
         this.label=undefined;
@@ -65,8 +54,25 @@ export class Material{
         this.dirty=true;
         this._emissive=new Color(0,0.0,0,1.0);
         this._emissiveIntensity = 1.0;
-        this._renderState={}
-        this.doubleSided=false;
+        this._renderState={
+            primitive:{
+                frontFace: FrontFace.CCW,
+                cullMode: CullMode.None,
+                unclippedDepth: false,
+                topology:PrimitiveTopology.TriangleList
+            }
+        }
+        this._doubleSided=true;
+    }
+    public set wireframe(value:Boolean){
+       this._renderState.primitive.topology=value?PrimitiveTopology.LineList:PrimitiveTopology.TriangleList;
+    }
+    public get doubleSided(){
+        return this._doubleSided;
+    }
+    public set doubleSided(value:boolean){
+         this._renderState.primitive.cullMode=value?CullMode.None:CullMode.Back;
+         this._doubleSided=value;
     }
     public get renderState(){  
         return this._renderState;
@@ -113,10 +119,10 @@ export class Material{
     set multisample(value){
         this._renderState.multisample=value;
     }
-    get primitiveState(){
+    get primitive(){
         return this._renderState.primitive;
     }
-    set primitiveState(value){
+    set primitive(value){
         this._renderState.primitive=value;
     }
     get stencilReference(){
@@ -148,16 +154,6 @@ export class Material{
             return mesh.normalMatrix;
         });
         this.shaderData.setColor('emissive',this);  
-    }
-    createRenderState(){
-        let  depthStencil,primitive,multisample,stencilReference,targets,blendConstant;
-        depthStencil=defaultValue(this.depthStencil,RenderState.defaultDepthStencil);
-        primitive=defaultValue(this.primitiveState,RenderState.defaultPrimitiveState);
-        multisample=defaultValue(this.multisample,RenderState.defaultMultisample);
-        stencilReference=defaultValue(this.stencilReference,0);
-        blendConstant=defaultValue(this.blendConstant,RenderState.defaultBlendConstant);
-        targets=defaultValue(this.targets,[RenderState.defaultTarget]);;
-        this._renderState={depthStencil,primitive,multisample,stencilReference,targets,blendConstant};
     }
     public destroy(){
         this.label=undefined;
