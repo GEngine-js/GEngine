@@ -1,4 +1,4 @@
-import { quat,vec3 } from "gl-matrix";
+import { Quaternion } from "../math/Quaternion";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 
@@ -190,7 +190,7 @@ export function generateTangents(
 
     Vector3.multiplyByScalar(
       tangent,
-      duv2[1] * duv1.x - duv1.y * duv2.x,
+      duv2.y * duv1.x - duv1.y * duv2.x,
       tangent
     );
 
@@ -247,33 +247,37 @@ export function interpQuat(
     const t2 = t * t;
     const t3 = t2 * t;
     const i = 12 * index;
-    const v0 = quat.fromValues(o[i - 8], o[i - 7], o[i - 6], o[i - 5]);
-    const b0 = quat.fromValues(o[i - 4], o[i - 3], o[i - 2], o[i - 1]);
-    const v1 = quat.fromValues(o[i + 4], o[i + 5], o[i + 6], o[i + 7]);
-    const a1 = quat.fromValues(o[i], o[i + 1], o[i + 2], o[i + 3]);
-    quat.scale(v0, v0, 2 * t3 - 3 * t2 + 1);
-    quat.scale(b0, b0, td * (t3 - 2 * t2 + t));
-    quat.scale(v1, v1, -2 * t3 + 3 * t2);
-    quat.scale(a1, a1, td * (t3 - t2));
-    const result = quat.fromValues(0, 0, 0, 0);
-    quat.add(result, result, v0);
-    quat.add(result, result, b0);
-    quat.add(result, result, v1);
-    quat.add(result, result, a1);
-    return quat.normalize(result, result);
+
+    const v0 = new Quaternion(o[i - 8], o[i - 7], o[i - 6], o[i - 5]);
+    const b0 = new Quaternion(o[i - 4], o[i - 3], o[i - 2], o[i - 1]);
+    const v1 = new Quaternion(o[i + 4], o[i + 5], o[i + 6], o[i + 7]);
+    const a1 =new Quaternion(o[i], o[i + 1], o[i + 2], o[i + 3]);
+    Quaternion.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1,v0);
+    Quaternion.multiplyByScalar(b0, td * (t3 - 2 * t2 + t),b0);
+    Quaternion.multiplyByScalar(v1, -2 * t3 + 3 * t2,v1);
+    Quaternion.multiplyByScalar(a1, td * (t3 - t2),a1);
+
+    const result =new Quaternion();
+    Quaternion.add(result, v0,result);
+    Quaternion.add(result, b0,result);
+    Quaternion.add(result, v1,result);
+    Quaternion.add(result, a1,result);
+    Quaternion.normalize(result,result)
+    return result;
   }
 
   const q = [];
   for (let n = -1; n < 1; n += 1) {
     const i = 4 * (index + n);
-    q.push(quat.fromValues(o[i], o[i + 1], o[i + 2], o[i + 3]));
+    q.push(new Quaternion(o[i], o[i + 1], o[i + 2], o[i + 3]));
   }
 
   if (method === "STEP") {
     return t < 1 ? q[0] : q[1];
   }
-  const result = quat.create();
-  return quat.slerp(result, q[0], q[1], t);
+  const result =new Quaternion();
+  Quaternion.slerp( q[0], q[1], t,result)
+  return result;
 }
 
 export function interpVec3(
@@ -293,33 +297,33 @@ export function interpVec3(
     const t2 = t * t;
     const t3 = t2 * t;
     const i = 9 * index;
-    const v0 = vec3.fromValues(output[i - 6], output[i - 5], output[i - 4]);
-    const b0 = vec3.fromValues(output[i - 3], output[i - 2], output[i - 1]);
-    const v1 = vec3.fromValues(output[i + 3], output[i + 4], output[i + 5]);
-    const a1 = vec3.fromValues(output[i], output[i + 1], output[i + 2]);
-    vec3.scale(v0, v0, 2 * t3 - 3 * t2 + 1);
-    vec3.scale(b0, b0, td * (t3 - 2 * t2 + t));
-    vec3.scale(v1, v1, -2 * t3 + 3 * t2);
-    vec3.scale(a1, a1, td * (t3 - t2));
-    const result = vec3.create();
-    vec3.add(result, result, v0);
-    vec3.add(result, result, b0);
-    vec3.add(result, result, v1);
-    vec3.add(result, result, a1);
+    const v0 =new Vector3(output[i - 6], output[i - 5], output[i - 4]);
+    const b0 = new Vector3(output[i - 3], output[i - 2], output[i - 1]);
+    const v1 = new Vector3(output[i + 3], output[i + 4], output[i + 5]);
+    const a1 = new Vector3(output[i], output[i + 1], output[i + 2]);
+    Vector3.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1,v0);
+    Vector3.multiplyByScalar(b0,td * (t3 - 2 * t2 + t), b0);
+    Vector3.multiplyByScalar(v1, -2 * t3 + 3 * t2,v1);
+    Vector3.multiplyByScalar(a1,td * (t3 - t2), a1,);
+    const result = new Vector3();
+    Vector3.add(result, v0,result);
+    Vector3.add(result, b0,result);
+    Vector3.add(result, v1,result);
+    Vector3.add(result, a1,result);
     return result;
   }
 
   const v = [];
   for (let n = -1; n < 1; n += 1) {
     const i = 3 * (index + n);
-    v.push(vec3.fromValues(output[i], output[i + 1], output[i + 2]));
+    v.push(new Vector3(output[i], output[i + 1], output[i + 2]));
   }
 
   if (method === "STEP") {
     return t < 1 ? v[0] : v[1];
   }
-  const result = vec3.create();
-  return vec3.lerp(result, v[0], v[1], t);
+  const result = new Vector3();
+  return Vector3.lerp( v[0], v[1], t,result)
 }
 
 export const gltfEnum: { [key: string]: string | number } = {

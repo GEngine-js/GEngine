@@ -67,7 +67,7 @@ export default class PbrMat extends Material {
 
         this._metalness = 0.1;
 
-        this._aoTextureIntensity = 1.0;
+        this._aoTextureIntensity =1.0;
 
         this._normalScale = new Vector2(1, 1);
 
@@ -98,14 +98,15 @@ export default class PbrMat extends Material {
             this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
             this.shaderData.setTexture('metalnessRoughnessTexture', this);
         }
-        if (this.aoTexture) {
-            this.shaderData.setDefine('USE_AOTEXTURE', true);
-            this.shaderData.setTexture('aoTexture', this);
-        }
         if (this.normalTexture) {
             this.shaderData.setFloatVec2("normalScale", this);
             this.shaderData.setDefine('USE_NORMALTEXTURE', true);
             this.shaderData.setTexture('normalTexture', this);
+        }
+        if (this.aoTexture) {
+            this.shaderData.setDefine('USE_AOTEXTURE', true);
+            this.shaderData.setTexture('aoTexture', this);
+            this.shaderData.setFloat('aoTextureIntensity',this)
         }
         if (this.emissiveTexture) {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
@@ -120,6 +121,7 @@ export default class PbrMat extends Material {
         if (this.brdfTexture) {
             this.shaderData.setTexture('brdfTexture', this)
         }
+        debugger
     }
     destroy() {
 

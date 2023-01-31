@@ -1,3 +1,9 @@
+import Geometry from "../geometry/Geometry";
+import PbrMat from "../material/PbrMat";
+import { Mesh } from "../mesh/Mesh";
+import { Float32Attribute } from "../render/Attribute";
+import Sampler from "../render/Sampler";
+import Texture from "../render/Texture";
 import {
   generateNormals,
   generateTangents,
@@ -6,7 +12,7 @@ import {
   newTypedArray,
   toIndices,
   TypedArray,
-} from '../utils/gltfUtils';
+} from "../utils/gltfUtils";
 
 export type GLTFPrimitive = {
   vertexCount: number;
@@ -46,7 +52,7 @@ export class GLTF {
 
   cameras: Array<any>;
 
-  meshes: Array<GLTFMesh>;
+  meshes: Array<any>;
 
   images: Array<ImageBitmap>;
 
@@ -56,7 +62,8 @@ export class GLTF {
     json: any,
     buffers: Array<ArrayBuffer>,
     images: Array<ImageBitmap>,
-    glbOffset = 0
+    glbOffset = 0,
+    scene
   ) {
     this.scenes = json.scenes;
     this.defaultScene = json.scene || 0;
@@ -204,15 +211,14 @@ export class GLTF {
         ) {
           tangents = accessors[primitive.attributes.TANGENT];
         } else if (material.normalTexture) {
-          tangents = generateTangents(indices, positions, normals, uvs!);
+          //tangents = generateTangents(indices, positions, normals, uvs!);
         }
 
         let colors = null;
         if (primitive.attributes.COLOR_0 !== undefined) {
           colors = accessors[primitive.attributes.COLOR_0];
         }
-
-        return {
+        return generateMesh({
           vertexCount,
           indices,
           positions,
@@ -223,7 +229,19 @@ export class GLTF {
           colors,
           material,
           boundingBox,
-        };
+        },this.images,scene)
+        // return {
+        //   vertexCount,
+        //   indices,
+        //   positions,
+        //   normals,
+        //   uvs,
+        //   uv1s,
+        //   tangents,
+        //   colors,
+        //   material,
+        //   boundingBox,
+        // };
       })
     );
 
@@ -234,7 +252,7 @@ export class GLTF {
             input: accessors[animation.samplers[sampler].input],
             output: accessors[animation.samplers[sampler].output],
             interpolation:
-              animation.samplers[sampler].interpolation || 'LINEAR',
+              animation.samplers[sampler].interpolation || "LINEAR",
             node: target.node,
             path: target.path,
           })
@@ -251,11 +269,12 @@ export class GLTF {
 async function loadGLTFObject(
   json: any,
   url: string,
-  bin?: ArrayBuffer,
-  glbOffset = 0
+  scene,
+  glbOffset = 0,
+  bin?: ArrayBuffer
 ) {
-  const dir = url.substring(0, url.lastIndexOf('/'));
-
+  const dir = url.substring(0, url.lastIndexOf("/"));
+  debugger
   const images: Array<ImageBitmap> = [];
   let loadExternalImages: Promise<any> = Promise.resolve();
   if (json.images) {
@@ -263,14 +282,14 @@ async function loadGLTFObject(
       json.images.map(async (image: any, index: number) => {
         if (image.uri) {
           const imageUrl =
-            image.uri.slice(0, 5) === 'data:'
+            image.uri.slice(0, 5) === "data:"
               ? image.uri
               : `${dir}/${image.uri}`;
           images[index] = await fetch(imageUrl)
             .then((response) => response.blob())
             .then((blob) =>
               createImageBitmap(blob, {
-                colorSpaceConversion: 'none',
+                colorSpaceConversion: "none",
               })
             );
         }
@@ -283,13 +302,13 @@ async function loadGLTFObject(
     json.buffers.map((buffer: any, index: number) => {
       if (!buffer.uri) {
         if (index !== 0) {
-          throw new Error('buffer uri undefined');
+          throw new Error("buffer uri undefined");
         }
         buffers[index] = bin!;
         return Promise.resolve();
       }
       const bufferUrl =
-        buffer.uri.slice(0, 5) === 'data:'
+        buffer.uri.slice(0, 5) === "data:"
           ? buffer.uri
           : `${dir}/${buffer.uri}`;
       return fetch(bufferUrl)
@@ -316,11 +335,11 @@ async function loadGLTFObject(
           if (image.mimeType) {
             type = image.mimeType;
           } else {
-            type = array[0] === 0xff ? 'image/jpeg' : 'image/png';
+            type = array[0] === 0xff ? "image/jpeg" : "image/png";
           }
           const blob = new Blob([array], { type });
           images[index] = await createImageBitmap(blob, {
-            colorSpaceConversion: 'none',
+            colorSpaceConversion: "none",
           });
         }
       })
@@ -328,18 +347,85 @@ async function loadGLTFObject(
   }
 
   await Promise.all([loadExternalImages, loadInternalImages]);
-  return new GLTF(json, buffers, images, glbOffset);
+  return new GLTF(json, buffers, images, glbOffset,scene);
 }
 
-export async function loadGLTF(url: string) {
-  const ext = url.split('.').pop();
-  if (ext === 'gltf') {
+export async function loadGLTF(url: string,scene) {
+  const ext = url.split(".").pop();
+  if (ext === "gltf") {
     const json = await fetch(url).then((response) => response.json());
-    return loadGLTFObject(json, url);
+    return loadGLTFObject(json, url,scene);
   }
   const glb = await fetch(url).then((response) => response.arrayBuffer());
   const jsonLength = new Uint32Array(glb, 12, 1)[0];
   const jsonChunk = new Uint8Array(glb, 20, jsonLength);
-  const json = JSON.parse(new TextDecoder('utf-8').decode(jsonChunk));
-  return loadGLTFObject(json, url, glb, 28 + jsonLength);
+  const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
+  return loadGLTFObject(json, url, scene, 28 + jsonLength,glb,);
+}
+function generateMesh(options,images,scene) {
+  const {
+    vertexCount,
+    indices,
+    positions,
+    normals,
+    uvs,
+    uv1s,
+    tangents,
+    colors,
+    material,
+    boundingBox,
+  } = options;
+  const {
+    emissiveFactor,
+    emissiveTexture,
+    name,
+    normalTexture,
+    occlusionTexture,
+    pbrMetallicRoughness,
+  } = material;
+  debugger
+  const geo = new Geometry({});
+  geo.setIndice(Array.from(indices));
+  geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
+  geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+  geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+  geo.computeBoundingSphere(Array.from(positions));
+  geo.count=vertexCount;
+  const mat = new PbrMat();
+  mat.diffuseEnvTexture = scene.diffuseEnvTexture;
+  mat.specularEnvTexture = scene.specularEnvTexture;
+  mat.brdfTexture = scene.brdfTexture;
+  mat.normalTexture=generateTexture(normalTexture,images);
+  mat.aoTexture=generateTexture(occlusionTexture,images);
+  mat.emissiveTexture=generateTexture(emissiveTexture,images);
+  mat.baseTexture=generateTexture(pbrMetallicRoughness.baseColorTexture,images);
+  mat.metalnessRoughnessTexture=generateTexture(pbrMetallicRoughness.metallicRoughnessTexture,images);
+  mat.baseSampler=new Sampler({
+    magFilter: 'linear',
+    minFilter: 'linear',
+    addressModeU: "repeat",
+    addressModeV: "repeat",
+
+  });
+  mat.roughness =0.0;
+
+  mat.metalness =1.0;
+  const mesh=new Mesh(geo,mat);
+  // mesh.scale.set(3,3,3)
+  return mesh
+
+}
+function generateTexture(texture,images){
+    const {sampler,index}=texture;
+    return new Texture({
+      size: {width:images[index].width, height:images[index].height, depth:1},
+      data:{
+        source:images[index]
+      },
+      format: 'rgba8unorm',
+      usage:
+        GPUTextureUsage.TEXTURE_BINDING |
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.RENDER_ATTACHMENT,
+    }); 
 }

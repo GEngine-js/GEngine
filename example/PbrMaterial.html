@@ -30,7 +30,6 @@
             width:100%;
         }
     </style>
-    <!-- <script type="module" src="../dist/index.js"></script> -->
 </head>
 
 <body>
@@ -50,12 +49,12 @@
         CubeTextureLoader,
         SphereGeometry,
         PbrMat,
-        loadTexture
+        loadGLTF
     } from '../dist/index.js';
 
      const  init= async()=>{
-         const geometry=new BoxGeometry(10,10,10);
-        //const geometry=new TorusKnotGeometry(10, 3, 200, 32)
+         //const geometry=new BoxGeometry(10,10,10);
+        const geometry=new TorusKnotGeometry(10, 3, 200, 32)
         //const geometry= new SphereGeometry();
         const img = document.createElement('img');
         img.src ='./brick_diffuse.jpg';
@@ -69,9 +68,14 @@
             addressModeV :"repeat",
             addressModeW:"repeat",
           });
-        const baseTexture=await loadTexture('./brick_diffuse.jpg');
-        const aoTexture=await loadTexture('./textures/AmbientOcclusionMap.png');
-        const normalTexture=await loadTexture('./textures/NormalMap.png');
+        const baseTexture=new Texture({
+            size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
+            data:{
+                source:imageBitmap
+            },
+            format: 'rgba8unorm',
+            sampler:baseSampler
+          });
           const scene=new Scene({
             container:'app',
             brdfUrl:'./textures/brdfLUT.png',
@@ -93,22 +97,23 @@
             ]
         });
         await scene.init();
+        const gltf=await loadGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf",scene)
+        debugger
         const pbr=new PbrMat();
         pbr.baseTexture=baseTexture;
         pbr.baseSampler=baseSampler;
         pbr.diffuseEnvTexture=scene.diffuseEnvTexture;
         pbr.specularEnvTexture=scene.specularEnvTexture;
         pbr.brdfTexture=scene.brdfTexture;
-        pbr.aoTexture=aoTexture;
-        pbr.normalTexture=normalTexture;
         pbr.roughness =0.0;
 
 		pbr.metalness =1.0;
-        const primitive=new Mesh(geometry,pbr);
-        primitive.scale.set(3,3,3)
-        // primitive.rotateY(Math.PI/3)
+        //const primitive=new Mesh(geometry,pbr);
+        const primitive=gltf.meshes[0][0];
+        primitive.scale.set(2.2,2.2,2.2)
+        primitive.rotateX(Math.PI/2)
         const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
-        camera.position=new Vector3(25,25,25);
+        camera.position=new Vector3(4,0,4);
         camera.target=new Vector3(0,0,0);
 
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
@@ -129,14 +134,12 @@
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
-            primitive.rotateY(0.01)
-            primitive.rotateX(0.01)
+            primitive.rotateZ(0.01)
+            // primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }
-        // document.body.appendChild(scene.context.canvas);
         animate()
-        //scene.render()
      }
      init();
 

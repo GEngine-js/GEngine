@@ -1,3 +1,11 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2023-01-18 10:53:08
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-30 14:32:22
+ * @FilePath: \GEngine\src\shader\material\pbr_vs.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbr_vs(defines){
    return   wgslParseDefines`
@@ -9,16 +17,16 @@ export default function pbr_vs(defines){
         emissive:vec3<f32>,
         metallic:f32,
         roughness:f32,
-        #if ${defines.HAS_NORMALMAP}
-            normalTextureScale:f32,
+        #if ${defines.USE_NORMALTEXTURE}
+            normalTextureScale:vec2<f32>,
         #endif
-        #if ${defines.HAS_OCCLUSIONMAP}
+        #if ${defines.USE_AOTEXTURE}
             occlusionStrength:f32,
         #endif
-        #if ${defines.HAS_SKIN} 
-            jointMatrixCount:f32,
-            jointMatrixs:array<mat4x4>,
-        #endif
+        // #if ${defines.HAS_SKIN} 
+        //     jointMatrixCount:f32,
+        //     jointMatrixs:array<mat4x4>,
+        // #endif
    }
 
    struct SystemUniform {

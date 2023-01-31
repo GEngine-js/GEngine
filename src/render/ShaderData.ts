@@ -57,7 +57,7 @@ export default class ShaderData{
     }
     get uniformsSize(){
         //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-        return Math.ceil(this.uniformTotalSize/4)*4
+        return Math.ceil(this.byteOffset/16)*16
     }
     setFloat(name:string,value:Function|number|Object,binding?:number){
          if (this._uniforms.get(name)) return;
@@ -158,7 +158,7 @@ export default class ShaderData{
                 if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
             }
         });
-        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.uniformsSize*4);
+        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(device,this.uniformsSize);
         if(this.uniformDirty){
              this.uniformDirty=false; 
             this.buffer.setSubData(0,this.data);

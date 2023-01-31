@@ -179,7 +179,7 @@ export class UniformMat2 extends Uniform<Matrix2>{
       }
 }
 export class UniformMat3 extends Uniform<Matrix3>{
-    static align=8;
+    static align=16;
     constructor(uniformName:string, buffer:Float32Array,byteOffset:number,cb:Function|number|Object,binding?:number) {
         super(uniformName,cb);
         this.value = undefined;

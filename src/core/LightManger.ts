@@ -2,12 +2,11 @@ import { AmbientLight } from "../light/AmbientLight";
 import { DirtectLight } from "../light/DirtectLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
-import Manger from "./Manger";
 import { DirtectData, PointData, SpotData } from "../light/DataHelper";
 import { FrameState } from "./FrameState";
 import Vector3 from "../math/Vector3";
 
-export default class LightManger extends Manger{
+export default class LightManger {
 
     pointLights:PointLight[];
 
@@ -61,7 +60,6 @@ export default class LightManger extends Manger{
 
 
     constructor(){
-        super();
         this.spotLights=[];
         this.pointLights=[];
         this.dirtectLights=[];

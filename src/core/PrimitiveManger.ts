@@ -1,14 +1,19 @@
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2022-10-25 19:21:57
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-30 10:28:38
+ * @FilePath: \GEngine\src\core\PrimitiveManger.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { Mesh } from "../mesh/Mesh";
 import createGuid from "../utils/createGuid";
 import defined from "../utils/defined";
 import { FrameState } from "./FrameState";
-import Manger from "./Manger";
-
-export default class PrimitiveManger extends Manger{
+export default class PrimitiveManger{
     private _list: any[];
     private _guid: any;
     constructor() {
-        super()
         this._list = [];
         this._guid = createGuid();
     }

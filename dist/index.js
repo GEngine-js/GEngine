@@ -8813,7 +8813,7 @@ class UniformMat3 extends Uniform {
         return false;
     }
 }
-UniformMat3.align = 8;
+UniformMat3.align = 16;
 class UniformMat4 extends Uniform {
     constructor(uniformName, buffer, byteOffset, cb, binding) {
         super(uniformName, cb);
@@ -8987,7 +8987,7 @@ class ShaderData {
     }
     get uniformsSize() {
         //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-        return Math.ceil(this.uniformTotalSize / 4) * 4;
+        return Math.ceil(this.byteOffset / 16) * 16;
     }
     setFloat(name, value, binding) {
         if (this._uniforms.get(name))
@@ -9101,7 +9101,7 @@ class ShaderData {
             }
         });
         if (!this.buffer)
-            this.buffer = Buffer.createUniformBuffer(device, this.uniformsSize * 4);
+            this.buffer = Buffer.createUniformBuffer(device, this.uniformsSize);
         if (this.uniformDirty) {
             this.uniformDirty = false;
             this.buffer.setSubData(0, this.data);
@@ -10986,7 +10986,6 @@ class Mesh extends RenderObject {
                 shaderSource: this.material.shaderSource,
                 type: 'render',
                 materialType: this.material.type,
-                // topology: PrimitiveTopology.TriangleList  
             });
         }
         this.material.shaderSource.setDefines(Object.assign(this.material.shaderData.defines, this.geometry.defines));
@@ -11426,18 +11425,9 @@ class Attributes {
     }
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2023-01-12 10:19:18
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-30 10:20:04
- * @FilePath: \GEngine\src\render\IndexBuffer.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class IndexBuffer {
     constructor(indices) {
         this.indices = indices;
-        //  this.topology=PrimitiveTopology.TriangleList;
         this.indexFormat = IndexFormat.Uint16;
         this.dirty = true;
     }
@@ -13715,6 +13705,14 @@ function quadVert(defines) {
     `;
 }
 
+/*
+ * @Author: junwei.gu junwei.gu@jiduauto.com
+ * @Date: 2023-01-18 10:53:08
+ * @LastEditors: junwei.gu junwei.gu@jiduauto.com
+ * @LastEditTime: 2023-01-30 14:32:22
+ * @FilePath: \GEngine\src\shader\material\pbr_vs.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 function pbr_vs(defines) {
     return wgslParseDefines `
    struct MaterialUniform {
@@ -13725,16 +13723,16 @@ function pbr_vs(defines) {
         emissive:vec3<f32>,
         metallic:f32,
         roughness:f32,
-        #if ${defines.HAS_NORMALMAP}
-            normalTextureScale:f32,
+        #if ${defines.USE_NORMALTEXTURE}
+            normalTextureScale:vec2<f32>,
         #endif
-        #if ${defines.HAS_OCCLUSIONMAP}
+        #if ${defines.USE_AOTEXTURE}
             occlusionStrength:f32,
         #endif
-        #if ${defines.HAS_SKIN} 
-            jointMatrixCount:f32,
-            jointMatrixs:array<mat4x4>,
-        #endif
+        // #if ${defines.HAS_SKIN} 
+        //     jointMatrixCount:f32,
+        //     jointMatrixs:array<mat4x4>,
+        // #endif
    }
 
    struct SystemUniform {
@@ -13814,10 +13812,10 @@ function pbr_fs(defines) {
             emissive:vec3<f32>,
             metallic:f32,
             roughness:f32,
-            #if ${defines.HAS_NORMALMAP}
-                normalTextureScale:f32,
+            #if ${defines.USE_NORMALTEXTURE}
+                normalTextureScale:vec2<f32>,
             #endif
-            #if ${defines.HAS_OCCLUSIONMAP}
+            #if ${defines.USE_AOTEXTURE}
                 occlusionStrength:f32,
             #endif
          }
@@ -13853,7 +13851,7 @@ function pbr_fs(defines) {
            @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         #endif
         // normal map
-        #if ${defines.HAS_NORMALMAP}
+        #if ${defines.USE_NORMALTEXTURE}
           @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
         #endif
 
@@ -13864,7 +13862,6 @@ function pbr_fs(defines) {
 
         // metal roughness
         #if ${defines.USE_METALNESSTEXTURE}
-        metalnessTexture
              @group(0) @binding(${defines.metalnessRoughnessTextureBinding}) var metalnessRoughnessTexture: texture_2d<f32>;
         #endif
         // occlusion texture
@@ -13875,7 +13872,7 @@ function pbr_fs(defines) {
         // Find the normal for this fragment, pulling either from a predefined normal map
         // or from the interpolated mesh normal and tangent attributes.
         fn getNormal(input:VertInput
-            #if ${defines.HAS_NORMALMAP}
+            #if ${defines.USE_NORMALTEXTURE}
             ,normalTexture:texture_2d<f32>,defaultSampler:sampler
             #endif
             )->vec3<f32>
@@ -13891,9 +13888,9 @@ function pbr_fs(defines) {
             let b:vec3<f32> = normalize(cross(ng, t));
             let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
         // TODO: TANGENTS
-            #if ${defines.HAS_NORMALMAP}
+            #if ${defines.USE_NORMALTEXTURE}
                 var n:vec3<f32> = textureSample(normalTexture,defaultSampler, input.uv).rgb;
-                n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, materialUniform.normalTextureScale, 1.0)));
+                n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, 1.0)));
             #else
                 var n:vec3<f32> = tbn[2].xyz;
             #endif
@@ -13962,7 +13959,7 @@ function pbr_fs(defines) {
             var perceptualRoughness:f32 = materialUniform.roughness;
             var metallic:f32 = materialUniform.metallic;
 
-        #if ${defines.HAS_METALROUGHNESSMAP}
+        #if ${defines.USE_METALNESSTEXTURE}
             // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
             // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
             let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, input.uv);
@@ -13977,12 +13974,12 @@ function pbr_fs(defines) {
 
 
             // The albedo may be defined from a base texture or a flat color
-        // #if ${defines.USE_TEXTURE}
-        //     let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) *vec4<f32>(materialUniform.color,1.0);
-        // #else
-        //     let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
-        // #endif
-        let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        #if ${defines.USE_TEXTURE}
+            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) ;
+        #else
+            let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        #endif
+        //let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             let f0:vec3<f32> = vec3<f32>(0.04);
             var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
             diffuseColor *= 1.0 - metallic;
@@ -13998,7 +13995,7 @@ function pbr_fs(defines) {
             let specularEnvironmentR0:vec3<f32> = specularColor.rgb;
             let specularEnvironmentR90:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0) * reflectance90;
      
-                #if ${defines.HAS_NORMALMAP}
+                #if ${defines.USE_NORMALTEXTURE}
                 let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);  
                 #else
                 let n:vec3<f32> = getNormal(input);
@@ -14052,16 +14049,16 @@ function pbr_fs(defines) {
 
 
         // Apply optional PBR terms for additional (optional) shading
-        #if ${defines.HAS_OCCLUSIONMAP}
+        #if ${defines.USE_AOTEXTURE}
             let ao:f32 = textureSample(aoTexture,defaultSampler, input.uv).r;
             color = mix(color, color * ao, materialUniform.occlusionStrength);
         #endif
 
-        #if ${defines.HAS_EMISSIVEMAP}
-            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb * materialUniform.emissive;
+        #if ${defines.USE_EMISSIVETEXTURE}
+            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb ;
             color += emissive;
         #endif
-       return vec4<f32>(color.xyz,1.0);
+       return vec4<f32>(color.xyz, baseColor.a);
     }
    `;
 }
@@ -14196,7 +14193,7 @@ class Material {
         this.type = undefined;
         this.baseTexture = undefined;
         this.baseSampler = undefined;
-        this._diffuse = new Color(0.01, 0.5, 1, 0);
+        this._diffuse = new Color(1.0, 1.0, 1, 0);
         this._opacity = 1.0;
         //Buffer
         this.shaderData = undefined;
@@ -14371,7 +14368,6 @@ class Axes extends Mesh {
         this.geometry.setAttribute(new Float32Attribute('position', position, 3));
         this.geometry.setAttribute(new Float32Attribute('color', colors, 4));
         this.geometry.setIndice(indices);
-        // this.geometry.indexBuffer.topology=PrimitiveTopology.LineList;
         this.geometry.count = indices.length;
     }
 }
@@ -14777,7 +14773,7 @@ function createSphere(options) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-24 19:41:12
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-19 17:15:15
+ * @LastEditTime: 2023-01-30 16:56:45
  * @FilePath: \GEngine\src\geometry\SphereGeometry.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14789,14 +14785,14 @@ class SphereGeometry extends Geometry {
     }
     init() {
         const { positions, normals, uvs, indices } = createSphere({});
-        this.position = positions;
-        this.normal = normals;
-        this.uv = uvs;
+        this.positions = positions;
+        this.normals = normals;
+        this.uvs = uvs;
         this.indices = indices;
-        this.computeBoundingSphere(this.position);
-        this.setAttribute(new Float32Attribute('position', this.position, 3));
-        this.setAttribute(new Float32Attribute('normal', this.normal, 3));
-        this.setAttribute(new Float32Attribute('uv', this.uv, 2));
+        this.computeBoundingSphere(this.positions);
+        this.setAttribute(new Float32Attribute('position', this.positions, 3));
+        this.setAttribute(new Float32Attribute('normal', this.normals, 3));
+        this.setAttribute(new Float32Attribute('uv', this.uvs, 2));
         this.setIndice(this.indices);
         this.count = this.indices.length;
     }
@@ -15048,14 +15044,15 @@ class PbrMat extends Material {
             this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
             this.shaderData.setTexture('metalnessRoughnessTexture', this);
         }
-        if (this.aoTexture) {
-            this.shaderData.setDefine('USE_AOTEXTURE', true);
-            this.shaderData.setTexture('aoTexture', this);
-        }
         if (this.normalTexture) {
             this.shaderData.setFloatVec2("normalScale", this);
             this.shaderData.setDefine('USE_NORMALTEXTURE', true);
             this.shaderData.setTexture('normalTexture', this);
+        }
+        if (this.aoTexture) {
+            this.shaderData.setDefine('USE_AOTEXTURE', true);
+            this.shaderData.setTexture('aoTexture', this);
+            this.shaderData.setFloat('aoTextureIntensity', this);
         }
         if (this.emissiveTexture) {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
@@ -15070,6 +15067,7 @@ class PbrMat extends Material {
         if (this.brdfTexture) {
             this.shaderData.setTexture('brdfTexture', this);
         }
+        debugger;
     }
     destroy() {
     }
@@ -15622,10 +15620,6 @@ class AmbientLight extends Light {
 }
 //light.color ).multiplyScalar( light.intensity * scaleFactor );
 
-class Manger {
-    constructor() { }
-}
-
 class SpotData {
     constructor(buffer, byteOffset, spotLight) {
         this.spotLight = spotLight;
@@ -15758,9 +15752,8 @@ function copyData(src, dis) {
     });
 }
 
-class LightManger extends Manger {
+class LightManger {
     constructor() {
-        super();
         this.spotLights = [];
         this.pointLights = [];
         this.dirtectLights = [];
@@ -15919,9 +15912,8 @@ function createGuid() {
     });
 }
 
-class PrimitiveManger extends Manger {
+class PrimitiveManger {
     constructor() {
-        super();
         this._list = [];
         this._guid = createGuid();
     }
@@ -16307,7 +16299,6 @@ class ResolveFrame {
         this.material.update(undefined, this.quadMesh);
         this.quadMesh.beforeRender();
         const drawComand = this.quadMesh.getDrawCommand();
-        drawComand.topology = PrimitiveTopology.TriangleList;
         const currentRenderPassEncoder = this.canvasRenderTarget.getRenderPassEncoder(context);
         context.render(drawComand, currentRenderPassEncoder);
         this.canvasRenderTarget.endRenderPassEncoder();
@@ -17171,4 +17162,387 @@ class DirtectLight extends Light {
 // direction: {},
 // color: {}
 
-export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat };
+function newTypedArray(type, buffer, byteOffset, length) {
+    switch (type) {
+        case 5120:
+            return new Int8Array(buffer, byteOffset, length);
+        case 5121:
+            return new Uint8Array(buffer, byteOffset, length);
+        case 5122:
+            return new Int16Array(buffer, byteOffset, length);
+        case 5123:
+            return new Uint16Array(buffer, byteOffset, length);
+        case 5125:
+            return new Uint32Array(buffer, byteOffset, length);
+        case 5126:
+            return new Float32Array(buffer, byteOffset, length);
+        default:
+            throw new Error("invalid component type");
+    }
+}
+function toIndices(array) {
+    if (array instanceof Uint16Array || array instanceof Uint32Array) {
+        return array;
+    }
+    let toArray;
+    if (array instanceof Float32Array) {
+        toArray = new Uint32Array(array.length);
+    }
+    else {
+        toArray = new Uint16Array(array.length);
+    }
+    array.forEach((element, index) => {
+        toArray[index] = element;
+    });
+    return toArray;
+}
+function generateNormals(indices, positions) {
+    const normals = new Float32Array(positions.length);
+    const vertexCount = indices ? indices.length : positions.length;
+    for (let i = 0; i < vertexCount; i += 3) {
+        const triIndices = [];
+        for (let n = 0; n < 3; n += 1) {
+            if (indices) {
+                triIndices.push(indices[i + n]);
+            }
+            else {
+                triIndices.push(i + n);
+            }
+        }
+        const triangle = triIndices.map((vertexIndex) => {
+            const index = vertexIndex * 3;
+            return new Vector3(positions[index], positions[index + 1], positions[index + 2]);
+        });
+        const dv1 = new Vector3();
+        Vector3.subtract(triangle[1], triangle[0], dv1);
+        const dv2 = new Vector3();
+        Vector3.subtract(triangle[2], triangle[0], dv2);
+        const normal = new Vector3();
+        Vector3.cross(dv1.normalize(), dv2.normalize(), normal);
+        for (let n = 0; n < 3; n += 1) {
+            const index = (i + n) * 3;
+            normals[index + 0] += normal.x;
+            normals[index + 1] += normal.y;
+            normals[index + 2] += normal.z;
+        }
+    }
+    return normals;
+}
+function getTextures(material) {
+    const { baseColorTexture, metallicRoughnessTexture } = material.pbrMetallicRoughness;
+    const { normalTexture, occlusionTexture, emissiveTexture } = material;
+    return [
+        baseColorTexture,
+        metallicRoughnessTexture,
+        normalTexture,
+        occlusionTexture,
+        emissiveTexture,
+    ];
+}
+const gltfEnum = {
+    SCALAR: 1,
+    VEC2: 2,
+    VEC3: 3,
+    VEC4: 4,
+    MAT2: 4,
+    MAT3: 9,
+    MAT4: 16,
+    5120: 1,
+    5121: 1,
+    5122: 2,
+    5123: 2,
+    5125: 4,
+    5126: 4,
+    9728: "nearest",
+    9729: "linear",
+    9984: "linear",
+    9985: "linear",
+    9986: "linear",
+    9987: "linear",
+    33071: "clamp-to-edge",
+    33648: "mirror-repeat",
+    10497: "repeat",
+};
+
+class GLTF {
+    constructor(json, buffers, images, glbOffset = 0, scene) {
+        this.scenes = json.scenes;
+        this.defaultScene = json.scene || 0;
+        this.nodes = json.nodes;
+        this.cameras = json.cameras || [];
+        this.images = images;
+        function getSampler(samplerJson) {
+            return {
+                magFilter: gltfEnum[samplerJson.magFilter || 9729],
+                minFilter: gltfEnum[samplerJson.minFilter || 9729],
+                addressModeU: gltfEnum[samplerJson.wrapS || 10497],
+                addressModeV: gltfEnum[samplerJson.wrapT || 10497],
+            };
+        }
+        const samplers = json.samplers
+            ? json.samplers.map((sampler) => getSampler(sampler))
+            : [];
+        const defaultSampler = getSampler({});
+        const textures = json.textures
+            ? json.textures.map((texture) => {
+                texture.sampler =
+                    texture.sampler !== undefined
+                        ? samplers[texture.sampler]
+                        : defaultSampler;
+                return texture;
+            })
+            : [];
+        const materials = json.materials
+            ? json.materials.map((material) => {
+                if (!material.pbrMetallicRoughness) {
+                    material.pbrMetallicRoughness = {};
+                }
+                getTextures(material).forEach((texture) => {
+                    if (texture) {
+                        texture.source = textures[texture.index].source;
+                        texture.sampler = textures[texture.index].sampler;
+                    }
+                });
+                return material;
+            })
+            : [];
+        const defaultMaterial = { pbrMetallicRoughness: {} };
+        function getBufferView(accessor, n) {
+            const bufferView = json.bufferViews[accessor.bufferView];
+            const offset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
+            const stride = Math.max(bufferView.byteStride / 4 || 0, n);
+            let array = newTypedArray(accessor.componentType, buffers[bufferView.buffer], bufferView.buffer === 0 ? offset + glbOffset : offset, (accessor.count - 1) * stride + n);
+            if (stride > n) {
+                const TypedArrayConstructor = array.constructor;
+                const strided = new TypedArrayConstructor(accessor.count * n);
+                for (let i = 0, j = 0; i < strided.length; i += n, j += stride) {
+                    for (let k = 0; k < n; k += 1) {
+                        strided[i + k] = array[j + k];
+                    }
+                }
+                array = strided;
+            }
+            return array;
+        }
+        const accessors = json.accessors.map((accessor) => {
+            const n = gltfEnum[accessor.type];
+            let array;
+            if (accessor.bufferView === undefined) {
+                array = newTypedArray(accessor.componentType, new ArrayBuffer(n * accessor.count * gltfEnum[accessor.componentType]), 0, accessor.count * n);
+            }
+            else {
+                array = getBufferView(accessor, n);
+            }
+            if (accessor.sparse) {
+                accessor.sparse.indices.count = accessor.sparse.count;
+                accessor.sparse.values.count = accessor.sparse.count;
+                accessor.sparse.values.componentType = accessor.componentType;
+                const indices = getBufferView(accessor.sparse.indices, 1);
+                const values = getBufferView(accessor.sparse.values, n);
+                for (let i = 0; i < accessor.sparse.count; i += 1) {
+                    for (let j = 0; j < n; j += 1) {
+                        array[indices[i] * n + j] = values[i * n + j];
+                    }
+                }
+            }
+            return array;
+        });
+        this.meshes = json.meshes.map((mesh) => mesh.primitives.map((primitive) => {
+            const material = primitive.material !== undefined
+                ? materials[primitive.material]
+                : defaultMaterial;
+            let indices = null;
+            let vertexCount;
+            if (primitive.indices !== undefined) {
+                indices = toIndices(accessors[primitive.indices]);
+                vertexCount = json.accessors[primitive.indices].count;
+            }
+            else {
+                vertexCount = json.accessors[primitive.attributes.POSITION].count;
+            }
+            const positions = accessors[primitive.attributes.POSITION];
+            const { max, min } = json.accessors[primitive.attributes.POSITION];
+            const boundingBox = { max, min };
+            let normals;
+            if (primitive.attributes.NORMAL !== undefined) {
+                normals = accessors[primitive.attributes.NORMAL];
+            }
+            else {
+                normals = generateNormals(indices, positions);
+            }
+            let uvs = null;
+            if (primitive.attributes.TEXCOORD_0 !== undefined) {
+                uvs = accessors[primitive.attributes.TEXCOORD_0];
+            }
+            let uv1s = null;
+            if (primitive.attributes.TEXCOORD_1 !== undefined) {
+                uv1s = accessors[primitive.attributes.TEXCOORD_1];
+            }
+            let tangents = null;
+            if (primitive.attributes.TANGENT !== undefined &&
+                primitive.attributes.NORMAL !== undefined) {
+                tangents = accessors[primitive.attributes.TANGENT];
+            }
+            else if (material.normalTexture) ;
+            let colors = null;
+            if (primitive.attributes.COLOR_0 !== undefined) {
+                colors = accessors[primitive.attributes.COLOR_0];
+            }
+            return generateMesh({
+                vertexCount,
+                indices,
+                positions,
+                normals,
+                uvs,
+                uv1s,
+                tangents,
+                colors,
+                material,
+                boundingBox,
+            }, this.images, scene);
+            // return {
+            //   vertexCount,
+            //   indices,
+            //   positions,
+            //   normals,
+            //   uvs,
+            //   uv1s,
+            //   tangents,
+            //   colors,
+            //   material,
+            //   boundingBox,
+            // };
+        }));
+        this.animations =
+            json.animations?.map((animation) => {
+                const channels = animation.channels.map(({ sampler, target }) => ({
+                    input: accessors[animation.samplers[sampler].input],
+                    output: accessors[animation.samplers[sampler].output],
+                    interpolation: animation.samplers[sampler].interpolation || "LINEAR",
+                    node: target.node,
+                    path: target.path,
+                }));
+                const length = channels.reduce((acc, { input }) => Math.max(acc, input[input.length - 1]), 0);
+                return { channels, length };
+            }) || [];
+    }
+}
+async function loadGLTFObject(json, url, scene, glbOffset = 0, bin) {
+    const dir = url.substring(0, url.lastIndexOf("/"));
+    debugger;
+    const images = [];
+    let loadExternalImages = Promise.resolve();
+    if (json.images) {
+        loadExternalImages = Promise.all(json.images.map(async (image, index) => {
+            if (image.uri) {
+                const imageUrl = image.uri.slice(0, 5) === "data:"
+                    ? image.uri
+                    : `${dir}/${image.uri}`;
+                images[index] = await fetch(imageUrl)
+                    .then((response) => response.blob())
+                    .then((blob) => createImageBitmap(blob, {
+                    colorSpaceConversion: "none",
+                }));
+            }
+        }));
+    }
+    const buffers = [];
+    await Promise.all(json.buffers.map((buffer, index) => {
+        if (!buffer.uri) {
+            if (index !== 0) {
+                throw new Error("buffer uri undefined");
+            }
+            buffers[index] = bin;
+            return Promise.resolve();
+        }
+        const bufferUrl = buffer.uri.slice(0, 5) === "data:"
+            ? buffer.uri
+            : `${dir}/${buffer.uri}`;
+        return fetch(bufferUrl)
+            .then((response) => response.arrayBuffer())
+            .then((arrayBuffer) => {
+            buffers[index] = arrayBuffer;
+        });
+    }));
+    let loadInternalImages = Promise.resolve();
+    if (json.images) {
+        loadInternalImages = Promise.all(json.images.map(async (image, index) => {
+            if (image.bufferView !== undefined) {
+                const { buffer, byteOffset, byteLength } = json.bufferViews[image.bufferView];
+                const array = new Uint8Array(buffers[buffer], buffer === 0 ? byteOffset + glbOffset : byteOffset, byteLength);
+                let type;
+                if (image.mimeType) {
+                    type = image.mimeType;
+                }
+                else {
+                    type = array[0] === 0xff ? "image/jpeg" : "image/png";
+                }
+                const blob = new Blob([array], { type });
+                images[index] = await createImageBitmap(blob, {
+                    colorSpaceConversion: "none",
+                });
+            }
+        }));
+    }
+    await Promise.all([loadExternalImages, loadInternalImages]);
+    return new GLTF(json, buffers, images, glbOffset, scene);
+}
+async function loadGLTF(url, scene) {
+    const ext = url.split(".").pop();
+    if (ext === "gltf") {
+        const json = await fetch(url).then((response) => response.json());
+        return loadGLTFObject(json, url, scene);
+    }
+    const glb = await fetch(url).then((response) => response.arrayBuffer());
+    const jsonLength = new Uint32Array(glb, 12, 1)[0];
+    const jsonChunk = new Uint8Array(glb, 20, jsonLength);
+    const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
+    return loadGLTFObject(json, url, scene, 28 + jsonLength, glb);
+}
+function generateMesh(options, images, scene) {
+    const { vertexCount, indices, positions, normals, uvs, uv1s, tangents, colors, material, boundingBox, } = options;
+    const { emissiveFactor, emissiveTexture, name, normalTexture, occlusionTexture, pbrMetallicRoughness, } = material;
+    debugger;
+    const geo = new Geometry({});
+    geo.setIndice(Array.from(indices));
+    geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
+    geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+    geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+    geo.computeBoundingSphere(Array.from(positions));
+    geo.count = vertexCount;
+    const mat = new PbrMat();
+    mat.diffuseEnvTexture = scene.diffuseEnvTexture;
+    mat.specularEnvTexture = scene.specularEnvTexture;
+    mat.brdfTexture = scene.brdfTexture;
+    mat.normalTexture = generateTexture(normalTexture, images);
+    mat.aoTexture = generateTexture(occlusionTexture, images);
+    mat.emissiveTexture = generateTexture(emissiveTexture, images);
+    mat.baseTexture = generateTexture(pbrMetallicRoughness.baseColorTexture, images);
+    mat.metalnessRoughnessTexture = generateTexture(pbrMetallicRoughness.metallicRoughnessTexture, images);
+    mat.baseSampler = new Sampler({
+        magFilter: 'linear',
+        minFilter: 'linear',
+        addressModeU: "repeat",
+        addressModeV: "repeat",
+    });
+    mat.roughness = 0.0;
+    mat.metalness = 1.0;
+    const mesh = new Mesh(geo, mat);
+    // mesh.scale.set(3,3,3)
+    return mesh;
+}
+function generateTexture(texture, images) {
+    const { sampler, index } = texture;
+    return new Texture({
+        size: { width: images[index].width, height: images[index].height, depth: 1 },
+        data: {
+            source: images[index]
+        },
+        format: 'rgba8unorm',
+        usage: GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+}
+
+export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };

@@ -10,10 +10,10 @@ export default function pbr_fs(defines){
             emissive:vec3<f32>,
             metallic:f32,
             roughness:f32,
-            #if ${defines.HAS_NORMALMAP}
-                normalTextureScale:f32,
+            #if ${defines.USE_NORMALTEXTURE}
+                normalTextureScale:vec2<f32>,
             #endif
-            #if ${defines.HAS_OCCLUSIONMAP}
+            #if ${defines.USE_AOTEXTURE}
                 occlusionStrength:f32,
             #endif
          }
@@ -49,7 +49,7 @@ export default function pbr_fs(defines){
            @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         #endif
         // normal map
-        #if ${defines.HAS_NORMALMAP}
+        #if ${defines.USE_NORMALTEXTURE}
           @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
         #endif
 
@@ -60,7 +60,6 @@ export default function pbr_fs(defines){
 
         // metal roughness
         #if ${defines.USE_METALNESSTEXTURE}
-        metalnessTexture
              @group(0) @binding(${defines.metalnessRoughnessTextureBinding}) var metalnessRoughnessTexture: texture_2d<f32>;
         #endif
         // occlusion texture
@@ -71,7 +70,7 @@ export default function pbr_fs(defines){
         // Find the normal for this fragment, pulling either from a predefined normal map
         // or from the interpolated mesh normal and tangent attributes.
         fn getNormal(input:VertInput
-            #if ${defines.HAS_NORMALMAP}
+            #if ${defines.USE_NORMALTEXTURE}
             ,normalTexture:texture_2d<f32>,defaultSampler:sampler
             #endif
             )->vec3<f32>
@@ -87,9 +86,9 @@ export default function pbr_fs(defines){
             let b:vec3<f32> = normalize(cross(ng, t));
             let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
         // TODO: TANGENTS
-            #if ${defines.HAS_NORMALMAP}
+            #if ${defines.USE_NORMALTEXTURE}
                 var n:vec3<f32> = textureSample(normalTexture,defaultSampler, input.uv).rgb;
-                n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, materialUniform.normalTextureScale, 1.0)));
+                n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, 1.0)));
             #else
                 var n:vec3<f32> = tbn[2].xyz;
             #endif
@@ -158,7 +157,7 @@ export default function pbr_fs(defines){
             var perceptualRoughness:f32 = materialUniform.roughness;
             var metallic:f32 = materialUniform.metallic;
 
-        #if ${defines.HAS_METALROUGHNESSMAP}
+        #if ${defines.USE_METALNESSTEXTURE}
             // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
             // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
             let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, input.uv);
@@ -173,12 +172,12 @@ export default function pbr_fs(defines){
 
 
             // The albedo may be defined from a base texture or a flat color
-        // #if ${defines.USE_TEXTURE}
-        //     let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) *vec4<f32>(materialUniform.color,1.0);
-        // #else
-        //     let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
-        // #endif
-        let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        #if ${defines.USE_TEXTURE}
+            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) ;
+        #else
+            let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+        #endif
+        //let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             let f0:vec3<f32> = vec3<f32>(0.04);
             var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
             diffuseColor *= 1.0 - metallic;
@@ -194,7 +193,7 @@ export default function pbr_fs(defines){
             let specularEnvironmentR0:vec3<f32> = specularColor.rgb;
             let specularEnvironmentR90:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0) * reflectance90;
      
-                #if ${defines.HAS_NORMALMAP}
+                #if ${defines.USE_NORMALTEXTURE}
                 let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);  
                 #else
                 let n:vec3<f32> = getNormal(input);
@@ -248,16 +247,16 @@ export default function pbr_fs(defines){
 
 
         // Apply optional PBR terms for additional (optional) shading
-        #if ${defines.HAS_OCCLUSIONMAP}
+        #if ${defines.USE_AOTEXTURE}
             let ao:f32 = textureSample(aoTexture,defaultSampler, input.uv).r;
             color = mix(color, color * ao, materialUniform.occlusionStrength);
         #endif
 
-        #if ${defines.HAS_EMISSIVEMAP}
-            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb * materialUniform.emissive;
+        #if ${defines.USE_EMISSIVETEXTURE}
+            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb ;
             color += emissive;
         #endif
-       return vec4<f32>(color.xyz,1.0);
+       return vec4<f32>(color.xyz, baseColor.a);
     }
    `
 }
