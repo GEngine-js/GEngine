@@ -5,6 +5,7 @@ import Texture from "../render/Texture";
 import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
+import textureCache from "../core/TextureCache";
 
 export default class PbrMat extends Material {
 
@@ -89,6 +90,9 @@ export default class PbrMat extends Material {
         super.createShaderData(mesh);
         this.shaderData.setFloat("metalness", this);
         this.shaderData.setFloat("roughness", this);
+        this.brdfTexture=textureCache.getTexture('brdf');
+        this.diffuseEnvTexture=textureCache.getTexture('diffuse');
+        this.specularEnvTexture=textureCache.getTexture('specular');
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE', true);
             this.shaderData.setTexture('baseTexture', this);
@@ -121,7 +125,6 @@ export default class PbrMat extends Material {
         if (this.brdfTexture) {
             this.shaderData.setTexture('brdfTexture', this)
         }
-        debugger
     }
     destroy() {
 

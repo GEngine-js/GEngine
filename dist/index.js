@@ -14981,6 +14981,104 @@ class PhongMaterial extends Material {
     }
 }
 
+function returnTrue() {
+    return true;
+}
+/**
+ * Destroys an object.  Each of the object's functions, including functions in its prototype,
+ * is replaced with a function that throws a {@link DeveloperError}, except for the object's
+ * <code>isDestroyed</code> function, which is set to a function that returns <code>true</code>.
+ * The object's properties are removed with <code>delete</code>.
+ * <br /><br />
+ * This function is used by objects that hold native resources, e.g., WebGL resources, which
+ * need to be explicitly released.  Client code calls an object's <code>destroy</code> function,
+ * which then releases the native resource and calls <code>destroyObject</code> to put itself
+ * in a destroyed state.
+ *
+ * @function
+ *
+ * @param {Object} object The object to destroy.
+ * @param {String} [message] The message to include in the exception that is thrown if
+ *                           a destroyed object's function is called.
+ *
+ *
+ * @example
+ * // How a texture would destroy itself.
+ * this.destroy = function () {
+ *     _gl.deleteTexture(_texture);
+ *     return Cesium.destroyObject(this);
+ * };
+ *
+ * @see DeveloperError
+ */
+function destroyObject(object) {
+    // message =message||"This object was destroyed, i.e., destroy() was called.";
+    function throwOnDestroyed() {
+        //>>includeStart('debug', pragmas.debug);
+        throw new Error("This object was destroyed, i.e., destroy() was called.");
+        //throw new DeveloperError(message);
+        //>>includeEnd('debug');
+    }
+    for (const key in object) {
+        if (typeof object[key] === "function") {
+            object[key] = throwOnDestroyed;
+        }
+    }
+    object.isDestroyed = returnTrue;
+    return undefined;
+}
+
+class TextureCache {
+    constructor() {
+        this._numberOfTextures = 0;
+        this._textures = new Map();
+        this._numberOfTextures = 0;
+        this._texturesToRelease = new Map();
+    }
+    get numberOfTextures() {
+        return this._numberOfTextures;
+    }
+    getTexture(keyword) {
+        const cachedTexture = this._textures.get(keyword);
+        if (!defined(cachedTexture)) {
+            return undefined;
+        }
+        // No longer want to release this if it was previously released.
+        delete this._texturesToRelease[keyword];
+        ++cachedTexture.count;
+        return cachedTexture.texture;
+    }
+    addTexture(keyword, texture) {
+        const cachedTexture = {
+            texture: texture,
+            count: 1,
+        };
+        texture.finalDestroy = texture.destroy;
+        const that = this;
+        texture.destroy = function () {
+            if (--cachedTexture.count === 0) {
+                that._texturesToRelease.set(keyword, cachedTexture);
+            }
+        };
+        this._textures.set(keyword, cachedTexture);
+        ++this._numberOfTextures;
+    }
+    releasedTextures() {
+        this._texturesToRelease.forEach((cacheTexture) => {
+            cacheTexture.texture?.finalDestroy();
+            --this._numberOfTextures;
+        });
+        this._texturesToRelease.clear();
+    }
+    destroy() {
+        this._textures.forEach((cachedTexture) => {
+            cachedTexture.texture?.finalDestroy();
+        });
+        return destroyObject(this);
+    }
+}
+const textureCache = new TextureCache();
+
 class PbrMat extends Material {
     constructor() {
         super();
@@ -15035,6 +15133,9 @@ class PbrMat extends Material {
         super.createShaderData(mesh);
         this.shaderData.setFloat("metalness", this);
         this.shaderData.setFloat("roughness", this);
+        this.brdfTexture = textureCache.getTexture('brdf');
+        this.diffuseEnvTexture = textureCache.getTexture('diffuse');
+        this.specularEnvTexture = textureCache.getTexture('specular');
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE', true);
             this.shaderData.setTexture('baseTexture', this);
@@ -16424,35 +16525,26 @@ class Scene extends EventDispatcher {
         this.presentationContextDescriptor = options.presentationContextDescriptor;
         this.ready = false;
         this.skybox = defaultValue(options.skybox, undefined);
+        this.inited = false;
         //this.init();
     }
-    set environment(value) {
-        this.frameState.environment = value;
-    }
-    get environment() {
-        return this.frameState.environment;
-    }
     async init() {
-        if (!(await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor))) {
-            throw new Error("Your browser doesn't support WebGPU.");
+        await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor);
+        this.currentRenderPipeline = new ForwardRenderLine(this.context);
+        this.frameState = new FrameState(this.context);
+        this.viewport = {
+            x: 0,
+            y: 0,
+            width: this.context.presentationSize.width,
+            height: this.context.presentationSize.height,
+        };
+        if (this.brdfUrl) {
+            const { brdfTexture, diffuseTexture, specularTexture, } = await loadPbrTexture(this.brdfUrl, this.diffuseEnvUrls, this.specularEnvUrls);
+            textureCache.addTexture('brdf', brdfTexture);
+            textureCache.addTexture('diffuse', diffuseTexture);
+            textureCache.addTexture('specular', specularTexture);
         }
-        else {
-            this.currentRenderPipeline = new ForwardRenderLine(this.context);
-            this.frameState = new FrameState(this.context);
-            this.ready = true;
-            this.viewport = {
-                x: 0,
-                y: 0,
-                width: this.context.presentationSize.width,
-                height: this.context.presentationSize.height,
-            };
-            if (this.brdfUrl) {
-                const { brdfTexture, diffuseTexture, specularTexture, } = await loadPbrTexture(this.brdfUrl, this.diffuseEnvUrls, this.specularEnvUrls);
-                this.brdfTexture = brdfTexture;
-                this.diffuseEnvTexture = diffuseTexture;
-                this.specularEnvTexture = specularTexture;
-            }
-        }
+        this.ready = true;
     }
     add(instance) {
         if (instance.type === "primitive" &&
@@ -16473,7 +16565,11 @@ class Scene extends EventDispatcher {
         }
     }
     getPrimitiveById() { }
-    render() {
+    async render() {
+        if (!this.inited) {
+            this.inited = true;
+            await this.init();
+        }
         this.update();
     }
     update() {
@@ -17265,7 +17361,7 @@ const gltfEnum = {
 };
 
 class GLTF {
-    constructor(json, buffers, images, glbOffset = 0, scene) {
+    constructor(json, buffers, images, glbOffset = 0) {
         this.scenes = json.scenes;
         this.defaultScene = json.scene || 0;
         this.nodes = json.nodes;
@@ -17399,7 +17495,7 @@ class GLTF {
                 colors,
                 material,
                 boundingBox,
-            }, this.images, scene);
+            }, this.images);
             // return {
             //   vertexCount,
             //   indices,
@@ -17427,7 +17523,7 @@ class GLTF {
             }) || [];
     }
 }
-async function loadGLTFObject(json, url, scene, glbOffset = 0, bin) {
+async function loadGLTFObject(json, url, glbOffset = 0, bin) {
     const dir = url.substring(0, url.lastIndexOf("/"));
     debugger;
     const images = [];
@@ -17485,21 +17581,21 @@ async function loadGLTFObject(json, url, scene, glbOffset = 0, bin) {
         }));
     }
     await Promise.all([loadExternalImages, loadInternalImages]);
-    return new GLTF(json, buffers, images, glbOffset, scene);
+    return new GLTF(json, buffers, images, glbOffset);
 }
-async function loadGLTF(url, scene) {
+async function loadGLTF(url) {
     const ext = url.split(".").pop();
     if (ext === "gltf") {
         const json = await fetch(url).then((response) => response.json());
-        return loadGLTFObject(json, url, scene);
+        return loadGLTFObject(json, url);
     }
     const glb = await fetch(url).then((response) => response.arrayBuffer());
     const jsonLength = new Uint32Array(glb, 12, 1)[0];
     const jsonChunk = new Uint8Array(glb, 20, jsonLength);
     const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
-    return loadGLTFObject(json, url, scene, 28 + jsonLength, glb);
+    return loadGLTFObject(json, url, 28 + jsonLength, glb);
 }
-function generateMesh(options, images, scene) {
+function generateMesh(options, images) {
     const { vertexCount, indices, positions, normals, uvs, uv1s, tangents, colors, material, boundingBox, } = options;
     const { emissiveFactor, emissiveTexture, name, normalTexture, occlusionTexture, pbrMetallicRoughness, } = material;
     debugger;
@@ -17511,9 +17607,6 @@ function generateMesh(options, images, scene) {
     geo.computeBoundingSphere(Array.from(positions));
     geo.count = vertexCount;
     const mat = new PbrMat();
-    mat.diffuseEnvTexture = scene.diffuseEnvTexture;
-    mat.specularEnvTexture = scene.specularEnvTexture;
-    mat.brdfTexture = scene.brdfTexture;
     mat.normalTexture = generateTexture(normalTexture, images);
     mat.aoTexture = generateTexture(occlusionTexture, images);
     mat.emissiveTexture = generateTexture(emissiveTexture, images);

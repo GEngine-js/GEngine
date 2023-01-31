@@ -62,8 +62,7 @@ export class GLTF {
     json: any,
     buffers: Array<ArrayBuffer>,
     images: Array<ImageBitmap>,
-    glbOffset = 0,
-    scene
+    glbOffset = 0,    
   ) {
     this.scenes = json.scenes;
     this.defaultScene = json.scene || 0;
@@ -229,7 +228,7 @@ export class GLTF {
           colors,
           material,
           boundingBox,
-        },this.images,scene)
+        },this.images)
         // return {
         //   vertexCount,
         //   indices,
@@ -269,12 +268,10 @@ export class GLTF {
 async function loadGLTFObject(
   json: any,
   url: string,
-  scene,
   glbOffset = 0,
   bin?: ArrayBuffer
 ) {
   const dir = url.substring(0, url.lastIndexOf("/"));
-  debugger
   const images: Array<ImageBitmap> = [];
   let loadExternalImages: Promise<any> = Promise.resolve();
   if (json.images) {
@@ -347,22 +344,22 @@ async function loadGLTFObject(
   }
 
   await Promise.all([loadExternalImages, loadInternalImages]);
-  return new GLTF(json, buffers, images, glbOffset,scene);
+  return new GLTF(json, buffers, images, glbOffset);
 }
 
-export async function loadGLTF(url: string,scene) {
+export async function loadGLTF(url: string) {
   const ext = url.split(".").pop();
   if (ext === "gltf") {
     const json = await fetch(url).then((response) => response.json());
-    return loadGLTFObject(json, url,scene);
+    return loadGLTFObject(json, url);
   }
   const glb = await fetch(url).then((response) => response.arrayBuffer());
   const jsonLength = new Uint32Array(glb, 12, 1)[0];
   const jsonChunk = new Uint8Array(glb, 20, jsonLength);
   const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
-  return loadGLTFObject(json, url, scene, 28 + jsonLength,glb,);
+  return loadGLTFObject(json, url,28 + jsonLength,glb,);
 }
-function generateMesh(options,images,scene) {
+function generateMesh(options,images) {
   const {
     vertexCount,
     indices,
@@ -383,23 +380,19 @@ function generateMesh(options,images,scene) {
     occlusionTexture,
     pbrMetallicRoughness,
   } = material;
-  debugger
   const geo = new Geometry({});
-  geo.setIndice(Array.from(indices));
-  geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
-  geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
-  geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+  if(indices)geo.setIndice(Array.from(indices));
+  if(positions)geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
+  if(normals)geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+  if(uvs)geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
   geo.computeBoundingSphere(Array.from(positions));
   geo.count=vertexCount;
   const mat = new PbrMat();
-  mat.diffuseEnvTexture = scene.diffuseEnvTexture;
-  mat.specularEnvTexture = scene.specularEnvTexture;
-  mat.brdfTexture = scene.brdfTexture;
-  mat.normalTexture=generateTexture(normalTexture,images);
-  mat.aoTexture=generateTexture(occlusionTexture,images);
-  mat.emissiveTexture=generateTexture(emissiveTexture,images);
-  mat.baseTexture=generateTexture(pbrMetallicRoughness.baseColorTexture,images);
-  mat.metalnessRoughnessTexture=generateTexture(pbrMetallicRoughness.metallicRoughnessTexture,images);
+  if(normalTexture)mat.normalTexture=generateTexture(normalTexture,images);
+  if(occlusionTexture)mat.aoTexture=generateTexture(occlusionTexture,images);
+  if(emissiveTexture)mat.emissiveTexture=generateTexture(emissiveTexture,images);
+  if(pbrMetallicRoughness?.baseColorTexture)mat.baseTexture=generateTexture(pbrMetallicRoughness.baseColorTexture,images);
+  if(pbrMetallicRoughness?.metallicRoughnessTexture)mat.metalnessRoughnessTexture=generateTexture(pbrMetallicRoughness.metallicRoughnessTexture,images);
   mat.baseSampler=new Sampler({
     magFilter: 'linear',
     minFilter: 'linear',
@@ -408,12 +401,9 @@ function generateMesh(options,images,scene) {
 
   });
   mat.roughness =0.0;
-
   mat.metalness =1.0;
   const mesh=new Mesh(geo,mat);
-  // mesh.scale.set(3,3,3)
   return mesh
-
 }
 function generateTexture(texture,images){
     const {sampler,index}=texture;

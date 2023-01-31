@@ -96,14 +96,11 @@
         const pbr=new PbrMat();
         pbr.baseTexture=baseTexture;
         pbr.baseSampler=baseSampler;
-        pbr.diffuseEnvTexture=scene.diffuseEnvTexture;
-        pbr.specularEnvTexture=scene.specularEnvTexture;
-        pbr.brdfTexture=scene.brdfTexture;
         pbr.aoTexture=aoTexture;
         pbr.normalTexture=normalTexture;
-        pbr.roughness =0.0;
+        pbr.roughness =1.0;
 
-		pbr.metalness =1.0;
+		pbr.metalness =0.0;
         const primitive=new Mesh(geometry,pbr);
         primitive.scale.set(3,3,3)
         // primitive.rotateY(Math.PI/3)

@@ -5,12 +5,13 @@ import Context from "./Context";
 import Sampler from "./Sampler";
 
 export default class Texture{
+    [x: string]: any;
     public gpuTexture?: GPUTexture;
     public mipLevelCount?: number;
     public sampler?:Sampler;
-    context?: Context;
-    textureProp?: WebGPUTextureProps;
-    dirty:boolean;
+    public context?: Context;
+    public textureProp?: WebGPUTextureProps;
+    public dirty:boolean;
     constructor(textureProp:WebGPUTextureProps){    
        this.textureProp=Object.assign({
         format: TextureFormat.RGBA8Unorm,
@@ -94,7 +95,7 @@ export default class Texture{
     }
     destroy(): void {
         this.gpuTexture.destroy();
-      }
+    }
     private createGPUTexture(){
         if (typeof this.textureProp.format === 'number') {
             throw new Error('number format');

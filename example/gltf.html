@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>webworkerTask</title>
+    <title>gltf</title>
     <!-- <link rel="stylesheet" href="./index.scss" /> -->
     <style>
         * {
@@ -53,29 +53,6 @@
     } from '../dist/index.js';
 
      const  init= async()=>{
-         //const geometry=new BoxGeometry(10,10,10);
-        const geometry=new TorusKnotGeometry(10, 3, 200, 32)
-        //const geometry= new SphereGeometry();
-        const img = document.createElement('img');
-        img.src ='./brick_diffuse.jpg';
-        await img.decode();
-        const imageBitmap = await createImageBitmap(img);
-        const phongMaterial=new PhongMaterial(imageBitmap);
-        const baseSampler=new Sampler({
-            magFilter: 'linear',
-            minFilter: 'linear',
-            addressModeU :"repeat",
-            addressModeV :"repeat",
-            addressModeW:"repeat",
-          });
-        const baseTexture=new Texture({
-            size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
-            data:{
-                source:imageBitmap
-            },
-            format: 'rgba8unorm',
-            sampler:baseSampler
-          });
           const scene=new Scene({
             container:'app',
             brdfUrl:'./textures/brdfLUT.png',
@@ -96,19 +73,7 @@
             `./textures/environment/diffuse/bakedDiffuse_06.jpg`,
             ]
         });
-        await scene.init();
-        const gltf=await loadGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf",scene)
-        debugger
-        const pbr=new PbrMat();
-        pbr.baseTexture=baseTexture;
-        pbr.baseSampler=baseSampler;
-        pbr.diffuseEnvTexture=scene.diffuseEnvTexture;
-        pbr.specularEnvTexture=scene.specularEnvTexture;
-        pbr.brdfTexture=scene.brdfTexture;
-        pbr.roughness =0.0;
-
-		pbr.metalness =1.0;
-        //const primitive=new Mesh(geometry,pbr);
+        const gltf=await loadGLTF("https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf")
         const primitive=gltf.meshes[0][0];
         primitive.scale.set(2.2,2.2,2.2)
         primitive.rotateX(Math.PI/2)
@@ -127,15 +92,12 @@
             `./textures/environment/nz.jpg`,
         ]
         const skybox=new SkyBox(urls);
-        const env=await CubeTextureLoader(urls);
-        scene.environment=env.texture;
         scene.add(primitive);
         scene.add(skybox);
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
             primitive.rotateZ(0.01)
-            // primitive.rotateX(0.01)
             requestAnimationFrame( animate );
             scene.render()
         }

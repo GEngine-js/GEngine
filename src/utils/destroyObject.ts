@@ -29,13 +29,13 @@ function returnTrue() {
    *
    * @see DeveloperError
    */
-   export function destroyObject(object, message) {
-    message =message||"This object was destroyed, i.e., destroy() was called.";
+   export function destroyObject(object) {
+    // message =message||"This object was destroyed, i.e., destroy() was called.";
   
   
     function throwOnDestroyed() {
       //>>includeStart('debug', pragmas.debug);
-      throw new Error(message);
+      throw new Error("This object was destroyed, i.e., destroy() was called.");
       //throw new DeveloperError(message);
       //>>includeEnd('debug');
     }

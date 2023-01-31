@@ -1,11 +1,3 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-24 19:32:21
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-18 18:13:41
- * @FilePath: \GEngine\src\Scene.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import PerspectiveCamera from "./camera/PerspectiveCamera";
 import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState } from "./core/FrameState";
@@ -18,6 +10,7 @@ import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 import defaultValue from "./utils/defaultValue";
 import { loadPbrTexture } from "./utils/utils";
+import textureCache from "./core/TextureCache";
 
 export class Scene extends EventDispatcher {
   lightManger: LightManger;
@@ -32,13 +25,11 @@ export class Scene extends EventDispatcher {
   currentRenderPipeline: IBaseRenderLine;
   viewport: { x: number; y: number; width: number; height: number };
   skybox: SkyBox;
-  public diffuseEnvTexture: Texture;
-  public specularEnvTexture: Texture;
-  public brdfTexture: Texture;
   private ready: boolean;
   private brdfUrl:string;
   private specularEnvUrls:Array<string>;
   private diffuseEnvUrls:Array<string>;
+  private inited:boolean;
   constructor(options) {
     super();
     this.container =
@@ -60,27 +51,17 @@ export class Scene extends EventDispatcher {
     this.presentationContextDescriptor = options.presentationContextDescriptor;
     this.ready = false;
     this.skybox = defaultValue(options.skybox, undefined);
+    this.inited=false;
     //this.init();
   }
-  set environment(value) {
-    this.frameState.environment = value;
-  }
-  get environment() {
-    return this.frameState.environment;
-  }
-  private async init() {
-    if (
-      !(await this.context.init(
-        this.requestAdapter,
-        this.deviceDescriptor,
-        this.presentationContextDescriptor
-      ))
-    ) {
-      throw new Error("Your browser doesn't support WebGPU.");
-    } else {
+  private async init() { 
+    await this.context.init(
+      this.requestAdapter,
+      this.deviceDescriptor,
+      this.presentationContextDescriptor
+    )
       this.currentRenderPipeline = new ForwardRenderLine(this.context);
       this.frameState = new FrameState(this.context);
-      this.ready = true;
       this.viewport = {
         x: 0,
         y: 0,
@@ -89,11 +70,12 @@ export class Scene extends EventDispatcher {
       };
       if(this.brdfUrl){
         const {brdfTexture,diffuseTexture,specularTexture,}= await loadPbrTexture(this.brdfUrl,this.diffuseEnvUrls,this.specularEnvUrls);
-        this.brdfTexture=brdfTexture;
-        this.diffuseEnvTexture=diffuseTexture;
-        this.specularEnvTexture=specularTexture;
+        textureCache.addTexture('brdf',brdfTexture);
+        textureCache.addTexture('diffuse',diffuseTexture);
+        textureCache.addTexture('specular',specularTexture);
       }
-    }
+      this.ready = true;
+    
   }
   add(instance) {
     if (
@@ -118,18 +100,23 @@ export class Scene extends EventDispatcher {
     }
   }
   getPrimitiveById() {}
-  render() {
+  async render() {
+    if (!this.inited) {
+      this.inited=true;
+       await this.init();
+    }
     this.update();
   }
   private update() {
     if (!this.ready) return;
+    //释放纹理
+    textureCache.releasedTextures();
     //更新相机
     this.frameState.viewport = this.viewport;
     this.frameState.update(this.camera);
     //更新灯光
     this.lightManger.update(this.frameState);
     this.context.systemRenderResource.update(this.frameState, this);
-
     //update primitive and select
     this.primitiveManger.update(this.frameState);
     //selct renderPipeline
