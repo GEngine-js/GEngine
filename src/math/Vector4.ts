@@ -11,10 +11,6 @@ import GMath from "./Math";
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
  * @param {Number} [w=0.0] The W component.
- *
- * @see Vector2
- * @see Vector3
- * @see Packable
  */
 class Vector4 {
   /**
@@ -333,9 +329,9 @@ class Vector4 {
    *
    * @example
    * // Returns 1.0
-   * const d = Cesium.Vector4.distance(
-   *   new Cesium.Vector4(1.0, 0.0, 0.0, 0.0),
-   *   new Cesium.Vector4(2.0, 0.0, 0.0, 0.0));
+   * const d = Vector4.distance(
+   *   new Vector4(1.0, 0.0, 0.0, 0.0),
+   *   new Vector4(2.0, 0.0, 0.0, 0.0));
    */
   static distance(left, right) {
 
@@ -353,9 +349,9 @@ class Vector4 {
    *
    * @example
    * // Returns 4.0, not 2.0
-   * const d = Cesium.Vector4.distance(
-   *   new Cesium.Vector4(1.0, 0.0, 0.0, 0.0),
-   *   new Cesium.Vector4(3.0, 0.0, 0.0, 0.0));
+   * const d = Vector4.distance(
+   *   new Vector4(1.0, 0.0, 0.0, 0.0),
+   *   new Vector4(3.0, 0.0, 0.0, 0.0));
    */
   static distanceSquared(left, right) {
 

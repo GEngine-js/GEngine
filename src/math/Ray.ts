@@ -43,8 +43,8 @@ static clone(ray, result) {
  *
  * @example
  * //Get the first intersection point of a ray and an ellipsoid.
- * const intersection = Cesium.IntersectionTests.rayEllipsoid(ray, ellipsoid);
- * const point = Cesium.Ray.getPoint(ray, intersection.start);
+ * const intersection = IntersectionTests.rayEllipsoid(ray, ellipsoid);
+ * const point = Ray.getPoint(ray, intersection.start);
  */
 static getPoint(ray, t, result) {
   if (!defined(result)) {

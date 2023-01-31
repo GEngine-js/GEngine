@@ -9,9 +9,6 @@ import GMath from "./Math";
  * @param {Number} [x=0.0] The X component.
  * @param {Number} [y=0.0] The Y component.
  *
- * @see Cartesian3
- * @see Cartesian4
- * @see Packable
  */
 class Vector2{
   /**
@@ -269,7 +266,7 @@ static fromElements(x:number, y:number, result) {
  *
  * @example
  * // Returns 1.0
- * const d = Cesium.Vector2.distance(new Cesium.Vector2(1.0, 0.0), new Cesium.Vector2(2.0, 0.0));
+ * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(2.0, 0.0));
  */
  static distance(left, right) {
 
@@ -287,7 +284,7 @@ static fromElements(x:number, y:number, result) {
  *
  * @example
  * // Returns 4.0, not 2.0
- * const d = Cesium.Vector2.distance(new Cesium.Vector2(1.0, 0.0), new Cesium.Vector2(3.0, 0.0));
+ * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(3.0, 0.0));
  */
  static distanceSquared(left, right) {
 

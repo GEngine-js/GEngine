@@ -230,7 +230,7 @@ export default class PbrMaterial extends PbrBaseMaterial {
 
 
         /*****************************sheen*********************************/
-        this._sheenColor = new Color(1, 1, 1, 0);
+        this._sheenColor = new Color(1, 1, 1);
 
         this._sheenRoughness = 1.0;
 

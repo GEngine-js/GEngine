@@ -296,11 +296,11 @@ class Matrix4 {
    * // [1.0, 2.0, 3.0, 4.0]
    *
    * const v = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-   * const m = Cesium.Matrix4.fromArray(v);
+   * const m = Matrix4.fromArray(v);
    *
    * // Create same Matrix4 with using an offset into an array
    * const v2 = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-   * const m2 = Cesium.Matrix4.fromArray(v2, 2);
+   * const m2 = Matrix4.fromArray(v2, 2);
    */
 
 
@@ -429,10 +429,10 @@ class Matrix4 {
    * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
    *
    * @example
-   * const result = Cesium.Matrix4.fromTranslationQuaternionRotationScale(
-   *   new Cesium.Vector3(1.0, 2.0, 3.0), // translation
-   *   Cesium.Quaternion.IDENTITY,           // rotation
-   *   new Cesium.Vector3(7.0, 8.0, 9.0), // scale
+   * const result = Matrix4.fromTranslationQuaternionRotationScale(
+   *   new Vector3(1.0, 2.0, 3.0), // translation
+   *   Quaternion.IDENTITY,           // rotation
+   *   new Vector3(7.0, 8.0, 9.0), // scale
    *   result);
    */
   static fromTranslationQuaternionRotationScale(
@@ -540,7 +540,7 @@ class Matrix4 {
    * //   [0.0, 8.0, 0.0, 0.0]
    * //   [0.0, 0.0, 9.0, 0.0]
    * //   [0.0, 0.0, 0.0, 1.0]
-   * const m = Cesium.Matrix4.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
+   * const m = Matrix4.fromScale(new Vector3(7.0, 8.0, 9.0));
    */
   static fromScale(scale, result) {
 
@@ -597,7 +597,7 @@ class Matrix4 {
    * //   [0.0, 2.0, 0.0, 0.0]
    * //   [0.0, 0.0, 2.0, 0.0]
    * //   [0.0, 0.0, 0.0, 1.0]
-   * const m = Cesium.Matrix4.fromUniformScale(2.0);
+   * const m = Matrix4.fromUniformScale(2.0);
    */
   static fromUniformScale(scale, result) {
 
@@ -817,12 +817,12 @@ class Matrix4 {
    *
    * @example
    * // Create viewport transformation using an explicit viewport and depth range.
-   * const m = Cesium.Matrix4.computeViewportTransformation({
+   * const m = Matrix4.computeViewportTransformation({
    *     x : 0.0,
    *     y : 0.0,
    *     width : 1024.0,
    *     height : 768.0
-   * }, 0.0, 1.0, new Cesium.Matrix4());
+   * }, 0.0, 1.0, new Matrix4());
    */
   static computeViewportTransformation(
     viewport,
@@ -923,7 +923,7 @@ class Matrix4 {
    * //     [11.0, 15.0, 19.0, 23.0]
    * //     [12.0, 16.0, 20.0, 24.0]
    * //     [13.0, 17.0, 21.0, 25.0]
-   * const a = Cesium.Matrix4.toArray(m);
+   * const a = Matrix4.toArray(m);
    *
    * // m remains the same
    * //creates a = [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
@@ -980,8 +980,8 @@ class Matrix4 {
    * @exception {Error} column must be 0, 1, 2, or 3.
    *
    * @example
-   * const myMatrix = new Cesium.Matrix4();
-   * const column1Row0Index = Cesium.Matrix4.getElementIndex(1, 0);
+   * const myMatrix = new Matrix4();
+   * const column1Row0Index = Matrix4.getElementIndex(1, 0);
    * const column1Row0 = myMatrix[column1Row0Index];
    * myMatrix[column1Row0Index] = 10.0;
    */
@@ -1008,12 +1008,12 @@ class Matrix4 {
    * //     [22.0, 23.0, 24.0, 25.0]
    *
    * //Example 1: Creates an instance of Cartesian
-   * const a = Cesium.Matrix4.getColumn(m, 2, new Cesium.Vector4());
+   * const a = Matrix4.getColumn(m, 2, new Vector4());
    *
    * @example
    * //Example 2: Sets values for Cartesian instance
-   * const a = new Cesium.Vector4();
-   * Cesium.Matrix4.getColumn(m, 2, a);
+   * const a = new Vector4();
+   * Matrix4.getColumn(m, 2, a);
    *
    * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
    */
@@ -1050,7 +1050,7 @@ class Matrix4 {
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.setColumn(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+   * const a = Matrix4.setColumn(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
    *
    * // m remains the same
    * // a = [10.0, 11.0, 99.0, 13.0]
@@ -1087,12 +1087,12 @@ class Matrix4 {
    * //     [22.0, 23.0, 24.0, 25.0]
    *
    * //Example 1: Returns an instance of Cartesian
-   * const a = Cesium.Matrix4.getRow(m, 2, new Cesium.Vector4());
+   * const a = Matrix4.getRow(m, 2, new Vector4());
    *
    * @example
    * //Example 2: Sets values for a Cartesian instance
-   * const a = new Cesium.Vector4();
-   * Cesium.Matrix4.getRow(m, 2, a);
+   * const a = new Vector4();
+   * Matrix4.getRow(m, 2, a);
    *
    * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
    */
@@ -1128,7 +1128,7 @@ class Matrix4 {
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.setRow(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+   * const a = Matrix4.setRow(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
    *
    * // m remains the same
    * // a = [10.0, 11.0, 12.0, 13.0]
@@ -1559,9 +1559,9 @@ class Matrix4 {
    * @returns {Matrix4} The modified result parameter.
    *
    * @example
-   * const m1 = new Cesium.Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-   * const m2 = Cesium.Transforms.eastNorthUpToFixedFrame(new Cesium.Vector3(1.0, 1.0, 1.0));
-   * const m3 = Cesium.Matrix4.multiplyTransformation(m1, m2, new Cesium.Matrix4());
+   * const m1 = new Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+   * const m2 = Transforms.eastNorthUpToFixedFrame(new Vector3(1.0, 1.0, 1.0));
+   * const m3 = Matrix4.multiplyTransformation(m1, m2, new Matrix4());
    */
   static multiplyTransformation(left, right, result) {
 
@@ -1640,8 +1640,8 @@ class Matrix4 {
    * @returns {Matrix4} The modified result parameter.
    *
    * @example
-   * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromRotationTranslation(rotation), m);
-   * Cesium.Matrix4.multiplyByMatrix3(m, rotation, m);
+   * // Instead of Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);
+   * Matrix4.multiplyByMatrix3(m, rotation, m);
    */
   static multiplyByMatrix3(matrix, rotation, result) {
 
@@ -1707,8 +1707,8 @@ class Matrix4 {
    * @returns {Matrix4} The modified result parameter.
    *
    * @example
-   * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromTranslation(position), m);
-   * Cesium.Matrix4.multiplyByTranslation(m, position, m);
+   * // Instead of Matrix4.multiply(m, Matrix4.fromTranslation(position), m);
+   * Matrix4.multiplyByTranslation(m, position, m);
    */
   static multiplyByTranslation(matrix, translation, result) {
 
@@ -1753,8 +1753,8 @@ class Matrix4 {
    *
    *
    * @example
-   * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromScale(scale), m);
-   * Cesium.Matrix4.multiplyByScale(m, scale, m);
+   * // Instead of Matrix4.multiply(m, Matrix4.fromScale(scale), m);
+   * Matrix4.multiplyByScale(m, scale, m);
    *
    * @see Matrix4.multiplyByUniformScale
    * @see Matrix4.fromScale
@@ -1806,8 +1806,8 @@ class Matrix4 {
    * @returns {Matrix4} The modified result parameter.
    *
    * @example
-   * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromUniformScale(scale), m);
-   * Cesium.Matrix4.multiplyByUniformScale(m, scale, m);
+   * // Instead of Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);
+   * Matrix4.multiplyByUniformScale(m, scale, m);
    *
    * @see Matrix4.multiplyByScale
    * @see Matrix4.fromScale
@@ -1878,11 +1878,11 @@ class Matrix4 {
    * @returns {Vector3} The modified result parameter.
    *
    * @example
-   * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
-   * const result = Cesium.Matrix4.multiplyByPointAsVector(matrix, p, new Cesium.Vector3());
+   * const p = new Vector3(1.0, 2.0, 3.0);
+   * const result = Matrix4.multiplyByPointAsVector(matrix, p, new Vector3());
    * // A shortcut for
    * //   Vector3 p = ...
-   * //   Cesium.Matrix4.multiplyByVector(matrix, new Cesium.Vector4(p.x, p.y, p.z, 0.0), result);
+   * //   Matrix4.multiplyByVector(matrix, new Vector4(p.x, p.y, p.z, 0.0), result);
    */
   static multiplyByPointAsVector(matrix, cartesian, result) {
 
@@ -1910,8 +1910,8 @@ class Matrix4 {
    * @returns {Vector3} The modified result parameter.
    *
    * @example
-   * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
-   * const result = Cesium.Matrix4.multiplyByPoint(matrix, p, new Cesium.Vector3());
+   * const p = new Vector3(1.0, 2.0, 3.0);
+   * const result = Matrix4.multiplyByPoint(matrix, p, new Vector3());
    */
   static multiplyByPoint(matrix, cartesian, result) {
 
@@ -1944,7 +1944,7 @@ class Matrix4 {
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.multiplyByScalar(m, -2, new Cesium.Matrix4());
+   * const a = Matrix4.multiplyByScalar(m, -2, new Matrix4());
    *
    * // m remains the same
    * // a = [-20.0, -22.0, -24.0, -26.0]
@@ -1987,7 +1987,7 @@ class Matrix4 {
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.negate(m, new Cesium.Matrix4());
+   * const a = Matrix4.negate(m, new Matrix4());
    *
    * // m remains the same
    * // a = [-10.0, -11.0, -12.0, -13.0]
@@ -2030,7 +2030,7 @@ class Matrix4 {
    * //     [18.0, 19.0, 20.0, 21.0]
    * //     [22.0, 23.0, 24.0, 25.0]
    *
-   * const a = Cesium.Matrix4.transpose(m, new Cesium.Matrix4());
+   * const a = Matrix4.transpose(m, new Matrix4());
    *
    * // m remains the same
    * // a = [10.0, 14.0, 18.0, 22.0]
@@ -2116,7 +2116,7 @@ class Matrix4 {
    * //     [12.0, 16.0, 20.0, 24.0]
    * //     [13.0, 17.0, 21.0, 25.0]
    *
-   * if(Cesium.Matrix4.equals(a,b)) {
+   * if(Matrix4.equals(a,b)) {
    *      console.log("Both matrices are equal");
    * } else {
    *      console.log("They are not equal");
@@ -2178,7 +2178,7 @@ class Matrix4 {
    * //     [12.0, 16.0, 20.0, 24.0]
    * //     [13.0, 17.0, 21.0, 25.0]
    *
-   * if(Cesium.Matrix4.equalsEpsilon(a,b,0.1)){
+   * if(Matrix4.equalsEpsilon(a,b,0.1)){
    *      console.log("Difference between both the matrices is less than 0.1");
    * } else {
    *      console.log("Difference between both the matrices is not less than 0.1");
@@ -2242,8 +2242,8 @@ class Matrix4 {
    * //     [12.0, 16.0, 20.0, 24.0]
    * //     [13.0, 17.0, 21.0, 25.0]
    *
-   * const b = new Cesium.Matrix3();
-   * Cesium.Matrix4.getMatrix3(m,b);
+   * const b = new Matrix3();
+   * Matrix4.getMatrix3(m,b);
    *
    * // b = [10.0, 14.0, 18.0]
    * //     [11.0, 15.0, 19.0]

@@ -66,9 +66,9 @@
             sampler:baseSampler
           });
         const phongMaterial=new PhongMaterial();
-        // phongMaterial.baseTexture=baseTexture;
-        // phongMaterial.baseSampler=baseSampler;
-        phongMaterial.shininess=0.1;
+        phongMaterial.baseTexture=baseTexture;
+        phongMaterial.baseSampler=baseSampler;
+        phongMaterial.shininess=0.0;
         const axes=new Axes();
         axes.scale.set(10,10,10)
         const primitive=new Mesh(geometry,phongMaterial)
@@ -78,11 +78,10 @@
         camera.target=new Vector3(0,0,0);
 
         // console.log(camera.viewMatrix);
-        const dirtectLight=new DirtectLight(new Vector3(1.0,1.0,1.0),3,new Vector3(0, 1, 0));
+        const dirtectLight=new DirtectLight(new Vector3(1.0,1.0,1.0),10,new Vector3(0, 1, 0));
         // spotLight.position=new Vector3(0,16,0);
 
         const scene=new Scene({container:'app'});
-        await scene.init();
         scene.add(primitive);
         scene.add(axes)
         scene.setCamera(camera);

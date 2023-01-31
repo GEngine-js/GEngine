@@ -152,7 +152,6 @@ export default class OrbitControl extends EventDispatcher{
 
         domElement.addEventListener( 'keydown', this.onKeyDown );
         this._domElementKeyEvents = domElement;
-
     };
 
     saveState () {

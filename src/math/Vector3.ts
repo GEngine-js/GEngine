@@ -10,10 +10,6 @@ import GMath from "./Math";
  * @param {Number} [x=0.0] The X component.
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
- *
- * @see Cartesian2
- * @see Cartesian4
- * @see Packable
  */
 class Vector3 {
     sub(target: any) {
@@ -388,7 +384,7 @@ class Vector3 {
    *
    * @example
    * // Returns 1.0
-   * const d = Cesium.Vector3.distance(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(2.0, 0.0, 0.0));
+   * const d = Vector3.distance(new Vector3(1.0, 0.0, 0.0), new Vector3(2.0, 0.0, 0.0));
    */
   static distance(left, right) {
 
@@ -406,7 +402,7 @@ class Vector3 {
    *
    * @example
    * // Returns 4.0, not 2.0
-   * const d = Cesium.Vector3.distanceSquared(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(3.0, 0.0, 0.0));
+   * const d = Vector3.distanceSquared(new Vector3(1.0, 0.0, 0.0), new Vector3(3.0, 0.0, 0.0));
    */
   static distanceSquared(left, right) {
 

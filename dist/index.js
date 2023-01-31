@@ -1055,7 +1055,7 @@ class GMath {
      * @returns {Number} The linearly interpolated value.
      *
      * @example
-     * const n = Cesium.Math.lerp(0.0, 2.0, 0.5); // returns 1.0
+     * const n = Math.lerp(0.0, 2.0, 0.5); // returns 1.0
      */
     static lerp(p, q, time) {
         return (1.0 - time) * p + time * q;
@@ -1097,7 +1097,7 @@ class GMath {
      *
      * @example
      * // Convert 270 degrees to -90 degrees longitude
-     * const longitude = Cesium.Math.convertLongitudeRange(Cesium.Math.toRadians(270.0));
+     * const longitude = Math.convertLongitudeRange(Math.toRadians(270.0));
      */
     static convertLongitudeRange(angle) {
         //>>includeStart('debug', pragmas.debug);
@@ -1125,7 +1125,7 @@ class GMath {
      *
      * @example
      * // Clamp 108 degrees latitude to 90 degrees latitude
-     * const latitude = Cesium.Math.clampToLatitudeRange(Cesium.Math.toRadians(108.0));
+     * const latitude = Math.clampToLatitudeRange(Math.toRadians(108.0));
      */
     static clampToLatitudeRange(angle) {
         //>>includeStart('debug', pragmas.debug);
@@ -1221,10 +1221,10 @@ class GMath {
      * @returns {Boolean} <code>true</code> if the values are equal within the epsilon; otherwise, <code>false</code>.
      *
      * @example
-     * const a = Cesium.Math.equalsEpsilon(0.0, 0.01, Cesium.Math.EPSILON2); // true
-     * const b = Cesium.Math.equalsEpsilon(0.0, 0.1, Cesium.Math.EPSILON2);  // false
-     * const c = Cesium.Math.equalsEpsilon(3699175.1634344, 3699175.2, Cesium.Math.EPSILON7); // true
-     * const d = Cesium.Math.equalsEpsilon(3699175.1634344, 3699175.2, Cesium.Math.EPSILON9); // false
+     * const a = Math.equalsEpsilon(0.0, 0.01, Math.EPSILON2); // true
+     * const b = Math.equalsEpsilon(0.0, 0.1, Math.EPSILON2);  // false
+     * const c = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON7); // true
+     * const d = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON9); // false
      */
     static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon = relativeEpsilon) {
         //>>includeStart('debug', pragmas.debug);
@@ -1355,7 +1355,7 @@ class GMath {
      *
      * @example
      * //Compute 7!, which is equal to 5040
-     * const computedFactorial = Cesium.Math.factorial(7);
+     * const computedFactorial = Math.factorial(7);
      *
      * @see {@link http://en.wikipedia.org/wiki/Factorial|Factorial on Wikipedia}
      */
@@ -1388,8 +1388,8 @@ class GMath {
      * @exception {Error} Maximum value must be greater than minimum value.
      *
      * @example
-     * const n = Cesium.Math.incrementWrap(5, 10, 0); // returns 6
-     * const m = Cesium.Math.incrementWrap(10, 10, 0); // returns 0
+     * const n = Math.incrementWrap(5, 10, 0); // returns 6
+     * const m = Math.incrementWrap(10, 10, 0); // returns 0
      */
     static incrementWrap(n, maximumValue, minimumValue) {
         minimumValue = defaultValue(minimumValue, 0.0);
@@ -1418,8 +1418,8 @@ class GMath {
      * @exception {Error} A number between 0 and (2^32)-1 is required.
      *
      * @example
-     * const t = Cesium.Math.isPowerOfTwo(16); // true
-     * const f = Cesium.Math.isPowerOfTwo(20); // false
+     * const t = Math.isPowerOfTwo(16); // true
+     * const f = Math.isPowerOfTwo(20); // false
      */
     static isPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
@@ -1440,8 +1440,8 @@ class GMath {
      * @exception {Error} A number between 0 and 2^31 is required.
      *
      * @example
-     * const n = Cesium.Math.nextPowerOfTwo(29); // 32
-     * const m = Cesium.Math.nextPowerOfTwo(32); // 32
+     * const n = Math.nextPowerOfTwo(29); // 32
+     * const m = Math.nextPowerOfTwo(32); // 32
      */
     static nextPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
@@ -1470,8 +1470,8 @@ class GMath {
      * @exception {Error} A number between 0 and (2^32)-1 is required.
      *
      * @example
-     * const n = Cesium.Math.previousPowerOfTwo(29); // 16
-     * const m = Cesium.Math.previousPowerOfTwo(32); // 32
+     * const n = Math.previousPowerOfTwo(29); // 16
+     * const m = Math.previousPowerOfTwo(32); // 32
      */
     static previousPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
@@ -1998,9 +1998,6 @@ GMath.log2 = defaultValue(Math.log2, function log2(number) {
 let randomNumberGenerator = new mersenneTwister();
 const factorials = [1];
 
-let scratchArrayBuffer = new ArrayBuffer(4);
-let scratchUint32Array = new Uint32Array(scratchArrayBuffer);
-let scratchUint8Array = new Uint8Array(scratchArrayBuffer);
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
 //#rrggbbaa
@@ -2028,12 +2025,11 @@ function hue2rgb(m1, m2, h) {
     return m1;
 }
 /**
- * A color, specified using red, green, blue, and alpha values,
+ * A color, specified using red, green, blue,
  * which range from <code>0</code> (no intensity) to <code>1.0</code> (full intensity).
  * @param {Number} [red=1.0] The red component.
  * @param {Number} [green=1.0] The green component.
  * @param {Number} [blue=1.0] The blue component.
- * @param {Number} [alpha=1.0] The alpha component.
  *
  * @constructor
  * @alias Color
@@ -2041,7 +2037,7 @@ function hue2rgb(m1, m2, h) {
  * @see Packable
  */
 class Color {
-    constructor(red = 1.0, green = 1.0, blue = 1.0, alpha = 1.0) {
+    constructor(red = 1.0, green = 1.0, blue = 1.0) {
         /**
          * The red component.
          * @type {Number}
@@ -2060,12 +2056,6 @@ class Color {
          * @default 1.0
          */
         this.blue = blue;
-        /**
-         * The alpha component.
-         * @type {Number}
-         * @default 1.0
-         */
-        this.alpha = 1.0;
     }
     set(value) {
         if (typeof value === 'string') {
@@ -2118,7 +2108,7 @@ class Color {
     }
     ;
     /**
-     * Converts this color to an array of red, green, blue, and alpha values
+     * Converts this color to an array of red, green, blue
      * that are in the range of 0 to 255.
      *
      * @param {Number[]} [result] The array to store the result in, if undefined a new instance will be created.
@@ -2128,154 +2118,35 @@ class Color {
         const red = Color.floatToByte(this.red);
         const green = Color.floatToByte(this.green);
         const blue = Color.floatToByte(this.blue);
-        const alpha = Color.floatToByte(this.alpha);
         if (!defined(result)) {
-            return [red, green, blue, alpha];
+            return [red, green, blue];
         }
         result[0] = red;
         result[1] = green;
         result[2] = blue;
-        result[3] = alpha;
         return result;
     }
     ;
     /**
-     * Converts this color to a single numeric unsigned 32-bit RGBA value, using the endianness
-     * of the system.
-     *
-     * @returns {Number} A single numeric unsigned 32-bit RGBA value.
-     *
-     *
-     * @example
-     * const rgba = Cesium.Color.BLUE.toRgba();
-     *
-     * @see Color.fromRgba
-     */
-    toRgba() {
-        // scratchUint32Array and scratchUint8Array share an underlying array buffer
-        scratchUint8Array[0] = Color.floatToByte(this.red);
-        scratchUint8Array[1] = Color.floatToByte(this.green);
-        scratchUint8Array[2] = Color.floatToByte(this.blue);
-        scratchUint8Array[3] = Color.floatToByte(this.alpha);
-        return scratchUint32Array[0];
-    }
-    ;
-    /**
-     * Brightens this color by the provided magnitude.
-     *
-     * @param {Number} magnitude A positive number indicating the amount to brighten.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     *
-     * @example
-     * const brightBlue = Cesium.Color.BLUE.brighten(0.5, new Cesium.Color());
-     */
-    brighten(magnitude, result) {
-        magnitude = 1.0 - magnitude;
-        result.red = 1.0 - (1.0 - this.red) * magnitude;
-        result.green = 1.0 - (1.0 - this.green) * magnitude;
-        result.blue = 1.0 - (1.0 - this.blue) * magnitude;
-        result.alpha = this.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Darkens this color by the provided magnitude.
-     *
-     * @param {Number} magnitude A positive number indicating the amount to darken.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     *
-     * @example
-     * const darkBlue = Cesium.Color.BLUE.darken(0.5, new Cesium.Color());
-     */
-    darken(magnitude, result) {
-        magnitude = 1.0 - magnitude;
-        result.red = this.red * magnitude;
-        result.green = this.green * magnitude;
-        result.blue = this.blue * magnitude;
-        result.alpha = this.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Creates a new Color that has the same red, green, and blue components
-     * as this Color, but with the specified alpha value.
-     *
-     * @param {Number} alpha The new alpha component.
-     * @param {Color} [result] The object onto which to store the result.
-     * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-     *
-     * @example const translucentRed = Cesium.Color.RED.withAlpha(0.9);
-     */
-    withAlpha(alpha, result) {
-        return Color.fromAlpha(this, alpha, result);
-    }
-    ;
-    /**
-     * Creates a Color instance from a {@link Cartesian4}. <code>x</code>, <code>y</code>, <code>z</code>,
-     * and <code>w</code> map to <code>red</code>, <code>green</code>, <code>blue</code>, and <code>alpha</code>, respectively.
-     *
-     * @param {Cartesian4} cartesian The source cartesian.
-     * @param {Color} [result] The object onto which to store the result.
-     * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-     */
-    static fromCartesian4(cartesian, result) {
-        if (!defined(result)) {
-            return new Color(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-        }
-        result.red = cartesian.x;
-        result.green = cartesian.y;
-        result.blue = cartesian.z;
-        result.alpha = cartesian.w;
-        return result;
-    }
-    ;
-    /**
-     * Creates a new Color specified using red, green, blue, and alpha values
+     * Creates a new Color specified using red, green, blue
      * that are in the range of 0 to 255, converting them internally to a range of 0.0 to 1.0.
      *
      * @param {Number} [red=255] The red component.
      * @param {Number} [green=255] The green component.
      * @param {Number} [blue=255] The blue component.
-     * @param {Number} [alpha=255] The alpha component.
      * @param {Color} [result] The object onto which to store the result.
      * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
      */
-    static fromBytes(red, green, blue, alpha, result) {
+    static fromBytes(red, green, blue, result) {
         red = Color.byteToFloat(defaultValue(red, 255.0));
         green = Color.byteToFloat(defaultValue(green, 255.0));
         blue = Color.byteToFloat(defaultValue(blue, 255.0));
-        alpha = Color.byteToFloat(defaultValue(alpha, 255.0));
         if (!defined(result)) {
-            return new Color(red, green, blue, alpha);
+            return new Color(red, green, blue);
         }
         result.red = red;
         result.green = green;
         result.blue = blue;
-        result.alpha = alpha;
-        return result;
-    }
-    ;
-    /**
-     * Creates a new Color that has the same red, green, and blue components
-     * of the specified color, but with the specified alpha value.
-     *
-     * @param {Color} color The base color
-     * @param {Number} alpha The new alpha component.
-     * @param {Color} [result] The object onto which to store the result.
-     * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-     *
-     * @example const translucentRed = Cesium.Color.fromAlpha(Cesium.Color.RED, 0.9);
-     */
-    static fromAlpha(color, alpha, result) {
-        if (!defined(result)) {
-            return new Color(color.red, color.green, color.blue, alpha);
-        }
-        result.red = color.red;
-        result.green = color.green;
-        result.blue = color.blue;
-        result.alpha = alpha;
         return result;
     }
     ;
@@ -2285,17 +2156,15 @@ class Color {
      * @param {Number} [hue=0] The hue angle 0...1
      * @param {Number} [saturation=0] The saturation value 0...1
      * @param {Number} [lightness=0] The lightness value 0...1
-     * @param {Number} [alpha=1.0] The alpha component 0...1
      * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
      * @returns {Color} The color object.
      *
      * @see {@link http://www.w3.org/TR/css3-color/#hsl-color|CSS color values}
      */
-    static fromHsl(hue, saturation, lightness, alpha, result) {
+    static fromHsl(hue, saturation, lightness, result) {
         hue = defaultValue(hue, 0.0) % 1.0;
         saturation = defaultValue(saturation, 0.0);
         lightness = defaultValue(lightness, 0.0);
-        alpha = defaultValue(alpha, 1.0);
         let red = lightness;
         let green = lightness;
         let blue = lightness;
@@ -2313,12 +2182,11 @@ class Color {
             blue = hue2rgb(m1, m2, hue - 1 / 3);
         }
         if (!defined(result)) {
-            return new Color(red, green, blue, alpha);
+            return new Color(red, green, blue);
         }
         result.red = red;
         result.green = green;
         result.blue = blue;
-        result.alpha = alpha;
         return result;
     }
     ;
@@ -2336,9 +2204,6 @@ class Color {
      * @param {Number} [options.blue] If specified, the blue component to use instead of a randomized value.
      * @param {Number} [options.minimumBlue=0.0] The maximum blue value to generate if none was specified.
      * @param {Number} [options.maximumBlue=1.0] The minimum blue value to generate if none was specified.
-     * @param {Number} [options.alpha] If specified, the alpha component to use instead of a randomized value.
-     * @param {Number} [options.minimumAlpha=0.0] The maximum alpha value to generate if none was specified.
-     * @param {Number} [options.maximumAlpha=1.0] The minimum alpha value to generate if none was specified.
      * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
      * @returns {Color} The modified result parameter or a new instance if result was undefined.
      *
@@ -2355,7 +2220,6 @@ class Color {
      * const color1 = Color.fromRandom({
      *     red : 1.0,
      *     green : 1.0,
-     *     alpha : 1.0
      * });
      *
      * //Create a random bright color.
@@ -2363,7 +2227,6 @@ class Color {
      *     minimumRed : 0.75,
      *     minimumGreen : 0.75,
      *     minimumBlue : 0.75,
-     *     alpha : 1.0
      * });
      */
     static fromRandom(options, result) {
@@ -2390,21 +2253,12 @@ class Color {
             blue =
                 minimumBlue + GMath.nextRandomNumber() * (maximumBlue - minimumBlue);
         }
-        let alpha = options.alpha;
-        if (!defined(alpha)) {
-            const minimumAlpha = defaultValue(options.minimumAlpha, 0);
-            const maximumAlpha = defaultValue(options.maximumAlpha, 1.0);
-            alpha =
-                minimumAlpha +
-                    GMath.nextRandomNumber() * (maximumAlpha - minimumAlpha);
-        }
         if (!defined(result)) {
-            return new Color(red, green, blue, alpha);
+            return new Color(red, green, blue);
         }
         result.red = red;
         result.green = green;
         result.blue = blue;
-        result.alpha = alpha;
         return result;
     }
     ;
@@ -2417,8 +2271,8 @@ class Color {
      *
      *
      * @example
-     * const cesiumBlue = Cesium.Color.fromCssColorString('#67ADDF');
-     * const green = Cesium.Color.fromCssColorString('green');
+     * const blue = Color.fromCssColorString('#67ADDF');
+     * const green = Color.fromCssColorString('green');
      *
      * @see {@link http://www.w3.org/TR/css3-color|CSS color values}
      */
@@ -2456,7 +2310,7 @@ class Color {
         }
         matches = hslParenthesesMatcher.exec(color);
         if (matches !== null) {
-            return Color.fromHsl(parseFloat(matches[1]) / 360.0, parseFloat(matches[2]) / 100.0, parseFloat(matches[3]) / 100.0, parseFloat(defaultValue(matches[4], "1.0")), result);
+            return Color.fromHsl(parseFloat(matches[1]) / 360.0, parseFloat(matches[2]) / 100.0, parseFloat(matches[3]) / 100.0, result);
         }
         result = undefined;
         return result;
@@ -2496,12 +2350,11 @@ class Color {
             return undefined;
         }
         if (!defined(result)) {
-            return new Color(color.red, color.green, color.blue, color.alpha);
+            return new Color(color.red, color.green, color.blue);
         }
         result.red = color.red;
         result.green = color.green;
         result.blue = color.blue;
-        result.alpha = color.alpha;
         return result;
     }
     ;
@@ -2518,8 +2371,7 @@ class Color {
                 defined(right) && //
                 left.red === right.red && //
                 left.green === right.green && //
-                left.blue === right.blue && //
-                left.alpha === right.alpha));
+                left.blue === right.blue));
     }
     ;
     /**
@@ -2528,145 +2380,10 @@ class Color {
     static equalsArray(color, array, offset) {
         return (color.red === array[offset] &&
             color.green === array[offset + 1] &&
-            color.blue === array[offset + 2] &&
-            color.alpha === array[offset + 3]);
-    }
-    ;
-    /**
-     * Computes the componentwise sum of two Colors.
-     *
-     * @param {Color} left The first Color.
-     * @param {Color} right The second Color.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static add(left, right, result) {
-        result.red = left.red + right.red;
-        result.green = left.green + right.green;
-        result.blue = left.blue + right.blue;
-        result.alpha = left.alpha + right.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Computes the componentwise difference of two Colors.
-     *
-     * @param {Color} left The first Color.
-     * @param {Color} right The second Color.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static subtract(left, right, result) {
-        result.red = left.red - right.red;
-        result.green = left.green - right.green;
-        result.blue = left.blue - right.blue;
-        result.alpha = left.alpha - right.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Computes the componentwise product of two Colors.
-     *
-     * @param {Color} left The first Color.
-     * @param {Color} right The second Color.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static multiply(left, right, result) {
-        result.red = left.red * right.red;
-        result.green = left.green * right.green;
-        result.blue = left.blue * right.blue;
-        result.alpha = left.alpha * right.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Computes the componentwise quotient of two Colors.
-     *
-     * @param {Color} left The first Color.
-     * @param {Color} right The second Color.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static divide(left, right, result) {
-        result.red = left.red / right.red;
-        result.green = left.green / right.green;
-        result.blue = left.blue / right.blue;
-        result.alpha = left.alpha / right.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Computes the componentwise modulus of two Colors.
-     *
-     * @param {Color} left The first Color.
-     * @param {Color} right The second Color.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static mod(left, right, result) {
-        result.red = left.red % right.red;
-        result.green = left.green % right.green;
-        result.blue = left.blue % right.blue;
-        result.alpha = left.alpha % right.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Computes the linear interpolation or extrapolation at t between the provided colors.
-     *
-     * @param {Color} start The color corresponding to t at 0.0.
-     * @param {Color} end The color corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static lerp(start, end, t, result) {
-        result.red = GMath.lerp(start.red, end.red, t);
-        result.green = GMath.lerp(start.green, end.green, t);
-        result.blue = GMath.lerp(start.blue, end.blue, t);
-        result.alpha = GMath.lerp(start.alpha, end.alpha, t);
-        return result;
-    }
-    ;
-    /**
-     * Multiplies the provided Color componentwise by the provided scalar.
-     *
-     * @param {Color} color The Color to be scaled.
-     * @param {Number} scalar The scalar to multiply with.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static multiplyByScalar(color, scalar, result) {
-        result.red = color.red * scalar;
-        result.green = color.green * scalar;
-        result.blue = color.blue * scalar;
-        result.alpha = color.alpha * scalar;
-        return result;
-    }
-    ;
-    /**
-     * Divides the provided Color componentwise by the provided scalar.
-     *
-     * @param {Color} color The Color to be divided.
-     * @param {Number} scalar The scalar to divide with.
-     * @param {Color} result The object onto which to store the result.
-     * @returns {Color} The modified result parameter.
-     */
-    static divideByScalar(color, scalar, result) {
-        result.red = color.red / scalar;
-        result.green = color.green / scalar;
-        result.blue = color.blue / scalar;
-        result.alpha = color.alpha / scalar;
-        return result;
+            color.blue === array[offset + 2]);
     }
     ;
 }
-/**
-* The number of elements used to pack the object into an array.
-* @type {Number}
-*/
-Color.packedLength = 4;
 
 /**
  * A 2D Cartesian point.
@@ -2676,9 +2393,6 @@ Color.packedLength = 4;
  * @param {Number} [x=0.0] The X component.
  * @param {Number} [y=0.0] The Y component.
  *
- * @see Cartesian3
- * @see Cartesian4
- * @see Packable
  */
 class Vector2 {
     constructor(x = 0.0, y = 0.0) {
@@ -2877,7 +2591,7 @@ class Vector2 {
      *
      * @example
      * // Returns 1.0
-     * const d = Cesium.Vector2.distance(new Cesium.Vector2(1.0, 0.0), new Cesium.Vector2(2.0, 0.0));
+     * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(2.0, 0.0));
      */
     static distance(left, right) {
         Vector2.subtract(left, right, distanceScratch$2);
@@ -2894,7 +2608,7 @@ class Vector2 {
      *
      * @example
      * // Returns 4.0, not 2.0
-     * const d = Cesium.Vector2.distance(new Cesium.Vector2(1.0, 0.0), new Cesium.Vector2(3.0, 0.0));
+     * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(3.0, 0.0));
      */
     static distanceSquared(left, right) {
         Vector2.subtract(left, right, distanceScratch$2);
@@ -3271,7 +2985,7 @@ class Matrix2 {
      * // Creates
      * //   [7.0, 0.0]
      * //   [0.0, 8.0]
-     * const m = Cesium.Matrix2.fromScale(new Cesium.Vector2(7.0, 8.0));
+     * const m = Matrix2.fromScale(new Vector2(7.0, 8.0));
      */
     static fromScale(scale, result) {
         if (!defined(result)) {
@@ -3295,7 +3009,7 @@ class Matrix2 {
      * // Creates
      * //   [2.0, 0.0]
      * //   [0.0, 2.0]
-     * const m = Cesium.Matrix2.fromUniformScale(2.0);
+     * const m = Matrix2.fromUniformScale(2.0);
      */
     static fromUniformScale(scale, result) {
         if (!defined(result)) {
@@ -3317,9 +3031,9 @@ class Matrix2 {
      *
      * @example
      * // Rotate a point 45 degrees counterclockwise.
-     * const p = new Cesium.Vector2(5, 6);
-     * const m = Cesium.Matrix2.fromRotation(Cesium.Math.toRadians(45.0));
-     * const rotated = Cesium.Matrix2.multiplyByVector(m, p, new Cesium.Vector2());
+     * const p = new Vector2(5, 6);
+     * const m = Matrix2.fromRotation(Math.toRadians(45.0));
+     * const rotated = Matrix2.multiplyByVector(m, p, new Vector2());
      */
     static fromRotation(angle, result) {
         const cosAngle = Math.cos(angle);
@@ -3369,8 +3083,8 @@ class Matrix2 {
      * @exception {Error} column must be 0 or 1.
      *
      * @example
-     * const myMatrix = new Cesium.Matrix2();
-     * const column1Row0Index = Cesium.Matrix2.getElementIndex(1, 0);
+     * const myMatrix = new Matrix2();
+     * const column1Row0Index = Matrix2.getElementIndex(1, 0);
      * const column1Row0 = myMatrix[column1Row0Index]
      * myMatrix[column1Row0Index] = 10.0;
      */
@@ -3670,8 +3384,8 @@ class Matrix2 {
      *
      *
      * @example
-     * // Instead of Cesium.Matrix2.multiply(m, Cesium.Matrix2.fromScale(scale), m);
-     * Cesium.Matrix2.multiplyByScale(m, scale, m);
+     * // Instead of Matrix2.multiply(m, Matrix2.fromScale(scale), m);
+     * Matrix2.multiplyByScale(m, scale, m);
      *
      * @see Matrix2.multiplyByUniformScale
      * @see Matrix2.fromScale
@@ -3697,8 +3411,8 @@ class Matrix2 {
      * @returns {Matrix2} The modified result parameter.
      *
      * @example
-     * // Instead of Cesium.Matrix2.multiply(m, Cesium.Matrix2.fromUniformScale(scale), m);
-     * Cesium.Matrix2.multiplyByUniformScale(m, scale, m);
+     * // Instead of Matrix2.multiply(m, Matrix2.fromUniformScale(scale), m);
+     * Matrix2.multiplyByUniformScale(m, scale, m);
      *
      * @see Matrix2.multiplyByScale
      * @see Matrix2.fromScale
@@ -3886,10 +3600,6 @@ const scaleScratch5$2 = new Vector2();
  * @param {Number} [x=0.0] The X component.
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
- *
- * @see Cartesian2
- * @see Cartesian4
- * @see Packable
  */
 class Vector3 {
     constructor(x = 0, y = 0, z = 0) {
@@ -4192,7 +3902,7 @@ class Vector3 {
      *
      * @example
      * // Returns 1.0
-     * const d = Cesium.Vector3.distance(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(2.0, 0.0, 0.0));
+     * const d = Vector3.distance(new Vector3(1.0, 0.0, 0.0), new Vector3(2.0, 0.0, 0.0));
      */
     static distance(left, right) {
         Vector3.subtract(left, right, distanceScratch$1);
@@ -4209,7 +3919,7 @@ class Vector3 {
      *
      * @example
      * // Returns 4.0, not 2.0
-     * const d = Cesium.Vector3.distanceSquared(new Cesium.Vector3(1.0, 0.0, 0.0), new Cesium.Vector3(3.0, 0.0, 0.0));
+     * const d = Vector3.distanceSquared(new Vector3(1.0, 0.0, 0.0), new Vector3(3.0, 0.0, 0.0));
      */
     static distanceSquared(left, right) {
         Vector3.subtract(left, right, distanceScratch$1);
@@ -4756,7 +4466,7 @@ class Matrix3 {
      * //   [7.0, 0.0, 0.0]
      * //   [0.0, 8.0, 0.0]
      * //   [0.0, 0.0, 9.0]
-     * const m = Cesium.Matrix3.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
+     * const m = Matrix3.fromScale(new Vector3(7.0, 8.0, 9.0));
      */
     static fromScale(scale, result) {
         if (!defined(result)) {
@@ -4786,7 +4496,7 @@ class Matrix3 {
      * //   [2.0, 0.0, 0.0]
      * //   [0.0, 2.0, 0.0]
      * //   [0.0, 0.0, 2.0]
-     * const m = Cesium.Matrix3.fromUniformScale(2.0);
+     * const m = Matrix3.fromUniformScale(2.0);
      */
     static fromUniformScale(scale, result) {
         if (!defined(result)) {
@@ -4816,7 +4526,7 @@ class Matrix3 {
      * //   [0.0, -9.0,  8.0]
      * //   [9.0,  0.0, -7.0]
      * //   [-8.0, 7.0,  0.0]
-     * const m = Cesium.Matrix3.fromCrossProduct(new Cesium.Vector3(7.0, 8.0, 9.0));
+     * const m = Matrix3.fromCrossProduct(new Vector3(7.0, 8.0, 9.0));
      */
     static fromCrossProduct(vector, result) {
         if (!defined(result)) {
@@ -4843,9 +4553,9 @@ class Matrix3 {
      *
      * @example
      * // Rotate a point 45 degrees counterclockwise around the x-axis.
-     * const p = new Cesium.Vector3(5, 6, 7);
-     * const m = Cesium.Matrix3.fromRotationX(Cesium.Math.toRadians(45.0));
-     * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+     * const p = new Vector3(5, 6, 7);
+     * const m = Matrix3.fromRotationX(Math.toRadians(45.0));
+     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
      */
     static fromRotationX(angle, result) {
         const cosAngle = Math.cos(angle);
@@ -4874,9 +4584,9 @@ class Matrix3 {
      *
      * @example
      * // Rotate a point 45 degrees counterclockwise around the y-axis.
-     * const p = new Cesium.Vector3(5, 6, 7);
-     * const m = Cesium.Matrix3.fromRotationY(Cesium.Math.toRadians(45.0));
-     * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+     * const p = new Vector3(5, 6, 7);
+     * const m = Matrix3.fromRotationY(Math.toRadians(45.0));
+     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
      */
     static fromRotationY(angle, result) {
         const cosAngle = Math.cos(angle);
@@ -4905,9 +4615,9 @@ class Matrix3 {
      *
      * @example
      * // Rotate a point 45 degrees counterclockwise around the z-axis.
-     * const p = new Cesium.Vector3(5, 6, 7);
-     * const m = Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(45.0));
-     * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+     * const p = new Vector3(5, 6, 7);
+     * const m = Matrix3.fromRotationZ(Math.toRadians(45.0));
+     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
      */
     static fromRotationZstatic(angle, result) {
         const cosAngle = Math.cos(angle);
@@ -4977,8 +4687,8 @@ class Matrix3 {
      * @exception {Error} column must be 0, 1, or 2.
      *
      * @example
-     * const myMatrix = new Cesium.Matrix3();
-     * const column1Row0Index = Cesium.Matrix3.getElementIndex(1, 0);
+     * const myMatrix = new Matrix3();
+     * const column1Row0Index = Matrix3.getElementIndex(1, 0);
      * const column1Row0 = myMatrix[column1Row0Index]
      * myMatrix[column1Row0Index] = 10.0;
      */
@@ -5335,8 +5045,8 @@ class Matrix3 {
      *
      *
      * @example
-     * // Instead of Cesium.Matrix3.multiply(m, Cesium.Matrix3.fromScale(scale), m);
-     * Cesium.Matrix3.multiplyByScale(m, scale, m);
+     * // Instead of Matrix3.multiply(m, Matrix3.fromScale(scale), m);
+     * Matrix3.multiplyByScale(m, scale, m);
      *
      * @see Matrix3.multiplyByUniformScale
      * @see Matrix3.fromScale
@@ -5367,8 +5077,8 @@ class Matrix3 {
      * @returns {Matrix3} The modified result parameter.
      *
      * @example
-     * // Instead of Cesium.Matrix3.multiply(m, Cesium.Matrix3.fromUniformScale(scale), m);
-     * Cesium.Matrix3.multiplyByUniformScale(m, scale, m);
+     * // Instead of Matrix3.multiply(m, Matrix3.fromUniformScale(scale), m);
+     * Matrix3.multiplyByUniformScale(m, scale, m);
      *
      * @see Matrix3.multiplyByScale
      * @see Matrix3.fromScale
@@ -5457,18 +5167,18 @@ class Matrix3 {
      * @example
      * const a = //... symetric matrix
      * const result = {
-     *     unitary : new Cesium.Matrix3(),
-     *     diagonal : new Cesium.Matrix3()
+     *     unitary : new Matrix3(),
+     *     diagonal : new Matrix3()
      * };
-     * Cesium.Matrix3.computeEigenDecomposition(a, result);
+     * Matrix3.computeEigenDecomposition(a, result);
      *
-     * const unitaryTranspose = Cesium.Matrix3.transpose(result.unitary, new Cesium.Matrix3());
-     * const b = Cesium.Matrix3.multiply(result.unitary, result.diagonal, new Cesium.Matrix3());
-     * Cesium.Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
+     * const unitaryTranspose = Matrix3.transpose(result.unitary, new Matrix3());
+     * const b = Matrix3.multiply(result.unitary, result.diagonal, new Matrix3());
+     * Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
      *
-     * const lambda = Cesium.Matrix3.getColumn(result.diagonal, 0, new Cesium.Vector3()).x;  // first eigenvalue
-     * const v = Cesium.Matrix3.getColumn(result.unitary, 0, new Cesium.Vector3());          // first eigenvector
-     * const c = Cesium.Vector3.multiplyByScalar(v, lambda, new Cesium.Vector3());        // equal to Cesium.Matrix3.multiplyByVector(a, v)
+     * const lambda = Matrix3.getColumn(result.diagonal, 0, new Vector3()).x;  // first eigenvalue
+     * const v = Matrix3.getColumn(result.unitary, 0, new Vector3());          // first eigenvector
+     * const c = Vector3.multiplyByScalar(v, lambda, new Vector3());        // equal to Matrix3.multiplyByVector(a, v)
      */
     static computeEigenDecomposition(matrix, result) {
         // This routine was created based upon Matrix Computations, 3rd ed., by Golub and Van Loan,
@@ -5788,10 +5498,6 @@ const scratchTransposeMatrix$1 = new Matrix3();
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
  * @param {Number} [w=0.0] The W component.
- *
- * @see Vector2
- * @see Vector3
- * @see Packable
  */
 class Vector4 {
     constructor(x = 0, y = 0, z = 0, w = 0) {
@@ -6026,9 +5732,9 @@ class Vector4 {
      *
      * @example
      * // Returns 1.0
-     * const d = Cesium.Vector4.distance(
-     *   new Cesium.Vector4(1.0, 0.0, 0.0, 0.0),
-     *   new Cesium.Vector4(2.0, 0.0, 0.0, 0.0));
+     * const d = Vector4.distance(
+     *   new Vector4(1.0, 0.0, 0.0, 0.0),
+     *   new Vector4(2.0, 0.0, 0.0, 0.0));
      */
     static distance(left, right) {
         Vector4.subtract(left, right, distanceScratch);
@@ -6045,9 +5751,9 @@ class Vector4 {
      *
      * @example
      * // Returns 4.0, not 2.0
-     * const d = Cesium.Vector4.distance(
-     *   new Cesium.Vector4(1.0, 0.0, 0.0, 0.0),
-     *   new Cesium.Vector4(3.0, 0.0, 0.0, 0.0));
+     * const d = Vector4.distance(
+     *   new Vector4(1.0, 0.0, 0.0, 0.0),
+     *   new Vector4(3.0, 0.0, 0.0, 0.0));
      */
     static distanceSquared(left, right) {
         Vector4.subtract(left, right, distanceScratch);
@@ -6628,11 +6334,11 @@ class Matrix4 {
      * // [1.0, 2.0, 3.0, 4.0]
      *
      * const v = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-     * const m = Cesium.Matrix4.fromArray(v);
+     * const m = Matrix4.fromArray(v);
      *
      * // Create same Matrix4 with using an offset into an array
      * const v2 = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-     * const m2 = Cesium.Matrix4.fromArray(v2, 2);
+     * const m2 = Matrix4.fromArray(v2, 2);
      */
     /**
      * Computes a Matrix4 instance from a column-major order array.
@@ -6720,10 +6426,10 @@ class Matrix4 {
      * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
      *
      * @example
-     * const result = Cesium.Matrix4.fromTranslationQuaternionRotationScale(
-     *   new Cesium.Vector3(1.0, 2.0, 3.0), // translation
-     *   Cesium.Quaternion.IDENTITY,           // rotation
-     *   new Cesium.Vector3(7.0, 8.0, 9.0), // scale
+     * const result = Matrix4.fromTranslationQuaternionRotationScale(
+     *   new Vector3(1.0, 2.0, 3.0), // translation
+     *   Quaternion.IDENTITY,           // rotation
+     *   new Vector3(7.0, 8.0, 9.0), // scale
      *   result);
      */
     static fromTranslationQuaternionRotationScale(translation, rotation, scale, result) {
@@ -6808,7 +6514,7 @@ class Matrix4 {
      * //   [0.0, 8.0, 0.0, 0.0]
      * //   [0.0, 0.0, 9.0, 0.0]
      * //   [0.0, 0.0, 0.0, 1.0]
-     * const m = Cesium.Matrix4.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
+     * const m = Matrix4.fromScale(new Vector3(7.0, 8.0, 9.0));
      */
     static fromScale(scale, result) {
         if (!defined(result)) {
@@ -6846,7 +6552,7 @@ class Matrix4 {
      * //   [0.0, 2.0, 0.0, 0.0]
      * //   [0.0, 0.0, 2.0, 0.0]
      * //   [0.0, 0.0, 0.0, 1.0]
-     * const m = Cesium.Matrix4.fromUniformScale(2.0);
+     * const m = Matrix4.fromUniformScale(2.0);
      */
     static fromUniformScale(scale, result) {
         if (!defined(result)) {
@@ -7031,12 +6737,12 @@ class Matrix4 {
      *
      * @example
      * // Create viewport transformation using an explicit viewport and depth range.
-     * const m = Cesium.Matrix4.computeViewportTransformation({
+     * const m = Matrix4.computeViewportTransformation({
      *     x : 0.0,
      *     y : 0.0,
      *     width : 1024.0,
      *     height : 768.0
-     * }, 0.0, 1.0, new Cesium.Matrix4());
+     * }, 0.0, 1.0, new Matrix4());
      */
     static computeViewportTransformation(viewport, nearDepthRange, farDepthRange, result) {
         if (!defined(result)) {
@@ -7127,7 +6833,7 @@ class Matrix4 {
      * //     [11.0, 15.0, 19.0, 23.0]
      * //     [12.0, 16.0, 20.0, 24.0]
      * //     [13.0, 17.0, 21.0, 25.0]
-     * const a = Cesium.Matrix4.toArray(m);
+     * const a = Matrix4.toArray(m);
      *
      * // m remains the same
      * //creates a = [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
@@ -7183,8 +6889,8 @@ class Matrix4 {
      * @exception {Error} column must be 0, 1, 2, or 3.
      *
      * @example
-     * const myMatrix = new Cesium.Matrix4();
-     * const column1Row0Index = Cesium.Matrix4.getElementIndex(1, 0);
+     * const myMatrix = new Matrix4();
+     * const column1Row0Index = Matrix4.getElementIndex(1, 0);
      * const column1Row0 = myMatrix[column1Row0Index];
      * myMatrix[column1Row0Index] = 10.0;
      */
@@ -7210,12 +6916,12 @@ class Matrix4 {
      * //     [22.0, 23.0, 24.0, 25.0]
      *
      * //Example 1: Creates an instance of Cartesian
-     * const a = Cesium.Matrix4.getColumn(m, 2, new Cesium.Vector4());
+     * const a = Matrix4.getColumn(m, 2, new Vector4());
      *
      * @example
      * //Example 2: Sets values for Cartesian instance
-     * const a = new Cesium.Vector4();
-     * Cesium.Matrix4.getColumn(m, 2, a);
+     * const a = new Vector4();
+     * Matrix4.getColumn(m, 2, a);
      *
      * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
      */
@@ -7250,7 +6956,7 @@ class Matrix4 {
      * //     [18.0, 19.0, 20.0, 21.0]
      * //     [22.0, 23.0, 24.0, 25.0]
      *
-     * const a = Cesium.Matrix4.setColumn(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+     * const a = Matrix4.setColumn(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
      *
      * // m remains the same
      * // a = [10.0, 11.0, 99.0, 13.0]
@@ -7286,12 +6992,12 @@ class Matrix4 {
      * //     [22.0, 23.0, 24.0, 25.0]
      *
      * //Example 1: Returns an instance of Cartesian
-     * const a = Cesium.Matrix4.getRow(m, 2, new Cesium.Vector4());
+     * const a = Matrix4.getRow(m, 2, new Vector4());
      *
      * @example
      * //Example 2: Sets values for a Cartesian instance
-     * const a = new Cesium.Vector4();
-     * Cesium.Matrix4.getRow(m, 2, a);
+     * const a = new Vector4();
+     * Matrix4.getRow(m, 2, a);
      *
      * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
      */
@@ -7325,7 +7031,7 @@ class Matrix4 {
      * //     [18.0, 19.0, 20.0, 21.0]
      * //     [22.0, 23.0, 24.0, 25.0]
      *
-     * const a = Cesium.Matrix4.setRow(m, 2, new Cesium.Vector4(99.0, 98.0, 97.0, 96.0), new Cesium.Matrix4());
+     * const a = Matrix4.setRow(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
      *
      * // m remains the same
      * // a = [10.0, 11.0, 12.0, 13.0]
@@ -7687,9 +7393,9 @@ class Matrix4 {
      * @returns {Matrix4} The modified result parameter.
      *
      * @example
-     * const m1 = new Cesium.Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-     * const m2 = Cesium.Transforms.eastNorthUpToFixedFrame(new Cesium.Vector3(1.0, 1.0, 1.0));
-     * const m3 = Cesium.Matrix4.multiplyTransformation(m1, m2, new Cesium.Matrix4());
+     * const m1 = new Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+     * const m2 = Transforms.eastNorthUpToFixedFrame(new Vector3(1.0, 1.0, 1.0));
+     * const m3 = Matrix4.multiplyTransformation(m1, m2, new Matrix4());
      */
     static multiplyTransformation(left, right, result) {
         const left0 = left[0];
@@ -7758,8 +7464,8 @@ class Matrix4 {
      * @returns {Matrix4} The modified result parameter.
      *
      * @example
-     * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromRotationTranslation(rotation), m);
-     * Cesium.Matrix4.multiplyByMatrix3(m, rotation, m);
+     * // Instead of Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);
+     * Matrix4.multiplyByMatrix3(m, rotation, m);
      */
     static multiplyByMatrix3(matrix, rotation, result) {
         const left0 = matrix[0];
@@ -7819,8 +7525,8 @@ class Matrix4 {
      * @returns {Matrix4} The modified result parameter.
      *
      * @example
-     * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromTranslation(position), m);
-     * Cesium.Matrix4.multiplyByTranslation(m, position, m);
+     * // Instead of Matrix4.multiply(m, Matrix4.fromTranslation(position), m);
+     * Matrix4.multiplyByTranslation(m, position, m);
      */
     static multiplyByTranslation(matrix, translation, result) {
         const x = translation.x;
@@ -7862,8 +7568,8 @@ class Matrix4 {
      *
      *
      * @example
-     * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromScale(scale), m);
-     * Cesium.Matrix4.multiplyByScale(m, scale, m);
+     * // Instead of Matrix4.multiply(m, Matrix4.fromScale(scale), m);
+     * Matrix4.multiplyByScale(m, scale, m);
      *
      * @see Matrix4.multiplyByUniformScale
      * @see Matrix4.fromScale
@@ -7908,8 +7614,8 @@ class Matrix4 {
      * @returns {Matrix4} The modified result parameter.
      *
      * @example
-     * // Instead of Cesium.Matrix4.multiply(m, Cesium.Matrix4.fromUniformScale(scale), m);
-     * Cesium.Matrix4.multiplyByUniformScale(m, scale, m);
+     * // Instead of Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);
+     * Matrix4.multiplyByUniformScale(m, scale, m);
      *
      * @see Matrix4.multiplyByScale
      * @see Matrix4.fromScale
@@ -7972,11 +7678,11 @@ class Matrix4 {
      * @returns {Vector3} The modified result parameter.
      *
      * @example
-     * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
-     * const result = Cesium.Matrix4.multiplyByPointAsVector(matrix, p, new Cesium.Vector3());
+     * const p = new Vector3(1.0, 2.0, 3.0);
+     * const result = Matrix4.multiplyByPointAsVector(matrix, p, new Vector3());
      * // A shortcut for
      * //   Vector3 p = ...
-     * //   Cesium.Matrix4.multiplyByVector(matrix, new Cesium.Vector4(p.x, p.y, p.z, 0.0), result);
+     * //   Matrix4.multiplyByVector(matrix, new Vector4(p.x, p.y, p.z, 0.0), result);
      */
     static multiplyByPointAsVector(matrix, cartesian, result) {
         const vX = cartesian.x;
@@ -8001,8 +7707,8 @@ class Matrix4 {
      * @returns {Vector3} The modified result parameter.
      *
      * @example
-     * const p = new Cesium.Vector3(1.0, 2.0, 3.0);
-     * const result = Cesium.Matrix4.multiplyByPoint(matrix, p, new Cesium.Vector3());
+     * const p = new Vector3(1.0, 2.0, 3.0);
+     * const result = Matrix4.multiplyByPoint(matrix, p, new Vector3());
      */
     static multiplyByPoint(matrix, cartesian, result) {
         const vX = cartesian.x;
@@ -8032,7 +7738,7 @@ class Matrix4 {
      * //     [18.0, 19.0, 20.0, 21.0]
      * //     [22.0, 23.0, 24.0, 25.0]
      *
-     * const a = Cesium.Matrix4.multiplyByScalar(m, -2, new Cesium.Matrix4());
+     * const a = Matrix4.multiplyByScalar(m, -2, new Matrix4());
      *
      * // m remains the same
      * // a = [-20.0, -22.0, -24.0, -26.0]
@@ -8074,7 +7780,7 @@ class Matrix4 {
      * //     [18.0, 19.0, 20.0, 21.0]
      * //     [22.0, 23.0, 24.0, 25.0]
      *
-     * const a = Cesium.Matrix4.negate(m, new Cesium.Matrix4());
+     * const a = Matrix4.negate(m, new Matrix4());
      *
      * // m remains the same
      * // a = [-10.0, -11.0, -12.0, -13.0]
@@ -8116,7 +7822,7 @@ class Matrix4 {
      * //     [18.0, 19.0, 20.0, 21.0]
      * //     [22.0, 23.0, 24.0, 25.0]
      *
-     * const a = Cesium.Matrix4.transpose(m, new Cesium.Matrix4());
+     * const a = Matrix4.transpose(m, new Matrix4());
      *
      * // m remains the same
      * // a = [10.0, 14.0, 18.0, 22.0]
@@ -8198,7 +7904,7 @@ class Matrix4 {
      * //     [12.0, 16.0, 20.0, 24.0]
      * //     [13.0, 17.0, 21.0, 25.0]
      *
-     * if(Cesium.Matrix4.equals(a,b)) {
+     * if(Matrix4.equals(a,b)) {
      *      console.log("Both matrices are equal");
      * } else {
      *      console.log("They are not equal");
@@ -8258,7 +7964,7 @@ class Matrix4 {
      * //     [12.0, 16.0, 20.0, 24.0]
      * //     [13.0, 17.0, 21.0, 25.0]
      *
-     * if(Cesium.Matrix4.equalsEpsilon(a,b,0.1)){
+     * if(Matrix4.equalsEpsilon(a,b,0.1)){
      *      console.log("Difference between both the matrices is less than 0.1");
      * } else {
      *      console.log("Difference between both the matrices is not less than 0.1");
@@ -8318,8 +8024,8 @@ class Matrix4 {
      * //     [12.0, 16.0, 20.0, 24.0]
      * //     [13.0, 17.0, 21.0, 25.0]
      *
-     * const b = new Cesium.Matrix3();
-     * Cesium.Matrix4.getMatrix3(m,b);
+     * const b = new Matrix3();
+     * Matrix4.getMatrix3(m,b);
      *
      * // b = [10.0, 14.0, 18.0]
      * //     [11.0, 15.0, 19.0]
@@ -10659,13 +10365,13 @@ class Quaternion {
      *
      * @example
      * // 1. compute the squad interpolation between two quaternions on a curve
-     * const s0 = Cesium.Quaternion.computeInnerQuadrangle(quaternions[i - 1], quaternions[i], quaternions[i + 1], new Cesium.Quaternion());
-     * const s1 = Cesium.Quaternion.computeInnerQuadrangle(quaternions[i], quaternions[i + 1], quaternions[i + 2], new Cesium.Quaternion());
-     * const q = Cesium.Quaternion.squad(quaternions[i], quaternions[i + 1], s0, s1, t, new Cesium.Quaternion());
+     * const s0 = Quaternion.computeInnerQuadrangle(quaternions[i - 1], quaternions[i], quaternions[i + 1], new Quaternion());
+     * const s1 = Quaternion.computeInnerQuadrangle(quaternions[i], quaternions[i + 1], quaternions[i + 2], new Quaternion());
+     * const q = Quaternion.squad(quaternions[i], quaternions[i + 1], s0, s1, t, new Quaternion());
      *
      * // 2. compute the squad interpolation as above but where the first quaternion is a end point.
-     * const s1 = Cesium.Quaternion.computeInnerQuadrangle(quaternions[0], quaternions[1], quaternions[2], new Cesium.Quaternion());
-     * const q = Cesium.Quaternion.squad(quaternions[0], quaternions[1], quaternions[0], s1, t, new Cesium.Quaternion());
+     * const s1 = Quaternion.computeInnerQuadrangle(quaternions[0], quaternions[1], quaternions[2], new Quaternion());
+     * const q = Quaternion.squad(quaternions[0], quaternions[1], quaternions[0], s1, t, new Quaternion());
      *
      * @see Quaternion#computeInnerQuadrangle
      */
@@ -12826,7 +12532,7 @@ function phongVert(defines) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-23 10:06:23
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 15:55:23
+ * @LastEditTime: 2023-01-31 17:08:55
  * @FilePath: \GEngine\src\shader\material\phongFrag.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -12865,9 +12571,9 @@ function phongFrag(defines) {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         var color:vec4<f32>;
         #if${defines.baseTexture}
-            color=textureSample(myTexture, mySampler, input.vUv);
+            color=textureSample(myTexture, mySampler, input.vUv)*vec4<f32>(materialUniform.color,materialUniform.opacity);
         #else
-            color=vec4<f32>(materialUniform.color,1.0);
+            color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     
         var material:BlinnPhongMaterial;
         
@@ -12885,7 +12591,7 @@ function phongFrag(defines) {
 
         let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
 
-        return vec4<f32>(finnalColor,1.0);
+        return vec4<f32>(finnalColor,color.a);
     }`;
 }
 
@@ -14193,13 +13899,13 @@ class Material {
         this.type = undefined;
         this.baseTexture = undefined;
         this.baseSampler = undefined;
-        this._diffuse = new Color(1.0, 1.0, 1, 0);
+        this._diffuse = new Color(1.0, 0.0);
         this._opacity = 1.0;
         //Buffer
         this.shaderData = undefined;
         this.shaderSource = undefined;
         this.dirty = true;
-        this._emissive = new Color(0, 0.0, 0, 1.0);
+        this._emissive = new Color(0.0, 0.0, 0);
         this._emissiveIntensity = 1.0;
         this._renderState = {
             primitive: {
@@ -14941,7 +14647,7 @@ function calculatePositionOnCurve(u, p, q, radius, position) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-19 16:03:28
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 15:45:25
+ * @LastEditTime: 2023-01-31 17:35:28
  * @FilePath: \GEngine\src\material\PhongMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14949,7 +14655,7 @@ class PhongMaterial extends Material {
     constructor() {
         super();
         this.type = 'phong';
-        this.color = new Color(1.0, 0.0, 0.0, 1.0);
+        this.color = new Color(1.0, 0.0, 0.0);
         this.shaderSource = new ShaderSource({
             type: this.type,
             render: true,
@@ -14957,7 +14663,7 @@ class PhongMaterial extends Material {
                 materialPhong: true
             }
         });
-        this.specular = new Color(1.0, 1.0, 1.0, 0.0);
+        this.specular = new Color(1.0, 1.0, 1.0);
         this.shininess = 30.0;
         this.baseTexture = undefined;
         this.baseSampler = undefined;
@@ -15034,6 +14740,12 @@ class TextureCache {
         this._textures = new Map();
         this._numberOfTextures = 0;
         this._texturesToRelease = new Map();
+        this.defaultSampler = new Sampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+            addressModeU: "repeat",
+            addressModeV: "repeat",
+        });
     }
     get numberOfTextures() {
         return this._numberOfTextures;
@@ -15168,7 +14880,6 @@ class PbrMat extends Material {
         if (this.brdfTexture) {
             this.shaderData.setTexture('brdfTexture', this);
         }
-        debugger;
     }
     destroy() {
     }
@@ -16575,6 +16286,8 @@ class Scene extends EventDispatcher {
     update() {
         if (!this.ready)
             return;
+        //释放纹理
+        textureCache.releasedTextures();
         //更新相机
         this.frameState.viewport = this.viewport;
         this.frameState.update(this.camera);
@@ -16609,21 +16322,12 @@ class Scene extends EventDispatcher {
  *
  * @example
  * // The plane x=0
- * const plane = new Cesium.Plane(Cesium.Vector3.UNIT_X, 0.0);
+ * const plane = new Plane(Vector3.UNIT_X, 0.0);
  *
  * @exception {DeveloperError} Normal must be normalized
  */
 class Plane {
     constructor(normal, distance) {
-        // if (
-        //     !GMath.equalsEpsilon(
-        //         Vector3.magnitude(normal),
-        //         1.0,
-        //         GMath.EPSILON6
-        //     )
-        // ) {
-        //     throw new Error("normal must be normalized.");
-        // }
         /**
          * The plane's normal.
          *
@@ -16657,9 +16361,9 @@ class Plane {
  * @returns {Plane} A new plane instance or the modified result parameter.
  *
  * @example
- * const point = Cesium.Vector3.fromDegrees(-72.0, 40.0);
+ * const point = Vector3.fromDegrees(-72.0, 40.0);
  * const normal = ellipsoid.geodeticSurfaceNormal(point);
- * const tangentPlane = Cesium.Plane.fromPointNormal(point, normal);
+ * const tangentPlane = Plane.fromPointNormal(point, normal);
  *
  * @exception {Error} Normal must be normalized
  */
@@ -17525,7 +17229,6 @@ class GLTF {
 }
 async function loadGLTFObject(json, url, glbOffset = 0, bin) {
     const dir = url.substring(0, url.lastIndexOf("/"));
-    debugger;
     const images = [];
     let loadExternalImages = Promise.resolve();
     if (json.images) {
@@ -17598,20 +17301,28 @@ async function loadGLTF(url) {
 function generateMesh(options, images) {
     const { vertexCount, indices, positions, normals, uvs, uv1s, tangents, colors, material, boundingBox, } = options;
     const { emissiveFactor, emissiveTexture, name, normalTexture, occlusionTexture, pbrMetallicRoughness, } = material;
-    debugger;
     const geo = new Geometry({});
-    geo.setIndice(Array.from(indices));
-    geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
-    geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
-    geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+    if (indices)
+        geo.setIndice(Array.from(indices));
+    if (positions)
+        geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
+    if (normals)
+        geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+    if (uvs)
+        geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
     geo.computeBoundingSphere(Array.from(positions));
     geo.count = vertexCount;
     const mat = new PbrMat();
-    mat.normalTexture = generateTexture(normalTexture, images);
-    mat.aoTexture = generateTexture(occlusionTexture, images);
-    mat.emissiveTexture = generateTexture(emissiveTexture, images);
-    mat.baseTexture = generateTexture(pbrMetallicRoughness.baseColorTexture, images);
-    mat.metalnessRoughnessTexture = generateTexture(pbrMetallicRoughness.metallicRoughnessTexture, images);
+    if (normalTexture)
+        mat.normalTexture = generateTexture(normalTexture, images);
+    if (occlusionTexture)
+        mat.aoTexture = generateTexture(occlusionTexture, images);
+    if (emissiveTexture)
+        mat.emissiveTexture = generateTexture(emissiveTexture, images);
+    if (pbrMetallicRoughness?.baseColorTexture)
+        mat.baseTexture = generateTexture(pbrMetallicRoughness.baseColorTexture, images);
+    if (pbrMetallicRoughness?.metallicRoughnessTexture)
+        mat.metalnessRoughnessTexture = generateTexture(pbrMetallicRoughness.metallicRoughnessTexture, images);
     mat.baseSampler = new Sampler({
         magFilter: 'linear',
         minFilter: 'linear',
@@ -17621,7 +17332,6 @@ function generateMesh(options, images) {
     mat.roughness = 0.0;
     mat.metalness = 1.0;
     const mesh = new Mesh(geo, mat);
-    // mesh.scale.set(3,3,3)
     return mesh;
 }
 function generateTexture(texture, images) {

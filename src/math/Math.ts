@@ -328,7 +328,7 @@ class GMath{
   * @returns {Number} The linearly interpolated value.
   *
   * @example
-  * const n = Cesium.Math.lerp(0.0, 2.0, 0.5); // returns 1.0
+  * const n = Math.lerp(0.0, 2.0, 0.5); // returns 1.0
   */
   static lerp (p, q, time) {
    return (1.0 - time) * p + time * q;
@@ -466,7 +466,7 @@ class GMath{
   *
   * @example
   * // Convert 270 degrees to -90 degrees longitude
-  * const longitude = Cesium.Math.convertLongitudeRange(Cesium.Math.toRadians(270.0));
+  * const longitude = Math.convertLongitudeRange(Math.toRadians(270.0));
   */
   static convertLongitudeRange(angle) {
    //>>includeStart('debug', pragmas.debug);
@@ -497,7 +497,7 @@ class GMath{
   *
   * @example
   * // Clamp 108 degrees latitude to 90 degrees latitude
-  * const latitude = Cesium.Math.clampToLatitudeRange(Cesium.Math.toRadians(108.0));
+  * const latitude = Math.clampToLatitudeRange(Math.toRadians(108.0));
   */
   static clampToLatitudeRange(angle) {
    //>>includeStart('debug', pragmas.debug);
@@ -601,10 +601,10 @@ class GMath{
   * @returns {Boolean} <code>true</code> if the values are equal within the epsilon; otherwise, <code>false</code>.
   *
   * @example
-  * const a = Cesium.Math.equalsEpsilon(0.0, 0.01, Cesium.Math.EPSILON2); // true
-  * const b = Cesium.Math.equalsEpsilon(0.0, 0.1, Cesium.Math.EPSILON2);  // false
-  * const c = Cesium.Math.equalsEpsilon(3699175.1634344, 3699175.2, Cesium.Math.EPSILON7); // true
-  * const d = Cesium.Math.equalsEpsilon(3699175.1634344, 3699175.2, Cesium.Math.EPSILON9); // false
+  * const a = Math.equalsEpsilon(0.0, 0.01, Math.EPSILON2); // true
+  * const b = Math.equalsEpsilon(0.0, 0.1, Math.EPSILON2);  // false
+  * const c = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON7); // true
+  * const d = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON9); // false
   */
   static equalsEpsilon (
    left:number,
@@ -742,7 +742,7 @@ class GMath{
   *
   * @example
   * //Compute 7!, which is equal to 5040
-  * const computedFactorial = Cesium.Math.factorial(7);
+  * const computedFactorial = Math.factorial(7);
   *
   * @see {@link http://en.wikipedia.org/wiki/Factorial|Factorial on Wikipedia}
   */
@@ -778,8 +778,8 @@ class GMath{
   * @exception {Error} Maximum value must be greater than minimum value.
   *
   * @example
-  * const n = Cesium.Math.incrementWrap(5, 10, 0); // returns 6
-  * const m = Cesium.Math.incrementWrap(10, 10, 0); // returns 0
+  * const n = Math.incrementWrap(5, 10, 0); // returns 6
+  * const m = Math.incrementWrap(10, 10, 0); // returns 0
   */
   static incrementWrap (n, maximumValue, minimumValue) {
    minimumValue = defaultValue(minimumValue, 0.0);
@@ -810,8 +810,8 @@ class GMath{
   * @exception {Error} A number between 0 and (2^32)-1 is required.
   *
   * @example
-  * const t = Cesium.Math.isPowerOfTwo(16); // true
-  * const f = Cesium.Math.isPowerOfTwo(20); // false
+  * const t = Math.isPowerOfTwo(16); // true
+  * const f = Math.isPowerOfTwo(20); // false
   */
   static isPowerOfTwo(n) {
    //>>includeStart('debug', pragmas.debug);
@@ -833,8 +833,8 @@ class GMath{
   * @exception {Error} A number between 0 and 2^31 is required.
   *
   * @example
-  * const n = Cesium.Math.nextPowerOfTwo(29); // 32
-  * const m = Cesium.Math.nextPowerOfTwo(32); // 32
+  * const n = Math.nextPowerOfTwo(29); // 32
+  * const m = Math.nextPowerOfTwo(32); // 32
   */
   static nextPowerOfTwo (n) {
    //>>includeStart('debug', pragmas.debug);
@@ -865,8 +865,8 @@ class GMath{
   * @exception {Error} A number between 0 and (2^32)-1 is required.
   *
   * @example
-  * const n = Cesium.Math.previousPowerOfTwo(29); // 16
-  * const m = Cesium.Math.previousPowerOfTwo(32); // 32
+  * const n = Math.previousPowerOfTwo(29); // 16
+  * const m = Math.previousPowerOfTwo(32); // 32
   */
   static previousPowerOfTwo(n) {
    //>>includeStart('debug', pragmas.debug);

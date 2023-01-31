@@ -100,7 +100,7 @@ class Matrix2 {
    * // Creates
    * //   [7.0, 0.0]
    * //   [0.0, 8.0]
-   * const m = Cesium.Matrix2.fromScale(new Cesium.Vector2(7.0, 8.0));
+   * const m = Matrix2.fromScale(new Vector2(7.0, 8.0));
    */
   static fromScale(scale, result) {
 
@@ -126,7 +126,7 @@ class Matrix2 {
    * // Creates
    * //   [2.0, 0.0]
    * //   [0.0, 2.0]
-   * const m = Cesium.Matrix2.fromUniformScale(2.0);
+   * const m = Matrix2.fromUniformScale(2.0);
    */
   static fromUniformScale(scale, result) {
 
@@ -150,9 +150,9 @@ class Matrix2 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise.
-   * const p = new Cesium.Vector2(5, 6);
-   * const m = Cesium.Matrix2.fromRotation(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix2.multiplyByVector(m, p, new Cesium.Vector2());
+   * const p = new Vector2(5, 6);
+   * const m = Matrix2.fromRotation(Math.toRadians(45.0));
+   * const rotated = Matrix2.multiplyByVector(m, p, new Vector2());
    */
   static fromRotation(angle, result) {
 
@@ -204,8 +204,8 @@ class Matrix2 {
    * @exception {Error} column must be 0 or 1.
    *
    * @example
-   * const myMatrix = new Cesium.Matrix2();
-   * const column1Row0Index = Cesium.Matrix2.getElementIndex(1, 0);
+   * const myMatrix = new Matrix2();
+   * const column1Row0Index = Matrix2.getElementIndex(1, 0);
    * const column1Row0 = myMatrix[column1Row0Index]
    * myMatrix[column1Row0Index] = 10.0;
    */
@@ -535,8 +535,8 @@ class Matrix2 {
    *
    *
    * @example
-   * // Instead of Cesium.Matrix2.multiply(m, Cesium.Matrix2.fromScale(scale), m);
-   * Cesium.Matrix2.multiplyByScale(m, scale, m);
+   * // Instead of Matrix2.multiply(m, Matrix2.fromScale(scale), m);
+   * Matrix2.multiplyByScale(m, scale, m);
    *
    * @see Matrix2.multiplyByUniformScale
    * @see Matrix2.fromScale
@@ -564,8 +564,8 @@ class Matrix2 {
    * @returns {Matrix2} The modified result parameter.
    *
    * @example
-   * // Instead of Cesium.Matrix2.multiply(m, Cesium.Matrix2.fromUniformScale(scale), m);
-   * Cesium.Matrix2.multiplyByUniformScale(m, scale, m);
+   * // Instead of Matrix2.multiply(m, Matrix2.fromUniformScale(scale), m);
+   * Matrix2.multiplyByUniformScale(m, scale, m);
    *
    * @see Matrix2.multiplyByScale
    * @see Matrix2.fromScale

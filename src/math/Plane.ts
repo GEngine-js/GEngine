@@ -25,7 +25,7 @@ import Matrix4 from "./Matrix4";
  *
  * @example
  * // The plane x=0
- * const plane = new Cesium.Plane(Cesium.Vector3.UNIT_X, 0.0);
+ * const plane = new Plane(Vector3.UNIT_X, 0.0);
  *
  * @exception {DeveloperError} Normal must be normalized
  */
@@ -38,15 +38,6 @@ class Plane {
 
     public static ORIGIN_ZX_PLANE = Object.freeze(new Plane(Vector3.UNIT_Y, 0.0));
     constructor(normal, distance) {
-        // if (
-        //     !GMath.equalsEpsilon(
-        //         Vector3.magnitude(normal),
-        //         1.0,
-        //         GMath.EPSILON6
-        //     )
-        // ) {
-        //     throw new Error("normal must be normalized.");
-        // }
 
         /**
          * The plane's normal.
@@ -83,9 +74,9 @@ class Plane {
  * @returns {Plane} A new plane instance or the modified result parameter.
  *
  * @example
- * const point = Cesium.Vector3.fromDegrees(-72.0, 40.0);
+ * const point = Vector3.fromDegrees(-72.0, 40.0);
  * const normal = ellipsoid.geodeticSurfaceNormal(point);
- * const tangentPlane = Cesium.Plane.fromPointNormal(point, normal);
+ * const tangentPlane = Plane.fromPointNormal(point, normal);
  *
  * @exception {Error} Normal must be normalized
  */

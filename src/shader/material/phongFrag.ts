@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-23 10:06:23
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 15:55:23
+ * @LastEditTime: 2023-01-31 17:08:55
  * @FilePath: \GEngine\src\shader\material\phongFrag.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -42,9 +42,9 @@ export default function phongFrag (defines){
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         var color:vec4<f32>;
         #if${defines.baseTexture}
-            color=textureSample(myTexture, mySampler, input.vUv);
+            color=textureSample(myTexture, mySampler, input.vUv)*vec4<f32>(materialUniform.color,materialUniform.opacity);
         #else
-            color=vec4<f32>(materialUniform.color,1.0);
+            color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     
         var material:BlinnPhongMaterial;
         
@@ -62,6 +62,6 @@ export default function phongFrag (defines){
 
         let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
 
-        return vec4<f32>(finnalColor,1.0);
+        return vec4<f32>(finnalColor,color.a);
     }`
   }

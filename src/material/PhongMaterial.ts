@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-19 16:03:28
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 15:45:25
+ * @LastEditTime: 2023-01-31 17:35:28
  * @FilePath: \GEngine\src\material\PhongMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -17,7 +17,7 @@ export default class PhongMaterial extends Material {
     constructor() {
         super();
         this.type = 'phong';
-        this.color = new Color(1.0,0.0,0.0,1.0);
+        this.color = new Color(1.0,0.0,0.0);
         this.shaderSource=new ShaderSource({
             type:this.type,
             render:true,
@@ -25,7 +25,7 @@ export default class PhongMaterial extends Material {
               materialPhong:true
             }
         });
-        this.specular=new Color(1.0,1.0,1.0,0.0);
+        this.specular=new Color(1.0,1.0,1.0);
         this.shininess=30.0;
         this.baseTexture = undefined;
         this.baseSampler = undefined;
@@ -41,7 +41,6 @@ export default class PhongMaterial extends Material {
             this.shaderData.setDefine('baseTexture',true)
             this.shaderData.setTexture('baseTexture',this);
         }
-       
         if(this.baseSampler)this.shaderData.setSampler('sampler',this.baseTexture)
      }
     destroy() {

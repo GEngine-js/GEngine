@@ -247,7 +247,7 @@ class Matrix3 {
    * //   [7.0, 0.0, 0.0]
    * //   [0.0, 8.0, 0.0]
    * //   [0.0, 0.0, 9.0]
-   * const m = Cesium.Matrix3.fromScale(new Cesium.Vector3(7.0, 8.0, 9.0));
+   * const m = Matrix3.fromScale(new Vector3(7.0, 8.0, 9.0));
    */
   static fromScale(scale, result) {
 
@@ -279,7 +279,7 @@ class Matrix3 {
    * //   [2.0, 0.0, 0.0]
    * //   [0.0, 2.0, 0.0]
    * //   [0.0, 0.0, 2.0]
-   * const m = Cesium.Matrix3.fromUniformScale(2.0);
+   * const m = Matrix3.fromUniformScale(2.0);
    */
   static fromUniformScale(scale, result) {
 
@@ -311,7 +311,7 @@ class Matrix3 {
    * //   [0.0, -9.0,  8.0]
    * //   [9.0,  0.0, -7.0]
    * //   [-8.0, 7.0,  0.0]
-   * const m = Cesium.Matrix3.fromCrossProduct(new Cesium.Vector3(7.0, 8.0, 9.0));
+   * const m = Matrix3.fromCrossProduct(new Vector3(7.0, 8.0, 9.0));
    */
   static fromCrossProduct(vector, result) {
 
@@ -350,9 +350,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the x-axis.
-   * const p = new Cesium.Vector3(5, 6, 7);
-   * const m = Cesium.Matrix3.fromRotationX(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+   * const p = new Vector3(5, 6, 7);
+   * const m = Matrix3.fromRotationX(Math.toRadians(45.0));
+   * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
    */
   static fromRotationX(angle, result) {
 
@@ -395,9 +395,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the y-axis.
-   * const p = new Cesium.Vector3(5, 6, 7);
-   * const m = Cesium.Matrix3.fromRotationY(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+   * const p = new Vector3(5, 6, 7);
+   * const m = Matrix3.fromRotationY(Math.toRadians(45.0));
+   * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
    */
   static fromRotationY(angle, result) {
 
@@ -440,9 +440,9 @@ class Matrix3 {
    *
    * @example
    * // Rotate a point 45 degrees counterclockwise around the z-axis.
-   * const p = new Cesium.Vector3(5, 6, 7);
-   * const m = Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(45.0));
-   * const rotated = Cesium.Matrix3.multiplyByVector(m, p, new Cesium.Vector3());
+   * const p = new Vector3(5, 6, 7);
+   * const m = Matrix3.fromRotationZ(Math.toRadians(45.0));
+   * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
    */
   static fromRotationZstatic(angle, result) {
 
@@ -526,8 +526,8 @@ class Matrix3 {
    * @exception {Error} column must be 0, 1, or 2.
    *
    * @example
-   * const myMatrix = new Cesium.Matrix3();
-   * const column1Row0Index = Cesium.Matrix3.getElementIndex(1, 0);
+   * const myMatrix = new Matrix3();
+   * const column1Row0Index = Matrix3.getElementIndex(1, 0);
    * const column1Row0 = myMatrix[column1Row0Index]
    * myMatrix[column1Row0Index] = 10.0;
    */
@@ -934,8 +934,8 @@ class Matrix3 {
    *
    *
    * @example
-   * // Instead of Cesium.Matrix3.multiply(m, Cesium.Matrix3.fromScale(scale), m);
-   * Cesium.Matrix3.multiplyByScale(m, scale, m);
+   * // Instead of Matrix3.multiply(m, Matrix3.fromScale(scale), m);
+   * Matrix3.multiplyByScale(m, scale, m);
    *
    * @see Matrix3.multiplyByUniformScale
    * @see Matrix3.fromScale
@@ -968,8 +968,8 @@ class Matrix3 {
    * @returns {Matrix3} The modified result parameter.
    *
    * @example
-   * // Instead of Cesium.Matrix3.multiply(m, Cesium.Matrix3.fromUniformScale(scale), m);
-   * Cesium.Matrix3.multiplyByUniformScale(m, scale, m);
+   * // Instead of Matrix3.multiply(m, Matrix3.fromUniformScale(scale), m);
+   * Matrix3.multiplyByUniformScale(m, scale, m);
    *
    * @see Matrix3.multiplyByScale
    * @see Matrix3.fromScale
@@ -1062,18 +1062,18 @@ class Matrix3 {
    * @example
    * const a = //... symetric matrix
    * const result = {
-   *     unitary : new Cesium.Matrix3(),
-   *     diagonal : new Cesium.Matrix3()
+   *     unitary : new Matrix3(),
+   *     diagonal : new Matrix3()
    * };
-   * Cesium.Matrix3.computeEigenDecomposition(a, result);
+   * Matrix3.computeEigenDecomposition(a, result);
    *
-   * const unitaryTranspose = Cesium.Matrix3.transpose(result.unitary, new Cesium.Matrix3());
-   * const b = Cesium.Matrix3.multiply(result.unitary, result.diagonal, new Cesium.Matrix3());
-   * Cesium.Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
+   * const unitaryTranspose = Matrix3.transpose(result.unitary, new Matrix3());
+   * const b = Matrix3.multiply(result.unitary, result.diagonal, new Matrix3());
+   * Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
    *
-   * const lambda = Cesium.Matrix3.getColumn(result.diagonal, 0, new Cesium.Vector3()).x;  // first eigenvalue
-   * const v = Cesium.Matrix3.getColumn(result.unitary, 0, new Cesium.Vector3());          // first eigenvector
-   * const c = Cesium.Vector3.multiplyByScalar(v, lambda, new Cesium.Vector3());        // equal to Cesium.Matrix3.multiplyByVector(a, v)
+   * const lambda = Matrix3.getColumn(result.diagonal, 0, new Vector3()).x;  // first eigenvalue
+   * const v = Matrix3.getColumn(result.unitary, 0, new Vector3());          // first eigenvector
+   * const c = Vector3.multiplyByScalar(v, lambda, new Vector3());        // equal to Matrix3.multiplyByVector(a, v)
    */
   static computeEigenDecomposition(matrix, result) {
 

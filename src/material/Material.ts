@@ -46,13 +46,13 @@ export class Material{
         this.type=undefined;
         this.baseTexture=undefined;
         this.baseSampler=undefined;
-        this._diffuse=new Color(1.0,1.0,1,0);
+        this._diffuse=new Color(1.0,0.0,);
         this._opacity=1.0;
         //Buffer
         this.shaderData=undefined;
         this.shaderSource=undefined;
         this.dirty=true;
-        this._emissive=new Color(0,0.0,0,1.0);
+        this._emissive=new Color(0.0,0.0,0);
         this._emissiveIntensity = 1.0;
         this._renderState={
             primitive:{
