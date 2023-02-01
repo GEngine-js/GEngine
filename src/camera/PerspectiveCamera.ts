@@ -1,11 +1,3 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-23 11:14:15
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-11 17:40:05
- * @FilePath: \GEngine\src\camera\PerspectiveCamera.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import CullingVolume from "../core/CullingVolume";
 import Matrix4 from "../math/Matrix4";
 import Camera from "./Camera";
@@ -17,6 +9,7 @@ export default class PerspectiveCamera extends Camera {
   private _fov: number;
   height: number;
   width: number;
+  isPerspectiveCamera: boolean;
   constructor(
     fov: number = 50,
     aspect: number = 1,
@@ -33,6 +26,7 @@ export default class PerspectiveCamera extends Camera {
     this.projectMatrixDirty = true;
     this.updateCameraParms();
     this.cullingVolume = new CullingVolume();
+    this.isPerspectiveCamera=true;
   }
   get aspect(): number {
     return this._aspect;

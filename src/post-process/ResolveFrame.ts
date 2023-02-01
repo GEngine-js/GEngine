@@ -1,12 +1,3 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2023-01-17 17:11:22
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-30 10:36:55
- * @FilePath: \GEngine\src\post-process\ResolveFrame.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import ShaderMaterial from "../material/ShaderMaterial";
 import { Mesh } from "../mesh/Mesh";

@@ -3,6 +3,7 @@ import Camera from "./Camera";
 
 export default class OrthographicCamera extends Camera {
   private rightDis: number;
+  isOrthographicCamera: boolean;
   constructor(
     left: number = -1,
     right: number = 1,
@@ -18,6 +19,7 @@ export default class OrthographicCamera extends Camera {
     this.top = top;
     this.bottom = bottom;
     this.rightDis = right;
+    this.isOrthographicCamera=true;
   }
   private updateCameraParms() {
     const dx = (this.rightDis - this.left) / 2;

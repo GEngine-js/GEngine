@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 /** @internal */
 // eslint-disable-next-line import/export
 var PredefinedColorSpace;
@@ -3607,18 +3607,6 @@ class Vector3 {
         this.y = y;
         this.z = z;
     }
-    sub(target) {
-        throw new Error("Method not implemented.");
-    }
-    applyQuaternion(quat) {
-        throw new Error("Method not implemented.");
-    }
-    setFromSpherical(spherical) {
-        throw new Error("Method not implemented.");
-    }
-    distanceToSquared(position) {
-        throw new Error("Method not implemented.");
-    }
     set(x, y, z) {
         this.x = x;
         this.y = y;
@@ -3649,6 +3637,29 @@ class Vector3 {
     }
     subtract(v) {
         Vector3.subtract(this, v, this);
+        return this;
+    }
+    applyQuaternion(q) {
+        const x = this.x, y = this.y, z = this.z;
+        const qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+        // calculate quat * vector
+        const ix = qw * x + qy * z - qz * y;
+        const iy = qw * y + qz * x - qx * z;
+        const iz = qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
+        // calculate result * inverse quat
+        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+        return this;
+    }
+    setFromMatrixColumn(m, index) {
+        return this.fromArray(m.elements, index * 4);
+    }
+    fromArray(array, offset = 0) {
+        this.x = array[offset];
+        this.y = array[offset + 1];
+        this.z = array[offset + 2];
         return this;
     }
     multiplyByScalar(scale) {
@@ -3753,13 +3764,11 @@ class Vector3 {
         if (!defined(result)) {
             result = new Vector3();
         }
-        const clock = spherical.clock;
-        const cone = spherical.cone;
-        const magnitude = defaultValue(spherical.magnitude, 1.0);
-        const radial = magnitude * Math.sin(cone);
-        result.x = radial * Math.cos(clock);
-        result.y = radial * Math.sin(clock);
-        result.z = magnitude * Math.cos(cone);
+        const { phi, radius, theta } = spherical;
+        const sinPhiRadius = Math.sin(phi) * radius;
+        result.x = sinPhiRadius * Math.sin(theta);
+        result.y = Math.cos(phi) * radius;
+        result.z = sinPhiRadius * Math.cos(theta);
         return result;
     }
     ;
@@ -9759,8 +9768,8 @@ class Quaternion {
         this.w = w;
     }
     /**
-   * Computes the normalized form of the provided quaternion.
-   */
+     * Computes the normalized form of the provided quaternion.
+     */
     normalize() {
         const inverseMagnitude = 1.0 / Quaternion.magnitude(this);
         const x = this.x * inverseMagnitude;
@@ -9777,8 +9786,11 @@ class Quaternion {
         this.x *= -1;
         this.y *= -1;
         this.z *= -1;
-        this._onChangeCallback();
+        // this._onChangeCallback();
         return this;
+    }
+    dot(v) {
+        return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
     }
     setFromUnitVectors(vFrom, vTo) {
         // assumes direction vectors vFrom and vTo are normalized
@@ -9809,12 +9821,11 @@ class Quaternion {
         return this.normalize();
     }
     /**
-   * Duplicates this Quaternion instance.
-   */
+     * Duplicates this Quaternion instance.
+     */
     clone() {
         return Quaternion.clone(this, this);
     }
-    ;
     /**
      * Compares this and the provided quaternion componentwise and returns
      * <code>true</code> if they are equal, <code>false</code> otherwise.
@@ -9825,7 +9836,6 @@ class Quaternion {
     equals(right) {
         return Quaternion.equals(this, right);
     }
-    ;
     /**
      * Compares this and the provided quaternion componentwise and returns
      * <code>true</code> if they are within the provided epsilon,
@@ -9838,7 +9848,6 @@ class Quaternion {
     equalsEpsilon(right, epsilon) {
         return Quaternion.equalsEpsilon(this, right, epsilon);
     }
-    ;
     /**
      * Computes a quaternion representing a rotation around an axis.
      *
@@ -9856,7 +9865,7 @@ class Quaternion {
         const z = fromAxisAngleScratch.z * s;
         const w = Math.cos(halfAngle);
         // if (!defined(result)) {
-        //   return 
+        //   return
         // }
         let result = new Quaternion(x, y, z, w);
         result.x = x;
@@ -9938,14 +9947,14 @@ class Quaternion {
         return result;
     }
     /**
-   * Computes a rotation from the given heading, pitch and roll angles. Heading is the rotation about the
-   * negative z axis. Pitch is the rotation about the negative y axis. Roll is the rotation about
-   * the positive x axis.
-   *
-   * @param {HeadingPitchRoll} headingPitchRoll The rotation expressed as a heading, pitch and roll.
-   * @param {Quaternion} [result] The object onto which to store the result.
-   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if none was provided.
-   */
+     * Computes a rotation from the given heading, pitch and roll angles. Heading is the rotation about the
+     * negative z axis. Pitch is the rotation about the negative y axis. Roll is the rotation about
+     * the positive x axis.
+     *
+     * @param {HeadingPitchRoll} headingPitchRoll The rotation expressed as a heading, pitch and roll.
+     * @param {Quaternion} [result] The object onto which to store the result.
+     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if none was provided.
+     */
     static fromHeadingPitchRoll(headingPitchRoll, result) {
         scratchRollQuaternion = Quaternion.fromAxisAngle(Vector3.UNIT_X, headingPitchRoll.roll, scratchHPRQuaternion);
         scratchPitchQuaternion = Quaternion.fromAxisAngle(Vector3.UNIT_Y, -headingPitchRoll.pitch, result);
@@ -9990,13 +9999,13 @@ class Quaternion {
         return result;
     }
     /**
-   * Converts a packed array into a form suitable for interpolation.
-   *
-   * @param {Number[]} packedArray The packed array.
-   * @param {Number} [startingIndex=0] The index of the first element to be converted.
-   * @param {Number} [lastIndex=packedArray.length] The index of the last element to be converted.
-   * @param {Number[]} [result] The object into which to store the result.
-   */
+     * Converts a packed array into a form suitable for interpolation.
+     *
+     * @param {Number[]} packedArray The packed array.
+     * @param {Number} [startingIndex=0] The index of the first element to be converted.
+     * @param {Number} [lastIndex=packedArray.length] The index of the last element to be converted.
+     * @param {Number[]} [result] The object into which to store the result.
+     */
     static convertPackedArrayForInterpolation(packedArray, startingIndex, lastIndex, result) {
         Quaternion.unpack(packedArray, lastIndex * 4, sampledQuaternionQuaternion0Conjugate);
         Quaternion.conjugate(sampledQuaternionQuaternion0Conjugate, sampledQuaternionQuaternion0Conjugate);
@@ -10018,15 +10027,15 @@ class Quaternion {
         }
     }
     /**
-   * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
-   *
-   * @param {Number[]} array The array previously packed for interpolation.
-   * @param {Number[]} sourceArray The original packed array.
-   * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
-   * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
-   * @param {Quaternion} [result] The object into which to store the result.
-   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-   */
+     * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
+     *
+     * @param {Number[]} array The array previously packed for interpolation.
+     * @param {Number[]} sourceArray The original packed array.
+     * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
+     * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
+     * @param {Quaternion} [result] The object into which to store the result.
+     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
+     */
     static unpackInterpolationResult(array, sourceArray, firstIndex, lastIndex, result) {
         if (!defined(result)) {
             result = new Quaternion();
@@ -10043,12 +10052,12 @@ class Quaternion {
         return Quaternion.multiply(sampledQuaternionTempQuaternion, sampledQuaternionQuaternion0, result);
     }
     /**
-   * Duplicates a Quaternion instance.
-   *
-   * @param {Quaternion} quaternion The quaternion to duplicate.
-   * @param {Quaternion} [result] The object onto which to store the result.
-   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided. (Returns undefined if quaternion is undefined)
-   */
+     * Duplicates a Quaternion instance.
+     *
+     * @param {Quaternion} quaternion The quaternion to duplicate.
+     * @param {Quaternion} [result] The object onto which to store the result.
+     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided. (Returns undefined if quaternion is undefined)
+     */
     static clone(quaternion, result) {
         if (!defined(quaternion)) {
             return undefined;
@@ -10098,12 +10107,12 @@ class Quaternion {
         return Math.sqrt(Quaternion.magnitudeSquared(quaternion));
     }
     /**
-   * Computes the normalized form of the provided quaternion.
-   *
-   * @param {Quaternion} quaternion The quaternion to normalize.
-   * @param {Quaternion} result The object onto which to store the result.
-   * @returns {Quaternion} The modified result parameter.
-   */
+     * Computes the normalized form of the provided quaternion.
+     *
+     * @param {Quaternion} quaternion The quaternion to normalize.
+     * @param {Quaternion} result The object onto which to store the result.
+     * @returns {Quaternion} The modified result parameter.
+     */
     static normalize(quaternion, result) {
         const inverseMagnitude = 1.0 / Quaternion.magnitude(quaternion);
         const x = quaternion.x * inverseMagnitude;
@@ -10143,7 +10152,6 @@ class Quaternion {
         result.w = left.w + right.w;
         return result;
     }
-    ;
     /**
      * Computes the componentwise difference of two quaternions.
      *
@@ -10159,7 +10167,6 @@ class Quaternion {
         result.w = left.w - right.w;
         return result;
     }
-    ;
     /**
      * Negates the provided quaternion.
      *
@@ -10174,7 +10181,6 @@ class Quaternion {
         result.w = -quaternion.w;
         return result;
     }
-    ;
     /**
      * Computes the dot (scalar) product of two quaternions.
      *
@@ -10185,7 +10191,6 @@ class Quaternion {
     static dot(left, right) {
         return (left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w);
     }
-    ;
     /**
      * Computes the product of two quaternions.
      *
@@ -10213,7 +10218,6 @@ class Quaternion {
         result.w = w;
         return result;
     }
-    ;
     /**
      * Multiplies the provided quaternion componentwise by the provided scalar.
      *
@@ -10229,7 +10233,6 @@ class Quaternion {
         result.w = quaternion.w * scalar;
         return result;
     }
-    ;
     /**
      * Divides the provided quaternion componentwise by the provided scalar.
      *
@@ -10245,7 +10248,6 @@ class Quaternion {
         result.w = quaternion.w / scalar;
         return result;
     }
-    ;
     /**
      * Computes the axis of rotation of the provided quaternion.
      *
@@ -10265,7 +10267,6 @@ class Quaternion {
         result.z = quaternion.z * scalar;
         return result;
     }
-    ;
     /**
      * Computes the angle of rotation of the provided quaternion.
      *
@@ -10278,7 +10279,6 @@ class Quaternion {
         }
         return 2.0 * Math.acos(quaternion.w);
     }
-    ;
     /**
      * Computes the linear interpolation or extrapolation at t using the provided quaternions.
      *
@@ -10293,7 +10293,6 @@ class Quaternion {
         result = Quaternion.multiplyByScalar(start, 1.0 - t, result);
         return Quaternion.add(lerpScratch, result, result);
     }
-    ;
     /**
      * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
      *
@@ -10325,7 +10324,6 @@ class Quaternion {
         result = Quaternion.add(slerpScaledP, slerpScaledR, result);
         return Quaternion.multiplyByScalar(result, 1.0 / Math.sin(theta), result);
     }
-    ;
     /**
      * Computes an inner quadrangle point.
      * <p>This will compute quaternions that ensure a squad curve is C<sup>1</sup>.</p>
@@ -10350,7 +10348,6 @@ class Quaternion {
         Quaternion.exp(cart0, squadScratchQuaternion0);
         return Quaternion.multiply(q1, squadScratchQuaternion0, result);
     }
-    ;
     /**
      * Computes the spherical quadrangle interpolation between quaternions.
      *
@@ -10380,7 +10377,6 @@ class Quaternion {
         const slerp1 = Quaternion.slerp(s0, s1, t, squadScratchQuaternion1);
         return Quaternion.slerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
     }
-    ;
     /**
      * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
      * This implementation is faster than {@link Quaternion#slerp}, but is only accurate up to 10<sup>-6</sup>.
@@ -10440,7 +10436,6 @@ class Quaternion {
         Quaternion.multiplyByScalar(end, cT, result);
         return Quaternion.add(temp, result, result);
     }
-    ;
     /**
      * Computes the spherical quadrangle interpolation between quaternions.
      * An implementation that is faster than {@link Quaternion#squad}, but less accurate.
@@ -10460,7 +10455,6 @@ class Quaternion {
         const slerp1 = Quaternion.fastSlerp(s0, s1, t, squadScratchQuaternion1);
         return Quaternion.fastSlerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
     }
-    ;
     /**
      * Compares the provided quaternions componentwise and returns
      * <code>true</code> if they are equal, <code>false</code> otherwise.
@@ -10478,7 +10472,6 @@ class Quaternion {
                 left.z === right.z &&
                 left.w === right.w));
     }
-    ;
     /**
      * Compares the provided quaternions componentwise and returns
      * <code>true</code> if they are within the provided epsilon,
@@ -10499,7 +10492,6 @@ class Quaternion {
                 Math.abs(left.z - right.z) <= epsilon &&
                 Math.abs(left.w - right.w) <= epsilon));
     }
-    ;
     /**
      * The logarithmic quaternion function.
      *
@@ -10515,7 +10507,6 @@ class Quaternion {
         }
         return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
     }
-    ;
     /**
      * The exponential quaternion function.
      *
@@ -10535,24 +10526,23 @@ class Quaternion {
         result.w = Math.cos(theta);
         return result;
     }
-    ;
 }
 /**
-* The number of elements used to pack the object into an array.
-* @type {Number}
-*/
+ * The number of elements used to pack the object into an array.
+ * @type {Number}
+ */
 Quaternion.packedLength = 4;
 /**
-* The number of elements used to store the object into an array in its interpolatable form.
-* @type {Number}
-*/
+ * The number of elements used to store the object into an array in its interpolatable form.
+ * @type {Number}
+ */
 Quaternion.packedInterpolationLength = 3;
 /**
-* An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
-*
-* @type {Quaternion}
-* @constant
-*/
+ * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
+ *
+ * @type {Quaternion}
+ * @constant
+ */
 Quaternion.ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
 /**
  * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 1.0).
@@ -11226,14 +11216,6 @@ function combine(object1, object2, deep) {
     return result;
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-17 16:04:17
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-29 17:26:20
- * @FilePath: \GEngine\src\geometry\Geometry.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class Geometry {
     constructor(options) {
         this.type = options.type || undefined;
@@ -11242,7 +11224,6 @@ class Geometry {
         this.definesDirty = true;
         this.attributes = new Attributes();
         this.vertBuffer = new VertextBuffer(this.attributes, 0);
-        // this.topology=PrimitiveTopology.TriangleList;
         this._defines = {};
     }
     get defines() {
@@ -14504,14 +14485,6 @@ class SphereGeometry extends Geometry {
     }
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-19 13:17:05
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-19 11:47:05
- * @FilePath: \GEngine\src\geometry\BoxGeometry.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class BoxGeometry extends Geometry {
     constructor(width = 10, height = 10, depth = 10) {
         super({});
@@ -14522,7 +14495,8 @@ class BoxGeometry extends Geometry {
         this.init();
     }
     init() {
-        const { positions, normals, uvs } = createBox({ dimensions: [10, 10, 10] });
+        //generate pos uv normal so on
+        const { positions, normals, uvs } = createBox({ dimensions: [this.depth, this.width, this.height] });
         this.position = positions;
         this.normal = normals;
         this.uv = uvs;
@@ -14530,13 +14504,12 @@ class BoxGeometry extends Geometry {
         this.setAttribute(new Float32Attribute('position', this.position, 3));
         this.setAttribute(new Float32Attribute('normal', this.normal, 3));
         this.setAttribute(new Float32Attribute('uv', this.uv, 2));
-        // this.setIndice(this.indices);
-        // this.indexBuffer.topology=PrimitiveTopology.LineList;
         this.count = 36;
     }
     update(frameState) {
     }
-    destroy() { }
+    destroy() {
+    }
 }
 
 class TorusKnotGeometry extends Geometry {
@@ -16778,14 +16751,6 @@ class Camera {
     }
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-23 11:14:15
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-11 17:40:05
- * @FilePath: \GEngine\src\camera\PerspectiveCamera.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class PerspectiveCamera extends Camera {
     constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) {
         super();
@@ -16798,6 +16763,7 @@ class PerspectiveCamera extends Camera {
         this.projectMatrixDirty = true;
         this.updateCameraParms();
         this.cullingVolume = new CullingVolume();
+        this.isPerspectiveCamera = true;
     }
     get aspect() {
         return this._aspect;
@@ -17348,4 +17314,837 @@ function generateTexture(texture, images) {
     });
 }
 
-export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };
+//from three.js
+class Spherical {
+    constructor(radius = 1, phi = 0, theta = 0) {
+        this.radius = radius;
+        this.phi = phi; // polar angle
+        this.theta = theta; // azimuthal angle
+        return this;
+    }
+    set(radius, phi, theta) {
+        this.radius = radius;
+        this.phi = phi;
+        this.theta = theta;
+        return this;
+    }
+    copy(other) {
+        this.radius = other.radius;
+        this.phi = other.phi;
+        this.theta = other.theta;
+        return this;
+    }
+    // restrict phi to be between EPS and PI-EPS
+    makeSafe() {
+        const EPS = 0.000001;
+        this.phi = Math.max(EPS, Math.min(Math.PI - EPS, this.phi));
+        return this;
+    }
+    setFromVector3(v) {
+        return this.setFromCartesianCoords(v.x, v.y, v.z);
+    }
+    setFromCartesianCoords(x, y, z) {
+        this.radius = Math.sqrt(x * x + y * y + z * z);
+        if (this.radius === 0) {
+            this.theta = 0;
+            this.phi = 0;
+        }
+        else {
+            this.theta = Math.atan2(x, z);
+            this.phi = Math.acos(GMath.clamp(y / this.radius, -1, 1));
+        }
+        return this;
+    }
+    clone() {
+        return new Spherical(this.radius, this.phi, this.theta);
+    }
+}
+
+//from three.js
+const _changeEvent = { type: "change" };
+const _startEvent = { type: "start" };
+const _endEvent = { type: "end" };
+class OrbitControl extends EventDispatcher {
+    constructor(object, domElement) {
+        super();
+        if (domElement === undefined)
+            console.warn('OrbitControls: The second parameter "domElement" is now mandatory.');
+        if (domElement === document)
+            console.error('OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.');
+        this.object = object;
+        this.domElement = domElement;
+        this.domElement.style.touchAction = "none"; // disable touch scroll
+        // Set to false to disable this control
+        this.enabled = true;
+        // "target" sets the location of focus, where the object orbits around
+        this.target = new Vector3();
+        // How far you can dolly in and out ( PerspectiveCamera only )
+        this.minDistance = 0;
+        this.maxDistance = Infinity;
+        // How far you can zoom in and out ( OrthographicCamera only )
+        this.minZoom = 0;
+        this.maxZoom = Infinity;
+        // How far you can orbit vertically, upper and lower limits.
+        // Range is 0 to Math.PI radians.
+        this.minPolarAngle = 0; // radians
+        this.maxPolarAngle = Math.PI; // radians
+        // How far you can orbit horizontally, upper and lower limits.
+        // If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+        this.minAzimuthAngle = -Infinity; // radians
+        this.maxAzimuthAngle = Infinity; // radians
+        // Set to true to enable damping (inertia)
+        // If damping is enabled, you must call controls.update() in your animation loop
+        this.enableDamping = false;
+        this.dampingFactor = 0.05;
+        // This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+        // Set to false to disable zooming
+        this.enableZoom = true;
+        this.zoomSpeed = 1.0;
+        // Set to false to disable rotating
+        this.enableRotate = true;
+        this.rotateSpeed = 1.0;
+        // Set to false to disable panning
+        this.enablePan = true;
+        this.panSpeed = 1.0;
+        this.screenSpacePanning = false; // if false, pan orthogonal to world-space direction camera.up
+        this.keyPanSpeed = 7.0; // pixels moved per arrow key push
+        // Set to true to automatically rotate around the target
+        // If auto-rotate is enabled, you must call controls.update() in your animation loop
+        this.autoRotate = false;
+        this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
+        // The four arrow keys
+        this.keys = {
+            LEFT: "ArrowLeft",
+            UP: "ArrowUp",
+            RIGHT: "ArrowRight",
+            BOTTOM: "ArrowDown",
+        };
+        // Mouse buttons
+        this.mouseButtons = {
+            LEFT: MOUSE.ROTATE,
+            MIDDLE: MOUSE.DOLLY,
+            RIGHT: MOUSE.PAN,
+        };
+        // Touch fingers
+        this.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
+        // for reset
+        this.target0 = this.target.clone();
+        this.position0 = this.object.position.clone();
+        this.zoom0 = this.object.zoom;
+        // the target DOM element for key events
+        this._domElementKeyEvents = null;
+        //
+        // public methods
+        //
+        this.init();
+        // this method is exposed, but perhaps it would be better if we can make it private...
+        const that = this;
+        this.update = (function () {
+            const offset = new Vector3();
+            // so camera.up is the orbit axis
+            const quat = new Quaternion().setFromUnitVectors(that.object.up, new Vector3(0, 1, 0));
+            const quatInverse = quat.clone().invert();
+            new Vector3();
+            new Quaternion();
+            const twoPI = 2 * Math.PI;
+            return function update() {
+                const position = that.object.position;
+                offset.copy(position).subtract(that.target);
+                // rotate offset to "y-axis-is-up" space
+                offset.applyQuaternion(quat);
+                // angle from z-axis around y-axis
+                spherical.setFromVector3(offset);
+                if (that.autoRotate && state === STATE.NONE) {
+                    rotateLeft(that.getAutoRotationAngle());
+                }
+                if (that.enableDamping) {
+                    spherical.theta += sphericalDelta.theta * that.dampingFactor;
+                    spherical.phi += sphericalDelta.phi * that.dampingFactor;
+                }
+                else {
+                    spherical.theta += sphericalDelta.theta;
+                    spherical.phi += sphericalDelta.phi;
+                }
+                // restrict theta to be between desired limits
+                let min = that.minAzimuthAngle;
+                let max = that.maxAzimuthAngle;
+                if (isFinite(min) && isFinite(max)) {
+                    if (min < -Math.PI)
+                        min += twoPI;
+                    else if (min > Math.PI)
+                        min -= twoPI;
+                    if (max < -Math.PI)
+                        max += twoPI;
+                    else if (max > Math.PI)
+                        max -= twoPI;
+                    if (min <= max) {
+                        spherical.theta = Math.max(min, Math.min(max, spherical.theta));
+                    }
+                    else {
+                        spherical.theta =
+                            spherical.theta > (min + max) / 2
+                                ? Math.max(min, spherical.theta)
+                                : Math.min(max, spherical.theta);
+                    }
+                }
+                // restrict phi to be between desired limits
+                spherical.phi = Math.max(that.minPolarAngle, Math.min(that.maxPolarAngle, spherical.phi));
+                spherical.makeSafe();
+                spherical.radius *= scale;
+                // restrict radius to be between desired limits
+                spherical.radius = Math.max(that.minDistance, Math.min(that.maxDistance, spherical.radius));
+                // move target to panned location
+                if (that.enableDamping === true) {
+                    that.target.addScaledVector(panOffset, that.dampingFactor);
+                }
+                else {
+                    that.target.add(panOffset);
+                }
+                Vector3.fromSpherical(spherical, offset);
+                // rotate offset back to "camera-up-vector-is-up" space
+                offset.applyQuaternion(quatInverse);
+                position.copy(that.target).add(offset);
+                that.object.target = that.target;
+                if (that.enableDamping === true) {
+                    sphericalDelta.theta *= 1 - that.dampingFactor;
+                    sphericalDelta.phi *= 1 - that.dampingFactor;
+                    Vector3.multiplyByScalar(panOffset, 1 - that.dampingFactor, panOffset);
+                    // panOffset.multiplyScalar( 1 - this.dampingFactor );
+                }
+                else {
+                    sphericalDelta.set(0, 0, 0);
+                    panOffset.set(0, 0, 0);
+                }
+                scale = 1;
+                // update condition is:
+                // min(camera displacement, camera rotation in radians)^2 > EPS
+                // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+                // if (
+                //   zoomChanged ||
+                //   Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
+                //   8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
+                // ) {
+                //     that.dispatchEvent(_changeEvent);
+                //   //lastPosition.copy( this.object.position );
+                //   Vector3.clone(that.object.position, lastPosition);
+                //   Quaternion.clone(that.object.quaternion, lastQuaternion);
+                //   //lastQuaternion.copy( this.object.quaternion );
+                //   zoomChanged = false;
+                //   return true;
+                // }
+                return false;
+            };
+        })();
+    }
+    getPolarAngle() {
+        return this.spherical.phi;
+    }
+    getAzimuthalAngle() {
+        return this.spherical.theta;
+    }
+    getDistance() {
+        return this.object.position.distanceTo(this.target);
+    }
+    listenToKeyEvents(domElement) {
+        domElement.addEventListener("keydown", this.onKeyDown);
+        this._domElementKeyEvents = domElement;
+    }
+    saveState() {
+        Vector3.clone(this.target, this.target0);
+        //this.target0.copy( this.target );
+        Vector3.clone(this.object.position, this.position0);
+        //this.position0.copy( this.object.position );
+        this.zoom0 = this.object.zoom;
+    }
+    reset() {
+        Vector3.clone(this.target0, this.target);
+        //this.target.copy( this.target0 );
+        Vector3.clone(this.position0, this.object.position);
+        //this.object.position.copy( this.position0 );
+        this.object.zoom = this.zoom0;
+        this.object.updateProjectionMatrix();
+        this.dispatchEvent(_changeEvent);
+        this.update();
+        state = STATE.NONE;
+    }
+    init() {
+        const that = this;
+        const panLeft = (function () {
+            const v = new Vector3();
+            return function panLeft(distance, objectMatrix) {
+                v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
+                v.multiplyByScalar(-distance);
+                panOffset.add(v);
+            };
+        })();
+        const panUp = function (a, b) {
+            const panUpV = new Vector3();
+            return function panUp(distance, objectMatrix) {
+                if (that.screenSpacePanning === true) {
+                    panUpV.setFromMatrixColumn(objectMatrix, 1);
+                }
+                else {
+                    panUpV.setFromMatrixColumn(objectMatrix, 0);
+                    //panUpV.crossVectors( this.object.up, panUpV );
+                    Vector3.cross(that.object.up, panUpV, panUpV);
+                }
+                panUpV.multiplyByScalar(distance);
+                panOffset.add(panUpV);
+            };
+        };
+        // deltaX and deltaY are in pixels; right and down are positive
+        const pan = function () {
+            const offset = new Vector3();
+            return function pan(deltaX, deltaY) {
+                const element = that.domElement;
+                if (that.object.isPerspectiveCamera) {
+                    // perspective
+                    const position = that.object.position;
+                    offset.copy(position).subtract(that.target);
+                    let targetDistance = offset.length();
+                    // half of the fov is center to top of screen
+                    targetDistance *= Math.tan(((that.object.fov / 2) * Math.PI) / 180.0);
+                    // we use only clientHeight here so aspect ratio does not distort speed
+                    panLeft((2 * deltaX * targetDistance) / element.clientHeight, that.object.matrix);
+                    panUp((2 * deltaY * targetDistance) / element.clientHeight, that.object.matrix);
+                }
+                else if (that.object.isOrthographicCamera) {
+                    // orthographic
+                    panLeft((deltaX * (that.object.right - that.object.left)) /
+                        that.object.zoom /
+                        element.clientWidth, that.object.matrix);
+                    panUp((deltaY * (that.object.top - that.object.bottom)) /
+                        that.object.zoom /
+                        element.clientHeight, that.object.matrix);
+                }
+                else {
+                    // camera neither orthographic nor perspective
+                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
+                    that.enablePan = false;
+                }
+            };
+        }();
+        const dollyOut = (dollyScale) => {
+            if (this.object.isPerspectiveCamera) {
+                scale /= dollyScale;
+            }
+            else if (this.object.isOrthographicCamera) {
+                this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom * dollyScale));
+                this.object.updateProjectionMatrix();
+            }
+            else {
+                console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+                this.enableZoom = false;
+            }
+        };
+        const dollyIn = (dollyScale) => {
+            if (this.object.isPerspectiveCamera) {
+                scale *= dollyScale;
+            }
+            else if (this.object.isOrthographicCamera) {
+                this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / dollyScale));
+                this.object.updateProjectionMatrix();
+            }
+            else {
+                console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+                this.enableZoom = false;
+            }
+        };
+        const handleMouseMoveRotate = (event) => {
+            rotateEnd.set(event.clientX, event.clientY);
+            Vector2.subtract(rotateEnd, rotateStart, rotateDelta);
+            Vector2.multiplyByScalar(rotateDelta, this.rotateSpeed, rotateDelta);
+            //rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
+            const element = this.domElement;
+            rotateLeft((2 * Math.PI * rotateDelta.x) / element.clientHeight); // yes, height
+            rotateUp((2 * Math.PI * rotateDelta.y) / element.clientHeight);
+            Vector2.clone(rotateEnd, rotateStart);
+            //rotateStart.copy( rotateEnd );
+            this.update();
+        };
+        const handleMouseMoveDolly = (event) => {
+            dollyEnd.set(event.clientX, event.clientY);
+            Vector2.subtract(dollyEnd, dollyStart, dollyDelta);
+            // dollyDelta.subVectors( dollyEnd, dollyStart );
+            if (dollyDelta.y > 0) {
+                dollyOut(getZoomScale());
+            }
+            else if (dollyDelta.y < 0) {
+                dollyIn(getZoomScale());
+            }
+            Vector2.clone(dollyEnd, dollyStart);
+            // dollyStart.copy( dollyEnd );
+            this.update();
+        };
+        const handleMouseMovePan = (event) => {
+            panEnd.set(event.clientX, event.clientY);
+            Vector2.subtract(panEnd, panStart, panDelta);
+            Vector2.multiplyByScalar(panDelta, this.panSpeed, panDelta);
+            //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
+            pan(panDelta.x, panDelta.y);
+            Vector2.clone(panEnd, panStart);
+            //panStart.copy( panEnd );
+            this.update();
+        };
+        const handleMouseWheel = (event) => {
+            if (event.deltaY < 0) {
+                dollyIn(getZoomScale());
+            }
+            else if (event.deltaY > 0) {
+                dollyOut(getZoomScale());
+            }
+            this.update();
+        };
+        const handleKeyDown = (event) => {
+            let needsUpdate = false;
+            switch (event.code) {
+                case this.keys.UP:
+                    pan(0, this.keyPanSpeed);
+                    needsUpdate = true;
+                    break;
+                case this.keys.BOTTOM:
+                    pan(0, -this.keyPanSpeed);
+                    needsUpdate = true;
+                    break;
+                case this.keys.LEFT:
+                    pan(this.keyPanSpeed, 0);
+                    needsUpdate = true;
+                    break;
+                case this.keys.RIGHT:
+                    pan(-this.keyPanSpeed, 0);
+                    needsUpdate = true;
+                    break;
+            }
+            if (needsUpdate) {
+                // prevent the browser from scrolling on cursor keys
+                event.preventDefault();
+                this.update();
+            }
+        };
+        const handleTouchStartDollyPan = () => {
+            if (this.enableZoom)
+                handleTouchStartDolly();
+            if (this.enablePan)
+                handleTouchStartPan();
+        };
+        const handleTouchStartDollyRotate = () => {
+            if (this.enableZoom)
+                handleTouchStartDolly();
+            if (this.enableRotate)
+                handleTouchStartRotate();
+        };
+        const handleTouchMoveRotate = (event) => {
+            if (pointers.length == 1) {
+                rotateEnd.set(event.pageX, event.pageY);
+            }
+            else {
+                const position = getSecondPointerPosition(event);
+                const x = 0.5 * (event.pageX + position.x);
+                const y = 0.5 * (event.pageY + position.y);
+                rotateEnd.set(x, y);
+            }
+            Vector2.subtract(rotateEnd, rotateStart, rotateDelta);
+            Vector2.multiplyByScalar(rotateDelta, this.rotateSpeed, rotateDelta);
+            //rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( this.rotateSpeed );
+            const element = this.domElement;
+            rotateLeft((2 * Math.PI * rotateDelta.x) / element.clientHeight); // yes, height
+            rotateUp((2 * Math.PI * rotateDelta.y) / element.clientHeight);
+            Vector2.clone(rotateEnd, rotateStart);
+            //rotateStart.copy( rotateEnd );
+        };
+        const handleTouchMovePan = (event) => {
+            if (pointers.length === 1) {
+                panEnd.set(event.pageX, event.pageY);
+            }
+            else {
+                const position = getSecondPointerPosition(event);
+                const x = 0.5 * (event.pageX + position.x);
+                const y = 0.5 * (event.pageY + position.y);
+                panEnd.set(x, y);
+            }
+            Vector2.subtract(panEnd, panStart, panDelta);
+            Vector2.multiplyByScalar(panDelta, this.panSpeed, panDelta);
+            //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
+            pan(panDelta.x, panDelta.y);
+            Vector2.clone(panEnd, panStart);
+            // panStart.copy( panEnd );
+        };
+        const handleTouchMoveDolly = (event) => {
+            const position = getSecondPointerPosition(event);
+            const dx = event.pageX - position.x;
+            const dy = event.pageY - position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            dollyEnd.set(0, distance);
+            dollyDelta.set(0, Math.pow(dollyEnd.y / dollyStart.y, this.zoomSpeed));
+            dollyOut(dollyDelta.y);
+            Vector2.clone(dollyEnd, dollyStart);
+            //dollyStart.copy( dollyEnd );
+        };
+        const handleTouchMoveDollyPan = (event) => {
+            if (this.enableZoom)
+                handleTouchMoveDolly(event);
+            if (this.enablePan)
+                handleTouchMovePan(event);
+        };
+        const handleTouchMoveDollyRotate = (event) => {
+            if (this.enableZoom)
+                handleTouchMoveDolly(event);
+            if (this.enableRotate)
+                handleTouchMoveRotate(event);
+        };
+        //
+        // event handlers - FSM: listen for events and reset state
+        //
+        this.onPointerDown = (event) => {
+            if (this.enabled === false)
+                return;
+            if (pointers.length === 0) {
+                this.domElement.setPointerCapture(event.pointerId);
+                this.domElement.addEventListener("pointermove", this.onPointerMove);
+                this.domElement.addEventListener("pointerup", this.onPointerUp);
+            }
+            //
+            addPointer(event);
+            if (event.pointerType === "touch") {
+                onTouchStart(event);
+            }
+            else {
+                onMouseDown(event);
+            }
+        };
+        this.onPointerMove = (event) => {
+            if (this.enabled === false)
+                return;
+            if (event.pointerType === "touch") {
+                onTouchMove(event);
+            }
+            else {
+                onMouseMove(event);
+            }
+        };
+        this.onPointerUp = (event) => {
+            removePointer(event);
+            if (pointers.length === 0) {
+                this.domElement.releasePointerCapture(event.pointerId);
+                this.domElement.removeEventListener("pointermove", this.onPointerMove);
+                this.domElement.removeEventListener("pointerup", this.onPointerUp);
+            }
+            this.dispatchEvent(_endEvent);
+            state = STATE.NONE;
+        };
+        const onMouseDown = (event) => {
+            let mouseAction;
+            switch (event.button) {
+                case 0:
+                    mouseAction = this.mouseButtons.LEFT;
+                    break;
+                case 1:
+                    mouseAction = this.mouseButtons.MIDDLE;
+                    break;
+                case 2:
+                    mouseAction = this.mouseButtons.RIGHT;
+                    break;
+                default:
+                    mouseAction = -1;
+            }
+            switch (mouseAction) {
+                case MOUSE.DOLLY:
+                    if (this.enableZoom === false)
+                        return;
+                    handleMouseDownDolly(event);
+                    state = STATE.DOLLY;
+                    break;
+                case MOUSE.ROTATE:
+                    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+                        if (this.enablePan === false)
+                            return;
+                        handleMouseDownPan(event);
+                        state = STATE.PAN;
+                    }
+                    else {
+                        if (this.enableRotate === false)
+                            return;
+                        handleMouseDownRotate(event);
+                        state = STATE.ROTATE;
+                    }
+                    break;
+                case MOUSE.PAN:
+                    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+                        if (this.enableRotate === false)
+                            return;
+                        handleMouseDownRotate(event);
+                        state = STATE.ROTATE;
+                    }
+                    else {
+                        if (this.enablePan === false)
+                            return;
+                        handleMouseDownPan(event);
+                        state = STATE.PAN;
+                    }
+                    break;
+                default:
+                    state = STATE.NONE;
+            }
+            if (state !== STATE.NONE) {
+                this.dispatchEvent(_startEvent);
+            }
+        };
+        const onMouseMove = (event) => {
+            switch (state) {
+                case STATE.ROTATE:
+                    if (this.enableRotate === false)
+                        return;
+                    handleMouseMoveRotate(event);
+                    break;
+                case STATE.DOLLY:
+                    if (this.enableZoom === false)
+                        return;
+                    handleMouseMoveDolly(event);
+                    break;
+                case STATE.PAN:
+                    if (this.enablePan === false)
+                        return;
+                    handleMouseMovePan(event);
+                    break;
+            }
+        };
+        this.onMouseWheel = (event) => {
+            if (this.enabled === false ||
+                this.enableZoom === false ||
+                state !== STATE.NONE)
+                return;
+            event.preventDefault();
+            this.dispatchEvent(_startEvent);
+            handleMouseWheel(event);
+            this.dispatchEvent(_endEvent);
+        };
+        this.onKeyDown = (event) => {
+            if (this.enabled === false || this.enablePan === false)
+                return;
+            handleKeyDown(event);
+        };
+        const onTouchStart = (event) => {
+            trackPointer(event);
+            switch (pointers.length) {
+                case 1:
+                    switch (this.touches.ONE) {
+                        case TOUCH.ROTATE:
+                            if (this.enableRotate === false)
+                                return;
+                            handleTouchStartRotate();
+                            state = STATE.TOUCH_ROTATE;
+                            break;
+                        case TOUCH.PAN:
+                            if (this.enablePan === false)
+                                return;
+                            handleTouchStartPan();
+                            state = STATE.TOUCH_PAN;
+                            break;
+                        default:
+                            state = STATE.NONE;
+                    }
+                    break;
+                case 2:
+                    switch (this.touches.TWO) {
+                        case TOUCH.DOLLY_PAN:
+                            if (this.enableZoom === false && this.enablePan === false)
+                                return;
+                            handleTouchStartDollyPan();
+                            state = STATE.TOUCH_DOLLY_PAN;
+                            break;
+                        case TOUCH.DOLLY_ROTATE:
+                            if (this.enableZoom === false && this.enableRotate === false)
+                                return;
+                            handleTouchStartDollyRotate();
+                            state = STATE.TOUCH_DOLLY_ROTATE;
+                            break;
+                        default:
+                            state = STATE.NONE;
+                    }
+                    break;
+                default:
+                    state = STATE.NONE;
+            }
+            if (state !== STATE.NONE) {
+                this.dispatchEvent(_startEvent);
+            }
+        };
+        const onTouchMove = (event) => {
+            trackPointer(event);
+            switch (state) {
+                case STATE.TOUCH_ROTATE:
+                    if (this.enableRotate === false)
+                        return;
+                    handleTouchMoveRotate(event);
+                    this.update();
+                    break;
+                case STATE.TOUCH_PAN:
+                    if (this.enablePan === false)
+                        return;
+                    handleTouchMovePan(event);
+                    this.update();
+                    break;
+                case STATE.TOUCH_DOLLY_PAN:
+                    if (this.enableZoom === false && this.enablePan === false)
+                        return;
+                    handleTouchMoveDollyPan(event);
+                    this.update();
+                    break;
+                case STATE.TOUCH_DOLLY_ROTATE:
+                    if (this.enableZoom === false && this.enableRotate === false)
+                        return;
+                    handleTouchMoveDollyRotate(event);
+                    this.update();
+                    break;
+                default:
+                    state = STATE.NONE;
+            }
+        };
+        this.onContextMenu = (event) => {
+            if (this.enabled === false)
+                return;
+            event.preventDefault();
+        };
+        this.getAutoRotationAngle = () => {
+            return ((2 * Math.PI) / 60 / 60) * this.autoRotateSpeed;
+        };
+        const getZoomScale = () => {
+            return Math.pow(0.95, this.zoomSpeed);
+        };
+        this.domElement.addEventListener("contextmenu", this.onContextMenu);
+        this.domElement.addEventListener("pointerdown", this.onPointerDown);
+        this.domElement.addEventListener("pointercancel", onPointerCancel);
+        this.domElement.addEventListener("wheel", this.onMouseWheel, {
+            passive: false,
+        });
+    }
+    dispose() {
+        this.domElement.removeEventListener("contextmenu", this.onContextMenu);
+        this.domElement.removeEventListener("pointerdown", this.onPointerDown);
+        this.domElement.removeEventListener("pointercancel", onPointerCancel);
+        this.domElement.removeEventListener("wheel", this.onMouseWheel);
+        this.domElement.removeEventListener("pointermove", this.onPointerMove);
+        this.domElement.removeEventListener("pointerup", this.onPointerUp);
+        if (this._domElementKeyEvents !== null) {
+            this._domElementKeyEvents.removeEventListener("keydown", this.onKeyDown);
+        }
+        //this.dispatchEvent( { type: 'dispose' } ); // should this be added here?
+    }
+}
+const STATE = {
+    NONE: -1,
+    ROTATE: 0,
+    DOLLY: 1,
+    PAN: 2,
+    TOUCH_ROTATE: 3,
+    TOUCH_PAN: 4,
+    TOUCH_DOLLY_PAN: 5,
+    TOUCH_DOLLY_ROTATE: 6,
+};
+let state = STATE.NONE;
+// current position in spherical coordinates
+const spherical = new Spherical();
+const sphericalDelta = new Spherical();
+let scale = 1;
+const panOffset = new Vector3();
+const rotateStart = new Vector2();
+const rotateEnd = new Vector2();
+const rotateDelta = new Vector2();
+const panStart = new Vector2();
+const panEnd = new Vector2();
+const panDelta = new Vector2();
+const dollyStart = new Vector2();
+const dollyEnd = new Vector2();
+const dollyDelta = new Vector2();
+const pointers = [];
+const pointerPositions = {};
+var MOUSE;
+(function (MOUSE) {
+    MOUSE[MOUSE["LEFT"] = 0] = "LEFT";
+    MOUSE[MOUSE["MIDDLE"] = 1] = "MIDDLE";
+    MOUSE[MOUSE["RIGHT"] = 2] = "RIGHT";
+    MOUSE[MOUSE["ROTATE"] = 0] = "ROTATE";
+    MOUSE[MOUSE["DOLLY"] = 1] = "DOLLY";
+    MOUSE[MOUSE["PAN"] = 2] = "PAN";
+})(MOUSE || (MOUSE = {}));
+var TOUCH;
+(function (TOUCH) {
+    TOUCH[TOUCH["ROTATE"] = 0] = "ROTATE";
+    TOUCH[TOUCH["PAN"] = 1] = "PAN";
+    TOUCH[TOUCH["DOLLY_PAN"] = 2] = "DOLLY_PAN";
+    TOUCH[TOUCH["DOLLY_ROTATE"] = 3] = "DOLLY_ROTATE";
+})(TOUCH || (TOUCH = {}));
+function rotateLeft(angle) {
+    sphericalDelta.theta -= angle;
+}
+function rotateUp(angle) {
+    sphericalDelta.phi -= angle;
+}
+function addPointer(event) {
+    pointers.push(event);
+}
+function removePointer(event) {
+    delete pointerPositions[event.pointerId];
+    for (let i = 0; i < pointers.length; i++) {
+        if (pointers[i].pointerId == event.pointerId) {
+            pointers.splice(i, 1);
+            return;
+        }
+    }
+}
+function trackPointer(event) {
+    let position = pointerPositions[event.pointerId];
+    if (position === undefined) {
+        position = new Vector2();
+        pointerPositions[event.pointerId] = position;
+    }
+    position.set(event.pageX, event.pageY);
+}
+function getSecondPointerPosition(event) {
+    const pointer = event.pointerId === pointers[0].pointerId ? pointers[1] : pointers[0];
+    return pointerPositions[pointer.pointerId];
+}
+//
+// event callbacks - update the object state
+//
+function handleMouseDownRotate(event) {
+    rotateStart.set(event.clientX, event.clientY);
+}
+function handleMouseDownDolly(event) {
+    dollyStart.set(event.clientX, event.clientY);
+}
+function handleMouseDownPan(event) {
+    panStart.set(event.clientX, event.clientY);
+}
+function onPointerCancel(event) {
+    removePointer(event);
+}
+function handleTouchStartRotate() {
+    if (pointers.length === 1) {
+        rotateStart.set(pointers[0].pageX, pointers[0].pageY);
+    }
+    else {
+        const x = 0.5 * (pointers[0].pageX + pointers[1].pageX);
+        const y = 0.5 * (pointers[0].pageY + pointers[1].pageY);
+        rotateStart.set(x, y);
+    }
+}
+function handleTouchStartPan() {
+    if (pointers.length === 1) {
+        panStart.set(pointers[0].pageX, pointers[0].pageY);
+    }
+    else {
+        const x = 0.5 * (pointers[0].pageX + pointers[1].pageX);
+        const y = 0.5 * (pointers[0].pageY + pointers[1].pageY);
+        panStart.set(x, y);
+    }
+}
+function handleTouchStartDolly() {
+    const dx = pointers[0].pageX - pointers[1].pageX;
+    const dy = pointers[0].pageY - pointers[1].pageY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    dollyStart.set(0, distance);
+}
+//
+
+export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, OrbitControl, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };

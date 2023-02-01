@@ -50,7 +50,8 @@
         CubeTextureLoader,
         SphereGeometry,
         PbrMat,
-        loadTexture
+        loadTexture,
+        OrbitControl
     } from '../dist/index.js';
 
      const  init= async()=>{
@@ -72,17 +73,18 @@
         const baseTexture=await loadTexture('./brick_diffuse.jpg');
         const aoTexture=await loadTexture('./textures/AmbientOcclusionMap.png');
         const normalTexture=await loadTexture('./textures/NormalMap.png');
-          const scene=new Scene({
-            container:'app',
-            brdfUrl:'./textures/brdfLUT.png',
-            specularEnvUrls:[
-            `./textures/environment/px.jpg`,
+        const environmentUrls=[
+           `./textures/environment/px.jpg`,
             `./textures/environment/nx.jpg`,
             `./textures/environment/py.jpg`,
             `./textures/environment/ny.jpg`,
             `./textures/environment/pz.jpg`,
             `./textures/environment/nz.jpg`,
-            ] ,
+        ]
+          const scene=new Scene({
+            container:'app',
+            brdfUrl:'./textures/brdfLUT.png',
+            specularEnvUrls:environmentUrls ,
             diffuseEnvUrls:[
             `./textures/environment/diffuse/bakedDiffuse_01.jpg`,
             `./textures/environment/diffuse/bakedDiffuse_02.jpg`,
@@ -92,14 +94,12 @@
             `./textures/environment/diffuse/bakedDiffuse_06.jpg`,
             ]
         });
-        await scene.init();
         const pbr=new PbrMat();
         pbr.baseTexture=baseTexture;
         pbr.baseSampler=baseSampler;
         pbr.aoTexture=aoTexture;
         pbr.normalTexture=normalTexture;
         pbr.roughness =1.0;
-
 		pbr.metalness =0.0;
         const primitive=new Mesh(geometry,pbr);
         primitive.scale.set(3,3,3)
@@ -110,25 +110,19 @@
 
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
         pointLight.position=new Vector3(0,25,0);
-        const urls=[
-           `./textures/environment/px.jpg`,
-            `./textures/environment/nx.jpg`,
-            `./textures/environment/py.jpg`,
-            `./textures/environment/ny.jpg`,
-            `./textures/environment/pz.jpg`,
-            `./textures/environment/nz.jpg`,
-        ]
-        const skybox=new SkyBox(urls);
-        const env=await CubeTextureLoader(urls);
-        scene.environment=env.texture;
+        const skybox=new SkyBox(environmentUrls);
         scene.add(primitive);
         scene.add(skybox);
         scene.setCamera(camera);
         scene.addLight(pointLight);
+        const control=new OrbitControl(camera,document.getElementById('app'));
+        control.zoomSpeed = 2.0;
+        control.maxPolarAngle = Math.PI / 2;
         function animate() {
-            primitive.rotateY(0.01)
-            primitive.rotateX(0.01)
+            // primitive.rotateY(0.01)
+            // primitive.rotateX(0.01)
             requestAnimationFrame( animate );
+            control.update();
             scene.render()
         }
         // document.body.appendChild(scene.context.canvas);

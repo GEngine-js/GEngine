@@ -49,7 +49,8 @@
         CubeTextureLoader,
         SphereGeometry,
         PbrMat,
-        loadGLTF
+        loadGLTF,
+        OrbitControl
     } from '../dist/index.js';
 
      const  init= async()=>{
@@ -80,7 +81,7 @@
         const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
         camera.position=new Vector3(4,0,4);
         camera.target=new Vector3(0,0,0);
-
+        const control=new OrbitControl(camera,document.getElementById('app'));
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
         pointLight.position=new Vector3(0,25,0);
         const urls=[
@@ -97,8 +98,9 @@
         scene.setCamera(camera);
         scene.addLight(pointLight);
         function animate() {
-            primitive.rotateZ(0.01)
+            // primitive.rotateZ(0.01)
             requestAnimationFrame( animate );
+            control.update()
             scene.render()
         }
         animate()

@@ -1,8 +1,6 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
-let scratchArrayBuffer = new ArrayBuffer(4);
-
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
 //#rrggbbaa

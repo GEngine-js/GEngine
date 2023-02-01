@@ -12,18 +12,6 @@ import GMath from "./Math";
  * @param {Number} [z=0.0] The Z component.
  */
 class Vector3 {
-    sub(target: any) {
-        throw new Error("Method not implemented.");
-    }
-    applyQuaternion(quat: any) {
-        throw new Error("Method not implemented.");
-    }
-    setFromSpherical(spherical: any) {
-        throw new Error("Method not implemented.");
-    }
-    distanceToSquared(position: any) {
-        throw new Error("Method not implemented.");
-    }
   /**
  * An immutable Vector3 instance initialized to (0.0, 0.0, 0.0).
  *
@@ -106,6 +94,42 @@ class Vector3 {
     Vector3.subtract(this,v,this);
     return this;
   }
+  applyQuaternion( q ) {
+
+		const x = this.x, y = this.y, z = this.z;
+		const qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+
+		// calculate quat * vector
+
+		const ix = qw * x + qy * z - qz * y;
+		const iy = qw * y + qz * x - qx * z;
+		const iz = qw * z + qx * y - qy * x;
+		const iw = - qx * x - qy * y - qz * z;
+
+		// calculate result * inverse quat
+
+		this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+		this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+		this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
+
+		return this;
+
+	}
+  setFromMatrixColumn( m, index ) {
+
+		return this.fromArray( m.elements, index * 4 );
+
+	}
+  fromArray( array, offset = 0 ) {
+
+		this.x = array[ offset ];
+		this.y = array[ offset + 1 ];
+		this.z = array[ offset + 2 ];
+
+		return this;
+
+	}
+
   multiplyByScalar(scale){
     Vector3.multiplyByScalar(this,scale,this);
     return this;
@@ -219,18 +243,14 @@ class Vector3 {
  * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
  */
   static fromSpherical(spherical, result) {
-
     if (!defined(result)) {
       result = new Vector3();
     }
-
-    const clock = spherical.clock;
-    const cone = spherical.cone;
-    const magnitude = defaultValue(spherical.magnitude, 1.0);
-    const radial = magnitude * Math.sin(cone);
-    result.x = radial * Math.cos(clock);
-    result.y = radial * Math.sin(clock);
-    result.z = magnitude * Math.cos(cone);
+    const {phi,radius,theta}=spherical
+		const sinPhiRadius = Math.sin( phi ) * radius;
+		result.x = sinPhiRadius * Math.sin( theta );
+		result.y = Math.cos( phi ) * radius;
+		result.z = sinPhiRadius * Math.cos( theta );
     return result;
   };
 

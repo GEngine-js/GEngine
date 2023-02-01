@@ -18,21 +18,21 @@ import Matrix3 from "./Matrix3";
  */
 export class Quaternion {
   /**
- * The number of elements used to pack the object into an array.
- * @type {Number}
- */
+   * The number of elements used to pack the object into an array.
+   * @type {Number}
+   */
   public static packedLength = 4;
   /**
- * The number of elements used to store the object into an array in its interpolatable form.
- * @type {Number}
- */
+   * The number of elements used to store the object into an array in its interpolatable form.
+   * @type {Number}
+   */
   public static packedInterpolationLength = 3;
   /**
- * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
- *
- * @type {Quaternion}
- * @constant
- */
+   * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
+   *
+   * @type {Quaternion}
+   * @constant
+   */
   public static ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
 
   /**
@@ -43,13 +43,16 @@ export class Quaternion {
    */
   public static IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
 
-  constructor(public x: number = 0, public y: number = 0, public z: number = 0, public w: number = 1) {
-
-  }
+  constructor(
+    public x: number = 0,
+    public y: number = 0,
+    public z: number = 0,
+    public w: number = 1
+  ) {}
   /**
- * Computes the normalized form of the provided quaternion.
- */
-normalize() {
+   * Computes the normalized form of the provided quaternion.
+   */
+  normalize() {
     const inverseMagnitude = 1.0 / Quaternion.magnitude(this);
     const x = this.x * inverseMagnitude;
     const y = this.y * inverseMagnitude;
@@ -62,61 +65,54 @@ normalize() {
     this.w = w;
     return this;
   }
-  invert(){
-		this.x *= - 1;
-		this.y *= - 1;
-		this.z *= - 1;
+  invert() {
+    this.x *= -1;
+    this.y *= -1;
+    this.z *= -1;
 
-		this._onChangeCallback();
+    // this._onChangeCallback();
 
-		return this;
+    return this;
   }
-  setFromUnitVectors( vFrom:Vector3, vTo:Vector3 ) {
+  dot(v) {
+    return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+  }
+  setFromUnitVectors(vFrom: Vector3, vTo: Vector3) {
+    // assumes direction vectors vFrom and vTo are normalized
+    let r = Vector3.dot(vFrom, vTo) + 1;
+    if (r < Number.EPSILON) {
+      // vFrom and vTo point in opposite directions
 
-		// assumes direction vectors vFrom and vTo are normalized
-    let r =Vector3.dot(vFrom,vTo)+1
-		if ( r < Number.EPSILON ) {
+      r = 0;
 
-			// vFrom and vTo point in opposite directions
+      if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
+        this.x = -vFrom.y;
+        this.y = vFrom.x;
+        this.z = 0;
+        this.w = r;
+      } else {
+        this.x = 0;
+        this.y = -vFrom.z;
+        this.z = vFrom.y;
+        this.w = r;
+      }
+    } else {
+      // crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
 
-			r = 0;
+      this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+      this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+      this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
+      this._w = r;
+    }
 
-			if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
-
-				this.x = - vFrom.y;
-				this.y = vFrom.x;
-				this.z = 0;
-				this.w = r;
-
-			} else {
-
-				this.x = 0;
-				this.y = - vFrom.z;
-				this.z = vFrom.y;
-				this.w = r;
-
-			}
-
-		} else {
-
-			// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
-
-			this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
-			this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
-			this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
-			this._w = r;
-
-		}
-
-		return this.normalize();
-
-	}
+    return this.normalize();
+  }
   /**
- * Duplicates this Quaternion instance.
- */
+   * Duplicates this Quaternion instance.
+   */
   clone() {
     return Quaternion.clone(this, this);
-  };
+  }
 
   /**
    * Compares this and the provided quaternion componentwise and returns
@@ -127,7 +123,7 @@ normalize() {
    */
   equals(right) {
     return Quaternion.equals(this, right);
-  };
+  }
 
   /**
    * Compares this and the provided quaternion componentwise and returns
@@ -140,8 +136,7 @@ normalize() {
    */
   equalsEpsilon(right, epsilon) {
     return Quaternion.equalsEpsilon(this, right, epsilon);
-  };
-
+  }
 
   /**
    * Computes a quaternion representing a rotation around an axis.
@@ -161,7 +156,7 @@ normalize() {
     const z = fromAxisAngleScratch.z * s;
     const w = Math.cos(halfAngle);
     // if (!defined(result)) {
-    //   return 
+    //   return
     // }
     let result = new Quaternion(x, y, z, w);
     result.x = x;
@@ -216,9 +211,9 @@ normalize() {
 
       root = Math.sqrt(
         matrix[Matrix3.getElementIndex(i, i)] -
-        matrix[Matrix3.getElementIndex(j, j)] -
-        matrix[Matrix3.getElementIndex(k, k)] +
-        1.0
+          matrix[Matrix3.getElementIndex(j, j)] -
+          matrix[Matrix3.getElementIndex(k, k)] +
+          1.0
       );
 
       const quat = fromRotationMatrixQuat;
@@ -252,14 +247,14 @@ normalize() {
     return result;
   }
   /**
- * Computes a rotation from the given heading, pitch and roll angles. Heading is the rotation about the
- * negative z axis. Pitch is the rotation about the negative y axis. Roll is the rotation about
- * the positive x axis.
- *
- * @param {HeadingPitchRoll} headingPitchRoll The rotation expressed as a heading, pitch and roll.
- * @param {Quaternion} [result] The object onto which to store the result.
- * @returns {Quaternion} The modified result parameter or a new Quaternion instance if none was provided.
- */
+   * Computes a rotation from the given heading, pitch and roll angles. Heading is the rotation about the
+   * negative z axis. Pitch is the rotation about the negative y axis. Roll is the rotation about
+   * the positive x axis.
+   *
+   * @param {HeadingPitchRoll} headingPitchRoll The rotation expressed as a heading, pitch and roll.
+   * @param {Quaternion} [result] The object onto which to store the result.
+   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if none was provided.
+   */
   static fromHeadingPitchRoll(headingPitchRoll, result) {
     scratchRollQuaternion = Quaternion.fromAxisAngle(
       Vector3.UNIT_X,
@@ -323,18 +318,19 @@ normalize() {
     return result;
   }
   /**
- * Converts a packed array into a form suitable for interpolation.
- *
- * @param {Number[]} packedArray The packed array.
- * @param {Number} [startingIndex=0] The index of the first element to be converted.
- * @param {Number} [lastIndex=packedArray.length] The index of the last element to be converted.
- * @param {Number[]} [result] The object into which to store the result.
- */
+   * Converts a packed array into a form suitable for interpolation.
+   *
+   * @param {Number[]} packedArray The packed array.
+   * @param {Number} [startingIndex=0] The index of the first element to be converted.
+   * @param {Number} [lastIndex=packedArray.length] The index of the last element to be converted.
+   * @param {Number[]} [result] The object into which to store the result.
+   */
   static convertPackedArrayForInterpolation(
     packedArray,
     startingIndex,
     lastIndex,
-    result) {
+    result
+  ) {
     Quaternion.unpack(
       packedArray,
       lastIndex * 4,
@@ -380,21 +376,22 @@ normalize() {
     }
   }
   /**
- * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
- *
- * @param {Number[]} array The array previously packed for interpolation.
- * @param {Number[]} sourceArray The original packed array.
- * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
- * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
- * @param {Quaternion} [result] The object into which to store the result.
- * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
- */
+   * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
+   *
+   * @param {Number[]} array The array previously packed for interpolation.
+   * @param {Number[]} sourceArray The original packed array.
+   * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
+   * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
+   * @param {Quaternion} [result] The object into which to store the result.
+   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
+   */
   static unpackInterpolationResult(
     array,
     sourceArray,
     firstIndex,
     lastIndex,
-    result) {
+    result
+  ) {
     if (!defined(result)) {
       result = new Quaternion();
     }
@@ -420,12 +417,12 @@ normalize() {
     );
   }
   /**
- * Duplicates a Quaternion instance.
- *
- * @param {Quaternion} quaternion The quaternion to duplicate.
- * @param {Quaternion} [result] The object onto which to store the result.
- * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided. (Returns undefined if quaternion is undefined)
- */
+   * Duplicates a Quaternion instance.
+   *
+   * @param {Quaternion} quaternion The quaternion to duplicate.
+   * @param {Quaternion} [result] The object onto which to store the result.
+   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided. (Returns undefined if quaternion is undefined)
+   */
   static clone(quaternion, result) {
     if (!defined(quaternion)) {
       return undefined;
@@ -484,12 +481,12 @@ normalize() {
     return Math.sqrt(Quaternion.magnitudeSquared(quaternion));
   }
   /**
- * Computes the normalized form of the provided quaternion.
- *
- * @param {Quaternion} quaternion The quaternion to normalize.
- * @param {Quaternion} result The object onto which to store the result.
- * @returns {Quaternion} The modified result parameter.
- */
+   * Computes the normalized form of the provided quaternion.
+   *
+   * @param {Quaternion} quaternion The quaternion to normalize.
+   * @param {Quaternion} result The object onto which to store the result.
+   * @returns {Quaternion} The modified result parameter.
+   */
   static normalize(quaternion, result) {
     const inverseMagnitude = 1.0 / Quaternion.magnitude(quaternion);
     const x = quaternion.x * inverseMagnitude;
@@ -524,13 +521,12 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static add(left, right, result) {
-
     result.x = left.x + right.x;
     result.y = left.y + right.y;
     result.z = left.z + right.z;
     result.w = left.w + right.w;
     return result;
-  };
+  }
 
   /**
    * Computes the componentwise difference of two quaternions.
@@ -541,13 +537,12 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static subtract(left, right, result) {
-
     result.x = left.x - right.x;
     result.y = left.y - right.y;
     result.z = left.z - right.z;
     result.w = left.w - right.w;
     return result;
-  };
+  }
 
   /**
    * Negates the provided quaternion.
@@ -557,13 +552,12 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static negate(quaternion, result) {
-
     result.x = -quaternion.x;
     result.y = -quaternion.y;
     result.z = -quaternion.z;
     result.w = -quaternion.w;
     return result;
-  };
+  }
 
   /**
    * Computes the dot (scalar) product of two quaternions.
@@ -573,11 +567,10 @@ normalize() {
    * @returns {Number} The dot product.
    */
   static dot(left, right) {
-
     return (
       left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w
     );
-  };
+  }
 
   /**
    * Computes the product of two quaternions.
@@ -588,7 +581,6 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static multiply(left, right, result) {
-
     const leftX = left.x;
     const leftY = left.y;
     const leftZ = left.z;
@@ -609,7 +601,7 @@ normalize() {
     result.z = z;
     result.w = w;
     return result;
-  };
+  }
   /**
    * Multiplies the provided quaternion componentwise by the provided scalar.
    *
@@ -619,13 +611,12 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static multiplyByScalar(quaternion, scalar, result) {
-
     result.x = quaternion.x * scalar;
     result.y = quaternion.y * scalar;
     result.z = quaternion.z * scalar;
     result.w = quaternion.w * scalar;
     return result;
-  };
+  }
 
   /**
    * Divides the provided quaternion componentwise by the provided scalar.
@@ -636,13 +627,12 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static divideByScalar(quaternion, scalar, result) {
-
     result.x = quaternion.x / scalar;
     result.y = quaternion.y / scalar;
     result.z = quaternion.z / scalar;
     result.w = quaternion.w / scalar;
     return result;
-  };
+  }
 
   /**
    * Computes the axis of rotation of the provided quaternion.
@@ -652,7 +642,6 @@ normalize() {
    * @returns {Vector3} The modified result parameter.
    */
   static computeAxis(quaternion, result) {
-
     const w = quaternion.w;
     if (Math.abs(w - 1.0) < GMath.EPSILON6) {
       result.x = result.y = result.z = 0;
@@ -665,7 +654,7 @@ normalize() {
     result.y = quaternion.y * scalar;
     result.z = quaternion.z * scalar;
     return result;
-  };
+  }
 
   /**
    * Computes the angle of rotation of the provided quaternion.
@@ -674,13 +663,11 @@ normalize() {
    * @returns {Number} The angle of rotation.
    */
   static computeAngle(quaternion) {
-
     if (Math.abs(quaternion.w - 1.0) < GMath.EPSILON6) {
       return 0.0;
     }
     return 2.0 * Math.acos(quaternion.w);
-  };
-
+  }
 
   /**
    * Computes the linear interpolation or extrapolation at t using the provided quaternions.
@@ -692,12 +679,10 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static lerp(start, end, t, result) {
-
     lerpScratch = Quaternion.multiplyByScalar(end, t, lerpScratch);
     result = Quaternion.multiplyByScalar(start, 1.0 - t, result);
     return Quaternion.add(lerpScratch, result, result);
-  };
-
+  }
 
   /**
    * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
@@ -711,7 +696,6 @@ normalize() {
    * @see Quaternion#fastSlerp
    */
   static slerp(start, end, t, result) {
-
     let dot = Quaternion.dot(start, end);
 
     // The angle between start must be acute. Since q and -q represent
@@ -741,7 +725,7 @@ normalize() {
     );
     result = Quaternion.add(slerpScaledP, slerpScaledR, result);
     return Quaternion.multiplyByScalar(result, 1.0 / Math.sin(theta), result);
-  };
+  }
   /**
    * Computes an inner quadrangle point.
    * <p>This will compute quaternions that ensure a squad curve is C<sup>1</sup>.</p>
@@ -755,13 +739,18 @@ normalize() {
    * @see Quaternion#squad
    */
   static computeInnerQuadrangle(q0, q1, q2, result) {
-
     const qInv = Quaternion.conjugate(q1, squadScratchQuaternion0);
     Quaternion.multiply(qInv, q2, squadScratchQuaternion1);
-    const cart0 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian0);
+    const cart0 = Quaternion.log(
+      squadScratchQuaternion1,
+      squadScratchCartesian0
+    );
 
     Quaternion.multiply(qInv, q0, squadScratchQuaternion1);
-    const cart1 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian1);
+    const cart1 = Quaternion.log(
+      squadScratchQuaternion1,
+      squadScratchCartesian1
+    );
 
     Vector3.add(cart0, cart1, cart0);
     Vector3.multiplyByScalar(cart0, 0.25, cart0);
@@ -769,7 +758,7 @@ normalize() {
     Quaternion.exp(cart0, squadScratchQuaternion0);
 
     return Quaternion.multiply(q1, squadScratchQuaternion0, result);
-  };
+  }
 
   /**
    * Computes the spherical quadrangle interpolation between quaternions.
@@ -796,12 +785,10 @@ normalize() {
    * @see Quaternion#computeInnerQuadrangle
    */
   static squad(q0, q1, s0, s1, t, result) {
-
     const slerp0 = Quaternion.slerp(q0, q1, t, squadScratchQuaternion0);
     const slerp1 = Quaternion.slerp(s0, s1, t, squadScratchQuaternion1);
     return Quaternion.slerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
-  };
-
+  }
 
   /**
    * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
@@ -816,7 +803,6 @@ normalize() {
    * @see Quaternion#slerp
    */
   static fastSlerp(start, end, t, result) {
-
     let x = Quaternion.dot(start, end);
 
     let sign;
@@ -842,28 +828,28 @@ normalize() {
       t *
       (1.0 +
         bT[0] *
-        (1.0 +
-          bT[1] *
           (1.0 +
-            bT[2] *
-            (1.0 +
-              bT[3] *
+            bT[1] *
               (1.0 +
-                bT[4] *
-                (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7]))))))));
+                bT[2] *
+                  (1.0 +
+                    bT[3] *
+                      (1.0 +
+                        bT[4] *
+                          (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7]))))))));
     const cD =
       d *
       (1.0 +
         bD[0] *
-        (1.0 +
-          bD[1] *
           (1.0 +
-            bD[2] *
-            (1.0 +
-              bD[3] *
+            bD[1] *
               (1.0 +
-                bD[4] *
-                (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7]))))))));
+                bD[2] *
+                  (1.0 +
+                    bD[3] *
+                      (1.0 +
+                        bD[4] *
+                          (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7]))))))));
 
     const temp = Quaternion.multiplyByScalar(
       start,
@@ -872,7 +858,7 @@ normalize() {
     );
     Quaternion.multiplyByScalar(end, cT, result);
     return Quaternion.add(temp, result, result);
-  };
+  }
 
   /**
    * Computes the spherical quadrangle interpolation between quaternions.
@@ -889,11 +875,10 @@ normalize() {
    * @see Quaternion#squad
    */
   static fastSquad(q0, q1, s0, s1, t, result) {
-
     const slerp0 = Quaternion.fastSlerp(q0, q1, t, squadScratchQuaternion0);
     const slerp1 = Quaternion.fastSlerp(s0, s1, t, squadScratchQuaternion1);
     return Quaternion.fastSlerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
-  };
+  }
 
   /**
    * Compares the provided quaternions componentwise and returns
@@ -913,7 +898,7 @@ normalize() {
         left.z === right.z &&
         left.w === right.w)
     );
-  };
+  }
 
   /**
    * Compares the provided quaternions componentwise and returns
@@ -937,7 +922,7 @@ normalize() {
         Math.abs(left.z - right.z) <= epsilon &&
         Math.abs(left.w - right.w) <= epsilon)
     );
-  };
+  }
   /**
    * The logarithmic quaternion function.
    *
@@ -946,7 +931,6 @@ normalize() {
    * @returns {Vector3} The modified result parameter.
    */
   static log(quaternion, result) {
-
     const theta = GMath.acosClamped(quaternion.w);
     let thetaOverSinTheta = 0.0;
 
@@ -955,7 +939,7 @@ normalize() {
     }
 
     return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
-  };
+  }
 
   /**
    * The exponential quaternion function.
@@ -965,7 +949,6 @@ normalize() {
    * @returns {Quaternion} The modified result parameter.
    */
   static exp(cartesian, result) {
-
     const theta = Vector3.magnitude(cartesian);
     let sinThetaOverTheta = 0.0;
 
@@ -979,14 +962,13 @@ normalize() {
     result.w = Math.cos(theta);
 
     return result;
-  };
+  }
 }
 
 let fromAxisAngleScratch = new Vector3();
 
 const fromRotationMatrixNext = [1, 2, 0];
 const fromRotationMatrixQuat = new Array(3);
-
 
 const scratchHPRQuaternion = new Quaternion();
 let scratchHeadingQuaternion = new Quaternion();
@@ -1022,7 +1004,6 @@ for (let i = 0; i < 7; ++i) {
 
 u[7] = opmu / (8.0 * 17.0);
 v[7] = (opmu * 8.0) / 17.0;
-
 
 const squadScratchCartesian0 = new Vector3();
 const squadScratchCartesian1 = new Vector3();
