@@ -79,8 +79,8 @@
         primitive.scale.set(2.2,2.2,2.2)
         primitive.rotateX(Math.PI/2)
         const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
-        camera.position=new Vector3(4,0,4);
-        camera.target=new Vector3(0,0,0);
+        camera.position.set(4,0,4);
+        camera.lookAt(0,0,0);
         const control=new OrbitControl(camera,document.getElementById('app'));
         const pointLight=new PointLight(new Vector3(1.0,1.0,1.0),10,65,1)
         pointLight.position=new Vector3(0,25,0);

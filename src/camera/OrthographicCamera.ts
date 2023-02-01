@@ -4,6 +4,11 @@ import Camera from "./Camera";
 export default class OrthographicCamera extends Camera {
   private rightDis: number;
   isOrthographicCamera: boolean;
+  bottom: number;
+  left: number;
+  near: number;
+  far: number;
+  top: number;
   constructor(
     left: number = -1,
     right: number = 1,
@@ -36,7 +41,7 @@ export default class OrthographicCamera extends Camera {
   protected updateProjectionMatrix() {
     if (this.projectMatrixDirty) {
       const { left, right, top, bottom } = this.updateCameraParms();
-      this.projectionMatrix = Matrix4.makeOrthographic(
+      this._projectionMatrix = Matrix4.makeOrthographic(
         left,
         right,
         top,

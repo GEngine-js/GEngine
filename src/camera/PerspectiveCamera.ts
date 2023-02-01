@@ -10,6 +10,10 @@ export default class PerspectiveCamera extends Camera {
   height: number;
   width: number;
   isPerspectiveCamera: boolean;
+  near: number;
+  far: number;
+  top: number;
+  left: number;
   constructor(
     fov: number = 50,
     aspect: number = 1,
@@ -53,7 +57,7 @@ export default class PerspectiveCamera extends Camera {
   protected updateProjectionMatrix() {
     if (this.projectMatrixDirty) {
       this.updateCameraParms();
-      this.projectionMatrix = Matrix4.makePerspective(
+      this._projectionMatrix = Matrix4.makePerspective(
         this.left,
         this.left + this.width,
         this.top,

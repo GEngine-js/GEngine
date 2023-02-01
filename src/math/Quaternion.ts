@@ -18,16 +18,6 @@ import Matrix3 from "./Matrix3";
  */
 export class Quaternion {
   /**
-   * The number of elements used to pack the object into an array.
-   * @type {Number}
-   */
-  public static packedLength = 4;
-  /**
-   * The number of elements used to store the object into an array in its interpolatable form.
-   * @type {Number}
-   */
-  public static packedInterpolationLength = 3;
-  /**
    * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
    *
    * @type {Quaternion}
@@ -106,6 +96,50 @@ export class Quaternion {
     }
 
     return this.normalize();
+  }
+  setFromRotationMatrix(matrix) {
+    const te = matrix,
+      m11 = te[0],
+      m12 = te[4],
+      m13 = te[8],
+      m21 = te[1],
+      m22 = te[5],
+      m23 = te[9],
+      m31 = te[2],
+      m32 = te[6],
+      m33 = te[10],
+      trace = m11 + m22 + m33;
+
+    if (trace > 0) {
+      const s = 0.5 / Math.sqrt(trace + 1.0);
+
+      this.w = 0.25 / s;
+      this.x = (m32 - m23) * s;
+      this.y = (m13 - m31) * s;
+      this.z = (m21 - m12) * s;
+    } else if (m11 > m22 && m11 > m33) {
+      const s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
+
+      this.w = (m32 - m23) / s;
+      this.x = 0.25 * s;
+      this.y = (m12 + m21) / s;
+      this.z = (m13 + m31) / s;
+    } else if (m22 > m33) {
+      const s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
+
+      this.w = (m13 - m31) / s;
+      this.x = (m12 + m21) / s;
+      this.y = 0.25 * s;
+      this.z = (m23 + m32) / s;
+    } else {
+      const s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
+
+      this.w = (m21 - m12) / s;
+      this.x = (m13 + m31) / s;
+      this.y = (m23 + m32) / s;
+      this.z = 0.25 * s;
+    }
+    return this;
   }
   /**
    * Duplicates this Quaternion instance.
@@ -279,45 +313,6 @@ export class Quaternion {
     return Quaternion.multiply(scratchHeadingQuaternion, result, result);
   }
   /**
-   * Stores the provided instance into the provided array.
-   *
-   * @param {Quaternion} value The value to pack.
-   * @param {Number[]} array The array to pack into.
-   * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
-   *
-   * @returns {Number[]} The array that was packed into
-   */
-  static pack(value, array, startingIndex) {
-    startingIndex = defaultValue(startingIndex, 0);
-
-    array[startingIndex++] = value.x;
-    array[startingIndex++] = value.y;
-    array[startingIndex++] = value.z;
-    array[startingIndex] = value.w;
-
-    return array;
-  }
-  /**
-   * Retrieves an instance from a packed array.
-   *
-   * @param {Number[]} array The packed array.
-   * @param {Number} [startingIndex=0] The starting index of the element to be unpacked.
-   * @param {Quaternion} [result] The object into which to store the result.
-   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-   */
-  static unpack(array, startingIndex, result) {
-    startingIndex = defaultValue(startingIndex, 0);
-
-    if (!defined(result)) {
-      result = new Quaternion();
-    }
-    result.x = array[startingIndex];
-    result.y = array[startingIndex + 1];
-    result.z = array[startingIndex + 2];
-    result.w = array[startingIndex + 3];
-    return result;
-  }
-  /**
    * Converts a packed array into a form suitable for interpolation.
    *
    * @param {Number[]} packedArray The packed array.
@@ -374,47 +369,6 @@ export class Quaternion {
       result[offset + 1] = sampledQuaternionAxis.y * angle;
       result[offset + 2] = sampledQuaternionAxis.z * angle;
     }
-  }
-  /**
-   * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
-   *
-   * @param {Number[]} array The array previously packed for interpolation.
-   * @param {Number[]} sourceArray The original packed array.
-   * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
-   * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
-   * @param {Quaternion} [result] The object into which to store the result.
-   * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-   */
-  static unpackInterpolationResult(
-    array,
-    sourceArray,
-    firstIndex,
-    lastIndex,
-    result
-  ) {
-    if (!defined(result)) {
-      result = new Quaternion();
-    }
-    Vector3.fromArray(array, 0, sampledQuaternionRotation);
-    const magnitude = Vector3.magnitude(sampledQuaternionRotation);
-
-    Quaternion.unpack(sourceArray, lastIndex * 4, sampledQuaternionQuaternion0);
-
-    if (magnitude === 0) {
-      Quaternion.clone(Quaternion.IDENTITY, sampledQuaternionTempQuaternion);
-    } else {
-      Quaternion.fromAxisAngle(
-        sampledQuaternionRotation,
-        magnitude,
-        sampledQuaternionTempQuaternion
-      );
-    }
-
-    return Quaternion.multiply(
-      sampledQuaternionTempQuaternion,
-      sampledQuaternionQuaternion0,
-      result
-    );
   }
   /**
    * Duplicates a Quaternion instance.

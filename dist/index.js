@@ -6250,6 +6250,39 @@ class Matrix4 {
         return Matrix4.equalsEpsilon(this, right, epsilon);
     }
     ;
+    lookAt(eye, target, up) {
+        const matrix = this;
+        Vector3.subtract(eye, target, z);
+        if (z.length() === 0) {
+            // eye and target are in the same position
+            z.z = 1;
+        }
+        z.normalize();
+        Vector3.cross(up, z, x);
+        if (x.length() === 0) {
+            // up and z are parallel
+            if (Math.abs(up.z) === 1) {
+                z.x += 0.0001;
+            }
+            else {
+                z.z += 0.0001;
+            }
+            z.normalize();
+            Vector3.cross(up, z, x);
+        }
+        x.normalize();
+        Vector3.cross(z, x, y);
+        matrix[0] = x.x;
+        matrix[4] = y.x;
+        matrix[8] = z.x;
+        matrix[1] = x.y;
+        matrix[5] = y.y;
+        matrix[9] = z.y;
+        matrix[2] = x.z;
+        matrix[6] = y.z;
+        matrix[10] = z.z;
+        return this;
+    }
     /**
      * Computes a string representing this Matrix with each row being
      * on a separate line and in the format '(column0, column1, column2, column3)'.
@@ -8346,6 +8379,9 @@ const scratchInverseRotation = new Matrix3();
 const scratchMatrix3Zero = new Matrix3();
 const scratchBottomRow = new Vector4();
 const scratchExpectedBottomRow = new Vector4(0.0, 0.0, 0.0, 1.0);
+const x = new Vector3();
+const y = new Vector3();
+const z = new Vector3();
 
 class Uniform {
     constructor(uniformName, cb, binding) {
@@ -9820,6 +9856,38 @@ class Quaternion {
         }
         return this.normalize();
     }
+    setFromRotationMatrix(matrix) {
+        const te = matrix, m11 = te[0], m12 = te[4], m13 = te[8], m21 = te[1], m22 = te[5], m23 = te[9], m31 = te[2], m32 = te[6], m33 = te[10], trace = m11 + m22 + m33;
+        if (trace > 0) {
+            const s = 0.5 / Math.sqrt(trace + 1.0);
+            this.w = 0.25 / s;
+            this.x = (m32 - m23) * s;
+            this.y = (m13 - m31) * s;
+            this.z = (m21 - m12) * s;
+        }
+        else if (m11 > m22 && m11 > m33) {
+            const s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
+            this.w = (m32 - m23) / s;
+            this.x = 0.25 * s;
+            this.y = (m12 + m21) / s;
+            this.z = (m13 + m31) / s;
+        }
+        else if (m22 > m33) {
+            const s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
+            this.w = (m13 - m31) / s;
+            this.x = (m12 + m21) / s;
+            this.y = 0.25 * s;
+            this.z = (m23 + m32) / s;
+        }
+        else {
+            const s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
+            this.w = (m21 - m12) / s;
+            this.x = (m13 + m31) / s;
+            this.y = (m23 + m32) / s;
+            this.z = 0.25 * s;
+        }
+        return this;
+    }
     /**
      * Duplicates this Quaternion instance.
      */
@@ -9963,42 +10031,6 @@ class Quaternion {
         return Quaternion.multiply(scratchHeadingQuaternion, result, result);
     }
     /**
-     * Stores the provided instance into the provided array.
-     *
-     * @param {Quaternion} value The value to pack.
-     * @param {Number[]} array The array to pack into.
-     * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
-     *
-     * @returns {Number[]} The array that was packed into
-     */
-    static pack(value, array, startingIndex) {
-        startingIndex = defaultValue(startingIndex, 0);
-        array[startingIndex++] = value.x;
-        array[startingIndex++] = value.y;
-        array[startingIndex++] = value.z;
-        array[startingIndex] = value.w;
-        return array;
-    }
-    /**
-     * Retrieves an instance from a packed array.
-     *
-     * @param {Number[]} array The packed array.
-     * @param {Number} [startingIndex=0] The starting index of the element to be unpacked.
-     * @param {Quaternion} [result] The object into which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-     */
-    static unpack(array, startingIndex, result) {
-        startingIndex = defaultValue(startingIndex, 0);
-        if (!defined(result)) {
-            result = new Quaternion();
-        }
-        result.x = array[startingIndex];
-        result.y = array[startingIndex + 1];
-        result.z = array[startingIndex + 2];
-        result.w = array[startingIndex + 3];
-        return result;
-    }
-    /**
      * Converts a packed array into a form suitable for interpolation.
      *
      * @param {Number[]} packedArray The packed array.
@@ -10025,31 +10057,6 @@ class Quaternion {
             result[offset + 1] = sampledQuaternionAxis.y * angle;
             result[offset + 2] = sampledQuaternionAxis.z * angle;
         }
-    }
-    /**
-     * Retrieves an instance from a packed array converted with {@link convertPackedArrayForInterpolation}.
-     *
-     * @param {Number[]} array The array previously packed for interpolation.
-     * @param {Number[]} sourceArray The original packed array.
-     * @param {Number} [firstIndex=0] The firstIndex used to convert the array.
-     * @param {Number} [lastIndex=packedArray.length] The lastIndex used to convert the array.
-     * @param {Quaternion} [result] The object into which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-     */
-    static unpackInterpolationResult(array, sourceArray, firstIndex, lastIndex, result) {
-        if (!defined(result)) {
-            result = new Quaternion();
-        }
-        Vector3.fromArray(array, 0, sampledQuaternionRotation);
-        const magnitude = Vector3.magnitude(sampledQuaternionRotation);
-        Quaternion.unpack(sourceArray, lastIndex * 4, sampledQuaternionQuaternion0);
-        if (magnitude === 0) {
-            Quaternion.clone(Quaternion.IDENTITY, sampledQuaternionTempQuaternion);
-        }
-        else {
-            Quaternion.fromAxisAngle(sampledQuaternionRotation, magnitude, sampledQuaternionTempQuaternion);
-        }
-        return Quaternion.multiply(sampledQuaternionTempQuaternion, sampledQuaternionQuaternion0, result);
     }
     /**
      * Duplicates a Quaternion instance.
@@ -10528,16 +10535,6 @@ class Quaternion {
     }
 }
 /**
- * The number of elements used to pack the object into an array.
- * @type {Number}
- */
-Quaternion.packedLength = 4;
-/**
- * The number of elements used to store the object into an array in its interpolatable form.
- * @type {Number}
- */
-Quaternion.packedInterpolationLength = 3;
-/**
  * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
  *
  * @type {Quaternion}
@@ -10559,9 +10556,9 @@ let scratchHeadingQuaternion = new Quaternion();
 let scratchPitchQuaternion = new Quaternion();
 let scratchRollQuaternion = new Quaternion();
 const sampledQuaternionAxis = new Vector3();
-const sampledQuaternionRotation = new Vector3();
+new Vector3();
 const sampledQuaternionTempQuaternion = new Quaternion();
-const sampledQuaternionQuaternion0 = new Quaternion();
+new Quaternion();
 const sampledQuaternionQuaternion0Conjugate = new Quaternion();
 let lerpScratch = new Quaternion();
 let slerpEndNegated = new Quaternion();
@@ -10594,6 +10591,7 @@ class RenderObject {
         this._quaternion = new Quaternion();
         this.modelMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
         this._normalMatrix = Matrix3.clone(Matrix3.IDENTITY, new Matrix3());
+        this.up = new Vector3(0, 1, 0);
     }
     get normalMatrix() {
         return this._normalMatrix;
@@ -10615,6 +10613,18 @@ class RenderObject {
     updateMatrix() {
         this.modelMatrix = Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
     }
+    lookAt(x, y, z) {
+        _target.set(x, y, z);
+        if (this.isCamera || this.isLight) {
+            _m1.lookAt(this.position, _target, this.up);
+        }
+        else {
+            _m1.lookAt(_target, this.position, this.up);
+        }
+        // Matrix4.getRotation(_m1,_matrix3)
+        // Quaternion.fromRotationMatrix(_matrix3,this.quaternion);
+        this.quaternion.setFromRotationMatrix(_m1);
+    }
     rotateOnAxis(axis, angle) {
         const quat = Quaternion.fromAxisAngle(axis, angle);
         Quaternion.multiply(this.quaternion, quat, this.quaternion);
@@ -10632,6 +10642,9 @@ class RenderObject {
 const _xAxis = new Vector3(1, 0, 0);
 const _yAxis = new Vector3(0, 1, 0);
 const _zAxis = new Vector3(0, 0, 1);
+const _m1 = new Matrix4();
+const _target = new Vector3();
+new Matrix3();
 
 class Mesh extends RenderObject {
     constructor(geometry, material) {
@@ -16616,116 +16629,32 @@ const scratchPlaneCenter = new Vector3();
 const scratchPlaneNormal = new Vector3();
 const scratchPlane = new Plane(new Vector3(1.0, 0.0, 0.0), 0.0);
 
-class Camera {
+class Camera extends RenderObject {
     constructor() {
-        this.top = 0;
-        this.bottom = 0;
-        this.left = 0;
-        this.position = new Vector3(0, 0, 0);
-        this._up = new Vector3(0, 1, 0);
-        this._direction = new Vector3(0, 0, 1);
-        this._right = new Vector3(1, 0, 0);
-        this.dirUpRightDirty = false;
-        this.projectMatrixDirty = false;
-        this.targetDirty = false;
-        this._target = new Vector3();
-        this._projectionMatrix = new Matrix4();
-        this._inverseViewMatrix = new Matrix4();
-        this._viewMatrix = new Matrix4();
+        super();
+        this._viewMatrix = undefined;
+        this.isCamera = true;
         this.cullingVolume = new CullingVolume();
+        this._viewMatrix = new Matrix4();
+        this.projectMatrixDirty = true;
+    }
+    get viewMatrix() {
+        this.updateMatrix();
+        Matrix4.inverse(this.modelMatrix, this._viewMatrix);
+        return this._viewMatrix;
     }
     get projectionMatrix() {
         this.updateProjectionMatrix();
         return this._projectionMatrix;
     }
-    set projectionMatrix(v) {
-        this._projectionMatrix = v;
-    }
     get inverseViewMatrix() {
-        this.updateInverseViewMatrix();
-        return this._inverseViewMatrix;
-    }
-    get viewMatrix() {
-        this.updateViewMatrix();
-        return this._viewMatrix;
-    }
-    set viewMatrix(v) {
-        this._viewMatrix = v;
-    }
-    get target() {
-        return this._target;
-    }
-    set target(value) {
-        this.targetDirty = true;
-        this._target = value;
-    }
-    get near() {
-        return this._near;
-    }
-    set near(v) {
-        this.projectMatrixDirty = true;
-        this._near = v;
-    }
-    get far() {
-        return this._far;
-    }
-    set far(v) {
-        this.projectMatrixDirty = true;
-        this._far = v;
-    }
-    get up() {
-        return this._up;
-    }
-    set up(value) {
-        this._up = value;
-    }
-    get direction() {
-        return this._direction;
-    }
-    set direction(value) {
-        this._direction = value;
-    }
-    get right() {
-        return this._right;
-    }
-    set right(value) {
-        this._right = value;
-    }
-    updateDirUpRight() {
-        //暂时这么写
-        Vector3.subtract(this.position, this.target, this.direction);
-        Vector3.normalize(this.direction, this.direction);
-        Vector3.cross(this.up, this.direction, this.right);
-        if (this.right.length() === 0) {
-            // up and z are parallel
-            if (Math.abs(this.up.z) === 1) {
-                this.direction.x += 0.0001;
-            }
-            else {
-                this.direction.z += 0.0001;
-            }
-            this.direction = Vector3.normalize(this.direction, new Vector3());
-            Vector3.cross(this.up, this.direction, this.right);
-            // _x.crossVectors( up, _z );
-        }
-        Vector3.normalize(this.right, this.right);
-        Vector3.cross(this.direction, this.right, this.up);
-    }
-    updateInverseViewMatrix() {
-        this.updateViewMatrix();
-        Matrix4.inverseTransformation(this._viewMatrix, this._inverseViewMatrix);
-    }
-    updateViewMatrix() {
-        // if (this.targetDirty){
-        this.targetDirty = false;
-        this.updateDirUpRight();
-        Matrix4.computeView(this.position, this.direction, this.up, this.right, this._viewMatrix);
-        //}
+        this.updateMatrix();
+        return this.modelMatrix;
     }
     updateProjectionMatrix() { }
     /**
-   * get a culling volume for this frustum.
-   */
+     * get a culling volume for this frustum.
+     */
     getCullingVolume() {
         const cloneViewMatrix = this.viewMatrix.clone(new Matrix4());
         const vpMatrix = Matrix4.multiply(this.projectionMatrix, cloneViewMatrix, new Matrix4());
@@ -16788,7 +16717,7 @@ class PerspectiveCamera extends Camera {
     updateProjectionMatrix() {
         if (this.projectMatrixDirty) {
             this.updateCameraParms();
-            this.projectionMatrix = Matrix4.makePerspective(this.left, this.left + this.width, this.top, this.top - this.height, this.near, this.far);
+            this._projectionMatrix = Matrix4.makePerspective(this.left, this.left + this.width, this.top, this.top - this.height, this.near, this.far);
             this.projectMatrixDirty = false;
         }
     }

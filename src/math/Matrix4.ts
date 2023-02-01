@@ -182,6 +182,35 @@ class Matrix4 {
   equalsEpsilon(right, epsilon) {
     return Matrix4.equalsEpsilon(this, right, epsilon);
   };
+  lookAt( eye, target, up){
+		const matrix = this;
+     Vector3.subtract(eye, target,z)
+		if (z.length() === 0 ) {
+			// eye and target are in the same position
+			z.z = 1;
+		}
+		z.normalize();
+    Vector3.cross(up,z,x)
+		if (x.length() === 0 ) {
+
+			// up and z are parallel
+
+			if ( Math.abs( up.z ) === 1 ) {
+				z.x += 0.0001;
+			} else {
+				z.z += 0.0001;
+			}
+			z.normalize();
+      Vector3.cross(up, z,x)
+		}
+		x.normalize();
+    Vector3.cross(z,x,y)
+		matrix[ 0 ] = x.x; matrix[ 4 ] = y.x; matrix[ 8 ] = z.x;
+		matrix[ 1 ] = x.y; matrix[ 5 ] = y.y; matrix[ 9 ] = z.y;
+		matrix[ 2 ] = x.z; matrix[ 6 ] = y.z; matrix[ 10 ] = z.z;
+
+		return this;
+  }
 
   /**
    * Computes a string representing this Matrix with each row being
@@ -2578,7 +2607,6 @@ const fromCameraR = new Vector3();
 const fromCameraU = new Vector3();
 
 const scaleScratch1 = new Vector3();
-
 const scaleScratch2 = new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();
@@ -2588,5 +2616,7 @@ const scratchInverseRotation = new Matrix3();
 const scratchMatrix3Zero = new Matrix3();
 const scratchBottomRow = new Vector4();
 const scratchExpectedBottomRow = new Vector4(0.0, 0.0, 0.0, 1.0);
-
+const x=new Vector3();
+const y=new Vector3();
+const z=new Vector3();
 export default Matrix4;

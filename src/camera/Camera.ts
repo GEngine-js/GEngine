@@ -1,148 +1,37 @@
-
 import CullingVolume from "../core/CullingVolume";
+import RenderObject from "../core/RenderObject";
 import Matrix4 from "../math/Matrix4";
 import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
 
-export default class Camera {
-    top: number;
-    bottom: number;
-    left: number;
-    private _near: number;
-    private _far: number;
-    private _up: Vector3;
-    private _direction: Vector3;
-    private _right: Vector3;
-    private _projectionMatrix: Matrix4;
-    private _viewMatrix: Matrix4;
-    private _inverseViewMatrix: Matrix4;
-    position: Vector3;
-    _target:Vector3;
-    targetDirty:boolean;
-    dirUpRightDirty: boolean;
-    projectMatrixDirty: boolean;
-    cullingVolume: any;
-    constructor() {
-        this.top = 0;
-        this.bottom = 0;
-        this.left = 0;
-        this.position=new Vector3(0,0,0)
-        this._up = new Vector3(0, 1, 0);
-        this._direction = new Vector3(0, 0, 1);
-        this._right = new Vector3(1, 0, 0);
-        this.dirUpRightDirty = false;
-        this.projectMatrixDirty=false;
-        this.targetDirty=false;
-        this._target=new Vector3();
-        this._projectionMatrix = new Matrix4();
-        this._inverseViewMatrix = new Matrix4();
-        this._viewMatrix = new Matrix4();
-        this.cullingVolume = new CullingVolume();
-    }
-    get projectionMatrix(): Matrix4 {
-        this.updateProjectionMatrix();
-        return this._projectionMatrix;
-    }
-    
-      set projectionMatrix(v: Matrix4) {
-        this._projectionMatrix = v;
-      }
-    
-      get inverseViewMatrix(): Matrix4 {
-        this.updateInverseViewMatrix();
-        return this._inverseViewMatrix;
-      }
-      get viewMatrix(): Matrix4 {
-        this.updateViewMatrix();
-        return this._viewMatrix;
-      }
-    
-      set viewMatrix(v: Matrix4) {
-        this._viewMatrix = v;
-      }
-    get target(){
-        return this._target;
-    }
-    set target(value){
-        this.targetDirty=true;
-        this._target=value;
-    }
-    get near(): number {
-        return this._near
-    }
-
-    set near(v: number) {
-        this.projectMatrixDirty=true;
-        this._near = v;
-    }
-    get far(): number {
-        return this._far
-    }
-
-    set far(v: number) {
-        this.projectMatrixDirty=true;
-        this._far = v;
-    }
-    get up() {
-        return this._up;
-    }
-    set up(value) {
-        this._up = value;
-    }
-    get direction() {
-        return this._direction;
-    }
-    set direction(value) {
-        this._direction = value;
-    }
-    get right() {
-        return this._right;
-    }
-    set right(value) {
-        this._right = value;
-    }
-    private updateDirUpRight() {
-        //暂时这么写
-        Vector3.subtract(this.position, this.target, this.direction);
-    
-        Vector3.normalize(this.direction, this.direction);
-    
-        Vector3.cross(this.up, this.direction, this.right);
-        if (this.right.length() === 0) {
-          // up and z are parallel
-          if (Math.abs(this.up.z) === 1) {
-            this.direction.x += 0.0001;
-          } else {
-            this.direction.z += 0.0001;
-          }
-          this.direction = Vector3.normalize(this.direction, new Vector3());
-          Vector3.cross(this.up, this.direction, this.right);
-          // _x.crossVectors( up, _z );
-        }
-    
-        Vector3.normalize(this.right, this.right);
-    
-        Vector3.cross(this.direction, this.right, this.up);
-      }
-    private updateInverseViewMatrix() {
-        this.updateViewMatrix();
-        Matrix4.inverseTransformation(this._viewMatrix, this._inverseViewMatrix);
-    }
-    private updateViewMatrix() {
-        // if (this.targetDirty){
-        this.targetDirty = false;
-        this.updateDirUpRight();
-        Matrix4.computeView(
-          this.position,
-          this.direction,
-          this.up,
-          this.right,
-          this._viewMatrix
-        );
-        //}
-      }
-    protected updateProjectionMatrix(){}
-    /**
+export default class Camera extends RenderObject {
+  private _viewMatrix: Matrix4;
+  protected _projectionMatrix: Matrix4;
+  cullingVolume: CullingVolume;
+  projectMatrixDirty: boolean;
+  constructor() {
+    super();
+    this._viewMatrix = undefined;
+    this.isCamera = true;
+    this.cullingVolume = new CullingVolume();
+    this._viewMatrix=new Matrix4();
+    this.projectMatrixDirty = true;
+  }
+  get viewMatrix() {
+    this.updateMatrix();
+    Matrix4.inverse(this.modelMatrix, this._viewMatrix);
+    return this._viewMatrix;
+  }
+  get projectionMatrix() {
+    this.updateProjectionMatrix();
+    return this._projectionMatrix;
+  }
+  get inverseViewMatrix(){
+    this.updateMatrix();
+    return this.modelMatrix;
+  }
+  protected updateProjectionMatrix() {}
+  /**
    * get a culling volume for this frustum.
    */
   getCullingVolume() {
