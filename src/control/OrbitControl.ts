@@ -255,21 +255,21 @@ export default class OrbitControl extends EventDispatcher {
     // min(camera displacement, camera rotation in radians)^2 > EPS
     // using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
-    // if (
-    //   zoomChanged ||
-    //   Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
-    //   8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
-    // ) {
-    //     that.dispatchEvent(_changeEvent);
+    if (
+      zoomChanged ||
+      Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
+      8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
+    ) {
+        that.dispatchEvent(_changeEvent);
 
-    //   //lastPosition.copy( this.object.position );
-    //   Vector3.clone(that.object.position, lastPosition);
-    //   Quaternion.clone(that.object.quaternion, lastQuaternion);
-    //   //lastQuaternion.copy( this.object.quaternion );
-    //   zoomChanged = false;
+      //lastPosition.copy( this.object.position );
+      Vector3.clone(that.object.position, lastPosition);
+      Quaternion.clone(that.object.quaternion, lastQuaternion);
+      //lastQuaternion.copy( this.object.quaternion );
+      zoomChanged = false;
 
-    //   return true;
-    // }
+      return true;
+    }
 
     return false;
 }
@@ -317,7 +317,7 @@ export default class OrbitControl extends EventDispatcher {
 
   private init() {
     const that = this;
-    const panLeft = (function () {
+    const panLeft = function () {
         const v = new Vector3();
       
         return function panLeft(distance, objectMatrix) {
@@ -326,8 +326,8 @@ export default class OrbitControl extends EventDispatcher {
       
           panOffset.add(v);
         };
-      })();
-      const panUp = function (a: any, b: any) {
+      }();
+      const panUp = function () {
         const panUpV = new Vector3();
       
         return function panUp(distance, objectMatrix) {
@@ -343,7 +343,7 @@ export default class OrbitControl extends EventDispatcher {
       
           panOffset.add(panUpV);
         };
-      };
+      }();
       // deltaX and deltaY are in pixels; right and down are positive
       const pan = function () {
         const offset = new Vector3();
@@ -361,11 +361,11 @@ export default class OrbitControl extends EventDispatcher {
             // we use only clientHeight here so aspect ratio does not distort speed
             panLeft(
               (2 * deltaX * targetDistance) / element.clientHeight,
-              that.object.matrix
+              that.object.modelMatrix
             );
             panUp(
               (2 * deltaY * targetDistance) / element.clientHeight,
-              that.object.matrix
+              that.object.modelMatrix
             );
           } else if (that.object.isOrthographicCamera) {
             // orthographic
@@ -373,13 +373,13 @@ export default class OrbitControl extends EventDispatcher {
               (deltaX * (that.object.right - that.object.left)) /
                 that.object.zoom /
                 element.clientWidth,
-              that.object.matrix
+              that.object.modelMatrix
             );
             panUp(
               (deltaY * (that.object.top - that.object.bottom)) /
                 that.object.zoom /
                 element.clientHeight,
-              that.object.matrix
+              that.object.modelMatrix
             );
           } else {
             // camera neither orthographic nor perspective

@@ -988,84 +988,27 @@ MersenneTwister.prototype.random_long = function() {
 
 var mersenneTwister = MersenneTwister;
 
-/**
- * Math functions.
- *
- * @exports GMath
- * @alias Math
- */
 class GMath {
-    /**
-     * Returns 1.0 if the given value is positive or zero, and -1.0 if it is negative.
-     * This is similar to {@link GMath#sign} except that returns 1.0 instead of
-     * 0.0 when the input value is 0.0.
-     * @param {Number} value The value to return the sign of.
-     * @returns {Number} The sign of value.
-     */
     static signNotZero(value) {
         return value < 0.0 ? -1.0 : 1.0;
     }
-    ;
-    /**
-     * Converts a scalar value in the range [-1.0, 1.0] to a SNORM in the range [0, rangeMaximum]
-     * @param {Number} value The scalar value in the range [-1.0, 1.0]
-     * @param {Number} [rangeMaximum=255] The maximum value in the mapped range, 255 by default.
-     * @returns {Number} A SNORM value, where 0 maps to -1.0 and rangeMaximum maps to 1.0.
-     *
-     * @see GMath.fromSNorm
-     */
     static toSNorm(value, rangeMaximum) {
         rangeMaximum = defaultValue(rangeMaximum, 255);
         return Math.round((GMath.clamp(value, -1.0, 1.0) * 0.5 + 0.5) * rangeMaximum);
     }
-    ;
-    /**
-     * Converts a SNORM value in the range [0, rangeMaximum] to a scalar in the range [-1.0, 1.0].
-     * @param {Number} value SNORM value in the range [0, rangeMaximum]
-     * @param {Number} [rangeMaximum=255] The maximum value in the SNORM range, 255 by default.
-     * @returns {Number} Scalar in the range [-1.0, 1.0].
-     *
-     * @see GMath.toSNorm
-     */
     static fromSNorm(value, rangeMaximum) {
         rangeMaximum = defaultValue(rangeMaximum, 255);
-        return ((GMath.clamp(value, 0.0, rangeMaximum) / rangeMaximum) * 2.0 - 1.0);
+        return (GMath.clamp(value, 0.0, rangeMaximum) / rangeMaximum) * 2.0 - 1.0;
     }
-    ;
-    /**
-     * Converts a scalar value in the range [rangeMinimum, rangeMaximum] to a scalar in the range [0.0, 1.0]
-     * @param {Number} value The scalar value in the range [rangeMinimum, rangeMaximum]
-     * @param {Number} rangeMinimum The minimum value in the mapped range.
-     * @param {Number} rangeMaximum The maximum value in the mapped range.
-     * @returns {Number} A scalar value, where rangeMinimum maps to 0.0 and rangeMaximum maps to 1.0.
-     */
     static normalize(value, rangeMinimum, rangeMaximum) {
         rangeMaximum = Math.max(rangeMaximum - rangeMinimum, 0.0);
         return rangeMaximum === 0.0
             ? 0.0
             : GMath.clamp((value - rangeMinimum) / rangeMaximum, 0.0, 1.0);
     }
-    ;
-    /**
-     * Computes the linear interpolation of two values.
-     *
-     * @param {Number} p The start value to interpolate.
-     * @param {Number} q The end value to interpolate.
-     * @param {Number} time The time of interpolation generally in the range <code>[0.0, 1.0]</code>.
-     * @returns {Number} The linearly interpolated value.
-     *
-     * @example
-     * const n = Math.lerp(0.0, 2.0, 0.5); // returns 1.0
-     */
     static lerp(p, q, time) {
         return (1.0 - time) * p + time * q;
     }
-    ;
-    /**
-     * Converts degrees to radians.
-     * @param {Number} degrees The angle to convert in degrees.
-     * @returns {Number} The corresponding angle in radians.
-     */
     static toRadians(degrees) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(degrees)) {
@@ -1074,12 +1017,6 @@ class GMath {
         //>>includeEnd('debug');
         return degrees * GMath.RADIANS_PER_DEGREE;
     }
-    ;
-    /**
-     * Converts radians to degrees.
-     * @param {Number} radians The angle to convert in radians.
-     * @returns {Number} The corresponding angle in degrees.
-     */
     static toDegrees(radians) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(radians)) {
@@ -1088,60 +1025,6 @@ class GMath {
         //>>includeEnd('debug');
         return radians * GMath.DEGREES_PER_RADIAN;
     }
-    ;
-    /**
-     * Converts a longitude value, in radians, to the range [<code>-Math.PI</code>, <code>Math.PI</code>).
-     *
-     * @param {Number} angle The longitude value, in radians, to convert to the range [<code>-Math.PI</code>, <code>Math.PI</code>).
-     * @returns {Number} The equivalent longitude value in the range [<code>-Math.PI</code>, <code>Math.PI</code>).
-     *
-     * @example
-     * // Convert 270 degrees to -90 degrees longitude
-     * const longitude = Math.convertLongitudeRange(Math.toRadians(270.0));
-     */
-    static convertLongitudeRange(angle) {
-        //>>includeStart('debug', pragmas.debug);
-        if (!defined(angle)) {
-            throw new Error("angle is required.");
-        }
-        //>>includeEnd('debug');
-        const twoPi = GMath.TWO_PI;
-        const simplified = angle - Math.floor(angle / twoPi) * twoPi;
-        if (simplified < -Math.PI) {
-            return simplified + twoPi;
-        }
-        if (simplified >= Math.PI) {
-            return simplified - twoPi;
-        }
-        return simplified;
-    }
-    ;
-    /**
-     * Convenience function that clamps a latitude value, in radians, to the range [<code>-Math.PI/2</code>, <code>Math.PI/2</code>).
-     * Useful for sanitizing data before use in objects requiring correct range.
-     *
-     * @param {Number} angle The latitude value, in radians, to clamp to the range [<code>-Math.PI/2</code>, <code>Math.PI/2</code>).
-     * @returns {Number} The latitude value clamped to the range [<code>-Math.PI/2</code>, <code>Math.PI/2</code>).
-     *
-     * @example
-     * // Clamp 108 degrees latitude to 90 degrees latitude
-     * const latitude = Math.clampToLatitudeRange(Math.toRadians(108.0));
-     */
-    static clampToLatitudeRange(angle) {
-        //>>includeStart('debug', pragmas.debug);
-        if (!defined(angle)) {
-            throw new Error("angle is required.");
-        }
-        //>>includeEnd('debug');
-        return GMath.clamp(angle, -1 * GMath.PI_OVER_TWO, GMath.PI_OVER_TWO);
-    }
-    ;
-    /**
-     * Produces an angle in the range -Pi <= angle <= Pi which is equivalent to the provided angle.
-     *
-     * @param {Number} angle in radians
-     * @returns {Number} The angle in the range [<code>-GMath.PI</code>, <code>GMath.PI</code>].
-     */
     static negativePiToPi(angle) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(angle)) {
@@ -1155,13 +1038,6 @@ class GMath {
         }
         return GMath.zeroToTwoPi(angle + GMath.PI) - GMath.PI;
     }
-    ;
-    /**
-     * Produces an angle in the range 0 <= angle <= 2Pi which is equivalent to the provided angle.
-     *
-     * @param {Number} angle in radians
-     * @returns {Number} The angle in the range [0, <code>GMath.TWO_PI</code>].
-     */
     static zeroToTwoPi(angle) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(angle)) {
@@ -1174,20 +1050,11 @@ class GMath {
             return angle;
         }
         const mod = GMath.mod(angle, GMath.TWO_PI);
-        if (Math.abs(mod) < GMath.EPSILON14 &&
-            Math.abs(angle) > GMath.EPSILON14) {
+        if (Math.abs(mod) < GMath.EPSILON14 && Math.abs(angle) > GMath.EPSILON14) {
             return GMath.TWO_PI;
         }
         return mod;
     }
-    ;
-    /**
-     * The modulo operation that also works for negative dividends.
-     *
-     * @param {Number} m The dividend.
-     * @param {Number} n The divisor.
-     * @returns {Number} The remainder.
-     */
     static mod(m, n) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(m)) {
@@ -1207,25 +1074,6 @@ class GMath {
         }
         return ((m % n) + n) % n;
     }
-    ;
-    /**
-     * Determines if two values are equal using an absolute or relative tolerance test. This is useful
-     * to avoid problems due to roundoff error when comparing floating-point values directly. The values are
-     * first compared using an absolute tolerance test. If that fails, a relative tolerance test is performed.
-     * Use this test if you are unsure of the magnitudes of left and right.
-     *
-     * @param {Number} left The first value to compare.
-     * @param {Number} right The other value to compare.
-     * @param {Number} [relativeEpsilon=0] The maximum inclusive delta between <code>left</code> and <code>right</code> for the relative tolerance test.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The maximum inclusive delta between <code>left</code> and <code>right</code> for the absolute tolerance test.
-     * @returns {Boolean} <code>true</code> if the values are equal within the epsilon; otherwise, <code>false</code>.
-     *
-     * @example
-     * const a = Math.equalsEpsilon(0.0, 0.01, Math.EPSILON2); // true
-     * const b = Math.equalsEpsilon(0.0, 0.1, Math.EPSILON2);  // false
-     * const c = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON7); // true
-     * const d = Math.equalsEpsilon(3699175.1634344, 3699175.2, Math.EPSILON9); // false
-     */
     static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon = relativeEpsilon) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
@@ -1241,19 +1089,7 @@ class GMath {
         return (absDiff <= absoluteEpsilon ||
             absDiff <= relativeEpsilon * Math.max(Math.abs(left), Math.abs(right)));
     }
-    ;
-    /**
-     * Determines if the left value is less than the right value. If the two values are within
-     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
-     *
-     * @param {Number} left The first number to compare.
-     * @param {Number} right The second number to compare.
-     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
-     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> by more than
-     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is greater or if the two
-     *          values are nearly equal.
-     */
-    static lessThan(left, right, absoluteEpsilon) {
+    static lessThan(left, right, absoluteEpsilon = 0) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
@@ -1267,18 +1103,7 @@ class GMath {
         //>>includeEnd('debug');
         return left - right < -absoluteEpsilon;
     }
-    ;
-    /**
-     * Determines if the left value is less than or equal to the right value. If the two values are within
-     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
-     *
-     * @param {Number} left The first number to compare.
-     * @param {Number} right The second number to compare.
-     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
-     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> or if the
-     *          the values are nearly equal.
-     */
-    static lessThanOrEquals(left, right, absoluteEpsilon) {
+    static lessThanOrEquals(left, right, absoluteEpsilon = 0) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
@@ -1292,19 +1117,7 @@ class GMath {
         //>>includeEnd('debug');
         return left - right < absoluteEpsilon;
     }
-    ;
-    /**
-     * Determines if the left value is greater the right value. If the two values are within
-     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
-     *
-     * @param {Number} left The first number to compare.
-     * @param {Number} right The second number to compare.
-     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
-     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> by more than
-     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is less or if the two
-     *          values are nearly equal.
-     */
-    static greaterThan(left, right, absoluteEpsilon) {
+    static greaterThan(left, right, absoluteEpsilon = 0) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
@@ -1318,18 +1131,7 @@ class GMath {
         //>>includeEnd('debug');
         return left - right > absoluteEpsilon;
     }
-    ;
-    /**
-     * Determines if the left value is greater than or equal to the right value. If the two values are within
-     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
-     *
-     * @param {Number} left The first number to compare.
-     * @param {Number} right The second number to compare.
-     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
-     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> or if the
-     *          the values are nearly equal.
-     */
-    static greaterThanOrEquals(left, right, absoluteEpsilon) {
+    static greaterThanOrEquals(left, right, absoluteEpsilon = 0) {
         //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
@@ -1343,84 +1145,6 @@ class GMath {
         //>>includeEnd('debug');
         return left - right > -absoluteEpsilon;
     }
-    ;
-    /**
-     * Computes the factorial of the provided number.
-     *
-     * @param {Number} n The number whose factorial is to be computed.
-     * @returns {Number} The factorial of the provided number or undefined if the number is less than 0.
-     *
-     * @exception {Error} A number greater than or equal to 0 is required.
-     *
-     *
-     * @example
-     * //Compute 7!, which is equal to 5040
-     * const computedFactorial = Math.factorial(7);
-     *
-     * @see {@link http://en.wikipedia.org/wiki/Factorial|Factorial on Wikipedia}
-     */
-    static factorial(n) {
-        //>>includeStart('debug', pragmas.debug);
-        if (typeof n !== "number" || n < 0) {
-            throw new Error("A number greater than or equal to 0 is required.");
-        }
-        //>>includeEnd('debug');
-        const length = factorials.length;
-        if (n >= length) {
-            let sum = factorials[length - 1];
-            for (let i = length; i <= n; i++) {
-                const next = sum * i;
-                factorials.push(next);
-                sum = next;
-            }
-        }
-        return factorials[n];
-    }
-    ;
-    /**
-     * Increments a number with a wrapping to a minimum value if the number exceeds the maximum value.
-     *
-     * @param {Number} [n] The number to be incremented.
-     * @param {Number} [maximumValue] The maximum incremented value before rolling over to the minimum value.
-     * @param {Number} [minimumValue=0.0] The number reset to after the maximum value has been exceeded.
-     * @returns {Number} The incremented number.
-     *
-     * @exception {Error} Maximum value must be greater than minimum value.
-     *
-     * @example
-     * const n = Math.incrementWrap(5, 10, 0); // returns 6
-     * const m = Math.incrementWrap(10, 10, 0); // returns 0
-     */
-    static incrementWrap(n, maximumValue, minimumValue) {
-        minimumValue = defaultValue(minimumValue, 0.0);
-        //>>includeStart('debug', pragmas.debug);
-        if (!defined(n)) {
-            throw new Error("n is required.");
-        }
-        if (maximumValue <= minimumValue) {
-            throw new Error("maximumValue must be greater than minimumValue.");
-        }
-        //>>includeEnd('debug');
-        ++n;
-        if (n > maximumValue) {
-            n = minimumValue;
-        }
-        return n;
-    }
-    ;
-    /**
-     * Determines if a non-negative integer is a power of two.
-     * The maximum allowed input is (2^32)-1 due to 32-bit bitwise operator limitation in Javascript.
-     *
-     * @param {Number} n The integer to test in the range [0, (2^32)-1].
-     * @returns {Boolean} <code>true</code> if the number if a power of two; otherwise, <code>false</code>.
-     *
-     * @exception {Error} A number between 0 and (2^32)-1 is required.
-     *
-     * @example
-     * const t = Math.isPowerOfTwo(16); // true
-     * const f = Math.isPowerOfTwo(20); // false
-     */
     static isPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
         if (typeof n !== "number" || n < 0 || n > 4294967295) {
@@ -1429,20 +1153,6 @@ class GMath {
         //>>includeEnd('debug');
         return n !== 0 && (n & (n - 1)) === 0;
     }
-    ;
-    /**
-     * Computes the next power-of-two integer greater than or equal to the provided non-negative integer.
-     * The maximum allowed input is 2^31 due to 32-bit bitwise operator limitation in Javascript.
-     *
-     * @param {Number} n The integer to test in the range [0, 2^31].
-     * @returns {Number} The next power-of-two integer.
-     *
-     * @exception {Error} A number between 0 and 2^31 is required.
-     *
-     * @example
-     * const n = Math.nextPowerOfTwo(29); // 32
-     * const m = Math.nextPowerOfTwo(32); // 32
-     */
     static nextPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
         if (typeof n !== "number" || n < 0 || n > 2147483648) {
@@ -1459,20 +1169,6 @@ class GMath {
         ++n;
         return n;
     }
-    ;
-    /**
-     * Computes the previous power-of-two integer less than or equal to the provided non-negative integer.
-     * The maximum allowed input is (2^32)-1 due to 32-bit bitwise operator limitation in Javascript.
-     *
-     * @param {Number} n The integer to test in the range [0, (2^32)-1].
-     * @returns {Number} The previous power-of-two integer.
-     *
-     * @exception {Error} A number between 0 and (2^32)-1 is required.
-     *
-     * @example
-     * const n = Math.previousPowerOfTwo(29); // 16
-     * const m = Math.previousPowerOfTwo(32); // 32
-     */
     static previousPowerOfTwo(n) {
         //>>includeStart('debug', pragmas.debug);
         if (typeof n !== "number" || n < 0 || n > 4294967295) {
@@ -1489,19 +1185,9 @@ class GMath {
         n = (n >>> 0) - (n >>> 1);
         return n;
     }
-    ;
-    /**
-     * Constraint a value to lie between two values.
-     *
-     * @param {Number} value The value to clamp.
-     * @param {Number} min The minimum value.
-     * @param {Number} max The maximum value.
-     * @returns {Number} The clamped value such that min <= result <= max.
-     */
     static clamp(value, min, max) {
         return value < min ? min : value > max ? max : value;
     }
-    ;
     /**
      * @private
      */
@@ -1509,221 +1195,31 @@ class GMath {
         const scalar = distanceToCamera * density;
         return 1.0 - Math.exp(-(scalar * scalar));
     }
-    ;
-    /**
-     * Computes a fast approximation of Atan for input in the range [-1, 1].
-     *
-     * Based on Michal Drobot's approximation from ShaderFastLibs,
-     * which in turn is based on "Efficient approximations for the arctangent function,"
-     * Rajan, S. Sichun Wang Inkol, R. Joyal, A., May 2006.
-     * Adapted from ShaderFastLibs under MIT License.
-     *
-     * @param {Number} x An input number in the range [-1, 1]
-     * @returns {Number} An approximation of atan(x)
-     */
-    static fastApproximateAtan(x) {
-        return x * (-0.1784 * Math.abs(x) - 0.0663 * x * x + 1.0301);
-    }
-    ;
-    /**
-     * Computes a fast approximation of Atan2(x, y) for arbitrary input scalars.
-     *
-     * Range reduction math based on nvidia's cg reference implementation: http://developer.download.nvidia.com/cg/atan2.html
-     *
-     * @param {Number} x An input number that isn't zero if y is zero.
-     * @param {Number} y An input number that isn't zero if x is zero.
-     * @returns {Number} An approximation of atan2(x, y)
-     */
-    static fastApproximateAtan2(x, y) {
-        // atan approximations are usually only reliable over [-1, 1]
-        // So reduce the range by flipping whether x or y is on top based on which is bigger.
-        let opposite;
-        let t = Math.abs(x); // t used as swap and atan result.
-        opposite = Math.abs(y);
-        const adjacent = Math.max(t, opposite);
-        opposite = Math.min(t, opposite);
-        const oppositeOverAdjacent = opposite / adjacent;
-        //>>includeStart('debug', pragmas.debug);
-        if (isNaN(oppositeOverAdjacent)) {
-            throw new Error("either x or y must be nonzero");
-        }
-        //>>includeEnd('debug');
-        t = GMath.fastApproximateAtan(oppositeOverAdjacent);
-        // Undo range reduction
-        t = Math.abs(y) > Math.abs(x) ? GMath.PI_OVER_TWO - t : t;
-        t = x < 0.0 ? GMath.PI - t : t;
-        t = y < 0.0 ? -t : t;
-        return t;
-    }
-    ;
 }
-/**
- * 0.1
- * @type {Number}
- * @constant
- */
 GMath.EPSILON1 = 0.1;
-/**
- * 0.01
- * @type {Number}
- * @constant
- */
 GMath.EPSILON2 = 0.01;
-/**
- * 0.001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON3 = 0.001;
-/**
- * 0.0001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON4 = 0.0001;
-/**
- * 0.00001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON5 = 0.00001;
-/**
- * 0.000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON6 = 0.000001;
-/**
- * 0.0000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON7 = 0.0000001;
-/**
- * 0.00000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON8 = 0.00000001;
-/**
- * 0.000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON9 = 0.000000001;
-/**
- * 0.0000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON10 = 0.0000000001;
-/**
- * 0.00000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON11 = 0.00000000001;
-/**
- * 0.000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON12 = 0.000000000001;
-/**
- * 0.0000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON13 = 0.0000000000001;
-/**
- * 0.00000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON14 = 0.00000000000001;
-/**
- * 0.000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON15 = 0.000000000000001;
-/**
- * 0.0000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON16 = 0.0000000000000001;
-/**
- * 0.00000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON17 = 0.00000000000000001;
-/**
- * 0.000000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON18 = 0.000000000000000001;
-/**
- * 0.0000000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON19 = 0.0000000000000000001;
-/**
- * 0.00000000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON20 = 0.00000000000000000001;
-/**
- * 0.000000000000000000001
- * @type {Number}
- * @constant
- */
 GMath.EPSILON21 = 0.000000000000000000001;
-/**
- * The gravitational parameter of the Earth in meters cubed
- * per second squared as defined by the WGS84 model: 3.986004418e14
- * @type {Number}
- * @constant
- */
 GMath.GRAVITATIONALPARAMETER = 3.986004418e14;
-/**
- * Radius of the sun in meters: 6.955e8
- * @type {Number}
- * @constant
- */
-GMath.SOLAR_RADIUS = 6.955e8;
-/**
- * The mean radius of the moon, according to the "Report of the IAU/IAG Working Group on
- * Cartographic Coordinates and Rotational Elements of the Planets and satellites: 2000",
- * Celestial Mechanics 82: 83-110, 2002.
- * @type {Number}
- * @constant
- */
-GMath.LUNAR_RADIUS = 1737400.0;
-/**
- * 64 * 1024
- * @type {Number}
- * @constant
- */
 GMath.SIXTY_FOUR_KILOBYTES = 64 * 1024;
-/**
- * 4 * 1024 * 1024 * 1024
- * @type {Number}
- * @constant
- */
 GMath.FOUR_GIGABYTES = 4 * 1024 * 1024 * 1024;
-/**
- * Returns the sign of the value; 1 if the value is positive, -1 if the value is
- * negative, or 0 if the value is 0.
- *
- * @function
- * @param {Number} value The value to return the sign of.
- * @returns {Number} The sign of value.
- */
 // eslint-disable-next-line es/no-math-sign
 GMath.sign = defaultValue(Math.sign, function sign(value) {
     value = +value; // coerce to number
@@ -1733,184 +1229,32 @@ GMath.sign = defaultValue(Math.sign, function sign(value) {
     }
     return value > 0 ? 1 : -1;
 });
-/**
- * Returns the hyperbolic sine of a number.
- * The hyperbolic sine of <em>value</em> is defined to be
- * (<em>e<sup>x</sup>&nbsp;-&nbsp;e<sup>-x</sup></em>)/2.0
- * where <i>e</i> is Euler's number, approximately 2.71828183.
- *
- * <p>Special cases:
- *   <ul>
- *     <li>If the argument is NaN, then the result is NaN.</li>
- *
- *     <li>If the argument is infinite, then the result is an infinity
- *     with the same sign as the argument.</li>
- *
- *     <li>If the argument is zero, then the result is a zero with the
- *     same sign as the argument.</li>
- *   </ul>
- *</p>
- *
- * @function
- * @param {Number} value The number whose hyperbolic sine is to be returned.
- * @returns {Number} The hyperbolic sine of <code>value</code>.
- */
 // eslint-disable-next-line es/no-math-sinh
 GMath.sinh = defaultValue(Math.sinh, function sinh(value) {
     return (Math.exp(value) - Math.exp(-value)) / 2.0;
 });
-/**
- * Returns the hyperbolic cosine of a number.
- * The hyperbolic cosine of <strong>value</strong> is defined to be
- * (<em>e<sup>x</sup>&nbsp;+&nbsp;e<sup>-x</sup></em>)/2.0
- * where <i>e</i> is Euler's number, approximately 2.71828183.
- *
- * <p>Special cases:
- *   <ul>
- *     <li>If the argument is NaN, then the result is NaN.</li>
- *
- *     <li>If the argument is infinite, then the result is positive infinity.</li>
- *
- *     <li>If the argument is zero, then the result is 1.0.</li>
- *   </ul>
- *</p>
- *
- * @function
- * @param {Number} value The number whose hyperbolic cosine is to be returned.
- * @returns {Number} The hyperbolic cosine of <code>value</code>.
- */
 // eslint-disable-next-line es/no-math-cosh
 GMath.cosh = defaultValue(Math.cosh, function cosh(value) {
     return (Math.exp(value) + Math.exp(-value)) / 2.0;
 });
-/**
- * pi
- *
- * @type {Number}
- * @constant
- */
 GMath.PI = Math.PI;
-/**
- * 1/pi
- *
- * @type {Number}
- * @constant
- */
 GMath.ONE_OVER_PI = 1.0 / Math.PI;
-/**
- * pi/2
- *
- * @type {Number}
- * @constant
- */
 GMath.PI_OVER_TWO = Math.PI / 2.0;
-/**
- * pi/3
- *
- * @type {Number}
- * @constant
- */
 GMath.PI_OVER_THREE = Math.PI / 3.0;
-/**
- * pi/4
- *
- * @type {Number}
- * @constant
- */
 GMath.PI_OVER_FOUR = Math.PI / 4.0;
-/**
- * pi/6
- *
- * @type {Number}
- * @constant
- */
 GMath.PI_OVER_SIX = Math.PI / 6.0;
-/**
- * 3pi/2
- *
- * @type {Number}
- * @constant
- */
 GMath.THREE_PI_OVER_TWO = (3.0 * Math.PI) / 2.0;
-/**
- * 2pi
- *
- * @type {Number}
- * @constant
- */
 GMath.TWO_PI = 2.0 * Math.PI;
-/**
- * 1/2pi
- *
- * @type {Number}
- * @constant
- */
 GMath.ONE_OVER_TWO_PI = 1.0 / (2.0 * Math.PI);
-/**
- * The number of radians in a degree.
- *
- * @type {Number}
- * @constant
- */
 GMath.RADIANS_PER_DEGREE = Math.PI / 180.0;
-/**
- * The number of degrees in a radian.
- *
- * @type {Number}
- * @constant
- */
 GMath.DEGREES_PER_RADIAN = 180.0 / Math.PI;
-/**
- * The number of radians in an arc second.
- *
- * @type {Number}
- * @constant
- */
 GMath.RADIANS_PER_ARCSECOND = GMath.RADIANS_PER_DEGREE / 3600.0;
-/**
- * Sets the seed used by the random number generator
- * in {@link GMath#nextRandomNumber}.
- *
- * @param {Number} seed An integer used as the seed.
- */
-GMath.setRandomNumberSeed = function (seed) {
-    //>>includeStart('debug', pragmas.debug);
-    if (!defined(seed)) {
-        throw new Error("seed is required.");
-    }
-    //>>includeEnd('debug');
-    randomNumberGenerator = new mersenneTwister(seed);
-};
-/**
- * Generates a random floating point number in the range of [0.0, 1.0)
- * using a Mersenne twister.
- *
- * @returns {Number} A random number in the range of [0.0, 1.0).
- *
- * @see GMath.setRandomNumberSeed
- * @see {@link http://en.wikipedia.org/wiki/Mersenne_twister|Mersenne twister on Wikipedia}
- */
 GMath.nextRandomNumber = function () {
     return randomNumberGenerator.random();
 };
-/**
- * Generates a random number between two numbers.
- *
- * @param {Number} min The minimum value.
- * @param {Number} max The maximum value.
- * @returns {Number} A random number between the min and max.
- */
 GMath.randomBetween = function (min, max) {
     return GMath.nextRandomNumber() * (max - min) + min;
 };
-/**
- * Computes <code>Math.acos(value)</code>, but first clamps <code>value</code> to the range [-1.0, 1.0]
- * so that the function will never return NaN.
- *
- * @param {Number} value The value for which to compute acos.
- * @returns {Number} The acos of the value if the value is in the range [-1.0, 1.0], or the acos of -1.0 or 1.0,
- *          whichever is closer, if the value is outside the range.
- */
 GMath.acosClamped = function (value) {
     //>>includeStart('debug', pragmas.debug);
     if (!defined(value)) {
@@ -1919,14 +1263,6 @@ GMath.acosClamped = function (value) {
     //>>includeEnd('debug');
     return Math.acos(GMath.clamp(value, -1.0, 1.0));
 };
-/**
- * Computes <code>Math.asin(value)</code>, but first clamps <code>value</code> to the range [-1.0, 1.0]
- * so that the function will never return NaN.
- *
- * @param {Number} value The value for which to compute asin.
- * @returns {Number} The asin of the value if the value is in the range [-1.0, 1.0], or the asin of -1.0 or 1.0,
- *          whichever is closer, if the value is outside the range.
- */
 GMath.asinClamped = function (value) {
     //>>includeStart('debug', pragmas.debug);
     if (!defined(value)) {
@@ -1935,13 +1271,6 @@ GMath.asinClamped = function (value) {
     //>>includeEnd('debug');
     return Math.asin(GMath.clamp(value, -1.0, 1.0));
 };
-/**
- * Finds the chord length between two points given the circle's radius and the angle between the points.
- *
- * @param {Number} angle The angle between the two points.
- * @param {Number} radius The radius of the circle.
- * @returns {Number} The chord length.
- */
 GMath.chordLength = function (angle, radius) {
     //>>includeStart('debug', pragmas.debug);
     if (!defined(angle)) {
@@ -1953,13 +1282,6 @@ GMath.chordLength = function (angle, radius) {
     //>>includeEnd('debug');
     return 2.0 * radius * Math.sin(angle * 0.5);
 };
-/**
- * Finds the logarithm of a number to a base.
- *
- * @param {Number} number The number.
- * @param {Number} base The base.
- * @returns {Number} The result.
- */
 GMath.logBase = function (number, base) {
     //>>includeStart('debug', pragmas.debug);
     if (!defined(number)) {
@@ -1971,32 +1293,16 @@ GMath.logBase = function (number, base) {
     //>>includeEnd('debug');
     return Math.log(number) / Math.log(base);
 };
-/**
- * Finds the cube root of a number.
- * Returns NaN if <code>number</code> is not provided.
- *
- * @function
- * @param {Number} [number] The number.
- * @returns {Number} The result.
- */
 // eslint-disable-next-line es/no-math-cbrt
 GMath.cbrt = defaultValue(Math.cbrt, function cbrt(number) {
     const result = Math.pow(Math.abs(number), 1.0 / 3.0);
     return number < 0.0 ? -result : result;
 });
-/**
- * Finds the base 2 logarithm of a number.
- *
- * @function
- * @param {Number} number The number.
- * @returns {Number} The result.
- */
 // eslint-disable-next-line es/no-math-log2
 GMath.log2 = defaultValue(Math.log2, function log2(number) {
     return Math.log(number) * Math.LOG2E;
 });
 let randomNumberGenerator = new mersenneTwister();
-const factorials = [1];
 
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
@@ -2024,18 +1330,6 @@ function hue2rgb(m1, m2, h) {
     }
     return m1;
 }
-/**
- * A color, specified using red, green, blue,
- * which range from <code>0</code> (no intensity) to <code>1.0</code> (full intensity).
- * @param {Number} [red=1.0] The red component.
- * @param {Number} [green=1.0] The green component.
- * @param {Number} [blue=1.0] The blue component.
- *
- * @constructor
- * @alias Color
- *
- * @see Packable
- */
 class Color {
     constructor(red = 1.0, green = 1.0, blue = 1.0) {
         /**
@@ -2066,31 +1360,14 @@ class Color {
     toArray() {
         return [this.red, this.green, this.blue];
     }
-    /**
-   * Returns a duplicate of a Color instance.
-   *
-   * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-   * @returns {Color} The modified result parameter or a new instance if result was undefined.
-   */
     clone(result) {
         return Color.clone(this, result);
     }
     ;
-    /**
-     * Returns true if this Color equals other.
-     *
-     * @param {Color} other The Color to compare for equality.
-     * @returns {Boolean} <code>true</code> if the Colors are equal; otherwise, <code>false</code>.
-     */
     equals(other) {
         return Color.equals(this, other);
     }
     ;
-    /**
-     * Creates a string containing CSS hex string color value for this color.
-     *
-     * @returns {String} The CSS hex string equivalent of this color.
-     */
     toCssHexString() {
         let r = Color.floatToByte(this.red).toString(16);
         if (r.length < 2) {
@@ -2107,13 +1384,6 @@ class Color {
         return `#${r}${g}${b}`;
     }
     ;
-    /**
-     * Converts this color to an array of red, green, blue
-     * that are in the range of 0 to 255.
-     *
-     * @param {Number[]} [result] The array to store the result in, if undefined a new instance will be created.
-     * @returns {Number[]} The modified result parameter or a new instance if result was undefined.
-     */
     toBytes(result) {
         const red = Color.floatToByte(this.red);
         const green = Color.floatToByte(this.green);
@@ -2127,16 +1397,6 @@ class Color {
         return result;
     }
     ;
-    /**
-     * Creates a new Color specified using red, green, blue
-     * that are in the range of 0 to 255, converting them internally to a range of 0.0 to 1.0.
-     *
-     * @param {Number} [red=255] The red component.
-     * @param {Number} [green=255] The green component.
-     * @param {Number} [blue=255] The blue component.
-     * @param {Color} [result] The object onto which to store the result.
-     * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-     */
     static fromBytes(red, green, blue, result) {
         red = Color.byteToFloat(defaultValue(red, 255.0));
         green = Color.byteToFloat(defaultValue(green, 255.0));
@@ -2150,17 +1410,6 @@ class Color {
         return result;
     }
     ;
-    /**
-     * Creates a Color instance from hue, saturation, and lightness.
-     *
-     * @param {Number} [hue=0] The hue angle 0...1
-     * @param {Number} [saturation=0] The saturation value 0...1
-     * @param {Number} [lightness=0] The lightness value 0...1
-     * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-     * @returns {Color} The color object.
-     *
-     * @see {@link http://www.w3.org/TR/css3-color/#hsl-color|CSS color values}
-     */
     static fromHsl(hue, saturation, lightness, result) {
         hue = defaultValue(hue, 0.0) % 1.0;
         saturation = defaultValue(saturation, 0.0);
@@ -2262,20 +1511,6 @@ class Color {
         return result;
     }
     ;
-    /**
-     * Creates a Color instance from a CSS color value.
-     *
-     * @param {String} color The CSS color value in #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(), rgba(), hsl(), or hsla() format.
-     * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-     * @returns {Color} The color object, or undefined if the string was not a valid CSS color.
-     *
-     *
-     * @example
-     * const blue = Color.fromCssColorString('#67ADDF');
-     * const green = Color.fromCssColorString('green');
-     *
-     * @see {@link http://www.w3.org/TR/css3-color|CSS color values}
-     */
     static fromCssColorString(color, result = new Color()) {
         // Remove all whitespaces from the color string
         color = color.replace(/\s/g, "");
@@ -2316,35 +1551,14 @@ class Color {
         return result;
     }
     ;
-    /**
-     * Converts a 'byte' color component in the range of 0 to 255 into
-     * a 'float' color component in the range of 0 to 1.0.
-     *
-     * @param {Number} number The number to be converted.
-     * @returns {Number} The converted number.
-     */
-    static byteToFloat(number) {
-        return number / 255.0;
+    static byteToFloat(value) {
+        return value / 255.0;
     }
     ;
-    /**
-     * Converts a 'float' color component in the range of 0 to 1.0 into
-     * a 'byte' color component in the range of 0 to 255.
-     *
-     * @param {Number} number The number to be converted.
-     * @returns {Number} The converted number.
-     */
-    static floatToByte(number) {
-        return number === 1.0 ? 255.0 : (number * 256.0) | 0;
+    static floatToByte(value) {
+        return value === 1.0 ? 255.0 : (value * 256.0) | 0;
     }
     ;
-    /**
-     * Duplicates a Color.
-     *
-     * @param {Color} color The Color to duplicate.
-     * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-     * @returns {Color} The modified result parameter or a new instance if result was undefined. (Returns undefined if color is undefined)
-     */
     static clone(color, result) {
         if (!defined(color)) {
             return undefined;
@@ -2358,13 +1572,6 @@ class Color {
         return result;
     }
     ;
-    /**
-     * Returns true if the first Color equals the second color.
-     *
-     * @param {Color} left The first Color to compare for equality.
-     * @param {Color} right The second Color to compare for equality.
-     * @returns {Boolean} <code>true</code> if the Colors are equal; otherwise, <code>false</code>.
-     */
     static equals(left, right) {
         return (left === right || //
             (defined(left) && //
@@ -2398,6 +1605,8 @@ class Vector2 {
     constructor(x = 0.0, y = 0.0) {
         this.x = x;
         this.y = y;
+        this.x = x;
+        this.y = y;
     }
     set(x, y) {
         this.x = x;
@@ -2406,46 +1615,18 @@ class Vector2 {
     toArray() {
         return [this.x, this.y];
     }
-    /**
-   * Duplicates this Vector2 instance.
-   *
-   * @param {Vector2} [result] The object onto which to store the result.
-   * @returns {Vector2} The modified result parameter or a new Vector2 instance if one was not provided.
-   */
     clone(result) {
         return Vector2.clone(this, result);
     }
     ;
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector2} [right] The right hand side Cartesian.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Vector2.equals(this, right);
     }
     ;
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector2} [right] The right hand side Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, relativeEpsilon, absoluteEpsilon) {
+    equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return Vector2.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
     }
     ;
-    /**
-     * Creates a string representing this Cartesian in the format '(x, y)'.
-     *
-     * @returns {String} A string representing the provided Cartesian in the format '(x, y)'.
-     */
     toString() {
         return `(${this.x}, ${this.y})`;
     }
@@ -2461,14 +1642,6 @@ class Vector2 {
         this.y = matrix3[1] * x + matrix3[4] * y + matrix3[7];
         return this;
     }
-    /**
-   * Creates a Vector2 instance from x and y coordinates.
-   *
-   * @param {Number} x The x coordinate.
-   * @param {Number} y The y coordinate.
-   * @param {Vector2} [result] The object onto which to store the result.
-   * @returns {Vector2} The modified result parameter or a new Vector2 instance if one was not provided.
-   */
     static fromElements(x, y, result) {
         if (!defined(result)) {
             return new Vector2(x, y);
@@ -2478,13 +1651,6 @@ class Vector2 {
         return result;
     }
     ;
-    /**
-     * Duplicates a Vector2 instance.
-     *
-     * @param {Vector2} cartesian The Cartesian to duplicate.
-     * @param {Vector2} [result] The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter or a new Vector2 instance if one was not provided. (Returns undefined if cartesian is undefined)
-     */
     static clone(cartesian, result) {
         if (!defined(cartesian)) {
             return undefined;
@@ -2497,63 +1663,26 @@ class Vector2 {
         return result;
     }
     ;
-    /**
-     * Computes the value of the maximum component for the supplied Cartesian.
-     *
-     * @param {Vector2} cartesian The cartesian to use.
-     * @returns {Number} The value of the maximum component.
-     */
     static maximumComponent(cartesian) {
         return Math.max(cartesian.x, cartesian.y);
     }
     ;
-    /**
-     * Computes the value of the minimum component for the supplied Cartesian.
-     *
-     * @param {Vector2} cartesian The cartesian to use.
-     * @returns {Number} The value of the minimum component.
-     */
     static minimumComponent(cartesian) {
         return Math.min(cartesian.x, cartesian.y);
     }
     ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the minimum components of the supplied Cartesians.
-     *
-     * @param {Vector2} first A cartesian to compare.
-     * @param {Vector2} second A cartesian to compare.
-     * @param {Vector2} result The object into which to store the result.
-     * @returns {Vector2} A cartesian with the minimum components.
-     */
     static minimumByComponent(first, second, result) {
         result.x = Math.min(first.x, second.x);
         result.y = Math.min(first.y, second.y);
         return result;
     }
     ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the maximum components of the supplied Cartesians.
-     *
-     * @param {Vector2} first A cartesian to compare.
-     * @param {Vector2} second A cartesian to compare.
-     * @param {Vector2} result The object into which to store the result.
-     * @returns {Vector2} A cartesian with the maximum components.
-     */
     static maximumByComponent(first, second, result) {
         result.x = Math.max(first.x, second.x);
         result.y = Math.max(first.y, second.y);
         return result;
     }
     ;
-    /**
-     * Constrain a value to lie between two values.
-     *
-     * @param {Vector2} value The value to clamp.
-     * @param {Vector2} min The minimum bound.
-     * @param {Vector2} max The maximum bound.
-     * @param {Vector2} result The object into which to store the result.
-     * @returns {Vector2} The clamped value such that min <= result <= max.
-     */
     static clamp(value, min, max, result) {
         const x = GMath.clamp(value.x, min.x, max.x);
         const y = GMath.clamp(value.y, min.y, max.y);
@@ -2562,66 +1691,24 @@ class Vector2 {
         return result;
     }
     ;
-    /**
-     * Computes the provided Cartesian's squared magnitude.
-     *
-     * @param {Vector2} cartesian The Cartesian instance whose squared magnitude is to be computed.
-     * @returns {Number} The squared magnitude.
-     */
     static magnitudeSquared(cartesian) {
         return cartesian.x * cartesian.x + cartesian.y * cartesian.y;
     }
     ;
-    /**
-     * Computes the Cartesian's magnitude (length).
-     *
-     * @param {Vector2} cartesian The Cartesian instance whose magnitude is to be computed.
-     * @returns {Number} The magnitude.
-     */
     static magnitude(cartesian) {
         return Math.sqrt(Vector2.magnitudeSquared(cartesian));
     }
     ;
-    /**
-     * Computes the distance between two points.
-     *
-     * @param {Vector2} left The first point to compute the distance from.
-     * @param {Vector2} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 1.0
-     * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(2.0, 0.0));
-     */
     static distance(left, right) {
         Vector2.subtract(left, right, distanceScratch$2);
         return Vector2.magnitude(distanceScratch$2);
     }
     ;
-    /**
-     * Computes the squared distance between two points.  Comparing squared distances
-     * using this function is more efficient than comparing distances using {@link Vector2#distance}.
-     *
-     * @param {Vector2} left The first point to compute the distance from.
-     * @param {Vector2} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 4.0, not 2.0
-     * const d = Vector2.distance(new Vector2(1.0, 0.0), new Vector2(3.0, 0.0));
-     */
     static distanceSquared(left, right) {
         Vector2.subtract(left, right, distanceScratch$2);
         return Vector2.magnitudeSquared(distanceScratch$2);
     }
     ;
-    /**
-     * Computes the normalized form of the supplied Cartesian.
-     *
-     * @param {Vector2} cartesian The Cartesian to be normalized.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static normalize(cartesian, result) {
         const magnitude = Vector2.magnitude(cartesian);
         result.x = cartesian.x / magnitude;
@@ -2634,175 +1721,76 @@ class Vector2 {
         return result;
     }
     ;
-    /**
-     * Computes the dot (scalar) product of two Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @returns {Number} The dot product.
-     */
     static dot(left, right) {
         return left.x * right.x + left.y * right.y;
     }
     ;
-    /**
-     * Computes the magnitude of the cross product that would result from implicitly setting the Z coordinate of the input vectors to 0
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @returns {Number} The cross product.
-     */
     static cross(left, right) {
         return left.x * right.y - left.y * right.x;
     }
     ;
-    /**
-     * Computes the componentwise product of two Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static multiplyComponents(left, right, result) {
         result.x = left.x * right.x;
         result.y = left.y * right.y;
         return result;
     }
     ;
-    /**
-     * Computes the componentwise quotient of two Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static divideComponents(left, right, result) {
         result.x = left.x / right.x;
         result.y = left.y / right.y;
         return result;
     }
     ;
-    /**
-     * Computes the componentwise sum of two Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static add(left, right, result) {
         result.x = left.x + right.x;
         result.y = left.y + right.y;
         return result;
     }
     ;
-    /**
-     * Computes the componentwise difference of two Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result.x = left.x - right.x;
         result.y = left.y - right.y;
         return result;
     }
     ;
-    /**
-     * Multiplies the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector2} cartesian The Cartesian to be scaled.
-     * @param {Number} scalar The scalar to multiply with.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static multiplyByScalar(cartesian, scalar, result) {
         result.x = cartesian.x * scalar;
         result.y = cartesian.y * scalar;
         return result;
     }
     ;
-    /**
-     * Divides the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector2} cartesian The Cartesian to be divided.
-     * @param {Number} scalar The scalar to divide by.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static divideByScalar(cartesian, scalar, result) {
         result.x = cartesian.x / scalar;
         result.y = cartesian.y / scalar;
         return result;
     }
     ;
-    /**
-     * Negates the provided Cartesian.
-     *
-     * @param {Vector2} cartesian The Cartesian to be negated.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static negate(cartesian, result) {
         result.x = -cartesian.x;
         result.y = -cartesian.y;
         return result;
     }
     ;
-    /**
-     * Computes the absolute value of the provided Cartesian.
-     *
-     * @param {Vector2} cartesian The Cartesian whose absolute value is to be computed.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static abs(cartesian, result) {
         result.x = Math.abs(cartesian.x);
         result.y = Math.abs(cartesian.y);
         return result;
     }
     ;
-    /**
-     * Computes the linear interpolation or extrapolation at t using the provided cartesians.
-     *
-     * @param {Vector2} start The value corresponding to t at 0.0.
-     * @param {Vector2} end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static lerp(start, end, t, result) {
         Vector2.multiplyByScalar(end, t, lerpScratch$3);
         result = Vector2.multiplyByScalar(start, 1.0 - t, result);
         return Vector2.add(lerpScratch$3, result, result);
     }
     ;
-    /**
-     * Returns the angle, in radians, between the provided Cartesians.
-     *
-     * @param {Vector2} left The first Cartesian.
-     * @param {Vector2} right The second Cartesian.
-     * @returns {Number} The angle between the Cartesians.
-     */
     static angleBetween(left, right) {
         Vector2.normalize(left, angleBetweenScratch$1);
         Vector2.normalize(right, angleBetweenScratch2$1);
         return GMath.acosClamped(Vector2.dot(angleBetweenScratch$1, angleBetweenScratch2$1));
     }
     ;
-    /**
-     * Returns the axis that is most orthogonal to the provided Cartesian.
-     *
-     * @param {Vector2} cartesian The Cartesian on which to find the most orthogonal axis.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The most orthogonal axis.
-     */
     static mostOrthogonalAxis(cartesian, result) {
-        const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch$2);
+        const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch$1);
         Vector2.abs(f, f);
         if (f.x <= f.y) {
             result = Vector2.clone(Vector2.UNIT_X, result);
@@ -2813,14 +1801,6 @@ class Vector2 {
         return result;
     }
     ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector2} [left] The first Cartesian.
-     * @param {Vector2} [right] The second Cartesian.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -2836,18 +1816,7 @@ class Vector2 {
         return cartesian.x === array[offset] && cartesian.y === array[offset + 1];
     }
     ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector2} [left] The first Cartesian.
-     * @param {Vector2} [right] The second Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon) {
+    static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return (left === right ||
             (defined(left) &&
                 defined(right) &&
@@ -2856,65 +1825,22 @@ class Vector2 {
     }
     ;
 }
-/**
-* An immutable Vector2 instance initialized to (0.0, 0.0).
-*
-* @type {Vector2}
-* @constant
-*/
 Vector2.ZERO = Object.freeze(new Vector2(0.0, 0.0));
-/**
- * An immutable Vector2 instance initialized to (1.0, 1.0).
- *
- * @type {Vector2}
- * @constant
- */
 Vector2.ONE = Object.freeze(new Vector2(1.0, 1.0));
-/**
- * An immutable Vector2 instance initialized to (1.0, 0.0).
- *
- * @type {Vector2}
- * @constant
- */
 Vector2.UNIT_X = Object.freeze(new Vector2(1.0, 0.0));
-/**
- * An immutable Vector2 instance initialized to (0.0, 1.0).
- *
- * @type {Vector2}
- * @constant
- */
 Vector2.UNIT_Y = Object.freeze(new Vector2(0.0, 1.0));
-/**
-* The number of elements used to pack the object into an array.
-* @type {Number}
-*/
-Vector2.packedLength = 2;
 const distanceScratch$2 = new Vector2();
 const lerpScratch$3 = new Vector2();
 const angleBetweenScratch$1 = new Vector2();
 const angleBetweenScratch2$1 = new Vector2();
-const mostOrthogonalAxisScratch$2 = new Vector2();
+const mostOrthogonalAxisScratch$1 = new Vector2();
 
 /**
  * A 2x2 matrix, indexable as a column-major order array.
- * Constructor parameters are in row-major order for code readability.
- * @alias Matrix2
- * @constructor
- * @implements {ArrayLike<number>}
- *
  * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
  * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
  * @param {Number} [column0Row1=0.0] The value for column 0, row 1.
  * @param {Number} [column1Row1=0.0] The value for column 1, row 1.
- *
- * @see Matrix2.fromArray
- * @see Matrix2.fromColumnMajorArray
- * @see Matrix2.fromRowMajorArray
- * @see Matrix2.fromScale
- * @see Matrix2.fromUniformScale
- * @see Matrix2.fromRotation
- * @see Matrix3
- * @see Matrix4
  */
 class Matrix2 {
     constructor(column0Row0 = 0, column1Row0 = 0, column0Row1 = 0, column1Row1 = 0) {
@@ -2923,13 +1849,6 @@ class Matrix2 {
         this[2] = column1Row0;
         this[3] = column1Row1;
     }
-    /**
-     * Duplicates a Matrix2 instance.
-     *
-     * @param {Matrix2} matrix The matrix to duplicate.
-     * @param {Matrix2} [result] The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter or a new Matrix2 instance if one was not provided. (Returns undefined if matrix is undefined)
-     */
     static clone(matrix, result) {
         if (!defined(matrix)) {
             return undefined;
@@ -2943,26 +1862,9 @@ class Matrix2 {
         result[3] = matrix[3];
         return result;
     }
-    ;
-    /**
-     * Creates a Matrix2 instance from a column-major order array.
-     *
-     * @param {Number[]} values The column-major order array.
-     * @param {Matrix2} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix2} The modified result parameter, or a new Matrix2 instance if one was not provided.
-     */
     static fromColumnMajorArray(values, result) {
         return Matrix2.clone(values, result);
     }
-    ;
-    /**
-     * Creates a Matrix2 instance from a row-major order array.
-     * The resulting matrix will be in column-major order.
-     *
-     * @param {Number[]} values The row-major order array.
-     * @param {Matrix2} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix2} The modified result parameter, or a new Matrix2 instance if one was not provided.
-     */
     static fromRowMajorArray(values, result) {
         if (!defined(result)) {
             return new Matrix2(values[0], values[1], values[2], values[3]);
@@ -2973,20 +1875,6 @@ class Matrix2 {
         result[3] = values[3];
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix2 instance representing a non-uniform scale.
-     *
-     * @param {Vector2} scale The x and y scale factors.
-     * @param {Matrix2} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix2} The modified result parameter, or a new Matrix2 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [7.0, 0.0]
-     * //   [0.0, 8.0]
-     * const m = Matrix2.fromScale(new Vector2(7.0, 8.0));
-     */
     static fromScale(scale, result) {
         if (!defined(result)) {
             return new Matrix2(scale.x, 0.0, 0.0, scale.y);
@@ -2997,7 +1885,6 @@ class Matrix2 {
         result[3] = scale.y;
         return result;
     }
-    ;
     /**
      * Computes a Matrix2 instance representing a uniform scale.
      *
@@ -3021,20 +1908,6 @@ class Matrix2 {
         result[3] = scale;
         return result;
     }
-    ;
-    /**
-     * Creates a rotation matrix.
-     *
-     * @param {Number} angle The angle, in radians, of the rotation.  Positive angles are counterclockwise.
-     * @param {Matrix2} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix2} The modified result parameter, or a new Matrix2 instance if one was not provided.
-     *
-     * @example
-     * // Rotate a point 45 degrees counterclockwise.
-     * const p = new Vector2(5, 6);
-     * const m = Matrix2.fromRotation(Math.toRadians(45.0));
-     * const rotated = Matrix2.multiplyByVector(m, p, new Vector2());
-     */
     static fromRotation(angle, result) {
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
@@ -3047,20 +1920,11 @@ class Matrix2 {
         result[3] = cosAngle;
         return result;
     }
-    ;
     toArray() {
         const result = [];
         Matrix2.toArray(this, result);
         return result;
     }
-    /**
-     * Creates an Array from the provided Matrix2 instance.
-     * The array will be in column-major order.
-     *
-     * @param {Matrix2} matrix The matrix to use..
-     * @param {Number[]} [result] The Array onto which to store the result.
-     * @returns {Number[]} The modified Array parameter or a new Array instance if one was not provided.
-     */
     static toArray(matrix, result) {
         if (!defined(result)) {
             return [matrix[0], matrix[1], matrix[2], matrix[3]];
@@ -3071,37 +1935,9 @@ class Matrix2 {
         result[3] = matrix[3];
         return result;
     }
-    ;
-    /**
-     * Computes the array index of the element at the provided row and column.
-     *
-     * @param {Number} row The zero-based index of the row.
-     * @param {Number} column The zero-based index of the column.
-     * @returns {Number} The index of the element at the provided row and column.
-     *
-     * @exception {Error} row must be 0 or 1.
-     * @exception {Error} column must be 0 or 1.
-     *
-     * @example
-     * const myMatrix = new Matrix2();
-     * const column1Row0Index = Matrix2.getElementIndex(1, 0);
-     * const column1Row0 = myMatrix[column1Row0Index]
-     * myMatrix[column1Row0Index] = 10.0;
-     */
     static getElementIndex(column, row) {
         return column * 2 + row;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix column at the provided index as a Vector2 instance.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to retrieve.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     *
-     * @exception {Error} index must be 0 or 1.
-     */
     static getColumn(matrix, index, result) {
         const startIndex = index * 2;
         const x = matrix[startIndex];
@@ -3110,18 +1946,6 @@ class Matrix2 {
         result.y = y;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector2 instance.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to set.
-     * @param {Vector2} cartesian The Cartesian whose values will be assigned to the specified column.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @exception {Error} index must be 0 or 1.
-     */
     static setColumn(matrix, index, cartesian, result) {
         result = Matrix2.clone(matrix, result);
         const startIndex = index * 2;
@@ -3129,17 +1953,6 @@ class Matrix2 {
         result[startIndex + 1] = cartesian.y;
         return result;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix row at the provided index as a Vector2 instance.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to retrieve.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     *
-     * @exception {Error} index must be 0 or 1.
-     */
     static getRow(matrix, index, result) {
         const x = matrix[index];
         const y = matrix[index + 2];
@@ -3147,41 +1960,12 @@ class Matrix2 {
         result.y = y;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector2 instance.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to set.
-     * @param {Vector2} cartesian The Cartesian whose values will be assigned to the specified row.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @exception {Error} index must be 0 or 1.
-     */
     static setRow(matrix, index, cartesian, result) {
         result = Matrix2.clone(matrix, result);
         result[index] = cartesian.x;
         result[index + 2] = cartesian.y;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Vector2} scale The scale that replaces the scale of the provided matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @see Matrix2.setUniformScale
-     * @see Matrix2.fromScale
-     * @see Matrix2.fromUniformScale
-     * @see Matrix2.multiplyByScale
-     * @see Matrix2.multiplyByUniformScale
-     * @see Matrix2.getScale
-     */
     static setScale(matrix, scale, result) {
         const existingScale = Matrix2.getScale(matrix, scaleScratch1$2);
         const scaleRatioX = scale.x / existingScale.x;
@@ -3192,76 +1976,15 @@ class Matrix2 {
         result[3] = matrix[3] * scaleRatioY;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided uniform scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix2} matrix The matrix to use.
-     * @param {Number} scale The uniform scale that replaces the scale of the provided matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @see Matrix2.setScale
-     * @see Matrix2.fromScale
-     * @see Matrix2.fromUniformScale
-     * @see Matrix2.multiplyByScale
-     * @see Matrix2.multiplyByUniformScale
-     * @see Matrix2.getScale
-     */
-    static setUniformScale(matrix, scale, result) {
-        const existingScale = Matrix2.getScale(matrix, scaleScratch2$2);
-        const scaleRatioX = scale / existingScale.x;
-        const scaleRatioY = scale / existingScale.y;
-        result[0] = matrix[0] * scaleRatioX;
-        result[1] = matrix[1] * scaleRatioX;
-        result[2] = matrix[2] * scaleRatioY;
-        result[3] = matrix[3] * scaleRatioY;
-        return result;
-    }
-    ;
-    /**
-     * Extracts the non-uniform scale assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     *
-     * @see Matrix2.multiplyByScale
-     * @see Matrix2.multiplyByUniformScale
-     * @see Matrix2.fromScale
-     * @see Matrix2.fromUniformScale
-     * @see Matrix2.setScale
-     * @see Matrix2.setUniformScale
-     */
     static getScale(matrix, result) {
         result.x = Vector2.magnitude(Vector2.fromElements(matrix[0], matrix[1], scratchColumn$2));
         result.y = Vector2.magnitude(Vector2.fromElements(matrix[2], matrix[3], scratchColumn$2));
         return result;
     }
-    ;
-    /**
-     * Computes the maximum scale assuming the matrix is an affine transformation.
-     * The maximum scale is the maximum length of the column vectors.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @returns {Number} The maximum scale.
-     */
     static getMaximumScale(matrix) {
         Matrix2.getScale(matrix, scaleScratch3$2);
         return Vector2.maximumComponent(scaleScratch3$2);
     }
-    ;
-    /**
-     * Sets the rotation assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @param {Matrix2} rotation The rotation matrix.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @see Matrix2.fromRotation
-     * @see Matrix2.getRotation
-     */
     static setRotation(matrix, rotation, result) {
         const scale = Matrix2.getScale(matrix, scaleScratch4$2);
         result[0] = rotation[0] * scale.x;
@@ -3270,17 +1993,6 @@ class Matrix2 {
         result[3] = rotation[3] * scale.y;
         return result;
     }
-    ;
-    /**
-     * Extracts the rotation matrix assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @see Matrix2.setRotation
-     * @see Matrix2.fromRotation
-     */
     static getRotation(matrix, result) {
         const scale = Matrix2.getScale(matrix, scaleScratch5$2);
         result[0] = matrix[0] / scale.x;
@@ -3289,15 +2001,6 @@ class Matrix2 {
         result[3] = matrix[3] / scale.y;
         return result;
     }
-    ;
-    /**
-     * Computes the product of two matrices.
-     *
-     * @param {Matrix2} left The first matrix.
-     * @param {Matrix2} right The second matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static multiply(left, right, result) {
         const column0Row0 = left[0] * right[0] + left[2] * right[1];
         const column1Row0 = left[0] * right[2] + left[2] * right[3];
@@ -3309,15 +2012,6 @@ class Matrix2 {
         result[3] = column1Row1;
         return result;
     }
-    ;
-    /**
-     * Computes the sum of two matrices.
-     *
-     * @param {Matrix2} left The first matrix.
-     * @param {Matrix2} right The second matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static add(left, right, result) {
         result[0] = left[0] + right[0];
         result[1] = left[1] + right[1];
@@ -3325,15 +2019,6 @@ class Matrix2 {
         result[3] = left[3] + right[3];
         return result;
     }
-    ;
-    /**
-     * Computes the difference of two matrices.
-     *
-     * @param {Matrix2} left The first matrix.
-     * @param {Matrix2} right The second matrix.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result[0] = left[0] - right[0];
         result[1] = left[1] - right[1];
@@ -3341,15 +2026,6 @@ class Matrix2 {
         result[3] = left[3] - right[3];
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a column vector.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @param {Vector2} cartesian The column.
-     * @param {Vector2} result The object onto which to store the result.
-     * @returns {Vector2} The modified result parameter.
-     */
     static multiplyByVector(matrix, cartesian, result) {
         const x = matrix[0] * cartesian.x + matrix[2] * cartesian.y;
         const y = matrix[1] * cartesian.x + matrix[3] * cartesian.y;
@@ -3357,15 +2033,6 @@ class Matrix2 {
         result.y = y;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a scalar.
-     *
-     * @param {Matrix2} matrix The matrix.
-     * @param {Number} scalar The number to multiply by.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static multiplyByScalar(matrix, scalar, result) {
         result[0] = matrix[0] * scalar;
         result[1] = matrix[1] * scalar;
@@ -3373,27 +2040,6 @@ class Matrix2 {
         result[3] = matrix[3] * scalar;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix times a (non-uniform) scale, as if the scale were a scale matrix.
-     *
-     * @param {Matrix2} matrix The matrix on the left-hand side.
-     * @param {Number} scale The non-uniform scale on the right-hand side.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     *
-     * @example
-     * // Instead of Matrix2.multiply(m, Matrix2.fromScale(scale), m);
-     * Matrix2.multiplyByScale(m, scale, m);
-     *
-     * @see Matrix2.multiplyByUniformScale
-     * @see Matrix2.fromScale
-     * @see Matrix2.fromUniformScale
-     * @see Matrix2.setScale
-     * @see Matrix2.setUniformScale
-     * @see Matrix2.getScale
-     */
     static multiplyByScale(matrix, scale, result) {
         result[0] = matrix[0] * scale.x;
         result[1] = matrix[1] * scale.x;
@@ -3401,41 +2047,6 @@ class Matrix2 {
         result[3] = matrix[3] * scale.y;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix times a uniform scale, as if the scale were a scale matrix.
-     *
-     * @param {Matrix2} matrix The matrix on the left-hand side.
-     * @param {Number} scale The uniform scale on the right-hand side.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     *
-     * @example
-     * // Instead of Matrix2.multiply(m, Matrix2.fromUniformScale(scale), m);
-     * Matrix2.multiplyByUniformScale(m, scale, m);
-     *
-     * @see Matrix2.multiplyByScale
-     * @see Matrix2.fromScale
-     * @see Matrix2.fromUniformScale
-     * @see Matrix2.setScale
-     * @see Matrix2.setUniformScale
-     * @see Matrix2.getScale
-     */
-    static multiplyByUniformScale(matrix, scale, result) {
-        result[0] = matrix[0] * scale;
-        result[1] = matrix[1] * scale;
-        result[2] = matrix[2] * scale;
-        result[3] = matrix[3] * scale;
-        return result;
-    }
-    ;
-    /**
-     * Creates a negated copy of the provided matrix.
-     *
-     * @param {Matrix2} matrix The matrix to negate.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static negate(matrix, result) {
         result[0] = -matrix[0];
         result[1] = -matrix[1];
@@ -3443,14 +2054,6 @@ class Matrix2 {
         result[3] = -matrix[3];
         return result;
     }
-    ;
-    /**
-     * Computes the transpose of the provided matrix.
-     *
-     * @param {Matrix2} matrix The matrix to transpose.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static transpose(matrix, result) {
         const column0Row0 = matrix[0];
         const column0Row1 = matrix[2];
@@ -3462,14 +2065,6 @@ class Matrix2 {
         result[3] = column1Row1;
         return result;
     }
-    ;
-    /**
-     * Computes a matrix, which contains the absolute (unsigned) values of the provided matrix's elements.
-     *
-     * @param {Matrix2} matrix The matrix with signed elements.
-     * @param {Matrix2} result The object onto which to store the result.
-     * @returns {Matrix2} The modified result parameter.
-     */
     static abs(matrix, result) {
         result[0] = Math.abs(matrix[0]);
         result[1] = Math.abs(matrix[1]);
@@ -3477,15 +2072,6 @@ class Matrix2 {
         result[3] = Math.abs(matrix[3]);
         return result;
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix2} [left] The first matrix.
-     * @param {Matrix2} [right] The second matrix.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -3495,7 +2081,6 @@ class Matrix2 {
                 left[2] === right[2] &&
                 left[3] === right[3]));
     }
-    ;
     /**
      * @private
      */
@@ -3505,18 +2090,7 @@ class Matrix2 {
             matrix[2] === array[offset + 2] &&
             matrix[3] === array[offset + 3]);
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Matrix2} [left] The first matrix.
-     * @param {Matrix2} [right] The second matrix.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, epsilon) {
+    static equalsEpsilon(left, right, epsilon = 0) {
         epsilon = defaultValue(epsilon, 0);
         return (left === right ||
             (defined(left) &&
@@ -3526,81 +2100,28 @@ class Matrix2 {
                 Math.abs(left[2] - right[2]) <= epsilon &&
                 Math.abs(left[3] - right[3]) <= epsilon));
     }
-    ;
     clone(result) {
         return Matrix2.clone(this, result);
     }
-    ;
-    /**
-     * Compares this matrix to the provided matrix componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix2} [right] The right hand side matrix.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Matrix2.equals(this, right);
     }
-    ;
-    /**
-     * Compares this matrix to the provided matrix componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Matrix2} [right] The right hand side matrix.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, epsilon) {
+    equalsEpsilon(right, epsilon = 0) {
         return Matrix2.equalsEpsilon(this, right, epsilon);
     }
-    ;
-    /**
-     * Creates a string representing this Matrix with each row being
-     * on a separate line and in the format '(column0, column1)'.
-     *
-     * @returns {String} A string representing the provided Matrix with each row being on a separate line and in the format '(column0, column1)'.
-     */
     toString() {
         return `(${this[0]}, ${this[2]})\n` + `(${this[1]}, ${this[3]})`;
     }
-    ;
 }
-/**
-* The number of elements used to pack the object into an array.
-* @type {Number}
-*/
-Matrix2.packedLength = 4;
-/**
- * An immutable Matrix2 instance initialized to the identity matrix.
- *
- * @type {Matrix2}
- * @constant
- */
 Matrix2.IDENTITY = Object.freeze(new Matrix2(1.0, 0.0, 0.0, 1.0));
-/**
- * An immutable Matrix2 instance initialized to the zero matrix.
- *
- * @type {Matrix2}
- * @constant
- */
 Matrix2.ZERO = Object.freeze(new Matrix2(0.0, 0.0, 0.0, 0.0));
 const scaleScratch1$2 = new Vector2();
-const scaleScratch2$2 = new Vector2();
+new Vector2();
 const scaleScratch3$2 = new Vector2();
 const scaleScratch4$2 = new Vector2();
 const scratchColumn$2 = new Vector2();
 const scaleScratch5$2 = new Vector2();
 
-/**
- * A 3D Cartesian point.
- * @alias Vector3
- * @constructor
- *
- * @param {Number} [x=0.0] The X component.
- * @param {Number} [y=0.0] The Y component.
- * @param {Number} [z=0.0] The Z component.
- */
 class Vector3 {
     constructor(x = 0, y = 0, z = 0) {
         this.x = x;
@@ -3654,7 +2175,7 @@ class Vector3 {
         return this;
     }
     setFromMatrixColumn(m, index) {
-        return this.fromArray(m.elements, index * 4);
+        return this.fromArray(m, index * 4);
     }
     fromArray(array, offset = 0) {
         this.x = array[offset];
@@ -3666,16 +2187,9 @@ class Vector3 {
         Vector3.multiplyByScalar(this, scale, this);
         return this;
     }
-    /**
-   * Duplicates this Vector3 instance.
-   *
-   * @param {Vector3} [result] The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
-   */
     clone() {
         return Vector3.clone(this, new Vector3());
     }
-    ;
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
@@ -3707,40 +2221,15 @@ class Vector3 {
         Vector3.normalize(this, this);
         return this;
     }
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector3} [right] The right hand side Cartesian.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Vector3.equals(this, right);
     }
-    ;
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector3} [right] The right hand side Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, relativeEpsilon, absoluteEpsilon) {
+    equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
     }
-    ;
-    /**
-     * Creates a string representing this Cartesian in the format '(x, y, z)'.
-     *
-     * @returns {String} A string representing this Cartesian in the format '(x, y, z)'.
-     */
     toString() {
         return `(${this.x}, ${this.y}, ${this.z})`;
     }
-    ;
     fromBufferAttribute(attribute, index) {
         this.x = attribute.getX(index);
         this.y = attribute.getY(index);
@@ -3753,13 +2242,6 @@ class Vector3 {
         result.z = vec4.z;
         return result;
     }
-    /**
-   * Converts the provided Spherical into Vector3 coordinates.
-   *
-   * @param {Spherical} spherical The Spherical to be converted to Vector3.
-   * @param {Vector3} [result] The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
-   */
     static fromSpherical(spherical, result) {
         if (!defined(result)) {
             result = new Vector3();
@@ -3771,16 +2253,6 @@ class Vector3 {
         result.z = sinPhiRadius * Math.cos(theta);
         return result;
     }
-    ;
-    /**
-     * Creates a Vector3 instance from x, y and z coordinates.
-     *
-     * @param {Number} x The x coordinate.
-     * @param {Number} y The y coordinate.
-     * @param {Number} z The z coordinate.
-     * @param {Vector3} [result] The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
-     */
     static fromElements(x, y, z, result) {
         if (!defined(result)) {
             return new Vector3(x, y, z);
@@ -3790,14 +2262,6 @@ class Vector3 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Duplicates a Vector3 instance.
-     *
-     * @param {Vector3} cartesian The Cartesian to duplicate.
-     * @param {Vector3} [result] The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided. (Returns undefined if cartesian is undefined)
-     */
     static clone(cartesian, result = new Vector3()) {
         if (!defined(cartesian)) {
             return undefined;
@@ -3810,66 +2274,24 @@ class Vector3 {
         result.z = cartesian.z;
         return result;
     }
-    ;
-    /**
-     * Computes the value of the maximum component for the supplied Cartesian.
-     *
-     * @param {Vector3} cartesian The cartesian to use.
-     * @returns {Number} The value of the maximum component.
-     */
     static maximumComponent(cartesian) {
         return Math.max(cartesian.x, cartesian.y, cartesian.z);
     }
-    ;
-    /**
-     * Computes the value of the minimum component for the supplied Cartesian.
-     *
-     * @param {Vector3} cartesian The cartesian to use.
-     * @returns {Number} The value of the minimum component.
-     */
     static minimumComponent(cartesian) {
         return Math.min(cartesian.x, cartesian.y, cartesian.z);
     }
-    ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the minimum components of the supplied Cartesians.
-     *
-     * @param {Vector3} first A cartesian to compare.
-     * @param {Vector3} second A cartesian to compare.
-     * @param {Vector3} result The object into which to store the result.
-     * @returns {Vector3} A cartesian with the minimum components.
-     */
     static minimumByComponent(first, second, result) {
         result.x = Math.min(first.x, second.x);
         result.y = Math.min(first.y, second.y);
         result.z = Math.min(first.z, second.z);
         return result;
     }
-    ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the maximum components of the supplied Cartesians.
-     *
-     * @param {Vector3} first A cartesian to compare.
-     * @param {Vector3} second A cartesian to compare.
-     * @param {Vector3} result The object into which to store the result.
-     * @returns {Vector3} A cartesian with the maximum components.
-     */
     static maximumByComponent(first, second, result) {
         result.x = Math.max(first.x, second.x);
         result.y = Math.max(first.y, second.y);
         result.z = Math.max(first.z, second.z);
         return result;
     }
-    ;
-    /**
-     * Constrain a value to lie between two values.
-     *
-     * @param {Vector3} cartesian The value to clamp.
-     * @param {Vector3} min The minimum bound.
-     * @param {Vector3} max The maximum bound.
-     * @param {Vector3} result The object into which to store the result.
-     * @returns {Vector3} The clamped value such that min <= value <= max.
-     */
     static clamp(value, min, max, result) {
         const x = GMath.clamp(value.x, min.x, max.x);
         const y = GMath.clamp(value.y, min.y, max.y);
@@ -3879,69 +2301,22 @@ class Vector3 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes the provided Cartesian's squared magnitude.
-     *
-     * @param {Vector3} cartesian The Cartesian instance whose squared magnitude is to be computed.
-     * @returns {Number} The squared magnitude.
-     */
     static magnitudeSquared(cartesian) {
         return (cartesian.x * cartesian.x +
             cartesian.y * cartesian.y +
             cartesian.z * cartesian.z);
     }
-    ;
-    /**
-     * Computes the Cartesian's magnitude (length).
-     *
-     * @param {Vector3} cartesian The Cartesian instance whose magnitude is to be computed.
-     * @returns {Number} The magnitude.
-     */
     static magnitude(cartesian) {
         return Math.sqrt(Vector3.magnitudeSquared(cartesian));
     }
-    ;
-    /**
-     * Computes the distance between two points.
-     *
-     * @param {Vector3} left The first point to compute the distance from.
-     * @param {Vector3} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 1.0
-     * const d = Vector3.distance(new Vector3(1.0, 0.0, 0.0), new Vector3(2.0, 0.0, 0.0));
-     */
     static distance(left, right) {
         Vector3.subtract(left, right, distanceScratch$1);
         return Vector3.magnitude(distanceScratch$1);
     }
-    ;
-    /**
-     * Computes the squared distance between two points.  Comparing squared distances
-     * using this function is more efficient than comparing distances using {@link Vector3#distance}.
-     *
-     * @param {Vector3} left The first point to compute the distance from.
-     * @param {Vector3} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 4.0, not 2.0
-     * const d = Vector3.distanceSquared(new Vector3(1.0, 0.0, 0.0), new Vector3(3.0, 0.0, 0.0));
-     */
     static distanceSquared(left, right) {
         Vector3.subtract(left, right, distanceScratch$1);
         return Vector3.magnitudeSquared(distanceScratch$1);
     }
-    ;
-    /**
-     * Computes the normalized form of the supplied Cartesian.
-     *
-     * @param {Vector3} cartesian The Cartesian to be normalized.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static normalize(cartesian, result) {
         const magnitude = Vector3.magnitude(cartesian);
         result.x = cartesian.x / magnitude;
@@ -3952,158 +2327,62 @@ class Vector3 {
         }
         return result;
     }
-    ;
-    /**
-     * Computes the dot (scalar) product of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @returns {Number} The dot product.
-     */
     static dot(left, right) {
         return left.x * right.x + left.y * right.y + left.z * right.z;
     }
-    ;
-    /**
-     * Computes the componentwise product of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static multiplyComponents(left, right, result) {
         result.x = left.x * right.x;
         result.y = left.y * right.y;
         result.z = left.z * right.z;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise quotient of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static divideComponents(left, right, result) {
         result.x = left.x / right.x;
         result.y = left.y / right.y;
         result.z = left.z / right.z;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise sum of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static add(left, right, result) {
         result.x = left.x + right.x;
         result.y = left.y + right.y;
         result.z = left.z + right.z;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise difference of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result.x = left.x - right.x;
         result.y = left.y - right.y;
         result.z = left.z - right.z;
         return result;
     }
-    ;
-    /**
-     * Multiplies the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector3} cartesian The Cartesian to be scaled.
-     * @param {Number} scalar The scalar to multiply with.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static multiplyByScalar(cartesian, scalar, result) {
         result.x = cartesian.x * scalar;
         result.y = cartesian.y * scalar;
         result.z = cartesian.z * scalar;
         return result;
     }
-    ;
-    /**
-     * Divides the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector3} cartesian The Cartesian to be divided.
-     * @param {Number} scalar The scalar to divide by.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static divideByScalar(cartesian, scalar, result) {
         result.x = cartesian.x / scalar;
         result.y = cartesian.y / scalar;
         result.z = cartesian.z / scalar;
         return result;
     }
-    ;
-    /**
-     * Negates the provided Cartesian.
-     *
-     * @param {Vector3} cartesian The Cartesian to be negated.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static negate(cartesian, result) {
         result.x = -cartesian.x;
         result.y = -cartesian.y;
         result.z = -cartesian.z;
         return result;
     }
-    ;
-    /**
-     * Computes the absolute value of the provided Cartesian.
-     *
-     * @param {Vector3} cartesian The Cartesian whose absolute value is to be computed.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static abs(cartesian, result) {
         result.x = Math.abs(cartesian.x);
         result.y = Math.abs(cartesian.y);
         result.z = Math.abs(cartesian.z);
         return result;
     }
-    ;
-    /**
-     * Computes the linear interpolation or extrapolation at t using the provided cartesians.
-     *
-     * @param {Vector3} start The value corresponding to t at 0.0.
-     * @param {Vector3} end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static lerp(start, end, t, result) {
         Vector3.multiplyByScalar(end, t, lerpScratch$2);
         result = Vector3.multiplyByScalar(start, 1.0 - t, result);
         return Vector3.add(lerpScratch$2, result, result);
     }
-    ;
-    /**
-     * Returns the angle, in radians, between the provided Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @returns {Number} The angle between the Cartesians.
-     */
     static angleBetween(left, right) {
         Vector3.normalize(left, angleBetweenScratch);
         Vector3.normalize(right, angleBetweenScratch2);
@@ -4111,16 +2390,8 @@ class Vector3 {
         const sine = Vector3.magnitude(Vector3.cross(angleBetweenScratch, angleBetweenScratch2, angleBetweenScratch));
         return Math.atan2(sine, cosine);
     }
-    ;
-    /**
-     * Returns the axis that is most orthogonal to the provided Cartesian.
-     *
-     * @param {Vector3} cartesian The Cartesian on which to find the most orthogonal axis.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The most orthogonal axis.
-     */
     static mostOrthogonalAxis(cartesian, result) {
-        const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch$1);
+        const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch);
         Vector3.abs(f, f);
         if (f.x <= f.y) {
             if (f.x <= f.z) {
@@ -4138,27 +2409,10 @@ class Vector3 {
         }
         return result;
     }
-    ;
-    /**
-     * Projects vector a onto vector b
-     * @param {Vector3} a The vector that needs projecting
-     * @param {Vector3} b The vector to project onto
-     * @param {Vector3} result The result cartesian
-     * @returns {Vector3} The modified result parameter
-     */
     static projectVector(a, b, result) {
         const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
         return Vector3.multiplyByScalar(b, scalar, result);
     }
-    ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector3} [left] The first Cartesian.
-     * @param {Vector3} [right] The second Cartesian.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -4167,7 +2421,6 @@ class Vector3 {
                 left.y === right.y &&
                 left.z === right.z));
     }
-    ;
     /**
      * @private
      */
@@ -4176,19 +2429,7 @@ class Vector3 {
             cartesian.y === array[offset + 1] &&
             cartesian.z === array[offset + 2]);
     }
-    ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector3} [left] The first Cartesian.
-     * @param {Vector3} [right] The second Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon) {
+    static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return (left === right ||
             (defined(left) &&
                 defined(right) &&
@@ -4196,15 +2437,6 @@ class Vector3 {
                 GMath.equalsEpsilon(left.y, right.y, relativeEpsilon, absoluteEpsilon) &&
                 GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon)));
     }
-    ;
-    /**
-     * Computes the cross (outer) product of two Cartesians.
-     *
-     * @param {Vector3} left The first Cartesian.
-     * @param {Vector3} right The second Cartesian.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The cross product.
-     */
     static cross(left, right, result) {
         const leftX = left.x;
         const leftY = left.y;
@@ -4220,50 +2452,12 @@ class Vector3 {
         result.z = z;
         return result;
     }
-    ;
 }
-/**
-* An immutable Vector3 instance initialized to (0.0, 0.0, 0.0).
-*
-* @type {Vector3}
-* @constant
-*/
 Vector3.ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
-/**
- * An immutable Vector3 instance initialized to (1.0, 1.0, 1.0).
- *
- * @type {Vector3}
- * @constant
- */
 Vector3.ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
-/**
- * An immutable Vector3 instance initialized to (1.0, 0.0, 0.0).
- *
- * @type {Vector3}
- * @constant
- */
 Vector3.UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
-/**
- * An immutable Vector3 instance initialized to (0.0, 1.0, 0.0).
- *
- * @type {Vector3}
- * @constant
- */
 Vector3.UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
-/**
- * An immutable Vector3 instance initialized to (0.0, 0.0, 1.0).
- *
- * @type {Vector3}
- * @constant
- */
 Vector3.UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
-/**
- * Computes the midpoint between the right and left Cartesian.
- * @param {Vector3} left The first Cartesian.
- * @param {Vector3} right The second Cartesian.
- * @param {Vector3} result The object onto which to store the result.
- * @returns {Vector3} The midpoint.
- */
 Vector3.midpoint = function (left, right, result) {
     result.x = (left.x + right.x) * 0.5;
     result.y = (left.y + right.y) * 0.5;
@@ -4274,15 +2468,10 @@ const distanceScratch$1 = new Vector3();
 const lerpScratch$2 = new Vector3();
 const angleBetweenScratch = new Vector3();
 const angleBetweenScratch2 = new Vector3();
-const mostOrthogonalAxisScratch$1 = new Vector3();
+const mostOrthogonalAxisScratch = new Vector3();
 
 /**
  * A 3x3 matrix, indexable as a column-major order array.
- * Constructor parameters are in row-major order for code readability.
- * @alias Matrix3
- * @constructor
- * @implements {ArrayLike<number>}
- *
  * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
  * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
  * @param {Number} [column2Row0=0.0] The value for column 2, row 0.
@@ -4292,20 +2481,6 @@ const mostOrthogonalAxisScratch$1 = new Vector3();
  * @param {Number} [column0Row2=0.0] The value for column 0, row 2.
  * @param {Number} [column1Row2=0.0] The value for column 1, row 2.
  * @param {Number} [column2Row2=0.0] The value for column 2, row 2.
- *
- * @see Matrix3.fromArray
- * @see Matrix3.fromColumnMajorArray
- * @see Matrix3.fromRowMajorArray
- * @see Matrix3.fromQuaternion
- * @see Matrix3.fromHeadingPitchRoll
- * @see Matrix3.fromScale
- * @see Matrix3.fromUniformScale
- * @see Matrix3.fromCrossProduct
- * @see Matrix3.fromRotationX
- * @see Matrix3.fromRotationY
- * @see Matrix3.fromRotationZ
- * @see Matrix2
- * @see Matrix4
  */
 class Matrix3 {
     constructor(column0Row0 = 0, column1Row0 = 0, column2Row0 = 0, column0Row1 = 0, column1Row1 = 0, column2Row1 = 0, column0Row2 = 0, column1Row2 = 0, column2Row2 = 0) {
@@ -4319,13 +2494,24 @@ class Matrix3 {
         this[7] = column2Row1;
         this[8] = column2Row2;
     }
-    /**
-     * Duplicates a Matrix3 instance.
-     *
-     * @param {Matrix3} matrix The matrix to duplicate.
-     * @param {Matrix3} [result] The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter or a new Matrix3 instance if one was not provided. (Returns undefined if matrix is undefined)
-     */
+    setFromMatrix4(matrix) {
+        this[0] = matrix[0];
+        this[1] = matrix[1];
+        this[2] = matrix[2];
+        this[3] = matrix[4];
+        this[4] = matrix[5];
+        this[5] = matrix[2];
+        this[6] = matrix[8];
+        this[7] = matrix[9];
+        this[8] = matrix[10];
+        return this;
+    }
+    getNormalMatrix(matrix4) {
+        this.setFromMatrix4(matrix4);
+        Matrix3.inverse(this, this);
+        Matrix3.transpose(this, this);
+        return this;
+    }
     static clone(matrix, result) {
         if (!defined(matrix)) {
             return undefined;
@@ -4344,29 +2530,12 @@ class Matrix3 {
         result[8] = matrix[8];
         return result;
     }
-    ;
-    /**
-     * Creates a Matrix3 instance from a column-major order array.
-     *
-     * @param {Number[]} values The column-major order array.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     */
     static fromColumnMajorArray(values, result) {
         if (!defined(result)) {
-            result = new Matrix3;
+            result = new Matrix3();
         }
         return Matrix3.clone(values, result);
     }
-    ;
-    /**
-     * Creates a Matrix3 instance from a row-major order array.
-     * The resulting matrix will be in column-major order.
-     *
-     * @param {Number[]} values The row-major order array.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     */
     static fromRowMajorArray(values, result) {
         if (!defined(result)) {
             return new Matrix3(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8]);
@@ -4382,14 +2551,6 @@ class Matrix3 {
         result[8] = values[8];
         return result;
     }
-    ;
-    /**
-     * Computes a 3x3 rotation matrix from the provided quaternion.
-     *
-     * @param {Quaternion} quaternion the quaternion to use.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The 3x3 rotation matrix from this quaternion.
-     */
     static fromQuaternion(quaternion, result) {
         const x2 = quaternion.x * quaternion.x;
         const xy = quaternion.x * quaternion.y;
@@ -4424,59 +2585,6 @@ class Matrix3 {
         result[8] = m22;
         return result;
     }
-    ;
-    /**
-     * Computes a 3x3 rotation matrix from the provided headingPitchRoll. (see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles )
-     *
-     * @param {HeadingPitchRoll} headingPitchRoll the headingPitchRoll to use.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The 3x3 rotation matrix from this headingPitchRoll.
-     */
-    static fromHeadingPitchRoll(headingPitchRoll, result) {
-        const cosTheta = Math.cos(-headingPitchRoll.pitch);
-        const cosPsi = Math.cos(-headingPitchRoll.heading);
-        const cosPhi = Math.cos(headingPitchRoll.roll);
-        const sinTheta = Math.sin(-headingPitchRoll.pitch);
-        const sinPsi = Math.sin(-headingPitchRoll.heading);
-        const sinPhi = Math.sin(headingPitchRoll.roll);
-        const m00 = cosTheta * cosPsi;
-        const m01 = -cosPhi * sinPsi + sinPhi * sinTheta * cosPsi;
-        const m02 = sinPhi * sinPsi + cosPhi * sinTheta * cosPsi;
-        const m10 = cosTheta * sinPsi;
-        const m11 = cosPhi * cosPsi + sinPhi * sinTheta * sinPsi;
-        const m12 = -sinPhi * cosPsi + cosPhi * sinTheta * sinPsi;
-        const m20 = -sinTheta;
-        const m21 = sinPhi * cosTheta;
-        const m22 = cosPhi * cosTheta;
-        if (!defined(result)) {
-            return new Matrix3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
-        }
-        result[0] = m00;
-        result[1] = m10;
-        result[2] = m20;
-        result[3] = m01;
-        result[4] = m11;
-        result[5] = m21;
-        result[6] = m02;
-        result[7] = m12;
-        result[8] = m22;
-        return result;
-    }
-    ;
-    /**
-     * Computes a Matrix3 instance representing a non-uniform scale.
-     *
-     * @param {Vector3} scale The x, y, and z scale factors.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [7.0, 0.0, 0.0]
-     * //   [0.0, 8.0, 0.0]
-     * //   [0.0, 0.0, 9.0]
-     * const m = Matrix3.fromScale(new Vector3(7.0, 8.0, 9.0));
-     */
     static fromScale(scale, result) {
         if (!defined(result)) {
             return new Matrix3(scale.x, 0.0, 0.0, 0.0, scale.y, 0.0, 0.0, 0.0, scale.z);
@@ -4492,80 +2600,6 @@ class Matrix3 {
         result[8] = scale.z;
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix3 instance representing a uniform scale.
-     *
-     * @param {Number} scale The uniform scale factor.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [2.0, 0.0, 0.0]
-     * //   [0.0, 2.0, 0.0]
-     * //   [0.0, 0.0, 2.0]
-     * const m = Matrix3.fromUniformScale(2.0);
-     */
-    static fromUniformScale(scale, result) {
-        if (!defined(result)) {
-            return new Matrix3(scale, 0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0, scale);
-        }
-        result[0] = scale;
-        result[1] = 0.0;
-        result[2] = 0.0;
-        result[3] = 0.0;
-        result[4] = scale;
-        result[5] = 0.0;
-        result[6] = 0.0;
-        result[7] = 0.0;
-        result[8] = scale;
-        return result;
-    }
-    ;
-    /**
-     * Computes a Matrix3 instance representing the cross product equivalent matrix of a Vector3 vector.
-     *
-     * @param {Vector3} vector the vector on the left hand side of the cross product operation.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [0.0, -9.0,  8.0]
-     * //   [9.0,  0.0, -7.0]
-     * //   [-8.0, 7.0,  0.0]
-     * const m = Matrix3.fromCrossProduct(new Vector3(7.0, 8.0, 9.0));
-     */
-    static fromCrossProduct(vector, result) {
-        if (!defined(result)) {
-            return new Matrix3(0.0, -vector.z, vector.y, vector.z, 0.0, -vector.x, -vector.y, vector.x, 0.0);
-        }
-        result[0] = 0.0;
-        result[1] = vector.z;
-        result[2] = -vector.y;
-        result[3] = -vector.z;
-        result[4] = 0.0;
-        result[5] = vector.x;
-        result[6] = vector.y;
-        result[7] = -vector.x;
-        result[8] = 0.0;
-        return result;
-    }
-    ;
-    /**
-     * Creates a rotation matrix around the x-axis.
-     *
-     * @param {Number} angle The angle, in radians, of the rotation.  Positive angles are counterclockwise.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Rotate a point 45 degrees counterclockwise around the x-axis.
-     * const p = new Vector3(5, 6, 7);
-     * const m = Matrix3.fromRotationX(Math.toRadians(45.0));
-     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
-     */
     static fromRotationX(angle, result) {
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
@@ -4583,20 +2617,6 @@ class Matrix3 {
         result[8] = cosAngle;
         return result;
     }
-    ;
-    /**
-     * Creates a rotation matrix around the y-axis.
-     *
-     * @param {Number} angle The angle, in radians, of the rotation.  Positive angles are counterclockwise.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Rotate a point 45 degrees counterclockwise around the y-axis.
-     * const p = new Vector3(5, 6, 7);
-     * const m = Matrix3.fromRotationY(Math.toRadians(45.0));
-     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
-     */
     static fromRotationY(angle, result) {
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
@@ -4614,20 +2634,6 @@ class Matrix3 {
         result[8] = cosAngle;
         return result;
     }
-    ;
-    /**
-     * Creates a rotation matrix around the z-axis.
-     *
-     * @param {Number} angle The angle, in radians, of the rotation.  Positive angles are counterclockwise.
-     * @param {Matrix3} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix3} The modified result parameter, or a new Matrix3 instance if one was not provided.
-     *
-     * @example
-     * // Rotate a point 45 degrees counterclockwise around the z-axis.
-     * const p = new Vector3(5, 6, 7);
-     * const m = Matrix3.fromRotationZ(Math.toRadians(45.0));
-     * const rotated = Matrix3.multiplyByVector(m, p, new Vector3());
-     */
     static fromRotationZstatic(angle, result) {
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
@@ -4645,20 +2651,11 @@ class Matrix3 {
         result[8] = 1.0;
         return result;
     }
-    ;
     toArray() {
         const result = [];
         Matrix3.toArray(this, result);
         return result;
     }
-    /**
-     * Creates an Array from the provided Matrix3 instance.
-     * The array will be in column-major order.
-     *
-     * @param {Matrix3} matrix The matrix to use..
-     * @param {Number[]} [result] The Array onto which to store the result.
-     * @returns {Number[]} The modified Array parameter or a new Array instance if one was not provided.
-     */
     static toArray(matrix, result) {
         if (!defined(result)) {
             return [
@@ -4684,37 +2681,9 @@ class Matrix3 {
         result[8] = matrix[8];
         return result;
     }
-    ;
-    /**
-     * Computes the array index of the element at the provided row and column.
-     *
-     * @param {Number} column The zero-based index of the column.
-     * @param {Number} row The zero-based index of the row.
-     * @returns {Number} The index of the element at the provided row and column.
-     *
-     * @exception {Error} row must be 0, 1, or 2.
-     * @exception {Error} column must be 0, 1, or 2.
-     *
-     * @example
-     * const myMatrix = new Matrix3();
-     * const column1Row0Index = Matrix3.getElementIndex(1, 0);
-     * const column1Row0 = myMatrix[column1Row0Index]
-     * myMatrix[column1Row0Index] = 10.0;
-     */
     static getElementIndex(column, row) {
         return column * 3 + row;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix column at the provided index as a Vector3 instance.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to retrieve.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, or 2.
-     */
     static getColumn(matrix, index, result) {
         const startIndex = index * 3;
         const x = matrix[startIndex];
@@ -4725,18 +2694,6 @@ class Matrix3 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector3 instance.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to set.
-     * @param {Vector3} cartesian The Cartesian whose values will be assigned to the specified column.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, or 2.
-     */
     static setColumn(matrix, index, cartesian, result) {
         result = Matrix3.clone(matrix, result);
         const startIndex = index * 3;
@@ -4745,17 +2702,6 @@ class Matrix3 {
         result[startIndex + 2] = cartesian.z;
         return result;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix row at the provided index as a Vector3 instance.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to retrieve.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, or 2.
-     */
     static getRow(matrix, index, result) {
         const x = matrix[index];
         const y = matrix[index + 3];
@@ -4765,18 +2711,6 @@ class Matrix3 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector3 instance.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to set.
-     * @param {Vector3} cartesian The Cartesian whose values will be assigned to the specified row.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, or 2.
-     */
     static setRow(matrix, index, cartesian, result) {
         result = Matrix3.clone(matrix, result);
         result[index] = cartesian.x;
@@ -4784,23 +2718,6 @@ class Matrix3 {
         result[index + 6] = cartesian.z;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Vector3} scale The scale that replaces the scale of the provided matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @see Matrix3.setUniformScale
-     * @see Matrix3.fromScale
-     * @see Matrix3.fromUniformScale
-     * @see Matrix3.multiplyByScale
-     * @see Matrix3.multiplyByUniformScale
-     * @see Matrix3.getScale
-     */
     static setScale(matrix, scale, result) {
         const existingScale = Matrix3.getScale(matrix, scaleScratch1$1);
         const scaleRatioX = scale.x / existingScale.x;
@@ -4817,82 +2734,16 @@ class Matrix3 {
         result[8] = matrix[8] * scaleRatioZ;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided uniform scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @param {Number} scale The uniform scale that replaces the scale of the provided matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @see Matrix3.setScale
-     * @see Matrix3.fromScale
-     * @see Matrix3.fromUniformScale
-     * @see Matrix3.multiplyByScale
-     * @see Matrix3.multiplyByUniformScale
-     * @see Matrix3.getScale
-     */
-    static setUniformScale(matrix, scale, result) {
-        const existingScale = Matrix3.getScale(matrix, scaleScratch2$1);
-        const scaleRatioX = scale / existingScale.x;
-        const scaleRatioY = scale / existingScale.y;
-        const scaleRatioZ = scale / existingScale.z;
-        result[0] = matrix[0] * scaleRatioX;
-        result[1] = matrix[1] * scaleRatioX;
-        result[2] = matrix[2] * scaleRatioX;
-        result[3] = matrix[3] * scaleRatioY;
-        result[4] = matrix[4] * scaleRatioY;
-        result[5] = matrix[5] * scaleRatioY;
-        result[6] = matrix[6] * scaleRatioZ;
-        result[7] = matrix[7] * scaleRatioZ;
-        result[8] = matrix[8] * scaleRatioZ;
-        return result;
-    }
-    ;
-    /**
-     * Extracts the non-uniform scale assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     *
-     * @see Matrix3.multiplyByScale
-     * @see Matrix3.multiplyByUniformScale
-     * @see Matrix3.fromScale
-     * @see Matrix3.fromUniformScale
-     * @see Matrix3.setScale
-     * @see Matrix3.setUniformScale
-     */
     static getScale(matrix, result) {
         result.x = Vector3.magnitude(Vector3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn$1));
         result.y = Vector3.magnitude(Vector3.fromElements(matrix[3], matrix[4], matrix[5], scratchColumn$1));
         result.z = Vector3.magnitude(Vector3.fromElements(matrix[6], matrix[7], matrix[8], scratchColumn$1));
         return result;
     }
-    ;
-    /**
-     * Computes the maximum scale assuming the matrix is an affine transformation.
-     * The maximum scale is the maximum length of the column vectors.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @returns {Number} The maximum scale.
-     */
     static getMaximumScale(matrix) {
         Matrix3.getScale(matrix, scaleScratch3$1);
         return Vector3.maximumComponent(scaleScratch3$1);
     }
-    ;
-    /**
-     * Sets the rotation assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @param {Matrix3} rotation The rotation matrix.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @see Matrix3.getRotation
-     */
     static setRotation(matrix, rotation, result) {
         const scale = Matrix3.getScale(matrix, scaleScratch4$1);
         result[0] = rotation[0] * scale.x;
@@ -4906,16 +2757,6 @@ class Matrix3 {
         result[8] = rotation[8] * scale.z;
         return result;
     }
-    ;
-    /**
-     * Extracts the rotation matrix assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @see Matrix3.setRotation
-     */
     static getRotation(matrix, result) {
         const scale = Matrix3.getScale(matrix, scaleScratch5$1);
         result[0] = matrix[0] / scale.x;
@@ -4929,15 +2770,6 @@ class Matrix3 {
         result[8] = matrix[8] / scale.z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of two matrices.
-     *
-     * @param {Matrix3} left The first matrix.
-     * @param {Matrix3} right The second matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static multiply(left, right, result) {
         const column0Row0 = left[0] * right[0] + left[3] * right[1] + left[6] * right[2];
         const column0Row1 = left[1] * right[0] + left[4] * right[1] + left[7] * right[2];
@@ -4959,15 +2791,6 @@ class Matrix3 {
         result[8] = column2Row2;
         return result;
     }
-    ;
-    /**
-     * Computes the sum of two matrices.
-     *
-     * @param {Matrix3} left The first matrix.
-     * @param {Matrix3} right The second matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static add(left, right, result) {
         result[0] = left[0] + right[0];
         result[1] = left[1] + right[1];
@@ -4980,15 +2803,6 @@ class Matrix3 {
         result[8] = left[8] + right[8];
         return result;
     }
-    ;
-    /**
-     * Computes the difference of two matrices.
-     *
-     * @param {Matrix3} left The first matrix.
-     * @param {Matrix3} right The second matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result[0] = left[0] - right[0];
         result[1] = left[1] - right[1];
@@ -5001,15 +2815,6 @@ class Matrix3 {
         result[8] = left[8] - right[8];
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a column vector.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @param {Vector3} cartesian The column.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static multiplyByVector(matrix, cartesian, result) {
         const vX = cartesian.x;
         const vY = cartesian.y;
@@ -5022,15 +2827,6 @@ class Matrix3 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a scalar.
-     *
-     * @param {Matrix3} matrix The matrix.
-     * @param {Number} scalar The number to multiply by.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static multiplyByScalar(matrix, scalar, result) {
         result[0] = matrix[0] * scalar;
         result[1] = matrix[1] * scalar;
@@ -5043,27 +2839,6 @@ class Matrix3 {
         result[8] = matrix[8] * scalar;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix times a (non-uniform) scale, as if the scale were a scale matrix.
-     *
-     * @param {Matrix3} matrix The matrix on the left-hand side.
-     * @param {Number} scale The non-uniform scale on the right-hand side.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     *
-     * @example
-     * // Instead of Matrix3.multiply(m, Matrix3.fromScale(scale), m);
-     * Matrix3.multiplyByScale(m, scale, m);
-     *
-     * @see Matrix3.multiplyByUniformScale
-     * @see Matrix3.fromScale
-     * @see Matrix3.fromUniformScale
-     * @see Matrix3.setScale
-     * @see Matrix3.setUniformScale
-     * @see Matrix3.getScale
-     */
     static multiplyByScale(matrix, scale, result) {
         result[0] = matrix[0] * scale.x;
         result[1] = matrix[1] * scale.x;
@@ -5076,46 +2851,6 @@ class Matrix3 {
         result[8] = matrix[8] * scale.z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix times a uniform scale, as if the scale were a scale matrix.
-     *
-     * @param {Matrix3} matrix The matrix on the left-hand side.
-     * @param {Number} scale The uniform scale on the right-hand side.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @example
-     * // Instead of Matrix3.multiply(m, Matrix3.fromUniformScale(scale), m);
-     * Matrix3.multiplyByUniformScale(m, scale, m);
-     *
-     * @see Matrix3.multiplyByScale
-     * @see Matrix3.fromScale
-     * @see Matrix3.fromUniformScale
-     * @see Matrix3.setScale
-     * @see Matrix3.setUniformScale
-     * @see Matrix3.getScale
-     */
-    static multiplyByUniformScale(matrix, scale, result) {
-        result[0] = matrix[0] * scale;
-        result[1] = matrix[1] * scale;
-        result[2] = matrix[2] * scale;
-        result[3] = matrix[3] * scale;
-        result[4] = matrix[4] * scale;
-        result[5] = matrix[5] * scale;
-        result[6] = matrix[6] * scale;
-        result[7] = matrix[7] * scale;
-        result[8] = matrix[8] * scale;
-        return result;
-    }
-    ;
-    /**
-     * Creates a negated copy of the provided matrix.
-     *
-     * @param {Matrix3} matrix The matrix to negate.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static negate(matrix, result) {
         result[0] = -matrix[0];
         result[1] = -matrix[1];
@@ -5128,14 +2863,6 @@ class Matrix3 {
         result[8] = -matrix[8];
         return result;
     }
-    ;
-    /**
-     * Computes the transpose of the provided matrix.
-     *
-     * @param {Matrix3} matrix The matrix to transpose.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static transpose(matrix, result) {
         const column0Row0 = matrix[0];
         const column0Row1 = matrix[3];
@@ -5157,72 +2884,6 @@ class Matrix3 {
         result[8] = column2Row2;
         return result;
     }
-    ;
-    /**
-     * Computes the eigenvectors and eigenvalues of a symmetric matrix.
-     * <p>
-     * Returns a diagonal matrix and unitary matrix such that:
-     * <code>matrix = unitary matrix * diagonal matrix * transpose(unitary matrix)</code>
-     * </p>
-     * <p>
-     * The values along the diagonal of the diagonal matrix are the eigenvalues. The columns
-     * of the unitary matrix are the corresponding eigenvectors.
-     * </p>
-     *
-     * @param {Matrix3} matrix The matrix to decompose into diagonal and unitary matrix. Expected to be symmetric.
-     * @param {Object} [result] An object with unitary and diagonal properties which are matrices onto which to store the result.
-     * @returns {Object} An object with unitary and diagonal properties which are the unitary and diagonal matrices, respectively.
-     *
-     * @example
-     * const a = //... symetric matrix
-     * const result = {
-     *     unitary : new Matrix3(),
-     *     diagonal : new Matrix3()
-     * };
-     * Matrix3.computeEigenDecomposition(a, result);
-     *
-     * const unitaryTranspose = Matrix3.transpose(result.unitary, new Matrix3());
-     * const b = Matrix3.multiply(result.unitary, result.diagonal, new Matrix3());
-     * Matrix3.multiply(b, unitaryTranspose, b); // b is now equal to a
-     *
-     * const lambda = Matrix3.getColumn(result.diagonal, 0, new Vector3()).x;  // first eigenvalue
-     * const v = Matrix3.getColumn(result.unitary, 0, new Vector3());          // first eigenvector
-     * const c = Vector3.multiplyByScalar(v, lambda, new Vector3());        // equal to Matrix3.multiplyByVector(a, v)
-     */
-    static computeEigenDecomposition(matrix, result) {
-        // This routine was created based upon Matrix Computations, 3rd ed., by Golub and Van Loan,
-        // section 8.4.3 The Classical Jacobi Algorithm
-        const tolerance = GMath.EPSILON20;
-        const maxSweeps = 10;
-        let count = 0;
-        let sweep = 0;
-        if (!defined(result)) {
-            result = {};
-        }
-        const unitaryMatrix = (result.unitary = Matrix3.clone(Matrix3.IDENTITY, result.unitary));
-        const diagMatrix = (result.diagonal = Matrix3.clone(matrix, result.diagonal));
-        const epsilon = tolerance * computeFrobeniusNorm(diagMatrix);
-        while (sweep < maxSweeps && offDiagonalFrobeniusNorm(diagMatrix) > epsilon) {
-            shurDecomposition(diagMatrix, jMatrix);
-            Matrix3.transpose(jMatrix, jMatrixTranspose);
-            Matrix3.multiply(diagMatrix, jMatrix, diagMatrix);
-            Matrix3.multiply(jMatrixTranspose, diagMatrix, diagMatrix);
-            Matrix3.multiply(unitaryMatrix, jMatrix, unitaryMatrix);
-            if (++count > 2) {
-                ++sweep;
-                count = 0;
-            }
-        }
-        return result;
-    }
-    ;
-    /**
-     * Computes a matrix, which contains the absolute (unsigned) values of the provided matrix's elements.
-     *
-     * @param {Matrix3} matrix The matrix with signed elements.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static abs(matrix, result) {
         result[0] = Math.abs(matrix[0]);
         result[1] = Math.abs(matrix[1]);
@@ -5235,13 +2896,6 @@ class Matrix3 {
         result[8] = Math.abs(matrix[8]);
         return result;
     }
-    ;
-    /**
-     * Computes the determinant of the provided matrix.
-     *
-     * @param {Matrix3} matrix The matrix to use.
-     * @returns {Number} The value of the determinant of the matrix.
-     */
     static determinant(matrix) {
         const m11 = matrix[0];
         const m21 = matrix[3];
@@ -5256,16 +2910,6 @@ class Matrix3 {
             m12 * (m23 * m31 - m21 * m33) +
             m13 * (m21 * m32 - m22 * m31));
     }
-    ;
-    /**
-     * Computes the inverse of the provided matrix.
-     *
-     * @param {Matrix3} matrix The matrix to invert.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @exception {Error} matrix is not invertible.
-     */
     static inverse(matrix, result) {
         const m11 = matrix[0];
         const m21 = matrix[1];
@@ -5294,26 +2938,9 @@ class Matrix3 {
         const scale = 1.0 / determinant;
         return Matrix3.multiplyByScalar(result, scale, result);
     }
-    ;
-    /**
-     * Computes the inverse transpose of a matrix.
-     *
-     * @param {Matrix3} matrix The matrix to transpose and invert.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     */
     static inverseTranspose(matrix, result) {
         return Matrix3.inverse(Matrix3.transpose(matrix, scratchTransposeMatrix$1), result);
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix3} [left] The first matrix.
-     * @param {Matrix3} [right] The second matrix.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -5328,18 +2955,7 @@ class Matrix3 {
                 left[7] === right[7] &&
                 left[8] === right[8]));
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Matrix3} [left] The first matrix.
-     * @param {Matrix3} [right] The second matrix.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, epsilon) {
+    static equalsEpsilon(left, right, epsilon = 0) {
         epsilon = defaultValue(epsilon, 0);
         return (left === right ||
             (defined(left) &&
@@ -5354,22 +2970,12 @@ class Matrix3 {
                 Math.abs(left[7] - right[7]) <= epsilon &&
                 Math.abs(left[8] - right[8]) <= epsilon));
     }
-    ;
     clone(result) {
         return Matrix3.clone(this, result);
     }
-    ;
-    /**
-     * Compares this matrix to the provided matrix componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix3} [right] The right hand side matrix.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Matrix3.equals(this, right);
     }
-    ;
     /**
      * @private
      */
@@ -5384,7 +2990,6 @@ class Matrix3 {
             matrix[7] === array[offset + 7] &&
             matrix[8] === array[offset + 8]);
     }
-    ;
     /**
      * Compares this matrix to the provided matrix componentwise and returns
      * <code>true</code> if they are within the provided epsilon,
@@ -5397,117 +3002,22 @@ class Matrix3 {
     equalsEpsilon(right, epsilon) {
         return Matrix3.equalsEpsilon(this, right, epsilon);
     }
-    ;
-    /**
-     * Creates a string representing this Matrix with each row being
-     * on a separate line and in the format '(column0, column1, column2)'.
-     *
-     * @returns {String} A string representing the provided Matrix with each row being on a separate line and in the format '(column0, column1, column2)'.
-     */
     toString() {
         return (`(${this[0]}, ${this[3]}, ${this[6]})\n` +
             `(${this[1]}, ${this[4]}, ${this[7]})\n` +
             `(${this[2]}, ${this[5]}, ${this[8]})`);
     }
-    ;
 }
-/**
- * An immutable Matrix3 instance initialized to the identity matrix.
- *
- * @type {Matrix3}
- * @constant
- */
 Matrix3.IDENTITY = Object.freeze(new Matrix3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0));
-/**
- * An immutable Matrix3 instance initialized to the zero matrix.
- *
- * @type {Matrix3}
- * @constant
- */
 Matrix3.ZERO = Object.freeze(new Matrix3(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 const scaleScratch1$1 = new Vector3();
-const scaleScratch2$1 = new Vector3();
+new Vector3();
 const scratchColumn$1 = new Vector3();
 const scaleScratch3$1 = new Vector3();
 const scaleScratch4$1 = new Vector3();
 const scaleScratch5$1 = new Vector3();
-function computeFrobeniusNorm(matrix) {
-    let norm = 0.0;
-    for (let i = 0; i < 9; ++i) {
-        const temp = matrix[i];
-        norm += temp * temp;
-    }
-    return Math.sqrt(norm);
-}
-const rowVal = [1, 0, 0];
-const colVal = [2, 2, 1];
-function offDiagonalFrobeniusNorm(matrix) {
-    // Computes the "off-diagonal" Frobenius norm.
-    // Assumes matrix is symmetric.
-    let norm = 0.0;
-    for (let i = 0; i < 3; ++i) {
-        const temp = matrix[Matrix3.getElementIndex(colVal[i], rowVal[i])];
-        norm += 2.0 * temp * temp;
-    }
-    return Math.sqrt(norm);
-}
-function shurDecomposition(matrix, result) {
-    // This routine was created based upon Matrix Computations, 3rd ed., by Golub and Van Loan,
-    // section 8.4.2 The 2by2 Symmetric Schur Decomposition.
-    //
-    // The routine takes a matrix, which is assumed to be symmetric, and
-    // finds the largest off-diagonal term, and then creates
-    // a matrix (result) which can be used to help reduce it
-    const tolerance = GMath.EPSILON15;
-    let maxDiagonal = 0.0;
-    let rotAxis = 1;
-    // find pivot (rotAxis) based on max diagonal of matrix
-    for (let i = 0; i < 3; ++i) {
-        const temp = Math.abs(matrix[Matrix3.getElementIndex(colVal[i], rowVal[i])]);
-        if (temp > maxDiagonal) {
-            rotAxis = i;
-            maxDiagonal = temp;
-        }
-    }
-    let c = 1.0;
-    let s = 0.0;
-    const p = rowVal[rotAxis];
-    const q = colVal[rotAxis];
-    if (Math.abs(matrix[Matrix3.getElementIndex(q, p)]) > tolerance) {
-        const qq = matrix[Matrix3.getElementIndex(q, q)];
-        const pp = matrix[Matrix3.getElementIndex(p, p)];
-        const qp = matrix[Matrix3.getElementIndex(q, p)];
-        const tau = (qq - pp) / 2.0 / qp;
-        let t;
-        if (tau < 0.0) {
-            t = -1.0 / (-tau + Math.sqrt(1.0 + tau * tau));
-        }
-        else {
-            t = 1.0 / (tau + Math.sqrt(1.0 + tau * tau));
-        }
-        c = 1.0 / Math.sqrt(1.0 + t * t);
-        s = t * c;
-    }
-    result = Matrix3.clone(Matrix3.IDENTITY, result);
-    result[Matrix3.getElementIndex(p, p)] = result[Matrix3.getElementIndex(q, q)] = c;
-    result[Matrix3.getElementIndex(q, p)] = s;
-    result[Matrix3.getElementIndex(p, q)] = -s;
-    return result;
-}
-const jMatrix = new Matrix3();
-const jMatrixTranspose = new Matrix3();
 const scratchTransposeMatrix$1 = new Matrix3();
 
-/**
- * A 4D Cartesian point.
- * @alias Vector4
- * @constructor
- *
- * @param {Number} [x=0.0] The X component.
- * @param {Number} [y=0.0] The Y component.
- * @param {Number} [z=0.0] The Z component.
- * @param {Number} [w=0.0] The W component.
- */
 class Vector4 {
     constructor(x = 0, y = 0, z = 0, w = 0) {
         this.x = x;
@@ -5524,50 +3034,18 @@ class Vector4 {
     toArray() {
         return [this.x, this.y, this.z, this.w];
     }
-    /**
-     * Duplicates this Vector4 instance.
-     *
-     * @param {Vector4} [result] The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-     */
     clone(result) {
         return Vector4.clone(this, result);
     }
-    ;
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector4} [right] The right hand side Cartesian.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Vector4.equals(this, right);
     }
-    ;
-    /**
-     * Compares this Cartesian against the provided Cartesian componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector4} [right] The right hand side Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, relativeEpsilon, absoluteEpsilon) {
+    equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return Vector4.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
     }
-    ;
-    /**
-     * Creates a string representing this Cartesian in the format '(x, y, z, w)'.
-     *
-     * @returns {String} A string representing the provided Cartesian in the format '(x, y, z, w)'.
-     */
     toString() {
         return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
     }
-    ;
     fromBufferAttribute(attribute, index) {
         this.x = attribute.getX(index);
         this.y = attribute.getY(index);
@@ -5575,16 +3053,6 @@ class Vector4 {
         this.w = attribute.getW(index);
         return this;
     }
-    /**
-     * Creates a Vector4 instance from x, y, z and w coordinates.
-     *
-     * @param {Number} x The x coordinate.
-     * @param {Number} y The y coordinate.
-     * @param {Number} z The z coordinate.
-     * @param {Number} w The w coordinate.
-     * @param {Vector4} [result] The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-     */
     static fromElements(x, y, z, w, result) {
         if (!defined(result)) {
             return new Vector4(x, y, z, w);
@@ -5595,33 +3063,6 @@ class Vector4 {
         result.w = w;
         return result;
     }
-    ;
-    /**
-     * Creates a Vector4 instance from a {@link Color}. <code>red</code>, <code>green</code>, <code>blue</code>,
-     * and <code>alpha</code> map to <code>x</code>, <code>y</code>, <code>z</code>, and <code>w</code>, respectively.
-     *
-     * @param {Color} color The source color.
-     * @param {Vector4} [result] The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-     */
-    static fromColor(color, result) {
-        if (!defined(result)) {
-            return new Vector4(color.red, color.green, color.blue, color.alpha);
-        }
-        result.x = color.red;
-        result.y = color.green;
-        result.z = color.blue;
-        result.w = color.alpha;
-        return result;
-    }
-    ;
-    /**
-     * Duplicates a Vector4 instance.
-     *
-     * @param {Vector4} cartesian The Cartesian to duplicate.
-     * @param {Vector4} [result] The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided. (Returns undefined if cartesian is undefined)
-     */
     static clone(cartesian, result) {
         if (!defined(cartesian)) {
             return undefined;
@@ -5635,35 +3076,12 @@ class Vector4 {
         result.w = cartesian.w;
         return result;
     }
-    ;
-    /**
-     * Computes the value of the maximum component for the supplied Cartesian.
-     *
-     * @param {Vector4} cartesian The cartesian to use.
-     * @returns {Number} The value of the maximum component.
-     */
     static maximumComponent(cartesian) {
         return Math.max(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
     }
-    ;
-    /**
-     * Computes the value of the minimum component for the supplied Cartesian.
-     *
-     * @param {Vector4} cartesian The cartesian to use.
-     * @returns {Number} The value of the minimum component.
-     */
     static minimumComponent(cartesian) {
         return Math.min(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
     }
-    ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the minimum components of the supplied Cartesians.
-     *
-     * @param {Vector4} first A cartesian to compare.
-     * @param {Vector4} second A cartesian to compare.
-     * @param {Vector4} result The object into which to store the result.
-     * @returns {Vector4} A cartesian with the minimum components.
-     */
     static minimumByComponent(first, second, result) {
         result.x = Math.min(first.x, second.x);
         result.y = Math.min(first.y, second.y);
@@ -5671,15 +3089,6 @@ class Vector4 {
         result.w = Math.min(first.w, second.w);
         return result;
     }
-    ;
-    /**
-     * Compares two Cartesians and computes a Cartesian which contains the maximum components of the supplied Cartesians.
-     *
-     * @param {Vector4} first A cartesian to compare.
-     * @param {Vector4} second A cartesian to compare.
-     * @param {Vector4} result The object into which to store the result.
-     * @returns {Vector4} A cartesian with the maximum components.
-     */
     static maximumByComponent(first, second, result) {
         result.x = Math.max(first.x, second.x);
         result.y = Math.max(first.y, second.y);
@@ -5687,16 +3096,6 @@ class Vector4 {
         result.w = Math.max(first.w, second.w);
         return result;
     }
-    ;
-    /**
-     * Constrain a value to lie between two values.
-     *
-     * @param {Vector4} value The value to clamp.
-     * @param {Vector4} min The minimum bound.
-     * @param {Vector4} max The maximum bound.
-     * @param {Vector4} result The object into which to store the result.
-     * @returns {Vector4} The clamped value such that min <= result <= max.
-     */
     static clamp(value, min, max, result) {
         const x = GMath.clamp(value.x, min.x, max.x);
         const y = GMath.clamp(value.y, min.y, max.y);
@@ -5708,74 +3107,23 @@ class Vector4 {
         result.w = w;
         return result;
     }
-    ;
-    /**
-     * Computes the provided Cartesian's squared magnitude.
-     *
-     * @param {Vector4} cartesian The Cartesian instance whose squared magnitude is to be computed.
-     * @returns {Number} The squared magnitude.
-     */
     static magnitudeSquared(cartesian) {
         return (cartesian.x * cartesian.x +
             cartesian.y * cartesian.y +
             cartesian.z * cartesian.z +
             cartesian.w * cartesian.w);
     }
-    ;
-    /**
-     * Computes the Cartesian's magnitude (length).
-     *
-     * @param {Vector4} cartesian The Cartesian instance whose magnitude is to be computed.
-     * @returns {Number} The magnitude.
-     */
     static magnitude(cartesian) {
         return Math.sqrt(Vector4.magnitudeSquared(cartesian));
     }
-    ;
-    /**
-     * Computes the 4-space distance between two points.
-     *
-     * @param {Vector4} left The first point to compute the distance from.
-     * @param {Vector4} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 1.0
-     * const d = Vector4.distance(
-     *   new Vector4(1.0, 0.0, 0.0, 0.0),
-     *   new Vector4(2.0, 0.0, 0.0, 0.0));
-     */
     static distance(left, right) {
         Vector4.subtract(left, right, distanceScratch);
         return Vector4.magnitude(distanceScratch);
     }
-    ;
-    /**
-     * Computes the squared distance between two points.  Comparing squared distances
-     * using this function is more efficient than comparing distances using {@link Vector4#distance}.
-     *
-     * @param {Vector4} left The first point to compute the distance from.
-     * @param {Vector4} right The second point to compute the distance to.
-     * @returns {Number} The distance between two points.
-     *
-     * @example
-     * // Returns 4.0, not 2.0
-     * const d = Vector4.distance(
-     *   new Vector4(1.0, 0.0, 0.0, 0.0),
-     *   new Vector4(3.0, 0.0, 0.0, 0.0));
-     */
     static distanceSquared(left, right) {
         Vector4.subtract(left, right, distanceScratch);
         return Vector4.magnitudeSquared(distanceScratch);
     }
-    ;
-    /**
-     * Computes the normalized form of the supplied Cartesian.
-     *
-     * @param {Vector4} cartesian The Cartesian to be normalized.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static normalize(cartesian, result) {
         const magnitude = Vector4.magnitude(cartesian);
         result.x = cartesian.x / magnitude;
@@ -5792,26 +3140,9 @@ class Vector4 {
         //>>includeEnd('debug');
         return result;
     }
-    ;
-    /**
-     * Computes the dot (scalar) product of two Cartesians.
-     *
-     * @param {Vector4} left The first Cartesian.
-     * @param {Vector4} right The second Cartesian.
-     * @returns {Number} The dot product.
-     */
     static dot(left, right) {
         return (left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w);
     }
-    ;
-    /**
-     * Computes the componentwise product of two Cartesians.
-     *
-     * @param {Vector4} left The first Cartesian.
-     * @param {Vector4} right The second Cartesian.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static multiplyComponents(left, right, result) {
         result.x = left.x * right.x;
         result.y = left.y * right.y;
@@ -5819,15 +3150,6 @@ class Vector4 {
         result.w = left.w * right.w;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise quotient of two Cartesians.
-     *
-     * @param {Vector4} left The first Cartesian.
-     * @param {Vector4} right The second Cartesian.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static divideComponents(left, right, result) {
         result.x = left.x / right.x;
         result.y = left.y / right.y;
@@ -5835,15 +3157,6 @@ class Vector4 {
         result.w = left.w / right.w;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise sum of two Cartesians.
-     *
-     * @param {Vector4} left The first Cartesian.
-     * @param {Vector4} right The second Cartesian.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static add(left, right, result) {
         result.x = left.x + right.x;
         result.y = left.y + right.y;
@@ -5851,15 +3164,6 @@ class Vector4 {
         result.w = left.w + right.w;
         return result;
     }
-    ;
-    /**
-     * Computes the componentwise difference of two Cartesians.
-     *
-     * @param {Vector4} left The first Cartesian.
-     * @param {Vector4} right The second Cartesian.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result.x = left.x - right.x;
         result.y = left.y - right.y;
@@ -5867,15 +3171,6 @@ class Vector4 {
         result.w = left.w - right.w;
         return result;
     }
-    ;
-    /**
-     * Multiplies the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector4} cartesian The Cartesian to be scaled.
-     * @param {Number} scalar The scalar to multiply with.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static multiplyByScalar(cartesian, scalar, result) {
         result.x = cartesian.x * scalar;
         result.y = cartesian.y * scalar;
@@ -5883,15 +3178,6 @@ class Vector4 {
         result.w = cartesian.w * scalar;
         return result;
     }
-    ;
-    /**
-     * Divides the provided Cartesian componentwise by the provided scalar.
-     *
-     * @param {Vector4} cartesian The Cartesian to be divided.
-     * @param {Number} scalar The scalar to divide by.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static divideByScalar(cartesian, scalar, result) {
         result.x = cartesian.x / scalar;
         result.y = cartesian.y / scalar;
@@ -5899,14 +3185,6 @@ class Vector4 {
         result.w = cartesian.w / scalar;
         return result;
     }
-    ;
-    /**
-     * Negates the provided Cartesian.
-     *
-     * @param {Vector4} cartesian The Cartesian to be negated.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static negate(cartesian, result) {
         result.x = -cartesian.x;
         result.y = -cartesian.y;
@@ -5914,14 +3192,6 @@ class Vector4 {
         result.w = -cartesian.w;
         return result;
     }
-    ;
-    /**
-     * Computes the absolute value of the provided Cartesian.
-     *
-     * @param {Vector4} cartesian The Cartesian whose absolute value is to be computed.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static abs(cartesian, result) {
         result.x = Math.abs(cartesian.x);
         result.y = Math.abs(cartesian.y);
@@ -5929,73 +3199,11 @@ class Vector4 {
         result.w = Math.abs(cartesian.w);
         return result;
     }
-    ;
-    /**
-     * Computes the linear interpolation or extrapolation at t using the provided cartesians.
-     *
-     * @param {Vector4} start The value corresponding to t at 0.0.
-     * @param {Vector4}end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static lerp(start, end, t, result) {
         Vector4.multiplyByScalar(end, t, lerpScratch$1);
         result = Vector4.multiplyByScalar(start, 1.0 - t, result);
         return Vector4.add(lerpScratch$1, result, result);
     }
-    ;
-    /**
-     * Returns the axis that is most orthogonal to the provided Cartesian.
-     *
-     * @param {Vector4} cartesian The Cartesian on which to find the most orthogonal axis.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The most orthogonal axis.
-     */
-    static mostOrthogonalAxis(cartesian, result) {
-        const f = Vector4.normalize(cartesian, mostOrthogonalAxisScratch);
-        Vector4.abs(f, f);
-        if (f.x <= f.y) {
-            if (f.x <= f.z) {
-                if (f.x <= f.w) {
-                    result = Vector4.clone(Vector4.UNIT_X, result);
-                }
-                else {
-                    result = Vector4.clone(Vector4.UNIT_W, result);
-                }
-            }
-            else if (f.z <= f.w) {
-                result = Vector4.clone(Vector4.UNIT_Z, result);
-            }
-            else {
-                result = Vector4.clone(Vector4.UNIT_W, result);
-            }
-        }
-        else if (f.y <= f.z) {
-            if (f.y <= f.w) {
-                result = Vector4.clone(Vector4.UNIT_Y, result);
-            }
-            else {
-                result = Vector4.clone(Vector4.UNIT_W, result);
-            }
-        }
-        else if (f.z <= f.w) {
-            result = Vector4.clone(Vector4.UNIT_Z, result);
-        }
-        else {
-            result = Vector4.clone(Vector4.UNIT_W, result);
-        }
-        return result;
-    }
-    ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Vector4} [left] The first Cartesian.
-     * @param {Vector4} [right] The second Cartesian.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -6005,29 +3213,13 @@ class Vector4 {
                 left.z === right.z &&
                 left.w === right.w));
     }
-    ;
-    /**
-     * @private
-     */
     static equalsArray(cartesian, array, offset) {
         return (cartesian.x === array[offset] &&
             cartesian.y === array[offset + 1] &&
             cartesian.z === array[offset + 2] &&
             cartesian.w === array[offset + 3]);
     }
-    ;
-    /**
-     * Compares the provided Cartesians componentwise and returns
-     * <code>true</code> if they pass an absolute or relative tolerance test,
-     * <code>false</code> otherwise.
-     *
-     * @param {Vector4} [left] The first Cartesian.
-     * @param {Vector4} [right] The second Cartesian.
-     * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-     * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon) {
+    static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
         return (left === right ||
             (defined(left) &&
                 defined(right) &&
@@ -6036,165 +3228,43 @@ class Vector4 {
                 GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon) &&
                 GMath.equalsEpsilon(left.w, right.w, relativeEpsilon, absoluteEpsilon)));
     }
-    ;
-    /**
-     * Packs an arbitrary floating point value to 4 values representable using uint8.
-     *
-     * @param {Number} value A floating point number.
-     * @param {Vector4} [result] The Vector4 that will contain the packed float.
-     * @returns {Vector4} A Vector4 representing the float packed to values in x, y, z, and w.
-     */
-    static packFloat(value, result) {
-        if (!defined(result)) {
-            result = new Vector4();
-        }
-        // scratchU8Array and scratchF32Array are views into the same buffer
-        scratchF32Array[0] = value;
-        if (littleEndian) {
-            result.x = scratchU8Array[0];
-            result.y = scratchU8Array[1];
-            result.z = scratchU8Array[2];
-            result.w = scratchU8Array[3];
-        }
-        else {
-            // convert from big-endian to little-endian
-            result.x = scratchU8Array[3];
-            result.y = scratchU8Array[2];
-            result.z = scratchU8Array[1];
-            result.w = scratchU8Array[0];
-        }
-        return result;
-    }
-    ;
-    /**
-     * Unpacks a float packed using Vector4.packFloat.
-     *
-     * @param {Vector4} packedFloat A Vector4 containing a float packed to 4 values representable using uint8.
-     * @returns {Number} The unpacked float.
-     * @private
-     */
-    static unpackFloat(packedFloat) {
-        // scratchU8Array and scratchF32Array are views into the same buffer
-        if (littleEndian) {
-            scratchU8Array[0] = packedFloat.x;
-            scratchU8Array[1] = packedFloat.y;
-            scratchU8Array[2] = packedFloat.z;
-            scratchU8Array[3] = packedFloat.w;
-        }
-        else {
-            // convert from little-endian to big-endian
-            scratchU8Array[0] = packedFloat.w;
-            scratchU8Array[1] = packedFloat.z;
-            scratchU8Array[2] = packedFloat.y;
-            scratchU8Array[3] = packedFloat.x;
-        }
-        return scratchF32Array[0];
-    }
-    ;
 }
-/**
-* An immutable Vector4 instance initialized to (0.0, 0.0, 0.0, 0.0).
-*
-* @type {Vector4}
-* @constant
-*/
 Vector4.ZERO = Object.freeze(new Vector4(0.0, 0.0, 0.0, 0.0));
-/**
- * An immutable Vector4 instance initialized to (1.0, 1.0, 1.0, 1.0).
- *
- * @type {Vector4}
- * @constant
- */
 Vector4.ONE = Object.freeze(new Vector4(1.0, 1.0, 1.0, 1.0));
-/**
- * An immutable Vector4 instance initialized to (1.0, 0.0, 0.0, 0.0).
- *
- * @type {Vector4}
- * @constant
- */
 Vector4.UNIT_X = Object.freeze(new Vector4(1.0, 0.0, 0.0, 0.0));
-/**
- * An immutable Vector4 instance initialized to (0.0, 1.0, 0.0, 0.0).
- *
- * @type {Vector4}
- * @constant
- */
 Vector4.UNIT_Y = Object.freeze(new Vector4(0.0, 1.0, 0.0, 0.0));
-/**
- * An immutable Vector4 instance initialized to (0.0, 0.0, 1.0, 0.0).
- *
- * @type {Vector4}
- * @constant
- */
 Vector4.UNIT_Z = Object.freeze(new Vector4(0.0, 0.0, 1.0, 0.0));
-/**
- * An immutable Vector4 instance initialized to (0.0, 0.0, 0.0, 1.0).
- *
- * @type {Vector4}
- * @constant
- */
-/**
- * The number of elements used to pack the object into an array.
- * @type {Number}
- */
-Vector4.packedLength = 4;
 Vector4.UNIT_W = Object.freeze(new Vector4(0.0, 0.0, 0.0, 1.0));
 // scratchU8Array and scratchF32Array are views into the same buffer
 const scratchF32Array = new Float32Array(1);
-const scratchU8Array = new Uint8Array(scratchF32Array.buffer);
+new Uint8Array(scratchF32Array.buffer);
 const testU32 = new Uint32Array([0x11223344]);
 const testU8 = new Uint8Array(testU32.buffer);
-const littleEndian = testU8[0] === 0x44;
+testU8[0] === 0x44;
 const distanceScratch = new Vector4();
 const lerpScratch$1 = new Vector4();
-const mostOrthogonalAxisScratch = new Vector4();
+new Vector4();
 
 class Matrix4 {
     /**
-   * A 4x4 matrix, indexable as a column-major order array.
-   * Constructor parameters are in row-major order for code readability.
-   * @alias Matrix4
-   * @constructor
-   * @implements {ArrayLike<number>}
-   *
-   * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
-   * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
-   * @param {Number} [column2Row0=0.0] The value for column 2, row 0.
-   * @param {Number} [column3Row0=0.0] The value for column 3, row 0.
-   * @param {Number} [column0Row1=0.0] The value for column 0, row 1.
-   * @param {Number} [column1Row1=0.0] The value for column 1, row 1.
-   * @param {Number} [column2Row1=0.0] The value for column 2, row 1.
-   * @param {Number} [column3Row1=0.0] The value for column 3, row 1.
-   * @param {Number} [column0Row2=0.0] The value for column 0, row 2.
-   * @param {Number} [column1Row2=0.0] The value for column 1, row 2.
-   * @param {Number} [column2Row2=0.0] The value for column 2, row 2.
-   * @param {Number} [column3Row2=0.0] The value for column 3, row 2.
-   * @param {Number} [column0Row3=0.0] The value for column 0, row 3.
-   * @param {Number} [column1Row3=0.0] The value for column 1, row 3.
-   * @param {Number} [column2Row3=0.0] The value for column 2, row 3.
-   * @param {Number} [column3Row3=0.0] The value for column 3, row 3.
-   *
-   * @see Matrix4.fromArray
-   * @see Matrix4.fromColumnMajorArray
-   * @see Matrix4.fromRowMajorArray
-   * @see Matrix4.fromRotationTranslation
-   * @see Matrix4.fromTranslationQuaternionRotationScale
-   * @see Matrix4.fromTranslationRotationScale
-   * @see Matrix4.fromTranslation
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.fromRotation
-   * @see Matrix4.fromCamera
-   * @see Matrix4.computePerspectiveFieldOfView
-   * @see Matrix4.computeOrthographicOffCenter
-   * @see Matrix4.computePerspectiveOffCenter
-   * @see Matrix4.computeInfinitePerspectiveOffCenter
-   * @see Matrix4.computeViewportTransformation
-   * @see Matrix4.computeView
-   * @see Matrix2
-   * @see Matrix3
-   * @see Packable
-   */
+     * A 4x4 matrix, indexable as a column-major order array.
+     * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
+     * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
+     * @param {Number} [column2Row0=0.0] The value for column 2, row 0.
+     * @param {Number} [column3Row0=0.0] The value for column 3, row 0.
+     * @param {Number} [column0Row1=0.0] The value for column 0, row 1.
+     * @param {Number} [column1Row1=0.0] The value for column 1, row 1.
+     * @param {Number} [column2Row1=0.0] The value for column 2, row 1.
+     * @param {Number} [column3Row1=0.0] The value for column 3, row 1.
+     * @param {Number} [column0Row2=0.0] The value for column 0, row 2.
+     * @param {Number} [column1Row2=0.0] The value for column 1, row 2.
+     * @param {Number} [column2Row2=0.0] The value for column 2, row 2.
+     * @param {Number} [column3Row2=0.0] The value for column 3, row 2.
+     * @param {Number} [column0Row3=0.0] The value for column 0, row 3.
+     * @param {Number} [column1Row3=0.0] The value for column 1, row 3.
+     * @param {Number} [column2Row3=0.0] The value for column 2, row 3.
+     * @param {Number} [column3Row3=0.0] The value for column 3, row 3.
+     */
     constructor(column0Row0 = 0, column1Row0 = 0, column2Row0 = 0, column3Row0 = 0, column0Row1 = 0, column1Row1 = 0, column2Row1 = 0, column3Row1 = 0, column0Row2 = 0, column1Row2 = 0, column2Row2 = 0, column3Row2 = 0, column0Row3 = 0, column1Row3 = 0, column2Row3 = 0, column3Row3 = 0) {
         this[0] = column0Row0;
         this[1] = column0Row1;
@@ -6213,43 +3283,16 @@ class Matrix4 {
         this[14] = column3Row2;
         this[15] = column3Row3;
     }
-    get length() {
-        return Matrix4.packedLength;
-    }
-    /**
-   * Duplicates the provided Matrix4 instance.
-   *
-   * @param {Matrix4} [result] The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
-   */
+    //????
     clone(result) {
         return Matrix4.clone(this, result);
     }
-    ;
-    /**
-     * Compares this matrix to the provided matrix componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix4} [right] The right hand side matrix.
-     * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Matrix4.equals(this, right);
     }
-    ;
-    /**
-     * Compares this matrix to the provided matrix componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Matrix4} [right] The right hand side matrix.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, epsilon) {
+    equalsEpsilon(right, epsilon = 0) {
         return Matrix4.equalsEpsilon(this, right, epsilon);
     }
-    ;
     lookAt(eye, target, up) {
         const matrix = this;
         Vector3.subtract(eye, target, z);
@@ -6283,56 +3326,12 @@ class Matrix4 {
         matrix[10] = z.z;
         return this;
     }
-    /**
-     * Computes a string representing this Matrix with each row being
-     * on a separate line and in the format '(column0, column1, column2, column3)'.
-     *
-     * @returns {String} A string representing the provided Matrix with each row being on a separate line and in the format '(column0, column1, column2, column3)'.
-     */
     toString() {
         return (`(${this[0]}, ${this[4]}, ${this[8]}, ${this[12]})\n` +
             `(${this[1]}, ${this[5]}, ${this[9]}, ${this[13]})\n` +
             `(${this[2]}, ${this[6]}, ${this[10]}, ${this[14]})\n` +
             `(${this[3]}, ${this[7]}, ${this[11]}, ${this[15]})`);
     }
-    ;
-    /**
-     * Stores the provided instance into the provided array.
-     *
-     * @param {Matrix4} value The value to pack.
-     * @param {Number[]} array The array to pack into.
-     * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
-     *
-     * @returns {Number[]} The array that was packed into
-     */
-    static pack(value, array, startingIndex) {
-        startingIndex = defaultValue(startingIndex, 0);
-        array[startingIndex++] = value[0];
-        array[startingIndex++] = value[1];
-        array[startingIndex++] = value[2];
-        array[startingIndex++] = value[3];
-        array[startingIndex++] = value[4];
-        array[startingIndex++] = value[5];
-        array[startingIndex++] = value[6];
-        array[startingIndex++] = value[7];
-        array[startingIndex++] = value[8];
-        array[startingIndex++] = value[9];
-        array[startingIndex++] = value[10];
-        array[startingIndex++] = value[11];
-        array[startingIndex++] = value[12];
-        array[startingIndex++] = value[13];
-        array[startingIndex++] = value[14];
-        array[startingIndex] = value[15];
-        return array;
-    }
-    ;
-    /**
-     * Duplicates a Matrix4 instance.
-     *
-     * @param {Matrix4} matrix The matrix to duplicate.
-     * @param {Matrix4} [result] The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided. (Returns undefined if matrix is undefined)
-     */
     static clone(matrix, result) {
         if (!defined(matrix)) {
             return undefined;
@@ -6358,49 +3357,9 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Creates a Matrix4 from 16 consecutive elements in an array.
-     * @function
-     *
-     * @param {Number[]} array The array whose 16 consecutive elements correspond to the positions of the matrix.  Assumes column-major order.
-     * @param {Number} [startingIndex=0] The offset into the array of the first element, which corresponds to first column first row position in the matrix.
-     * @param {Matrix4} [result] The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
-     *
-     * @example
-     * // Create the Matrix4:
-     * // [1.0, 2.0, 3.0, 4.0]
-     * // [1.0, 2.0, 3.0, 4.0]
-     * // [1.0, 2.0, 3.0, 4.0]
-     * // [1.0, 2.0, 3.0, 4.0]
-     *
-     * const v = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-     * const m = Matrix4.fromArray(v);
-     *
-     * // Create same Matrix4 with using an offset into an array
-     * const v2 = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-     * const m2 = Matrix4.fromArray(v2, 2);
-     */
-    /**
-     * Computes a Matrix4 instance from a column-major order array.
-     *
-     * @param {Number[]} values The column-major order array.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
     static fromColumnMajorArray(values, result) {
         return Matrix4.clone(values, result);
     }
-    ;
-    /**
-     * Computes a Matrix4 instance from a row-major order array.
-     * The resulting matrix will be in column-major order.
-     *
-     * @param {Number[]} values The row-major order array.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
     static fromRowMajorArray(values, result) {
         if (!defined(result)) {
             return new Matrix4(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], values[15]);
@@ -6423,16 +3382,6 @@ class Matrix4 {
         result[15] = values[15];
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix4 instance from a Matrix3 representing the rotation
-     * and a Vector3 representing the translation.
-     *
-     * @param {Matrix3} rotation The upper left portion of the matrix representing the rotation.
-     * @param {Vector3} [translation=Vector3.ZERO] The upper right portion of the matrix representing the translation.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
     static fromRotationTranslation(rotation, translation, result) {
         translation = defaultValue(translation, Vector3.ZERO);
         if (!defined(result)) {
@@ -6456,24 +3405,6 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix4 instance from a translation, rotation, and scale (TRS)
-     * representation with the rotation represented as a quaternion.
-     *
-     * @param {Vector3} translation The translation transformation.
-     * @param {Quaternion} rotation The rotation transformation.
-     * @param {Vector3} scale The non-uniform scale transformation.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     *
-     * @example
-     * const result = Matrix4.fromTranslationQuaternionRotationScale(
-     *   new Vector3(1.0, 2.0, 3.0), // translation
-     *   Quaternion.IDENTITY,           // rotation
-     *   new Vector3(7.0, 8.0, 9.0), // scale
-     *   result);
-     */
     static fromTranslationQuaternionRotationScale(translation, rotation, scale, result) {
         if (!defined(result)) {
             result = new Matrix4();
@@ -6518,46 +3449,12 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Creates a Matrix4 instance from a {@link TranslationRotationScale} instance.
-     *
-     * @param {TranslationRotationScale} translationRotationScale The instance.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
     static fromTranslationRotationScale(translationRotationScale, result) {
         return Matrix4.fromTranslationQuaternionRotationScale(translationRotationScale.translation, translationRotationScale.rotation, translationRotationScale.scale, result);
     }
-    ;
-    /**
-     * Creates a Matrix4 instance from a Vector3 representing the translation.
-     *
-     * @param {Vector3} translation The upper right portion of the matrix representing the translation.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     *
-     * @see Matrix4.multiplyByTranslation
-     */
     static fromTranslation(translation, result) {
         return Matrix4.fromRotationTranslation(Matrix3.IDENTITY, translation, result);
     }
-    ;
-    /**
-     * Computes a Matrix4 instance representing a non-uniform scale.
-     *
-     * @param {Vector3} scale The x, y, and z scale factors.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [7.0, 0.0, 0.0, 0.0]
-     * //   [0.0, 8.0, 0.0, 0.0]
-     * //   [0.0, 0.0, 9.0, 0.0]
-     * //   [0.0, 0.0, 0.0, 1.0]
-     * const m = Matrix4.fromScale(new Vector3(7.0, 8.0, 9.0));
-     */
     static fromScale(scale, result) {
         if (!defined(result)) {
             return new Matrix4(scale.x, 0.0, 0.0, 0.0, 0.0, scale.y, 0.0, 0.0, 0.0, 0.0, scale.z, 0.0, 0.0, 0.0, 0.0, 1.0);
@@ -6580,52 +3477,6 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix4 instance representing a uniform scale.
-     *
-     * @param {Number} scale The uniform scale factor.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     *
-     * @example
-     * // Creates
-     * //   [2.0, 0.0, 0.0, 0.0]
-     * //   [0.0, 2.0, 0.0, 0.0]
-     * //   [0.0, 0.0, 2.0, 0.0]
-     * //   [0.0, 0.0, 0.0, 1.0]
-     * const m = Matrix4.fromUniformScale(2.0);
-     */
-    static fromUniformScale(scale, result) {
-        if (!defined(result)) {
-            return new Matrix4(scale, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0, 0.0, 1.0);
-        }
-        result[0] = scale;
-        result[1] = 0.0;
-        result[2] = 0.0;
-        result[3] = 0.0;
-        result[4] = 0.0;
-        result[5] = scale;
-        result[6] = 0.0;
-        result[7] = 0.0;
-        result[8] = 0.0;
-        result[9] = 0.0;
-        result[10] = scale;
-        result[11] = 0.0;
-        result[12] = 0.0;
-        result[13] = 0.0;
-        result[14] = 0.0;
-        result[15] = 1.0;
-        return result;
-    }
-    ;
-    /**
-     * Creates a rotation matrix.
-     *
-     * @param {Matrix3} rotation The rotation matrix.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
     static fromRotation(rotation, result) {
         if (!defined(result)) {
             result = new Matrix4();
@@ -6648,82 +3499,15 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Computes a Matrix4 instance from a Camera.
-     *
-     * @param {Camera} camera The camera to use.
-     * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-     * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-     */
-    static fromCamera(camera, result) {
-        const position = camera.position;
-        const direction = camera.direction;
-        const up = camera.up;
-        Vector3.normalize(direction, fromCameraF);
-        Vector3.normalize(Vector3.cross(fromCameraF, up, fromCameraR), fromCameraR);
-        Vector3.normalize(Vector3.cross(fromCameraR, fromCameraF, fromCameraU), fromCameraU);
-        const sX = fromCameraR.x;
-        const sY = fromCameraR.y;
-        const sZ = fromCameraR.z;
-        const fX = fromCameraF.x;
-        const fY = fromCameraF.y;
-        const fZ = fromCameraF.z;
-        const uX = fromCameraU.x;
-        const uY = fromCameraU.y;
-        const uZ = fromCameraU.z;
-        const positionX = position.x;
-        const positionY = position.y;
-        const positionZ = position.z;
-        const t0 = sX * -positionX + sY * -positionY + sZ * -positionZ;
-        const t1 = uX * -positionX + uY * -positionY + uZ * -positionZ;
-        const t2 = fX * positionX + fY * positionY + fZ * positionZ;
-        // The code below this comment is an optimized
-        // version of the commented lines.
-        // Rather that create two matrices and then multiply,
-        // we just bake in the multiplcation as part of creation.
-        // const rotation = new Matrix4(
-        //                 sX,  sY,  sZ, 0.0,
-        //                 uX,  uY,  uZ, 0.0,
-        //                -fX, -fY, -fZ, 0.0,
-        //                 0.0,  0.0,  0.0, 1.0);
-        // const translation = new Matrix4(
-        //                 1.0, 0.0, 0.0, -position.x,
-        //                 0.0, 1.0, 0.0, -position.y,
-        //                 0.0, 0.0, 1.0, -position.z,
-        //                 0.0, 0.0, 0.0, 1.0);
-        // return rotation.multiply(translation);
-        if (!defined(result)) {
-            return new Matrix4(sX, sY, sZ, t0, uX, uY, uZ, t1, -fX, -fY, -fZ, t2, 0.0, 0.0, 0.0, 1.0);
-        }
-        result[0] = sX;
-        result[1] = uX;
-        result[2] = -fX;
-        result[3] = 0.0;
-        result[4] = sY;
-        result[5] = uY;
-        result[6] = -fY;
-        result[7] = 0.0;
-        result[8] = sZ;
-        result[9] = uZ;
-        result[10] = -fZ;
-        result[11] = 0.0;
-        result[12] = t0;
-        result[13] = t1;
-        result[14] = t2;
-        result[15] = 1.0;
-        return result;
-    }
-    ;
     static makePerspective(left, right, top, bottom, near, far) {
         // from three.js
         const matrix = new Matrix4();
-        const x = 2 * near / (right - left);
-        const y = 2 * near / (top - bottom);
+        const x = (2 * near) / (right - left);
+        const y = (2 * near) / (top - bottom);
         const a = (right + left) / (right - left);
         const b = (top + bottom) / (top - bottom);
         const c = -(far + near) / (far - near);
-        const d = -2 * far * near / (far - near);
+        const d = (-2 * far * near) / (far - near);
         matrix[0] = x;
         matrix[4] = 0;
         matrix[8] = a;
@@ -6768,94 +3552,6 @@ class Matrix4 {
         matrix[15] = 1;
         return matrix;
     }
-    /**
-     * Computes a Matrix4 instance that transforms from normalized device coordinates to window coordinates.
-     *
-     * @param {Object} [viewport = { x : 0.0, y : 0.0, width : 0.0, height : 0.0 }] The viewport's corners as shown in Example 1.
-     * @param {Number} [nearDepthRange=0.0] The near plane distance in window coordinates.
-     * @param {Number} [farDepthRange=1.0] The far plane distance in window coordinates.
-     * @param {Matrix4} [result] The object in which the result will be stored.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * // Create viewport transformation using an explicit viewport and depth range.
-     * const m = Matrix4.computeViewportTransformation({
-     *     x : 0.0,
-     *     y : 0.0,
-     *     width : 1024.0,
-     *     height : 768.0
-     * }, 0.0, 1.0, new Matrix4());
-     */
-    static computeViewportTransformation(viewport, nearDepthRange, farDepthRange, result) {
-        if (!defined(result)) {
-            result = new Matrix4();
-        }
-        viewport = defaultValue(viewport, defaultValue.EMPTY_OBJECT);
-        const x = defaultValue(viewport.x, 0.0);
-        const y = defaultValue(viewport.y, 0.0);
-        const width = defaultValue(viewport.width, 0.0);
-        const height = defaultValue(viewport.height, 0.0);
-        nearDepthRange = defaultValue(nearDepthRange, 0.0);
-        farDepthRange = defaultValue(farDepthRange, 1.0);
-        const halfWidth = width * 0.5;
-        const halfHeight = height * 0.5;
-        const halfDepth = (farDepthRange - nearDepthRange) * 0.5;
-        const column0Row0 = halfWidth;
-        const column1Row1 = halfHeight;
-        const column2Row2 = halfDepth;
-        const column3Row0 = x + halfWidth;
-        const column3Row1 = y + halfHeight;
-        const column3Row2 = nearDepthRange + halfDepth;
-        const column3Row3 = 1.0;
-        result[0] = column0Row0;
-        result[1] = 0.0;
-        result[2] = 0.0;
-        result[3] = 0.0;
-        result[4] = 0.0;
-        result[5] = column1Row1;
-        result[6] = 0.0;
-        result[7] = 0.0;
-        result[8] = 0.0;
-        result[9] = 0.0;
-        result[10] = column2Row2;
-        result[11] = 0.0;
-        result[12] = column3Row0;
-        result[13] = column3Row1;
-        result[14] = column3Row2;
-        result[15] = column3Row3;
-        return result;
-    }
-    ;
-    /**
-     * Computes a Matrix4 instance that transforms from world space to view space.
-     *
-     * @param {Vector3} position The position of the camera.
-     * @param {Vector3} direction The forward direction.
-     * @param {Vector3} up The up direction.
-     * @param {Vector3} right The right direction.
-     * @param {Matrix4} result The object in which the result will be stored.
-     * @returns {Matrix4} The modified result parameter.
-     */
-    static computeView(position, direction, up, right, result) {
-        result[0] = right.x;
-        result[1] = up.x;
-        result[2] = direction.x;
-        result[3] = 0.0;
-        result[4] = right.y;
-        result[5] = up.y;
-        result[6] = direction.y;
-        result[7] = 0.0;
-        result[8] = right.z;
-        result[9] = up.z;
-        result[10] = direction.z;
-        result[11] = 0.0;
-        result[12] = -Vector3.dot(right, position);
-        result[13] = -Vector3.dot(up, position);
-        result[14] = -Vector3.dot(direction, position);
-        result[15] = 1.0;
-        return result;
-    }
-    ;
     toArray() {
         const result = [];
         Matrix4.toArray(this, result);
@@ -6864,11 +3560,6 @@ class Matrix4 {
     /**
      * Computes an Array from the provided Matrix4 instance.
      * The array will be in column-major order.
-     *
-     * @param {Matrix4} matrix The matrix to use..
-     * @param {Number[]} [result] The Array onto which to store the result.
-     * @returns {Number[]} The modified Array parameter or a new Array instance if one was not provided.
-     *
      * @example
      * //create an array from an instance of Matrix4
      * // m = [10.0, 14.0, 18.0, 22.0]
@@ -6919,54 +3610,9 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes the array index of the element at the provided row and column.
-     *
-     * @param {Number} row The zero-based index of the row.
-     * @param {Number} column The zero-based index of the column.
-     * @returns {Number} The index of the element at the provided row and column.
-     *
-     * @exception {Error} row must be 0, 1, 2, or 3.
-     * @exception {Error} column must be 0, 1, 2, or 3.
-     *
-     * @example
-     * const myMatrix = new Matrix4();
-     * const column1Row0Index = Matrix4.getElementIndex(1, 0);
-     * const column1Row0 = myMatrix[column1Row0Index];
-     * myMatrix[column1Row0Index] = 10.0;
-     */
     static getElementIndex(column, row) {
         return column * 4 + row;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix column at the provided index as a Vector4 instance.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to retrieve.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, 2, or 3.
-     *
-     * @example
-     * //returns a Vector4 instance with values from the specified column
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * //Example 1: Creates an instance of Cartesian
-     * const a = Matrix4.getColumn(m, 2, new Vector4());
-     *
-     * @example
-     * //Example 2: Sets values for Cartesian instance
-     * const a = new Vector4();
-     * Matrix4.getColumn(m, 2, a);
-     *
-     * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
-     */
     static getColumn(matrix, index, result) {
         const startIndex = index * 4;
         const x = matrix[startIndex];
@@ -6979,33 +3625,6 @@ class Matrix4 {
         result.w = w;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector4 instance.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the column to set.
-     * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified column.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, 2, or 3.
-     *
-     * @example
-     * //creates a new Matrix4 instance with new column values from the Vector4 instance
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * const a = Matrix4.setColumn(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
-     *
-     * // m remains the same
-     * // a = [10.0, 11.0, 99.0, 13.0]
-     * //     [14.0, 15.0, 98.0, 17.0]
-     * //     [18.0, 19.0, 97.0, 21.0]
-     * //     [22.0, 23.0, 96.0, 25.0]
-     */
     static setColumn(matrix, index, cartesian, result) {
         result = Matrix4.clone(matrix, result);
         const startIndex = index * 4;
@@ -7015,34 +3634,6 @@ class Matrix4 {
         result[startIndex + 3] = cartesian.w;
         return result;
     }
-    ;
-    /**
-     * Retrieves a copy of the matrix row at the provided index as a Vector4 instance.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to retrieve.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, 2, or 3.
-     *
-     * @example
-     * //returns a Vector4 instance with values from the specified column
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * //Example 1: Returns an instance of Cartesian
-     * const a = Matrix4.getRow(m, 2, new Vector4());
-     *
-     * @example
-     * //Example 2: Sets values for a Cartesian instance
-     * const a = new Vector4();
-     * Matrix4.getRow(m, 2, a);
-     *
-     * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
-     */
     static getRow(matrix, index, result) {
         const x = matrix[index];
         const y = matrix[index + 4];
@@ -7054,33 +3645,6 @@ class Matrix4 {
         result.w = w;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector4 instance.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Number} index The zero-based index of the row to set.
-     * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified row.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @exception {Error} index must be 0, 1, 2, or 3.
-     *
-     * @example
-     * //create a new Matrix4 instance with new row values from the Vector4 instance
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * const a = Matrix4.setRow(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
-     *
-     * // m remains the same
-     * // a = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [99.0, 98.0, 97.0, 96.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     */
     static setRow(matrix, index, cartesian, result) {
         result = Matrix4.clone(matrix, result);
         result[index] = cartesian.x;
@@ -7089,16 +3653,6 @@ class Matrix4 {
         result[index + 12] = cartesian.w;
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the translation in the rightmost column of the provided
-     * matrix with the provided translation. This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Vector3} translation The translation that replaces the translation of the provided matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static setTranslation(matrix, translation, result) {
         result[0] = matrix[0];
         result[1] = matrix[1];
@@ -7118,23 +3672,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Vector3} scale The scale that replaces the scale of the provided matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @see Matrix4.setUniformScale
-     * @see Matrix4.fromScale
-     * @see Matrix4.fromUniformScale
-     * @see Matrix4.multiplyByScale
-     * @see Matrix4.multiplyByUniformScale
-     * @see Matrix4.getScale
-     */
     static setScale(matrix, scale, result) {
         const existingScale = Matrix4.getScale(matrix, scaleScratch1);
         const scaleRatioX = scale.x / existingScale.x;
@@ -7158,91 +3695,16 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes a new matrix that replaces the scale with the provided uniform scale.
-     * This assumes the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Number} scale The uniform scale that replaces the scale of the provided matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @see Matrix4.setScale
-     * @see Matrix4.fromScale
-     * @see Matrix4.fromUniformScale
-     * @see Matrix4.multiplyByScale
-     * @see Matrix4.multiplyByUniformScale
-     * @see Matrix4.getScale
-     */
-    static setUniformScale(matrix, scale, result) {
-        const existingScale = Matrix4.getScale(matrix, scaleScratch2);
-        const scaleRatioX = scale / existingScale.x;
-        const scaleRatioY = scale / existingScale.y;
-        const scaleRatioZ = scale / existingScale.z;
-        result[0] = matrix[0] * scaleRatioX;
-        result[1] = matrix[1] * scaleRatioX;
-        result[2] = matrix[2] * scaleRatioX;
-        result[3] = matrix[3];
-        result[4] = matrix[4] * scaleRatioY;
-        result[5] = matrix[5] * scaleRatioY;
-        result[6] = matrix[6] * scaleRatioY;
-        result[7] = matrix[7];
-        result[8] = matrix[8] * scaleRatioZ;
-        result[9] = matrix[9] * scaleRatioZ;
-        result[10] = matrix[10] * scaleRatioZ;
-        result[11] = matrix[11];
-        result[12] = matrix[12];
-        result[13] = matrix[13];
-        result[14] = matrix[14];
-        result[15] = matrix[15];
-        return result;
-    }
-    ;
-    /**
-     * Extracts the non-uniform scale assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter
-     *
-     * @see Matrix4.multiplyByScale
-     * @see Matrix4.multiplyByUniformScale
-     * @see Matrix4.fromScale
-     * @see Matrix4.fromUniformScale
-     * @see Matrix4.setScale
-     * @see Matrix4.setUniformScale
-     */
     static getScale(matrix, result) {
         result.x = Vector3.magnitude(Vector3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn));
         result.y = Vector3.magnitude(Vector3.fromElements(matrix[4], matrix[5], matrix[6], scratchColumn));
         result.z = Vector3.magnitude(Vector3.fromElements(matrix[8], matrix[9], matrix[10], scratchColumn));
         return result;
     }
-    ;
-    /**
-     * Computes the maximum scale assuming the matrix is an affine transformation.
-     * The maximum scale is the maximum length of the column vectors in the upper-left
-     * 3x3 matrix.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @returns {Number} The maximum scale.
-     */
     static getMaximumScale(matrix) {
         Matrix4.getScale(matrix, scaleScratch3);
         return Vector3.maximumComponent(scaleScratch3);
     }
-    ;
-    /**
-     * Sets the rotation assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Matrix3} rotation The rotation matrix.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @see Matrix4.fromRotation
-     * @see Matrix4.getRotation
-     */
     static setRotation(matrix, rotation, result) {
         const scale = Matrix4.getScale(matrix, scaleScratch4);
         result[0] = rotation[0] * scale.x;
@@ -7263,17 +3725,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Extracts the rotation matrix assuming the matrix is an affine transformation.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @see Matrix4.setRotation
-     * @see Matrix4.fromRotation
-     */
     static getRotation(matrix, result) {
         const scale = Matrix4.getScale(matrix, scaleScratch5);
         result[0] = matrix[0] / scale.x;
@@ -7287,15 +3738,6 @@ class Matrix4 {
         result[8] = matrix[10] / scale.z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of two matrices.
-     *
-     * @param {Matrix4} left The first matrix.
-     * @param {Matrix4} right The second matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static multiply(left, right, result) {
         const left0 = left[0];
         const left1 = left[1];
@@ -7363,15 +3805,6 @@ class Matrix4 {
         result[15] = column3Row3;
         return result;
     }
-    ;
-    /**
-     * Computes the sum of two matrices.
-     *
-     * @param {Matrix4} left The first matrix.
-     * @param {Matrix4} right The second matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static add(left, right, result) {
         result[0] = left[0] + right[0];
         result[1] = left[1] + right[1];
@@ -7391,15 +3824,6 @@ class Matrix4 {
         result[15] = left[15] + right[15];
         return result;
     }
-    ;
-    /**
-     * Computes the difference of two matrices.
-     *
-     * @param {Matrix4} left The first matrix.
-     * @param {Matrix4} right The second matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result[0] = left[0] - right[0];
         result[1] = left[1] - right[1];
@@ -7419,26 +3843,6 @@ class Matrix4 {
         result[15] = left[15] - right[15];
         return result;
     }
-    ;
-    /**
-     * Computes the product of two matrices assuming the matrices are affine transformation matrices,
-     * where the upper left 3x3 elements are any matrix, and
-     * the upper three elements in the fourth column are the translation.
-     * The bottom row is assumed to be [0, 0, 0, 1].
-     * The matrix is not verified to be in the proper form.
-     * This method is faster than computing the product for general 4x4
-     * matrices using {@link Matrix4.multiply}.
-     *
-     * @param {Matrix4} left The first matrix.
-     * @param {Matrix4} right The second matrix.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * const m1 = new Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-     * const m2 = Transforms.eastNorthUpToFixedFrame(new Vector3(1.0, 1.0, 1.0));
-     * const m3 = Matrix4.multiplyTransformation(m1, m2, new Matrix4());
-     */
     static multiplyTransformation(left, right, result) {
         const left0 = left[0];
         const left1 = left[1];
@@ -7494,21 +3898,6 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Multiplies a transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-     * by a 3x3 rotation matrix.  This is an optimization
-     * for <code>Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);</code> with less allocations and arithmetic operations.
-     *
-     * @param {Matrix4} matrix The matrix on the left-hand side.
-     * @param {Matrix3} rotation The 3x3 rotation matrix on the right-hand side.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * // Instead of Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);
-     * Matrix4.multiplyByMatrix3(m, rotation, m);
-     */
     static multiplyByMatrix3(matrix, rotation, result) {
         const left0 = matrix[0];
         const left1 = matrix[1];
@@ -7555,21 +3944,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Multiplies a transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-     * by an implicit translation matrix defined by a {@link Vector3}.  This is an optimization
-     * for <code>Matrix4.multiply(m, Matrix4.fromTranslation(position), m);</code> with less allocations and arithmetic operations.
-     *
-     * @param {Matrix4} matrix The matrix on the left-hand side.
-     * @param {Vector3} translation The translation on the right-hand side.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * // Instead of Matrix4.multiply(m, Matrix4.fromTranslation(position), m);
-     * Matrix4.multiplyByTranslation(m, position, m);
-     */
     static multiplyByTranslation(matrix, translation, result) {
         const x = translation.x;
         const y = translation.y;
@@ -7595,31 +3969,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Multiplies an affine transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-     * by an implicit non-uniform scale matrix. This is an optimization
-     * for <code>Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);</code>, where
-     * <code>m</code> must be an affine matrix.
-     * This function performs fewer allocations and arithmetic operations.
-     *
-     * @param {Matrix4} matrix The affine matrix on the left-hand side.
-     * @param {Vector3} scale The non-uniform scale on the right-hand side.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     *
-     * @example
-     * // Instead of Matrix4.multiply(m, Matrix4.fromScale(scale), m);
-     * Matrix4.multiplyByScale(m, scale, m);
-     *
-     * @see Matrix4.multiplyByUniformScale
-     * @see Matrix4.fromScale
-     * @see Matrix4.fromUniformScale
-     * @see Matrix4.setScale
-     * @see Matrix4.setUniformScale
-     * @see Matrix4.getScale
-     */
     static multiplyByScale(matrix, scale, result) {
         const scaleX = scale.x;
         const scaleY = scale.y;
@@ -7646,26 +3995,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix times a uniform scale, as if the scale were a scale matrix.
-     *
-     * @param {Matrix4} matrix The matrix on the left-hand side.
-     * @param {Number} scale The uniform scale on the right-hand side.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * // Instead of Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);
-     * Matrix4.multiplyByUniformScale(m, scale, m);
-     *
-     * @see Matrix4.multiplyByScale
-     * @see Matrix4.fromScale
-     * @see Matrix4.fromUniformScale
-     * @see Matrix4.setScale
-     * @see Matrix4.setUniformScale
-     * @see Matrix4.getScale
-     */
     static multiplyByUniformScale(matrix, scale, result) {
         result[0] = matrix[0] * scale;
         result[1] = matrix[1] * scale;
@@ -7685,15 +4014,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a column vector.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Vector4} cartesian The vector.
-     * @param {Vector4} result The object onto which to store the result.
-     * @returns {Vector4} The modified result parameter.
-     */
     static multiplyByVector(matrix, cartesian, result) {
         const vX = cartesian.x;
         const vY = cartesian.y;
@@ -7709,23 +4029,6 @@ class Matrix4 {
         result.w = w;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a {@link Vector3}.  This is equivalent to calling {@link Matrix4.multiplyByVector}
-     * with a {@link Vector4} with a <code>w</code> component of zero.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Vector3} cartesian The point.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     *
-     * @example
-     * const p = new Vector3(1.0, 2.0, 3.0);
-     * const result = Matrix4.multiplyByPointAsVector(matrix, p, new Vector3());
-     * // A shortcut for
-     * //   Vector3 p = ...
-     * //   Matrix4.multiplyByVector(matrix, new Vector4(p.x, p.y, p.z, 0.0), result);
-     */
     static multiplyByPointAsVector(matrix, cartesian, result) {
         const vX = cartesian.x;
         const vY = cartesian.y;
@@ -7738,20 +4041,6 @@ class Matrix4 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a {@link Vector3}. This is equivalent to calling {@link Matrix4.multiplyByVector}
-     * with a {@link Vector4} with a <code>w</code> component of 1, but returns a {@link Vector3} instead of a {@link Vector4}.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Vector3} cartesian The point.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     *
-     * @example
-     * const p = new Vector3(1.0, 2.0, 3.0);
-     * const result = Matrix4.multiplyByPoint(matrix, p, new Vector3());
-     */
     static multiplyByPoint(matrix, cartesian, result) {
         const vX = cartesian.x;
         const vY = cartesian.y;
@@ -7764,30 +4053,6 @@ class Matrix4 {
         result.z = z;
         return result;
     }
-    ;
-    /**
-     * Computes the product of a matrix and a scalar.
-     *
-     * @param {Matrix4} matrix The matrix.
-     * @param {Number} scalar The number to multiply by.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * //create a Matrix4 instance which is a scaled version of the supplied Matrix4
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * const a = Matrix4.multiplyByScalar(m, -2, new Matrix4());
-     *
-     * // m remains the same
-     * // a = [-20.0, -22.0, -24.0, -26.0]
-     * //     [-28.0, -30.0, -32.0, -34.0]
-     * //     [-36.0, -38.0, -40.0, -42.0]
-     * //     [-44.0, -46.0, -48.0, -50.0]
-     */
     static multiplyByScalar(matrix, scalar, result) {
         result[0] = matrix[0] * scalar;
         result[1] = matrix[1] * scalar;
@@ -7807,29 +4072,6 @@ class Matrix4 {
         result[15] = matrix[15] * scalar;
         return result;
     }
-    ;
-    /**
-     * Computes a negated copy of the provided matrix.
-     *
-     * @param {Matrix4} matrix The matrix to negate.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * //create a new Matrix4 instance which is a negation of a Matrix4
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * const a = Matrix4.negate(m, new Matrix4());
-     *
-     * // m remains the same
-     * // a = [-10.0, -11.0, -12.0, -13.0]
-     * //     [-14.0, -15.0, -16.0, -17.0]
-     * //     [-18.0, -19.0, -20.0, -21.0]
-     * //     [-22.0, -23.0, -24.0, -25.0]
-     */
     static negate(matrix, result) {
         result[0] = -matrix[0];
         result[1] = -matrix[1];
@@ -7849,29 +4091,6 @@ class Matrix4 {
         result[15] = -matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes the transpose of the provided matrix.
-     *
-     * @param {Matrix4} matrix The matrix to transpose.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @example
-     * //returns transpose of a Matrix4
-     * // m = [10.0, 11.0, 12.0, 13.0]
-     * //     [14.0, 15.0, 16.0, 17.0]
-     * //     [18.0, 19.0, 20.0, 21.0]
-     * //     [22.0, 23.0, 24.0, 25.0]
-     *
-     * const a = Matrix4.transpose(m, new Matrix4());
-     *
-     * // m remains the same
-     * // a = [10.0, 14.0, 18.0, 22.0]
-     * //     [11.0, 15.0, 19.0, 23.0]
-     * //     [12.0, 16.0, 20.0, 24.0]
-     * //     [13.0, 17.0, 21.0, 25.0]
-     */
     static transpose(matrix, result) {
         const matrix1 = matrix[1];
         const matrix2 = matrix[2];
@@ -7897,14 +4116,6 @@ class Matrix4 {
         result[15] = matrix[15];
         return result;
     }
-    ;
-    /**
-     * Computes a matrix, which contains the absolute (unsigned) values of the provided matrix's elements.
-     *
-     * @param {Matrix4} matrix The matrix with signed elements.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static abs(matrix, result) {
         result[0] = Math.abs(matrix[0]);
         result[1] = Math.abs(matrix[1]);
@@ -7924,36 +4135,6 @@ class Matrix4 {
         result[15] = Math.abs(matrix[15]);
         return result;
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Matrix4} [left] The first matrix.
-     * @param {Matrix4} [right] The second matrix.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     *
-     * @example
-     * //compares two Matrix4 instances
-     *
-     * // a = [10.0, 14.0, 18.0, 22.0]
-     * //     [11.0, 15.0, 19.0, 23.0]
-     * //     [12.0, 16.0, 20.0, 24.0]
-     * //     [13.0, 17.0, 21.0, 25.0]
-     *
-     * // b = [10.0, 14.0, 18.0, 22.0]
-     * //     [11.0, 15.0, 19.0, 23.0]
-     * //     [12.0, 16.0, 20.0, 24.0]
-     * //     [13.0, 17.0, 21.0, 25.0]
-     *
-     * if(Matrix4.equals(a,b)) {
-     *      console.log("Both matrices are equal");
-     * } else {
-     *      console.log("They are not equal");
-     * }
-     *
-     * //Prints "Both matrices are equal" on the console
-     */
     static equals(left, right) {
         // Given that most matrices will be transformation matrices, the elements
         // are tested in order such that the test is likely to fail as early
@@ -7982,38 +4163,6 @@ class Matrix4 {
                 left[11] === right[11] &&
                 left[15] === right[15]));
     }
-    ;
-    /**
-     * Compares the provided matrices componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Matrix4} [left] The first matrix.
-     * @param {Matrix4} [right] The second matrix.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     *
-     * @example
-     * //compares two Matrix4 instances
-     *
-     * // a = [10.5, 14.5, 18.5, 22.5]
-     * //     [11.5, 15.5, 19.5, 23.5]
-     * //     [12.5, 16.5, 20.5, 24.5]
-     * //     [13.5, 17.5, 21.5, 25.5]
-     *
-     * // b = [10.0, 14.0, 18.0, 22.0]
-     * //     [11.0, 15.0, 19.0, 23.0]
-     * //     [12.0, 16.0, 20.0, 24.0]
-     * //     [13.0, 17.0, 21.0, 25.0]
-     *
-     * if(Matrix4.equalsEpsilon(a,b,0.1)){
-     *      console.log("Difference between both the matrices is less than 0.1");
-     * } else {
-     *      console.log("Difference between both the matrices is not less than 0.1");
-     * }
-     *
-     * //Prints "Difference between both the matrices is not less than 0.1" on the console
-     */
     static equalsEpsilon(left, right, epsilon) {
         epsilon = defaultValue(epsilon, 0);
         return (left === right ||
@@ -8036,43 +4185,12 @@ class Matrix4 {
                 Math.abs(left[14] - right[14]) <= epsilon &&
                 Math.abs(left[15] - right[15]) <= epsilon));
     }
-    ;
-    /**
-     * Gets the translation portion of the provided matrix, assuming the matrix is an affine transformation matrix.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static getTranslation(matrix, result) {
         result.x = matrix[12];
         result.y = matrix[13];
         result.z = matrix[14];
         return result;
     }
-    ;
-    /**
-     * Gets the upper left 3x3 matrix of the provided matrix.
-     *
-     * @param {Matrix4} matrix The matrix to use.
-     * @param {Matrix3} result The object onto which to store the result.
-     * @returns {Matrix3} The modified result parameter.
-     *
-     * @example
-     * // returns a Matrix3 instance from a Matrix4 instance
-     *
-     * // m = [10.0, 14.0, 18.0, 22.0]
-     * //     [11.0, 15.0, 19.0, 23.0]
-     * //     [12.0, 16.0, 20.0, 24.0]
-     * //     [13.0, 17.0, 21.0, 25.0]
-     *
-     * const b = new Matrix3();
-     * Matrix4.getMatrix3(m,b);
-     *
-     * // b = [10.0, 14.0, 18.0]
-     * //     [11.0, 15.0, 19.0]
-     * //     [12.0, 16.0, 20.0]
-     */
     static getMatrix3(matrix, result) {
         result[0] = matrix[0];
         result[1] = matrix[1];
@@ -8085,19 +4203,6 @@ class Matrix4 {
         result[8] = matrix[10];
         return result;
     }
-    ;
-    /**
-     * Computes the inverse of the provided matrix using Cramers Rule.
-     * If the determinant is zero, the matrix can not be inverted, and an exception is thrown.
-     * If the matrix is a proper rigid transformation, it is more efficient
-     * to invert it with {@link Matrix4.inverseTransformation}.
-     *
-     * @param {Matrix4} matrix The matrix to invert.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     *
-     * @exception {Error} matrix is not invertible because its determinate is zero.
-     */
     static inverse(matrix, result) {
         //
         // Ported from:
@@ -8258,20 +4363,6 @@ class Matrix4 {
         result[15] = dst15 * det;
         return result;
     }
-    ;
-    /**
-     * Computes the inverse of the provided matrix assuming it is a proper rigid matrix,
-     * where the upper left 3x3 elements are a rotation matrix,
-     * and the upper three elements in the fourth column are the translation.
-     * The bottom row is assumed to be [0, 0, 0, 1].
-     * The matrix is not verified to be in the proper form.
-     * This method is faster than computing the inverse for a general 4x4
-     * matrix using {@link Matrix4.inverse}.
-     *
-     * @param {Matrix4} matrix The matrix to invert.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static inverseTransformation(matrix, result) {
         //This function is an optimized version of the below 4 lines.
         //const rT = Matrix3.transpose(Matrix4.getMatrix3(matrix));
@@ -8311,21 +4402,12 @@ class Matrix4 {
         result[15] = 1.0;
         return result;
     }
-    ;
-    /**
-     * Computes the inverse transpose of a matrix.
-     *
-     * @param {Matrix4} matrix The matrix to transpose and invert.
-     * @param {Matrix4} result The object onto which to store the result.
-     * @returns {Matrix4} The modified result parameter.
-     */
     static inverseTranspose(matrix, result) {
         return Matrix4.inverse(Matrix4.transpose(matrix, scratchTransposeMatrix), result);
     }
-    ;
     /**
-   * @private
-   */
+     * @private
+     */
     static equalsArray(matrix, array, offset) {
         return (matrix[0] === array[offset] &&
             matrix[1] === array[offset + 1] &&
@@ -8344,33 +4426,15 @@ class Matrix4 {
             matrix[14] === array[offset + 14] &&
             matrix[15] === array[offset + 15]);
     }
-    ;
 }
-/**
- * The number of elements used to pack the object into an array.
- * @type {Number}
- */
-Matrix4.packedLength = 16;
-/**
- * An immutable Matrix4 instance initialized to the identity matrix.
- *
- * @type {Matrix4}
- * @constant
- */
 Matrix4.IDENTITY = Object.freeze(new Matrix4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0));
-/**
- * An immutable Matrix4 instance initialized to the zero matrix.
- *
- * @type {Matrix4}
- * @constant
- */
 Matrix4.ZERO = Object.freeze(new Matrix4(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 const scratchTransposeMatrix = new Matrix4();
-const fromCameraF = new Vector3();
-const fromCameraR = new Vector3();
-const fromCameraU = new Vector3();
+new Vector3();
+new Vector3();
+new Vector3();
 const scaleScratch1 = new Vector3();
-const scaleScratch2 = new Vector3();
+new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();
 const scaleScratch4 = new Vector3();
@@ -9803,9 +5867,6 @@ class Quaternion {
         this.z = z;
         this.w = w;
     }
-    /**
-     * Computes the normalized form of the provided quaternion.
-     */
     normalize() {
         const inverseMagnitude = 1.0 / Quaternion.magnitude(this);
         const x = this.x * inverseMagnitude;
@@ -9822,7 +5883,6 @@ class Quaternion {
         this.x *= -1;
         this.y *= -1;
         this.z *= -1;
-        // this._onChangeCallback();
         return this;
     }
     dot(v) {
@@ -9888,42 +5948,15 @@ class Quaternion {
         }
         return this;
     }
-    /**
-     * Duplicates this Quaternion instance.
-     */
     clone() {
         return Quaternion.clone(this, this);
     }
-    /**
-     * Compares this and the provided quaternion componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Quaternion} [right] The right hand side quaternion.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     equals(right) {
         return Quaternion.equals(this, right);
     }
-    /**
-     * Compares this and the provided quaternion componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Quaternion} [right] The right hand side quaternion.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    equalsEpsilon(right, epsilon) {
+    equalsEpsilon(right, epsilon = 0) {
         return Quaternion.equalsEpsilon(this, right, epsilon);
     }
-    /**
-     * Computes a quaternion representing a rotation around an axis.
-     *
-     * @param {Vector3} axis The axis of rotation.
-     * @param {Number} angle The angle in radians to rotate around the axis.
-     * @param {Quaternion} [result] The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-     */
     static fromAxisAngle(axis, angle) {
         const halfAngle = angle / 2.0;
         const s = Math.sin(halfAngle);
@@ -9942,15 +5975,6 @@ class Quaternion {
         result.w = w;
         return result;
     }
-    /**
-     * Computes a Quaternion from the provided Matrix3 instance.
-     *
-     * @param {Matrix3} matrix The rotation matrix.
-     * @param {Quaternion} [result] The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided.
-     *
-     * @see Matrix3.fromQuaternion
-     */
     static fromRotationMatrix(matrix, result) {
         let root;
         let x;
@@ -10014,57 +6038,6 @@ class Quaternion {
         result.w = w;
         return result;
     }
-    /**
-     * Computes a rotation from the given heading, pitch and roll angles. Heading is the rotation about the
-     * negative z axis. Pitch is the rotation about the negative y axis. Roll is the rotation about
-     * the positive x axis.
-     *
-     * @param {HeadingPitchRoll} headingPitchRoll The rotation expressed as a heading, pitch and roll.
-     * @param {Quaternion} [result] The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if none was provided.
-     */
-    static fromHeadingPitchRoll(headingPitchRoll, result) {
-        scratchRollQuaternion = Quaternion.fromAxisAngle(Vector3.UNIT_X, headingPitchRoll.roll, scratchHPRQuaternion);
-        scratchPitchQuaternion = Quaternion.fromAxisAngle(Vector3.UNIT_Y, -headingPitchRoll.pitch, result);
-        result = Quaternion.multiply(scratchPitchQuaternion, scratchRollQuaternion, scratchPitchQuaternion);
-        scratchHeadingQuaternion = Quaternion.fromAxisAngle(Vector3.UNIT_Z, -headingPitchRoll.heading, scratchHPRQuaternion);
-        return Quaternion.multiply(scratchHeadingQuaternion, result, result);
-    }
-    /**
-     * Converts a packed array into a form suitable for interpolation.
-     *
-     * @param {Number[]} packedArray The packed array.
-     * @param {Number} [startingIndex=0] The index of the first element to be converted.
-     * @param {Number} [lastIndex=packedArray.length] The index of the last element to be converted.
-     * @param {Number[]} [result] The object into which to store the result.
-     */
-    static convertPackedArrayForInterpolation(packedArray, startingIndex, lastIndex, result) {
-        Quaternion.unpack(packedArray, lastIndex * 4, sampledQuaternionQuaternion0Conjugate);
-        Quaternion.conjugate(sampledQuaternionQuaternion0Conjugate, sampledQuaternionQuaternion0Conjugate);
-        for (let i = 0, len = lastIndex - startingIndex + 1; i < len; i++) {
-            const offset = i * 3;
-            Quaternion.unpack(packedArray, (startingIndex + i) * 4, sampledQuaternionTempQuaternion);
-            Quaternion.multiply(sampledQuaternionTempQuaternion, sampledQuaternionQuaternion0Conjugate, sampledQuaternionTempQuaternion);
-            if (sampledQuaternionTempQuaternion.w < 0) {
-                Quaternion.negate(sampledQuaternionTempQuaternion, sampledQuaternionTempQuaternion);
-            }
-            Quaternion.computeAxis(sampledQuaternionTempQuaternion, sampledQuaternionAxis);
-            const angle = Quaternion.computeAngle(sampledQuaternionTempQuaternion);
-            if (!defined(result)) {
-                result = [];
-            }
-            result[offset] = sampledQuaternionAxis.x * angle;
-            result[offset + 1] = sampledQuaternionAxis.y * angle;
-            result[offset + 2] = sampledQuaternionAxis.z * angle;
-        }
-    }
-    /**
-     * Duplicates a Quaternion instance.
-     *
-     * @param {Quaternion} quaternion The quaternion to duplicate.
-     * @param {Quaternion} [result] The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new Quaternion instance if one was not provided. (Returns undefined if quaternion is undefined)
-     */
     static clone(quaternion, result) {
         if (!defined(quaternion)) {
             return undefined;
@@ -10078,13 +6051,6 @@ class Quaternion {
         result.w = quaternion.w;
         return result;
     }
-    /**
-     * Computes the conjugate of the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to conjugate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static conjugate(quaternion, result) {
         result.x = -quaternion.x;
         result.y = -quaternion.y;
@@ -10092,34 +6058,15 @@ class Quaternion {
         result.w = quaternion.w;
         return result;
     }
-    /**
-     * Computes magnitude squared for the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to conjugate.
-     * @returns {Number} The magnitude squared.
-     */
     static magnitudeSquared(quaternion) {
         return (quaternion.x * quaternion.x +
             quaternion.y * quaternion.y +
             quaternion.z * quaternion.z +
             quaternion.w * quaternion.w);
     }
-    /**
-     * Computes magnitude for the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to conjugate.
-     * @returns {Number} The magnitude.
-     */
     static magnitude(quaternion) {
         return Math.sqrt(Quaternion.magnitudeSquared(quaternion));
     }
-    /**
-     * Computes the normalized form of the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to normalize.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static normalize(quaternion, result) {
         const inverseMagnitude = 1.0 / Quaternion.magnitude(quaternion);
         const x = quaternion.x * inverseMagnitude;
@@ -10132,26 +6079,11 @@ class Quaternion {
         result.w = w;
         return result;
     }
-    /**
-     * Computes the inverse of the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to normalize.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static inverse(quaternion, result) {
         const magnitudeSquared = Quaternion.magnitudeSquared(quaternion);
         result = Quaternion.conjugate(quaternion, result);
         return Quaternion.multiplyByScalar(result, 1.0 / magnitudeSquared, result);
     }
-    /**
-     * Computes the componentwise sum of two quaternions.
-     *
-     * @param {Quaternion} left The first quaternion.
-     * @param {Quaternion} right The second quaternion.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static add(left, right, result) {
         result.x = left.x + right.x;
         result.y = left.y + right.y;
@@ -10159,14 +6091,6 @@ class Quaternion {
         result.w = left.w + right.w;
         return result;
     }
-    /**
-     * Computes the componentwise difference of two quaternions.
-     *
-     * @param {Quaternion} left The first quaternion.
-     * @param {Quaternion} right The second quaternion.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static subtract(left, right, result) {
         result.x = left.x - right.x;
         result.y = left.y - right.y;
@@ -10174,13 +6098,6 @@ class Quaternion {
         result.w = left.w - right.w;
         return result;
     }
-    /**
-     * Negates the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to be negated.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static negate(quaternion, result) {
         result.x = -quaternion.x;
         result.y = -quaternion.y;
@@ -10188,24 +6105,9 @@ class Quaternion {
         result.w = -quaternion.w;
         return result;
     }
-    /**
-     * Computes the dot (scalar) product of two quaternions.
-     *
-     * @param {Quaternion} left The first quaternion.
-     * @param {Quaternion} right The second quaternion.
-     * @returns {Number} The dot product.
-     */
     static dot(left, right) {
         return (left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w);
     }
-    /**
-     * Computes the product of two quaternions.
-     *
-     * @param {Quaternion} left The first quaternion.
-     * @param {Quaternion} right The second quaternion.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static multiply(left, right, result) {
         const leftX = left.x;
         const leftY = left.y;
@@ -10225,14 +6127,6 @@ class Quaternion {
         result.w = w;
         return result;
     }
-    /**
-     * Multiplies the provided quaternion componentwise by the provided scalar.
-     *
-     * @param {Quaternion} quaternion The quaternion to be scaled.
-     * @param {Number} scalar The scalar to multiply with.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static multiplyByScalar(quaternion, scalar, result) {
         result.x = quaternion.x * scalar;
         result.y = quaternion.y * scalar;
@@ -10240,14 +6134,6 @@ class Quaternion {
         result.w = quaternion.w * scalar;
         return result;
     }
-    /**
-     * Divides the provided quaternion componentwise by the provided scalar.
-     *
-     * @param {Quaternion} quaternion The quaternion to be divided.
-     * @param {Number} scalar The scalar to divide by.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static divideByScalar(quaternion, scalar, result) {
         result.x = quaternion.x / scalar;
         result.y = quaternion.y / scalar;
@@ -10255,13 +6141,6 @@ class Quaternion {
         result.w = quaternion.w / scalar;
         return result;
     }
-    /**
-     * Computes the axis of rotation of the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to use.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static computeAxis(quaternion, result) {
         const w = quaternion.w;
         if (Math.abs(w - 1.0) < GMath.EPSILON6) {
@@ -10274,43 +6153,17 @@ class Quaternion {
         result.z = quaternion.z * scalar;
         return result;
     }
-    /**
-     * Computes the angle of rotation of the provided quaternion.
-     *
-     * @param {Quaternion} quaternion The quaternion to use.
-     * @returns {Number} The angle of rotation.
-     */
     static computeAngle(quaternion) {
         if (Math.abs(quaternion.w - 1.0) < GMath.EPSILON6) {
             return 0.0;
         }
         return 2.0 * Math.acos(quaternion.w);
     }
-    /**
-     * Computes the linear interpolation or extrapolation at t using the provided quaternions.
-     *
-     * @param {Quaternion} start The value corresponding to t at 0.0.
-     * @param {Quaternion} end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static lerp(start, end, t, result) {
         lerpScratch = Quaternion.multiplyByScalar(end, t, lerpScratch);
         result = Quaternion.multiplyByScalar(start, 1.0 - t, result);
         return Quaternion.add(lerpScratch, result, result);
     }
-    /**
-     * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
-     *
-     * @param {Quaternion} start The value corresponding to t at 0.0.
-     * @param {Quaternion} end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     *
-     * @see Quaternion#fastSlerp
-     */
     static slerp(start, end, t, result) {
         let dot = Quaternion.dot(start, end);
         // The angle between start must be acute. Since q and -q represent
@@ -10331,18 +6184,6 @@ class Quaternion {
         result = Quaternion.add(slerpScaledP, slerpScaledR, result);
         return Quaternion.multiplyByScalar(result, 1.0 / Math.sin(theta), result);
     }
-    /**
-     * Computes an inner quadrangle point.
-     * <p>This will compute quaternions that ensure a squad curve is C<sup>1</sup>.</p>
-     *
-     * @param {Quaternion} q0 The first quaternion.
-     * @param {Quaternion} q1 The second quaternion.
-     * @param {Quaternion} q2 The third quaternion.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     *
-     * @see Quaternion#squad
-     */
     static computeInnerQuadrangle(q0, q1, q2, result) {
         const qInv = Quaternion.conjugate(q1, squadScratchQuaternion0);
         Quaternion.multiply(qInv, q2, squadScratchQuaternion1);
@@ -10355,47 +6196,11 @@ class Quaternion {
         Quaternion.exp(cart0, squadScratchQuaternion0);
         return Quaternion.multiply(q1, squadScratchQuaternion0, result);
     }
-    /**
-     * Computes the spherical quadrangle interpolation between quaternions.
-     *
-     * @param {Quaternion} q0 The first quaternion.
-     * @param {Quaternion} q1 The second quaternion.
-     * @param {Quaternion} s0 The first inner quadrangle.
-     * @param {Quaternion} s1 The second inner quadrangle.
-     * @param {Number} t The time in [0,1] used to interpolate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     *
-     *
-     * @example
-     * // 1. compute the squad interpolation between two quaternions on a curve
-     * const s0 = Quaternion.computeInnerQuadrangle(quaternions[i - 1], quaternions[i], quaternions[i + 1], new Quaternion());
-     * const s1 = Quaternion.computeInnerQuadrangle(quaternions[i], quaternions[i + 1], quaternions[i + 2], new Quaternion());
-     * const q = Quaternion.squad(quaternions[i], quaternions[i + 1], s0, s1, t, new Quaternion());
-     *
-     * // 2. compute the squad interpolation as above but where the first quaternion is a end point.
-     * const s1 = Quaternion.computeInnerQuadrangle(quaternions[0], quaternions[1], quaternions[2], new Quaternion());
-     * const q = Quaternion.squad(quaternions[0], quaternions[1], quaternions[0], s1, t, new Quaternion());
-     *
-     * @see Quaternion#computeInnerQuadrangle
-     */
     static squad(q0, q1, s0, s1, t, result) {
         const slerp0 = Quaternion.slerp(q0, q1, t, squadScratchQuaternion0);
         const slerp1 = Quaternion.slerp(s0, s1, t, squadScratchQuaternion1);
         return Quaternion.slerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
     }
-    /**
-     * Computes the spherical linear interpolation or extrapolation at t using the provided quaternions.
-     * This implementation is faster than {@link Quaternion#slerp}, but is only accurate up to 10<sup>-6</sup>.
-     *
-     * @param {Quaternion} start The value corresponding to t at 0.0.
-     * @param {Quaternion} end The value corresponding to t at 1.0.
-     * @param {Number} t The point along t at which to interpolate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     *
-     * @see Quaternion#slerp
-     */
     static fastSlerp(start, end, t, result) {
         let x = Quaternion.dot(start, end);
         let sign;
@@ -10443,33 +6248,11 @@ class Quaternion {
         Quaternion.multiplyByScalar(end, cT, result);
         return Quaternion.add(temp, result, result);
     }
-    /**
-     * Computes the spherical quadrangle interpolation between quaternions.
-     * An implementation that is faster than {@link Quaternion#squad}, but less accurate.
-     *
-     * @param {Quaternion} q0 The first quaternion.
-     * @param {Quaternion} q1 The second quaternion.
-     * @param {Quaternion} s0 The first inner quadrangle.
-     * @param {Quaternion} s1 The second inner quadrangle.
-     * @param {Number} t The time in [0,1] used to interpolate.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter or a new instance if none was provided.
-     *
-     * @see Quaternion#squad
-     */
     static fastSquad(q0, q1, s0, s1, t, result) {
         const slerp0 = Quaternion.fastSlerp(q0, q1, t, squadScratchQuaternion0);
         const slerp1 = Quaternion.fastSlerp(s0, s1, t, squadScratchQuaternion1);
         return Quaternion.fastSlerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
     }
-    /**
-     * Compares the provided quaternions componentwise and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Quaternion} [left] The first quaternion.
-     * @param {Quaternion} [right] The second quaternion.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left === right ||
             (defined(left) &&
@@ -10479,17 +6262,7 @@ class Quaternion {
                 left.z === right.z &&
                 left.w === right.w));
     }
-    /**
-     * Compares the provided quaternions componentwise and returns
-     * <code>true</code> if they are within the provided epsilon,
-     * <code>false</code> otherwise.
-     *
-     * @param {Quaternion} [left] The first quaternion.
-     * @param {Quaternion} [right] The second quaternion.
-     * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-     * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-     */
-    static equalsEpsilon(left, right, epsilon) {
+    static equalsEpsilon(left, right, epsilon = 0) {
         epsilon = defaultValue(epsilon, 0);
         return (left === right ||
             (defined(left) &&
@@ -10499,13 +6272,6 @@ class Quaternion {
                 Math.abs(left.z - right.z) <= epsilon &&
                 Math.abs(left.w - right.w) <= epsilon));
     }
-    /**
-     * The logarithmic quaternion function.
-     *
-     * @param {Quaternion} quaternion The unit quaternion.
-     * @param {Vector3} result The object onto which to store the result.
-     * @returns {Vector3} The modified result parameter.
-     */
     static log(quaternion, result) {
         const theta = GMath.acosClamped(quaternion.w);
         let thetaOverSinTheta = 0.0;
@@ -10514,13 +6280,6 @@ class Quaternion {
         }
         return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
     }
-    /**
-     * The exponential quaternion function.
-     *
-     * @param {Vector3} cartesian The cartesian.
-     * @param {Quaternion} result The object onto which to store the result.
-     * @returns {Quaternion} The modified result parameter.
-     */
     static exp(cartesian, result) {
         const theta = Vector3.magnitude(cartesian);
         let sinThetaOverTheta = 0.0;
@@ -10534,32 +6293,20 @@ class Quaternion {
         return result;
     }
 }
-/**
- * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 0.0).
- *
- * @type {Quaternion}
- * @constant
- */
 Quaternion.ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
-/**
- * An immutable Quaternion instance initialized to (0.0, 0.0, 0.0, 1.0).
- *
- * @type {Quaternion}
- * @constant
- */
 Quaternion.IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
 let fromAxisAngleScratch = new Vector3();
 const fromRotationMatrixNext = [1, 2, 0];
 const fromRotationMatrixQuat = new Array(3);
-const scratchHPRQuaternion = new Quaternion();
-let scratchHeadingQuaternion = new Quaternion();
-let scratchPitchQuaternion = new Quaternion();
-let scratchRollQuaternion = new Quaternion();
-const sampledQuaternionAxis = new Vector3();
-new Vector3();
-const sampledQuaternionTempQuaternion = new Quaternion();
 new Quaternion();
-const sampledQuaternionQuaternion0Conjugate = new Quaternion();
+new Quaternion();
+new Quaternion();
+new Quaternion();
+new Vector3();
+new Vector3();
+new Quaternion();
+new Quaternion();
+new Quaternion();
 let lerpScratch = new Quaternion();
 let slerpEndNegated = new Quaternion();
 let slerpScaledP = new Quaternion();
@@ -10606,9 +6353,8 @@ class RenderObject {
         return this._quaternion;
     }
     updateNormalMatrix(camera) {
-        Matrix4.multiply(camera.viewMatrix, this.modelMatrix, this._normalMatrix);
-        Matrix4.inverse(this._normalMatrix, this._normalMatrix);
-        Matrix4.transpose(this._normalMatrix, this._normalMatrix);
+        Matrix4.multiply(camera.viewMatrix, this.modelMatrix, _mvMatrix);
+        this._normalMatrix.getNormalMatrix(_mvMatrix);
     }
     updateMatrix() {
         this.modelMatrix = Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
@@ -10645,6 +6391,7 @@ const _zAxis = new Vector3(0, 0, 1);
 const _m1 = new Matrix4();
 const _target = new Vector3();
 new Matrix3();
+const _mvMatrix = new Matrix4();
 
 class Mesh extends RenderObject {
     constructor(geometry, material) {
@@ -15211,14 +10958,6 @@ class EventDispatcher {
     }
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2023-01-10 10:22:04
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-17 11:51:45
- * @FilePath: \GEngine\src\core\RenderList.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AEcon
- */
 class RenderQueue {
     constructor() {
         this.preRender = [];
@@ -16301,11 +12040,6 @@ class Scene extends EventDispatcher {
  *
  * @param {Vector3} normal The plane's normal (normalized).
  * @param {Number} distance The shortest distance from the origin to the plane.  The sign of
- * <code>distance</code> determines which side of the plane the origin
- * is on.  If <code>distance</code> is positive, the origin is in the half-space
- * in the direction of the normal; if negative, the origin is in the half-space
- * opposite to the normal; if zero, the plane passes through the origin.
- *
  * @example
  * // The plane x=0
  * const plane = new Plane(Vector3.UNIT_X, 0.0);
@@ -16314,45 +12048,15 @@ class Scene extends EventDispatcher {
  */
 class Plane {
     constructor(normal, distance) {
-        /**
-         * The plane's normal.
-         *
-         * @type {Vector3}
-         */
         this.normal = Vector3.clone(normal);
-        /**
-         * The shortest distance from the origin to the plane.  The sign of
-         * <code>distance</code> determines which side of the plane the origin
-         * is on.  If <code>distance</code> is positive, the origin is in the half-space
-         * in the direction of the normal; if negative, the origin is in the half-space
-         * opposite to the normal; if zero, the plane passes through the origin.
-         *
-         * @type {Number}
-         */
         this.distance = distance;
     }
     normalize() {
         const inverseNormalLength = 1.0 / this.normal.length();
         this.normal = Vector3.multiplyByScalar(this.normal, inverseNormalLength, this.normal);
-        // this.normal.multiplyScalar( inverseNormalLength );
         this.distance *= inverseNormalLength;
         return this;
     }
-    /**
- * Creates a plane from a normal and a point on the plane.
- *
- * @param {Vector3} point The point on the plane.
- * @param {Vector3} normal The plane's normal (normalized).
- * @param {Plane} [result] The object onto which to store the result.
- * @returns {Plane} A new plane instance or the modified result parameter.
- *
- * @example
- * const point = Vector3.fromDegrees(-72.0, 40.0);
- * const normal = ellipsoid.geodeticSurfaceNormal(point);
- * const tangentPlane = Plane.fromPointNormal(point, normal);
- *
- * @exception {Error} Normal must be normalized
- */
     static fromPointNormal(point, normal, result) {
         if (!GMath.equalsEpsilon(Vector3.magnitude(normal), 1.0, GMath.EPSILON6)) {
             throw new Error("normal must be normalized.");
@@ -16366,16 +12070,6 @@ class Plane {
         result.distance = distance;
         return result;
     }
-    ;
-    /**
-     * Creates a plane from the general equation
-     *
-     * @param {Vector4} coefficients The plane's normal (normalized).
-     * @param {Plane} [result] The object onto which to store the result.
-     * @returns {Plane} A new plane instance or the modified result parameter.
-     *
-     * @exception {Error} Normal must be normalized
-     */
     static fromVector4(coefficients, result) {
         const normal = Vector3.fromVector4(coefficients, scratchNormal);
         const distance = coefficients.w;
@@ -16391,29 +12085,9 @@ class Plane {
         result.distance = distance;
         return result;
     }
-    ;
-    /**
-     * Computes the signed shortest distance of a point to a plane.
-     * The sign of the distance determines which side of the plane the point
-     * is on.  If the distance is positive, the point is in the half-space
-     * in the direction of the normal; if negative, the point is in the half-space
-     * opposite to the normal; if zero, the plane passes through the point.
-     *
-     * @param {Plane} plane The plane.
-     * @param {Vector3} point The point.
-     * @returns {Number} The signed shortest distance of the point to the plane.
-     */
     static getPointDistance(plane, point) {
         return Vector3.dot(plane.normal, point) + plane.distance;
     }
-    ;
-    /**
-     * Projects a point onto the plane.
-     * @param {Plane} plane The plane to project the point onto
-     * @param {Vector3} point The point to project onto the plane
-     * @param {Vector3} [result] The result point.  If undefined, a new Vector3 will be created.
-     * @returns {Vector3} The modified result parameter or a new Vector3 instance if one was not provided.
-     */
     static projectPointOntoPlane(plane, point, result) {
         if (!defined(result)) {
             result = new Vector3();
@@ -16423,15 +12097,6 @@ class Plane {
         const scaledNormal = Vector3.multiplyByScalar(plane.normal, pointDistance, scratchCartesian);
         return Vector3.subtract(point, scaledNormal, result);
     }
-    ;
-    /**
-     * Transforms the plane by the given transformation matrix.
-     *
-     * @param {Plane} plane The plane.
-     * @param {Matrix4} transform The transformation matrix.
-     * @param {Plane} [result] The object into which to store the result.
-     * @returns {Plane} The plane transformed by the given transformation matrix.
-     */
     static transform(plane, transform, result) {
         const normal = plane.normal;
         const distance = plane.distance;
@@ -16443,14 +12108,6 @@ class Plane {
         planeAsCartesian4 = Vector4.divideByScalar(planeAsCartesian4, Vector3.magnitude(transformedNormal), planeAsCartesian4);
         return Plane.fromVector4(planeAsCartesian4, result);
     }
-    ;
-    /**
-     * Duplicates a Plane instance.
-     *
-     * @param {Plane} plane The plane to duplicate.
-     * @param {Plane} [result] The object onto which to store the result.
-     * @returns {Plane} The modified result parameter or a new Plane instance if one was not provided.
-     */
     static clone(plane, result) {
         if (!defined(result)) {
             return new Plane(plane.normal, plane.distance);
@@ -16459,20 +12116,10 @@ class Plane {
         result.distance = plane.distance;
         return result;
     }
-    ;
-    /**
-     * Compares the provided Planes by normal and distance and returns
-     * <code>true</code> if they are equal, <code>false</code> otherwise.
-     *
-     * @param {Plane} left The first plane.
-     * @param {Plane} right The second plane.
-     * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-     */
     static equals(left, right) {
         return (left.distance === right.distance &&
             Vector3.equals(left.normal, right.normal));
     }
-    ;
 }
 Plane.ORIGIN_XY_PLANE = Object.freeze(new Plane(Vector3.UNIT_Z, 0.0));
 Plane.ORIGIN_YZ_PLANE = Object.freeze(new Plane(Vector3.UNIT_X, 0.0));
@@ -17373,8 +13020,8 @@ class OrbitControl extends EventDispatcher {
             // so camera.up is the orbit axis
             const quat = new Quaternion().setFromUnitVectors(that.object.up, new Vector3(0, 1, 0));
             const quatInverse = quat.clone().invert();
-            new Vector3();
-            new Quaternion();
+            const lastPosition = new Vector3();
+            const lastQuaternion = new Quaternion();
             const twoPI = 2 * Math.PI;
             return function update() {
                 const position = that.object.position;
@@ -17448,19 +13095,17 @@ class OrbitControl extends EventDispatcher {
                 // update condition is:
                 // min(camera displacement, camera rotation in radians)^2 > EPS
                 // using small-angle approximation cos(x/2) = 1 - x^2 / 8
-                // if (
-                //   zoomChanged ||
-                //   Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
-                //   8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
-                // ) {
-                //     that.dispatchEvent(_changeEvent);
-                //   //lastPosition.copy( this.object.position );
-                //   Vector3.clone(that.object.position, lastPosition);
-                //   Quaternion.clone(that.object.quaternion, lastQuaternion);
-                //   //lastQuaternion.copy( this.object.quaternion );
-                //   zoomChanged = false;
-                //   return true;
-                // }
+                if (zoomChanged ||
+                    Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
+                    8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS) {
+                    that.dispatchEvent(_changeEvent);
+                    //lastPosition.copy( this.object.position );
+                    Vector3.clone(that.object.position, lastPosition);
+                    Quaternion.clone(that.object.quaternion, lastQuaternion);
+                    //lastQuaternion.copy( this.object.quaternion );
+                    zoomChanged = false;
+                    return true;
+                }
                 return false;
             };
         })();
@@ -17498,15 +13143,15 @@ class OrbitControl extends EventDispatcher {
     }
     init() {
         const that = this;
-        const panLeft = (function () {
+        const panLeft = function () {
             const v = new Vector3();
             return function panLeft(distance, objectMatrix) {
                 v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
                 v.multiplyByScalar(-distance);
                 panOffset.add(v);
             };
-        })();
-        const panUp = function (a, b) {
+        }();
+        const panUp = function () {
             const panUpV = new Vector3();
             return function panUp(distance, objectMatrix) {
                 if (that.screenSpacePanning === true) {
@@ -17520,7 +13165,7 @@ class OrbitControl extends EventDispatcher {
                 panUpV.multiplyByScalar(distance);
                 panOffset.add(panUpV);
             };
-        };
+        }();
         // deltaX and deltaY are in pixels; right and down are positive
         const pan = function () {
             const offset = new Vector3();
@@ -17534,17 +13179,17 @@ class OrbitControl extends EventDispatcher {
                     // half of the fov is center to top of screen
                     targetDistance *= Math.tan(((that.object.fov / 2) * Math.PI) / 180.0);
                     // we use only clientHeight here so aspect ratio does not distort speed
-                    panLeft((2 * deltaX * targetDistance) / element.clientHeight, that.object.matrix);
-                    panUp((2 * deltaY * targetDistance) / element.clientHeight, that.object.matrix);
+                    panLeft((2 * deltaX * targetDistance) / element.clientHeight, that.object.modelMatrix);
+                    panUp((2 * deltaY * targetDistance) / element.clientHeight, that.object.modelMatrix);
                 }
                 else if (that.object.isOrthographicCamera) {
                     // orthographic
                     panLeft((deltaX * (that.object.right - that.object.left)) /
                         that.object.zoom /
-                        element.clientWidth, that.object.matrix);
+                        element.clientWidth, that.object.modelMatrix);
                     panUp((deltaY * (that.object.top - that.object.bottom)) /
                         that.object.zoom /
-                        element.clientHeight, that.object.matrix);
+                        element.clientHeight, that.object.modelMatrix);
                 }
                 else {
                     // camera neither orthographic nor perspective
@@ -17560,6 +13205,7 @@ class OrbitControl extends EventDispatcher {
             else if (this.object.isOrthographicCamera) {
                 this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom * dollyScale));
                 this.object.updateProjectionMatrix();
+                zoomChanged = true;
             }
             else {
                 console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
@@ -17573,6 +13219,7 @@ class OrbitControl extends EventDispatcher {
             else if (this.object.isOrthographicCamera) {
                 this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / dollyScale));
                 this.object.updateProjectionMatrix();
+                zoomChanged = true;
             }
             else {
                 console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
@@ -17971,11 +13618,13 @@ const STATE = {
     TOUCH_DOLLY_ROTATE: 6,
 };
 let state = STATE.NONE;
+const EPS = 0.000001;
 // current position in spherical coordinates
 const spherical = new Spherical();
 const sphericalDelta = new Spherical();
 let scale = 1;
 const panOffset = new Vector3();
+let zoomChanged = false;
 const rotateStart = new Vector2();
 const rotateEnd = new Vector2();
 const rotateDelta = new Vector2();

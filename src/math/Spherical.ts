@@ -1,4 +1,5 @@
 import GMath from './Math.js';
+import Vector3 from './Vector3.js';
 //from three.js
 class Spherical {
     radius: number;
@@ -14,18 +15,15 @@ class Spherical {
 		return this;
 
 	}
-
-	set( radius, phi, theta ) {
+	set( radius:number, phi:number, theta:number ):Spherical {
 
 		this.radius = radius;
 		this.phi = phi;
 		this.theta = theta;
 
 		return this;
-
 	}
-
-	copy( other ) {
+	copy( other:Spherical ):Spherical {
 
 		this.radius = other.radius;
 		this.phi = other.phi;
@@ -34,9 +32,8 @@ class Spherical {
 		return this;
 
 	}
-
 	// restrict phi to be between EPS and PI-EPS
-	makeSafe() {
+	makeSafe():Spherical {
 
 		const EPS = 0.000001;
 		this.phi = Math.max( EPS, Math.min( Math.PI - EPS, this.phi ) );
@@ -45,12 +42,12 @@ class Spherical {
 
 	}
 
-	setFromVector3( v ) {
+	setFromVector3( v:Vector3 ):Spherical {
 
 		return this.setFromCartesianCoords( v.x, v.y, v.z );
 
 	}
-	setFromCartesianCoords( x, y, z ) {
+	setFromCartesianCoords( x:number, y:number, z:number ):Spherical {
 
 		this.radius = Math.sqrt( x * x + y * y + z * z );
 
@@ -69,7 +66,7 @@ class Spherical {
 
 	}
 
-	clone() {
+	clone():Spherical {
 		return new Spherical(this.radius,this.phi,this.theta);
 	}
 

@@ -1,8 +1,7 @@
 import Matrix4 from "../math/Matrix4";
 import Camera from "./Camera";
-
 export default class OrthographicCamera extends Camera {
-  private rightDis: number;
+  private right: number;
   isOrthographicCamera: boolean;
   bottom: number;
   left: number;
@@ -23,13 +22,13 @@ export default class OrthographicCamera extends Camera {
     this.left = left;
     this.top = top;
     this.bottom = bottom;
-    this.rightDis = right;
+    this.right = right;
     this.isOrthographicCamera=true;
   }
   private updateCameraParms() {
-    const dx = (this.rightDis - this.left) / 2;
+    const dx = (this.right - this.left) / 2;
     const dy = (this.top - this.bottom) / 2;
-    const cx = (this.rightDis + this.left) / 2;
+    const cx = (this.right + this.left) / 2;
     const cy = (this.top + this.bottom) / 2;
     return {
       left: cx - dx,

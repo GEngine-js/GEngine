@@ -13,14 +13,7 @@ export default class Ray{
    constructor(public origin:Vector3=Vector3.ZERO, public direction:Vector3=Vector3.ZERO ){
     
    }
-   /**
- * Duplicates a Ray instance.
- *
- * @param {Ray} ray The ray to duplicate.
- * @param {Ray} [result] The object onto which to store the result.
- * @returns {Ray} The modified result parameter or a new Ray instance if one was not provided. (Returns undefined if ray is undefined)
- */
-static clone(ray, result) {
+static clone(ray:Ray, result:Ray):Ray {
   if (!defined(ray)) {
     return undefined;
   }
@@ -32,21 +25,7 @@ static clone(ray, result) {
   return result;
 };
 
-/**
- * Computes the point along the ray given by r(t) = o + t*d,
- * where o is the origin of the ray and d is the direction.
- *
- * @param {Ray} ray The ray.
- * @param {Number} t A scalar value.
- * @param {Vector3} [result] The object in which the result will be stored.
- * @returns {Vector3} The modified result parameter, or a new instance if none was provided.
- *
- * @example
- * //Get the first intersection point of a ray and an ellipsoid.
- * const intersection = IntersectionTests.rayEllipsoid(ray, ellipsoid);
- * const point = Ray.getPoint(ray, intersection.start);
- */
-static getPoint(ray, t, result) {
+static getPoint(ray:Ray, t:number, result:Vector3):Vector3 {
   if (!defined(result)) {
     result = new Vector3();
   }

@@ -34,9 +34,8 @@ export default class RenderObject{
         return this._quaternion
     }
     updateNormalMatrix(camera){
-        Matrix4.multiply(camera.viewMatrix, this.modelMatrix,this._normalMatrix);
-        Matrix4.inverse(this._normalMatrix,this._normalMatrix);
-        Matrix4.transpose(this._normalMatrix,this._normalMatrix)
+        Matrix4.multiply(camera.viewMatrix, this.modelMatrix,_mvMatrix);
+        this._normalMatrix.getNormalMatrix(_mvMatrix);
     }
     updateMatrix(){
         this.modelMatrix=Matrix4.fromTranslationQuaternionRotationScale(this.position,this.quaternion,this.scale,this.modelMatrix);
@@ -72,3 +71,4 @@ const _zAxis = new Vector3( 0, 0, 1 );
 const _m1=new Matrix4();
 const _target=new Vector3();
 const _matrix3=new Matrix3();
+const _mvMatrix=new Matrix4();

@@ -1,162 +1,76 @@
+import { Attribute } from "../render/Attribute";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
+import Color from "./Color";
 import GMath from "./Math";
 
-/**
- * A 4D Cartesian point.
- * @alias Vector4
- * @constructor
- *
- * @param {Number} [x=0.0] The X component.
- * @param {Number} [y=0.0] The Y component.
- * @param {Number} [z=0.0] The Z component.
- * @param {Number} [w=0.0] The W component.
- */
 class Vector4 {
-  /**
- * An immutable Vector4 instance initialized to (0.0, 0.0, 0.0, 0.0).
- *
- * @type {Vector4}
- * @constant
- */
   public static ZERO = Object.freeze(new Vector4(0.0, 0.0, 0.0, 0.0));
 
-  /**
-   * An immutable Vector4 instance initialized to (1.0, 1.0, 1.0, 1.0).
-   *
-   * @type {Vector4}
-   * @constant
-   */
   public static ONE = Object.freeze(new Vector4(1.0, 1.0, 1.0, 1.0));
 
-  /**
-   * An immutable Vector4 instance initialized to (1.0, 0.0, 0.0, 0.0).
-   *
-   * @type {Vector4}
-   * @constant
-   */
   public static UNIT_X = Object.freeze(new Vector4(1.0, 0.0, 0.0, 0.0));
 
-  /**
-   * An immutable Vector4 instance initialized to (0.0, 1.0, 0.0, 0.0).
-   *
-   * @type {Vector4}
-   * @constant
-   */
   public static UNIT_Y = Object.freeze(new Vector4(0.0, 1.0, 0.0, 0.0));
 
-  /**
-   * An immutable Vector4 instance initialized to (0.0, 0.0, 1.0, 0.0).
-   *
-   * @type {Vector4}
-   * @constant
-   */
   public static UNIT_Z = Object.freeze(new Vector4(0.0, 0.0, 1.0, 0.0));
 
-  /**
-   * An immutable Vector4 instance initialized to (0.0, 0.0, 0.0, 1.0).
-   *
-   * @type {Vector4}
-   * @constant
-   */
-  /**
-   * The number of elements used to pack the object into an array.
-   * @type {Number}
-   */
-  public static packedLength = 4;
   public static UNIT_W = Object.freeze(new Vector4(0.0, 0.0, 0.0, 1.0));
   x: number;
   y: number;
   z: number;
   w: number;
-  constructor(x:number=0, y:number=0, z:number=0, w:number=0) {
-    this.x =x;
-    this.y =y;
-    this.z =z;
-    this.w =w;
+  constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 0) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.w = w;
   }
-  set(x:number, y:number, z:number,w:number){
-    this.x =x;
-    this.y =y;
-    this.z =z;
-    this.w =w;
+  set(x: number, y: number, z: number, w: number): void {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.w = w;
   }
-  toArray(){
-    return [this.x,this.y,this.z,this.w]
+  toArray(): number[] {
+    return [this.x, this.y, this.z, this.w];
   }
-  /**
-   * Duplicates this Vector4 instance.
-   *
-   * @param {Vector4} [result] The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-   */
-  clone(result) {
+
+  clone(result: Vector4): Vector4 {
     return Vector4.clone(this, result);
-  };
+  }
 
-  /**
-   * Compares this Cartesian against the provided Cartesian componentwise and returns
-   * <code>true</code> if they are equal, <code>false</code> otherwise.
-   *
-   * @param {Vector4} [right] The right hand side Cartesian.
-   * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-   */
-  equals(right) {
+  equals(right: Vector4): boolean {
     return Vector4.equals(this, right);
-  };
+  }
 
-  /**
-   * Compares this Cartesian against the provided Cartesian componentwise and returns
-   * <code>true</code> if they pass an absolute or relative tolerance test,
-   * <code>false</code> otherwise.
-   *
-   * @param {Vector4} [right] The right hand side Cartesian.
-   * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-   * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-   * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-   */
   equalsEpsilon(
-    right,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) {
-    return Vector4.equalsEpsilon(
-      this,
-      right,
-      relativeEpsilon,
-      absoluteEpsilon
-    );
-  };
+    right: Vector4,
+    relativeEpsilon: number = 0,
+    absoluteEpsilon: number = 0
+  ): boolean {
+    return Vector4.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
+  }
 
-  /**
-   * Creates a string representing this Cartesian in the format '(x, y, z, w)'.
-   *
-   * @returns {String} A string representing the provided Cartesian in the format '(x, y, z, w)'.
-   */
-  toString() {
+  toString(): string {
     return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
-  };
-  fromBufferAttribute( attribute, index ) {
+  }
+  fromBufferAttribute(attribute: Attribute, index: number): Vector4 {
+    this.x = attribute.getX(index);
+    this.y = attribute.getY(index);
+    this.z = attribute.getZ(index);
+    this.w = attribute.getW(index);
 
-		this.x = attribute.getX( index );
-		this.y = attribute.getY( index );
-		this.z = attribute.getZ( index );
-		this.w = attribute.getW( index );
+    return this;
+  }
 
-		return this;
-
-	}
-  /**
-   * Creates a Vector4 instance from x, y, z and w coordinates.
-   *
-   * @param {Number} x The x coordinate.
-   * @param {Number} y The y coordinate.
-   * @param {Number} z The z coordinate.
-   * @param {Number} w The w coordinate.
-   * @param {Vector4} [result] The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-   */
-  static fromElements(x, y, z, w, result) {
+  static fromElements(
+    x: number,
+    y: number,
+    z: number,
+    w: number,
+    result: Vector4
+  ): Vector4 {
     if (!defined(result)) {
       return new Vector4(x, y, z, w);
     }
@@ -166,36 +80,9 @@ class Vector4 {
     result.z = z;
     result.w = w;
     return result;
-  };
+  }
 
-  /**
-   * Creates a Vector4 instance from a {@link Color}. <code>red</code>, <code>green</code>, <code>blue</code>,
-   * and <code>alpha</code> map to <code>x</code>, <code>y</code>, <code>z</code>, and <code>w</code>, respectively.
-   *
-   * @param {Color} color The source color.
-   * @param {Vector4} [result] The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided.
-   */
-  static fromColor(color, result) {
-    if (!defined(result)) {
-      return new Vector4(color.red, color.green, color.blue, color.alpha);
-    }
-
-    result.x = color.red;
-    result.y = color.green;
-    result.z = color.blue;
-    result.w = color.alpha;
-    return result;
-  };
-
-  /**
-   * Duplicates a Vector4 instance.
-   *
-   * @param {Vector4} cartesian The Cartesian to duplicate.
-   * @param {Vector4} [result] The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter or a new Vector4 instance if one was not provided. (Returns undefined if cartesian is undefined)
-   */
-  static clone(cartesian, result) {
+  static clone(cartesian: Vector4, result: Vector4): Vector4 {
     if (!defined(cartesian)) {
       return undefined;
     }
@@ -209,76 +96,48 @@ class Vector4 {
     result.z = cartesian.z;
     result.w = cartesian.w;
     return result;
-  };
-  /**
-   * Computes the value of the maximum component for the supplied Cartesian.
-   *
-   * @param {Vector4} cartesian The cartesian to use.
-   * @returns {Number} The value of the maximum component.
-   */
-  static maximumComponent(cartesian) {
+  }
 
+  static maximumComponent(cartesian: Vector4): number {
     return Math.max(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-  };
+  }
 
-  /**
-   * Computes the value of the minimum component for the supplied Cartesian.
-   *
-   * @param {Vector4} cartesian The cartesian to use.
-   * @returns {Number} The value of the minimum component.
-   */
-  static minimumComponent(cartesian) {
-
+  static minimumComponent(cartesian: Vector4): number {
     return Math.min(cartesian.x, cartesian.y, cartesian.z, cartesian.w);
-  };
+  }
 
-  /**
-   * Compares two Cartesians and computes a Cartesian which contains the minimum components of the supplied Cartesians.
-   *
-   * @param {Vector4} first A cartesian to compare.
-   * @param {Vector4} second A cartesian to compare.
-   * @param {Vector4} result The object into which to store the result.
-   * @returns {Vector4} A cartesian with the minimum components.
-   */
-  static minimumByComponent(first, second, result) {
-
+  static minimumByComponent(
+    first: Vector4,
+    second: Vector4,
+    result: Vector4
+  ): Vector4 {
     result.x = Math.min(first.x, second.x);
     result.y = Math.min(first.y, second.y);
     result.z = Math.min(first.z, second.z);
     result.w = Math.min(first.w, second.w);
 
     return result;
-  };
+  }
 
-  /**
-   * Compares two Cartesians and computes a Cartesian which contains the maximum components of the supplied Cartesians.
-   *
-   * @param {Vector4} first A cartesian to compare.
-   * @param {Vector4} second A cartesian to compare.
-   * @param {Vector4} result The object into which to store the result.
-   * @returns {Vector4} A cartesian with the maximum components.
-   */
-  static maximumByComponent(first, second, result) {
-
+  static maximumByComponent(
+    first: Vector4,
+    second: Vector4,
+    result: Vector4
+  ): Vector4 {
     result.x = Math.max(first.x, second.x);
     result.y = Math.max(first.y, second.y);
     result.z = Math.max(first.z, second.z);
     result.w = Math.max(first.w, second.w);
 
     return result;
-  };
+  }
 
-  /**
-   * Constrain a value to lie between two values.
-   *
-   * @param {Vector4} value The value to clamp.
-   * @param {Vector4} min The minimum bound.
-   * @param {Vector4} max The maximum bound.
-   * @param {Vector4} result The object into which to store the result.
-   * @returns {Vector4} The clamped value such that min <= result <= max.
-   */
-  static clamp(value, min, max, result) {
-
+  static clamp(
+    value: Vector4,
+    min: Vector4,
+    max: Vector4,
+    result: Vector4
+  ): Vector4 {
     const x = GMath.clamp(value.x, min.x, max.x);
     const y = GMath.clamp(value.y, min.y, max.y);
     const z = GMath.clamp(value.z, min.z, max.z);
@@ -290,84 +149,32 @@ class Vector4 {
     result.w = w;
 
     return result;
-  };
+  }
 
-  /**
-   * Computes the provided Cartesian's squared magnitude.
-   *
-   * @param {Vector4} cartesian The Cartesian instance whose squared magnitude is to be computed.
-   * @returns {Number} The squared magnitude.
-   */
-  static magnitudeSquared(cartesian) {
-
+  static magnitudeSquared(cartesian: Vector4): number {
     return (
       cartesian.x * cartesian.x +
       cartesian.y * cartesian.y +
       cartesian.z * cartesian.z +
       cartesian.w * cartesian.w
     );
-  };
+  }
 
-  /**
-   * Computes the Cartesian's magnitude (length).
-   *
-   * @param {Vector4} cartesian The Cartesian instance whose magnitude is to be computed.
-   * @returns {Number} The magnitude.
-   */
-  static magnitude(cartesian) {
+  static magnitude(cartesian: Vector4): number {
     return Math.sqrt(Vector4.magnitudeSquared(cartesian));
-  };
+  }
 
-
-
-  /**
-   * Computes the 4-space distance between two points.
-   *
-   * @param {Vector4} left The first point to compute the distance from.
-   * @param {Vector4} right The second point to compute the distance to.
-   * @returns {Number} The distance between two points.
-   *
-   * @example
-   * // Returns 1.0
-   * const d = Vector4.distance(
-   *   new Vector4(1.0, 0.0, 0.0, 0.0),
-   *   new Vector4(2.0, 0.0, 0.0, 0.0));
-   */
-  static distance(left, right) {
-
+  static distance(left: Vector4, right: Vector4): number {
     Vector4.subtract(left, right, distanceScratch);
     return Vector4.magnitude(distanceScratch);
-  };
+  }
 
-  /**
-   * Computes the squared distance between two points.  Comparing squared distances
-   * using this function is more efficient than comparing distances using {@link Vector4#distance}.
-   *
-   * @param {Vector4} left The first point to compute the distance from.
-   * @param {Vector4} right The second point to compute the distance to.
-   * @returns {Number} The distance between two points.
-   *
-   * @example
-   * // Returns 4.0, not 2.0
-   * const d = Vector4.distance(
-   *   new Vector4(1.0, 0.0, 0.0, 0.0),
-   *   new Vector4(3.0, 0.0, 0.0, 0.0));
-   */
-  static distanceSquared(left, right) {
-
+  static distanceSquared(left: Vector4, right: Vector4): number {
     Vector4.subtract(left, right, distanceScratch);
     return Vector4.magnitudeSquared(distanceScratch);
-  };
+  }
 
-  /**
-   * Computes the normalized form of the supplied Cartesian.
-   *
-   * @param {Vector4} cartesian The Cartesian to be normalized.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static normalize(cartesian, result) {
-
+  static normalize(cartesian: Vector4, result: Vector4): Vector4 {
     const magnitude = Vector4.magnitude(cartesian);
 
     result.x = cartesian.x / magnitude;
@@ -387,220 +194,106 @@ class Vector4 {
     //>>includeEnd('debug');
 
     return result;
-  };
+  }
 
-  /**
-   * Computes the dot (scalar) product of two Cartesians.
-   *
-   * @param {Vector4} left The first Cartesian.
-   * @param {Vector4} right The second Cartesian.
-   * @returns {Number} The dot product.
-   */
-  static dot(left, right) {
-
+  static dot(left: Vector4, right: Vector4): number {
     return (
       left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w
     );
-  };
+  }
 
-  /**
-   * Computes the componentwise product of two Cartesians.
-   *
-   * @param {Vector4} left The first Cartesian.
-   * @param {Vector4} right The second Cartesian.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static multiplyComponents(left, right, result) {
-
+  static multiplyComponents(
+    left: Vector4,
+    right: Vector4,
+    result: Vector4
+  ): Vector4 {
     result.x = left.x * right.x;
     result.y = left.y * right.y;
     result.z = left.z * right.z;
     result.w = left.w * right.w;
     return result;
-  };
+  }
 
-  /**
-   * Computes the componentwise quotient of two Cartesians.
-   *
-   * @param {Vector4} left The first Cartesian.
-   * @param {Vector4} right The second Cartesian.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static divideComponents(left, right, result) {
-
+  static divideComponents(
+    left: Vector4,
+    right: Vector4,
+    result: Vector4
+  ): Vector4 {
     result.x = left.x / right.x;
     result.y = left.y / right.y;
     result.z = left.z / right.z;
     result.w = left.w / right.w;
     return result;
-  };
+  }
 
-  /**
-   * Computes the componentwise sum of two Cartesians.
-   *
-   * @param {Vector4} left The first Cartesian.
-   * @param {Vector4} right The second Cartesian.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static add(left, right, result) {
-
+  static add(left: Vector4, right: Vector4, result: Vector4): Vector4 {
     result.x = left.x + right.x;
     result.y = left.y + right.y;
     result.z = left.z + right.z;
     result.w = left.w + right.w;
     return result;
-  };
+  }
 
-  /**
-   * Computes the componentwise difference of two Cartesians.
-   *
-   * @param {Vector4} left The first Cartesian.
-   * @param {Vector4} right The second Cartesian.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static subtract(left, right, result) {
-
+  static subtract(left: Vector4, right: Vector4, result: Vector4): Vector4 {
     result.x = left.x - right.x;
     result.y = left.y - right.y;
     result.z = left.z - right.z;
     result.w = left.w - right.w;
     return result;
-  };
+  }
 
-  /**
-   * Multiplies the provided Cartesian componentwise by the provided scalar.
-   *
-   * @param {Vector4} cartesian The Cartesian to be scaled.
-   * @param {Number} scalar The scalar to multiply with.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static multiplyByScalar(cartesian, scalar, result) {
-
+  static multiplyByScalar(
+    cartesian: Vector4,
+    scalar: number,
+    result: Vector4
+  ): Vector4 {
     result.x = cartesian.x * scalar;
     result.y = cartesian.y * scalar;
     result.z = cartesian.z * scalar;
     result.w = cartesian.w * scalar;
     return result;
-  };
+  }
 
-  /**
-   * Divides the provided Cartesian componentwise by the provided scalar.
-   *
-   * @param {Vector4} cartesian The Cartesian to be divided.
-   * @param {Number} scalar The scalar to divide by.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static divideByScalar(cartesian, scalar, result) {
-
+  static divideByScalar(
+    cartesian: Vector4,
+    scalar: number,
+    result: Vector4
+  ): Vector4 {
     result.x = cartesian.x / scalar;
     result.y = cartesian.y / scalar;
     result.z = cartesian.z / scalar;
     result.w = cartesian.w / scalar;
     return result;
-  };
+  }
 
-  /**
-   * Negates the provided Cartesian.
-   *
-   * @param {Vector4} cartesian The Cartesian to be negated.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static negate(cartesian, result) {
-
+  static negate(cartesian: Vector4, result: Vector4): Vector4 {
     result.x = -cartesian.x;
     result.y = -cartesian.y;
     result.z = -cartesian.z;
     result.w = -cartesian.w;
     return result;
-  };
+  }
 
-  /**
-   * Computes the absolute value of the provided Cartesian.
-   *
-   * @param {Vector4} cartesian The Cartesian whose absolute value is to be computed.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static abs(cartesian, result) {
-
+  static abs(cartesian: Vector4, result: Vector4): Vector4 {
     result.x = Math.abs(cartesian.x);
     result.y = Math.abs(cartesian.y);
     result.z = Math.abs(cartesian.z);
     result.w = Math.abs(cartesian.w);
     return result;
-  };
+  }
 
-  /**
-   * Computes the linear interpolation or extrapolation at t using the provided cartesians.
-   *
-   * @param {Vector4} start The value corresponding to t at 0.0.
-   * @param {Vector4}end The value corresponding to t at 1.0.
-   * @param {Number} t The point along t at which to interpolate.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static lerp(start, end, t, result) {
-
+  static lerp(
+    start: Vector4,
+    end: Vector4,
+    t: number,
+    result: Vector4
+  ): Vector4 {
     Vector4.multiplyByScalar(end, t, lerpScratch);
     result = Vector4.multiplyByScalar(start, 1.0 - t, result);
     return Vector4.add(lerpScratch, result, result);
-  };
+  }
 
-  /**
-   * Returns the axis that is most orthogonal to the provided Cartesian.
-   *
-   * @param {Vector4} cartesian The Cartesian on which to find the most orthogonal axis.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The most orthogonal axis.
-   */
-  static mostOrthogonalAxis(cartesian, result) {
-
-    const f = Vector4.normalize(cartesian, mostOrthogonalAxisScratch);
-    Vector4.abs(f, f);
-
-    if (f.x <= f.y) {
-      if (f.x <= f.z) {
-        if (f.x <= f.w) {
-          result = Vector4.clone(Vector4.UNIT_X, result);
-        } else {
-          result = Vector4.clone(Vector4.UNIT_W, result);
-        }
-      } else if (f.z <= f.w) {
-        result = Vector4.clone(Vector4.UNIT_Z, result);
-      } else {
-        result = Vector4.clone(Vector4.UNIT_W, result);
-      }
-    } else if (f.y <= f.z) {
-      if (f.y <= f.w) {
-        result = Vector4.clone(Vector4.UNIT_Y, result);
-      } else {
-        result = Vector4.clone(Vector4.UNIT_W, result);
-      }
-    } else if (f.z <= f.w) {
-      result = Vector4.clone(Vector4.UNIT_Z, result);
-    } else {
-      result = Vector4.clone(Vector4.UNIT_W, result);
-    }
-
-    return result;
-  };
-
-  /**
-   * Compares the provided Cartesians componentwise and returns
-   * <code>true</code> if they are equal, <code>false</code> otherwise.
-   *
-   * @param {Vector4} [left] The first Cartesian.
-   * @param {Vector4} [right] The second Cartesian.
-   * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-   */
-  static equals(left, right) {
+  static equals(left: Vector4, right: Vector4): boolean {
     return (
       left === right ||
       (defined(left) &&
@@ -610,37 +303,27 @@ class Vector4 {
         left.z === right.z &&
         left.w === right.w)
     );
-  };
+  }
 
-  /**
-   * @private
-   */
-  static equalsArray(cartesian, array, offset) {
+  static equalsArray(
+    cartesian: Vector4,
+    array: number[],
+    offset: number
+  ): boolean {
     return (
       cartesian.x === array[offset] &&
       cartesian.y === array[offset + 1] &&
       cartesian.z === array[offset + 2] &&
       cartesian.w === array[offset + 3]
     );
-  };
+  }
 
-  /**
-   * Compares the provided Cartesians componentwise and returns
-   * <code>true</code> if they pass an absolute or relative tolerance test,
-   * <code>false</code> otherwise.
-   *
-   * @param {Vector4} [left] The first Cartesian.
-   * @param {Vector4} [right] The second Cartesian.
-   * @param {Number} [relativeEpsilon=0] The relative epsilon tolerance to use for equality testing.
-   * @param {Number} [absoluteEpsilon=relativeEpsilon] The absolute epsilon tolerance to use for equality testing.
-   * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-   */
   static equalsEpsilon(
-    left,
-    right,
-    relativeEpsilon,
-    absoluteEpsilon
-  ) {
+    left: Vector4,
+    right: Vector4,
+    relativeEpsilon: number = 0,
+    absoluteEpsilon: number = 0
+  ): boolean {
     return (
       left === right ||
       (defined(left) &&
@@ -663,73 +346,10 @@ class Vector4 {
           relativeEpsilon,
           absoluteEpsilon
         ) &&
-        GMath.equalsEpsilon(
-          left.w,
-          right.w,
-          relativeEpsilon,
-          absoluteEpsilon
-        ))
+        GMath.equalsEpsilon(left.w, right.w, relativeEpsilon, absoluteEpsilon))
     );
-  };
-  /**
-   * Packs an arbitrary floating point value to 4 values representable using uint8.
-   *
-   * @param {Number} value A floating point number.
-   * @param {Vector4} [result] The Vector4 that will contain the packed float.
-   * @returns {Vector4} A Vector4 representing the float packed to values in x, y, z, and w.
-   */
-  static packFloat(value, result) {
-
-    if (!defined(result)) {
-      result = new Vector4();
-    }
-
-    // scratchU8Array and scratchF32Array are views into the same buffer
-    scratchF32Array[0] = value;
-
-    if (littleEndian) {
-      result.x = scratchU8Array[0];
-      result.y = scratchU8Array[1];
-      result.z = scratchU8Array[2];
-      result.w = scratchU8Array[3];
-    } else {
-      // convert from big-endian to little-endian
-      result.x = scratchU8Array[3];
-      result.y = scratchU8Array[2];
-      result.z = scratchU8Array[1];
-      result.w = scratchU8Array[0];
-    }
-    return result;
-  };
-
-  /**
-   * Unpacks a float packed using Vector4.packFloat.
-   *
-   * @param {Vector4} packedFloat A Vector4 containing a float packed to 4 values representable using uint8.
-   * @returns {Number} The unpacked float.
-   * @private
-   */
-  static unpackFloat(packedFloat) {
-
-    // scratchU8Array and scratchF32Array are views into the same buffer
-    if (littleEndian) {
-      scratchU8Array[0] = packedFloat.x;
-      scratchU8Array[1] = packedFloat.y;
-      scratchU8Array[2] = packedFloat.z;
-      scratchU8Array[3] = packedFloat.w;
-    } else {
-      // convert from little-endian to big-endian
-      scratchU8Array[0] = packedFloat.w;
-      scratchU8Array[1] = packedFloat.z;
-      scratchU8Array[2] = packedFloat.y;
-      scratchU8Array[3] = packedFloat.x;
-    }
-    return scratchF32Array[0];
-  };
-
-
+  }
 }
-
 
 // scratchU8Array and scratchF32Array are views into the same buffer
 const scratchF32Array = new Float32Array(1);

@@ -4,19 +4,8 @@ import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
 import Matrix3 from "./Matrix3";
-
+import { Quaternion } from "./Quaternion";
 class Matrix4 {
-  /**
-   * The number of elements used to pack the object into an array.
-   * @type {Number}
-   */
-  public static packedLength = 16;
-  /**
-   * An immutable Matrix4 instance initialized to the identity matrix.
-   *
-   * @type {Matrix4}
-   * @constant
-   */
   public static IDENTITY = Object.freeze(
     new Matrix4(
       1.0,
@@ -37,13 +26,6 @@ class Matrix4 {
       1.0
     )
   );
-
-  /**
-   * An immutable Matrix4 instance initialized to the zero matrix.
-   *
-   * @type {Matrix4}
-   * @constant
-   */
   public static ZERO = Object.freeze(
     new Matrix4(
       0.0,
@@ -65,159 +47,105 @@ class Matrix4 {
     )
   );
   /**
- * A 4x4 matrix, indexable as a column-major order array.
- * Constructor parameters are in row-major order for code readability.
- * @alias Matrix4
- * @constructor
- * @implements {ArrayLike<number>}
- *
- * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
- * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
- * @param {Number} [column2Row0=0.0] The value for column 2, row 0.
- * @param {Number} [column3Row0=0.0] The value for column 3, row 0.
- * @param {Number} [column0Row1=0.0] The value for column 0, row 1.
- * @param {Number} [column1Row1=0.0] The value for column 1, row 1.
- * @param {Number} [column2Row1=0.0] The value for column 2, row 1.
- * @param {Number} [column3Row1=0.0] The value for column 3, row 1.
- * @param {Number} [column0Row2=0.0] The value for column 0, row 2.
- * @param {Number} [column1Row2=0.0] The value for column 1, row 2.
- * @param {Number} [column2Row2=0.0] The value for column 2, row 2.
- * @param {Number} [column3Row2=0.0] The value for column 3, row 2.
- * @param {Number} [column0Row3=0.0] The value for column 0, row 3.
- * @param {Number} [column1Row3=0.0] The value for column 1, row 3.
- * @param {Number} [column2Row3=0.0] The value for column 2, row 3.
- * @param {Number} [column3Row3=0.0] The value for column 3, row 3.
- *
- * @see Matrix4.fromArray
- * @see Matrix4.fromColumnMajorArray
- * @see Matrix4.fromRowMajorArray
- * @see Matrix4.fromRotationTranslation
- * @see Matrix4.fromTranslationQuaternionRotationScale
- * @see Matrix4.fromTranslationRotationScale
- * @see Matrix4.fromTranslation
- * @see Matrix4.fromScale
- * @see Matrix4.fromUniformScale
- * @see Matrix4.fromRotation
- * @see Matrix4.fromCamera
- * @see Matrix4.computePerspectiveFieldOfView
- * @see Matrix4.computeOrthographicOffCenter
- * @see Matrix4.computePerspectiveOffCenter
- * @see Matrix4.computeInfinitePerspectiveOffCenter
- * @see Matrix4.computeViewportTransformation
- * @see Matrix4.computeView
- * @see Matrix2
- * @see Matrix3
- * @see Packable
- */
+   * A 4x4 matrix, indexable as a column-major order array.
+   * @param {Number} [column0Row0=0.0] The value for column 0, row 0.
+   * @param {Number} [column1Row0=0.0] The value for column 1, row 0.
+   * @param {Number} [column2Row0=0.0] The value for column 2, row 0.
+   * @param {Number} [column3Row0=0.0] The value for column 3, row 0.
+   * @param {Number} [column0Row1=0.0] The value for column 0, row 1.
+   * @param {Number} [column1Row1=0.0] The value for column 1, row 1.
+   * @param {Number} [column2Row1=0.0] The value for column 2, row 1.
+   * @param {Number} [column3Row1=0.0] The value for column 3, row 1.
+   * @param {Number} [column0Row2=0.0] The value for column 0, row 2.
+   * @param {Number} [column1Row2=0.0] The value for column 1, row 2.
+   * @param {Number} [column2Row2=0.0] The value for column 2, row 2.
+   * @param {Number} [column3Row2=0.0] The value for column 3, row 2.
+   * @param {Number} [column0Row3=0.0] The value for column 0, row 3.
+   * @param {Number} [column1Row3=0.0] The value for column 1, row 3.
+   * @param {Number} [column2Row3=0.0] The value for column 2, row 3.
+   * @param {Number} [column3Row3=0.0] The value for column 3, row 3.
+   */
   constructor(
-    column0Row0=0,
-    column1Row0=0,
-    column2Row0=0,
-    column3Row0=0,
-    column0Row1=0,
-    column1Row1=0,
-    column2Row1=0,
-    column3Row1=0,
-    column0Row2=0,
-    column1Row2=0,
-    column2Row2=0,
-    column3Row2=0,
-    column0Row3=0,
-    column1Row3=0,
-    column2Row3=0,
-    column3Row3=0,
+    column0Row0 = 0,
+    column1Row0 = 0,
+    column2Row0 = 0,
+    column3Row0 = 0,
+    column0Row1 = 0,
+    column1Row1 = 0,
+    column2Row1 = 0,
+    column3Row1 = 0,
+    column0Row2 = 0,
+    column1Row2 = 0,
+    column2Row2 = 0,
+    column3Row2 = 0,
+    column0Row3 = 0,
+    column1Row3 = 0,
+    column2Row3 = 0,
+    column3Row3 = 0
   ) {
-    this[0] =column0Row0;
-    this[1] =column0Row1;
-    this[2] =column0Row2;
-    this[3] =column0Row3;
-    this[4] =column1Row0;
-    this[5] =column1Row1;
-    this[6] =column1Row2;
-    this[7] =column1Row3;
-    this[8] =column2Row0;
-    this[9] =column2Row1;
-    this[10] =column2Row2;
+    this[0] = column0Row0;
+    this[1] = column0Row1;
+    this[2] = column0Row2;
+    this[3] = column0Row3;
+    this[4] = column1Row0;
+    this[5] = column1Row1;
+    this[6] = column1Row2;
+    this[7] = column1Row3;
+    this[8] = column2Row0;
+    this[9] = column2Row1;
+    this[10] = column2Row2;
     this[11] = column2Row3;
-    this[12] =column3Row0;
+    this[12] = column3Row0;
     this[13] = column3Row1;
     this[14] = column3Row2;
-    this[15] =column3Row3;
+    this[15] = column3Row3;
   }
-  get length() {
-
-    return Matrix4.packedLength;
-  }
-  /**
- * Duplicates the provided Matrix4 instance.
- *
- * @param {Matrix4} [result] The object onto which to store the result.
- * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
- */
-  clone(result) {
+  //????
+  clone(result: Matrix4): Matrix4 {
     return Matrix4.clone(this, result);
-  };
-
-  /**
-   * Compares this matrix to the provided matrix componentwise and returns
-   * <code>true</code> if they are equal, <code>false</code> otherwise.
-   *
-   * @param {Matrix4} [right] The right hand side matrix.
-   * @returns {Boolean} <code>true</code> if they are equal, <code>false</code> otherwise.
-   */
-  equals(right) {
-    return Matrix4.equals(this, right);
-  };
-
-
-  /**
-   * Compares this matrix to the provided matrix componentwise and returns
-   * <code>true</code> if they are within the provided epsilon,
-   * <code>false</code> otherwise.
-   *
-   * @param {Matrix4} [right] The right hand side matrix.
-   * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-   * @returns {Boolean} <code>true</code> if they are within the provided epsilon, <code>false</code> otherwise.
-   */
-  equalsEpsilon(right, epsilon) {
-    return Matrix4.equalsEpsilon(this, right, epsilon);
-  };
-  lookAt( eye, target, up){
-		const matrix = this;
-     Vector3.subtract(eye, target,z)
-		if (z.length() === 0 ) {
-			// eye and target are in the same position
-			z.z = 1;
-		}
-		z.normalize();
-    Vector3.cross(up,z,x)
-		if (x.length() === 0 ) {
-
-			// up and z are parallel
-
-			if ( Math.abs( up.z ) === 1 ) {
-				z.x += 0.0001;
-			} else {
-				z.z += 0.0001;
-			}
-			z.normalize();
-      Vector3.cross(up, z,x)
-		}
-		x.normalize();
-    Vector3.cross(z,x,y)
-		matrix[ 0 ] = x.x; matrix[ 4 ] = y.x; matrix[ 8 ] = z.x;
-		matrix[ 1 ] = x.y; matrix[ 5 ] = y.y; matrix[ 9 ] = z.y;
-		matrix[ 2 ] = x.z; matrix[ 6 ] = y.z; matrix[ 10 ] = z.z;
-
-		return this;
   }
 
-  /**
-   * Computes a string representing this Matrix with each row being
-   * on a separate line and in the format '(column0, column1, column2, column3)'.
-   *
-   * @returns {String} A string representing the provided Matrix with each row being on a separate line and in the format '(column0, column1, column2, column3)'.
-   */
+  equals(right: Matrix4): boolean {
+    return Matrix4.equals(this, right);
+  }
+
+  equalsEpsilon(right: Matrix4, epsilon: number = 0): boolean {
+    return Matrix4.equalsEpsilon(this, right, epsilon);
+  }
+  lookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix4 {
+    const matrix = this;
+    Vector3.subtract(eye, target, z);
+    if (z.length() === 0) {
+      // eye and target are in the same position
+      z.z = 1;
+    }
+    z.normalize();
+    Vector3.cross(up, z, x);
+    if (x.length() === 0) {
+      // up and z are parallel
+
+      if (Math.abs(up.z) === 1) {
+        z.x += 0.0001;
+      } else {
+        z.z += 0.0001;
+      }
+      z.normalize();
+      Vector3.cross(up, z, x);
+    }
+    x.normalize();
+    Vector3.cross(z, x, y);
+    matrix[0] = x.x;
+    matrix[4] = y.x;
+    matrix[8] = z.x;
+    matrix[1] = x.y;
+    matrix[5] = y.y;
+    matrix[9] = z.y;
+    matrix[2] = x.z;
+    matrix[6] = y.z;
+    matrix[10] = z.z;
+
+    return this;
+  }
   toString() {
     return (
       `(${this[0]}, ${this[4]}, ${this[8]}, ${this[12]})\n` +
@@ -225,47 +153,8 @@ class Matrix4 {
       `(${this[2]}, ${this[6]}, ${this[10]}, ${this[14]})\n` +
       `(${this[3]}, ${this[7]}, ${this[11]}, ${this[15]})`
     );
-  };
-  /**
-   * Stores the provided instance into the provided array.
-   *
-   * @param {Matrix4} value The value to pack.
-   * @param {Number[]} array The array to pack into.
-   * @param {Number} [startingIndex=0] The index into the array at which to start packing the elements.
-   *
-   * @returns {Number[]} The array that was packed into
-   */
-  static pack(value, array, startingIndex) {
-
-    startingIndex = defaultValue(startingIndex, 0);
-
-    array[startingIndex++] = value[0];
-    array[startingIndex++] = value[1];
-    array[startingIndex++] = value[2];
-    array[startingIndex++] = value[3];
-    array[startingIndex++] = value[4];
-    array[startingIndex++] = value[5];
-    array[startingIndex++] = value[6];
-    array[startingIndex++] = value[7];
-    array[startingIndex++] = value[8];
-    array[startingIndex++] = value[9];
-    array[startingIndex++] = value[10];
-    array[startingIndex++] = value[11];
-    array[startingIndex++] = value[12];
-    array[startingIndex++] = value[13];
-    array[startingIndex++] = value[14];
-    array[startingIndex] = value[15];
-
-    return array;
-  };
-  /**
-   * Duplicates a Matrix4 instance.
-   *
-   * @param {Matrix4} matrix The matrix to duplicate.
-   * @param {Matrix4} [result] The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided. (Returns undefined if matrix is undefined)
-   */
-  static clone(matrix, result) {
+  }
+  static clone(matrix: Matrix4|number[], result: Matrix4): Matrix4 {
     if (!defined(matrix)) {
       return undefined;
     }
@@ -306,55 +195,13 @@ class Matrix4 {
     result[14] = matrix[14];
     result[15] = matrix[15];
     return result;
-  };
-  
-  /**
-   * Creates a Matrix4 from 16 consecutive elements in an array.
-   * @function
-   *
-   * @param {Number[]} array The array whose 16 consecutive elements correspond to the positions of the matrix.  Assumes column-major order.
-   * @param {Number} [startingIndex=0] The offset into the array of the first element, which corresponds to first column first row position in the matrix.
-   * @param {Matrix4} [result] The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter or a new Matrix4 instance if one was not provided.
-   *
-   * @example
-   * // Create the Matrix4:
-   * // [1.0, 2.0, 3.0, 4.0]
-   * // [1.0, 2.0, 3.0, 4.0]
-   * // [1.0, 2.0, 3.0, 4.0]
-   * // [1.0, 2.0, 3.0, 4.0]
-   *
-   * const v = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-   * const m = Matrix4.fromArray(v);
-   *
-   * // Create same Matrix4 with using an offset into an array
-   * const v2 = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0];
-   * const m2 = Matrix4.fromArray(v2, 2);
-   */
+  }
 
-
-  /**
-   * Computes a Matrix4 instance from a column-major order array.
-   *
-   * @param {Number[]} values The column-major order array.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
-  static fromColumnMajorArray(values, result) {
-
+  static fromColumnMajorArray(values: number[], result: Matrix4): Matrix4 {
     return Matrix4.clone(values, result);
-  };
+  }
 
-  /**
-   * Computes a Matrix4 instance from a row-major order array.
-   * The resulting matrix will be in column-major order.
-   *
-   * @param {Number[]} values The row-major order array.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
-  static fromRowMajorArray(values, result) {
-
+  static fromRowMajorArray(values: number[], result: Matrix4): Matrix4 {
     if (!defined(result)) {
       return new Matrix4(
         values[0],
@@ -392,19 +239,13 @@ class Matrix4 {
     result[14] = values[11];
     result[15] = values[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes a Matrix4 instance from a Matrix3 representing the rotation
-   * and a Vector3 representing the translation.
-   *
-   * @param {Matrix3} rotation The upper left portion of the matrix representing the rotation.
-   * @param {Vector3} [translation=Vector3.ZERO] The upper right portion of the matrix representing the translation.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
-  static fromRotationTranslation(rotation, translation, result) {
-
+  static fromRotationTranslation(
+    rotation: Matrix3,
+    translation: Vector3,
+    result: Matrix4
+  ): Matrix4 {
     translation = defaultValue(translation, Vector3.ZERO);
 
     if (!defined(result)) {
@@ -445,32 +286,14 @@ class Matrix4 {
     result[14] = translation.z;
     result[15] = 1.0;
     return result;
-  };
+  }
 
-  /**
-   * Computes a Matrix4 instance from a translation, rotation, and scale (TRS)
-   * representation with the rotation represented as a quaternion.
-   *
-   * @param {Vector3} translation The translation transformation.
-   * @param {Quaternion} rotation The rotation transformation.
-   * @param {Vector3} scale The non-uniform scale transformation.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   *
-   * @example
-   * const result = Matrix4.fromTranslationQuaternionRotationScale(
-   *   new Vector3(1.0, 2.0, 3.0), // translation
-   *   Quaternion.IDENTITY,           // rotation
-   *   new Vector3(7.0, 8.0, 9.0), // scale
-   *   result);
-   */
   static fromTranslationQuaternionRotationScale(
-    translation,
-    rotation,
-    scale,
-    result
-  ) {
-
+    translation: Vector3,
+    rotation: Quaternion,
+    scale: Vector3,
+    result: Matrix4
+  ): Matrix4 {
     if (!defined(result)) {
       result = new Matrix4();
     }
@@ -520,59 +343,33 @@ class Matrix4 {
     result[15] = 1.0;
 
     return result;
-  };
+  }
 
-  /**
-   * Creates a Matrix4 instance from a {@link TranslationRotationScale} instance.
-   *
-   * @param {TranslationRotationScale} translationRotationScale The instance.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
   static fromTranslationRotationScale(
-    translationRotationScale,
-    result
-  ) {
-
+    translationRotationScale: {
+      translation: Vector3;
+      rotation: Quaternion;
+      scale: Vector3;
+    },
+    result: Matrix4
+  ): Matrix4 {
     return Matrix4.fromTranslationQuaternionRotationScale(
       translationRotationScale.translation,
       translationRotationScale.rotation,
       translationRotationScale.scale,
       result
     );
-  };
+  }
 
-  /**
-   * Creates a Matrix4 instance from a Vector3 representing the translation.
-   *
-   * @param {Vector3} translation The upper right portion of the matrix representing the translation.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   *
-   * @see Matrix4.multiplyByTranslation
-   */
-  static fromTranslation (translation, result) {
+  static fromTranslation(translation: Vector3, result: Matrix4): Matrix4 {
+    return Matrix4.fromRotationTranslation(
+      Matrix3.IDENTITY,
+      translation,
+      result
+    );
+  }
 
-    return Matrix4.fromRotationTranslation(Matrix3.IDENTITY, translation, result);
-  };
-
-  /**
-   * Computes a Matrix4 instance representing a non-uniform scale.
-   *
-   * @param {Vector3} scale The x, y, and z scale factors.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   *
-   * @example
-   * // Creates
-   * //   [7.0, 0.0, 0.0, 0.0]
-   * //   [0.0, 8.0, 0.0, 0.0]
-   * //   [0.0, 0.0, 9.0, 0.0]
-   * //   [0.0, 0.0, 0.0, 1.0]
-   * const m = Matrix4.fromScale(new Vector3(7.0, 8.0, 9.0));
-   */
-  static fromScale(scale, result) {
-
+  static fromScale(scale: Vector3, result: Matrix4): Matrix4 {
     if (!defined(result)) {
       return new Matrix4(
         scale.x,
@@ -611,74 +408,9 @@ class Matrix4 {
     result[14] = 0.0;
     result[15] = 1.0;
     return result;
-  };
+  }
 
-  /**
-   * Computes a Matrix4 instance representing a uniform scale.
-   *
-   * @param {Number} scale The uniform scale factor.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   *
-   * @example
-   * // Creates
-   * //   [2.0, 0.0, 0.0, 0.0]
-   * //   [0.0, 2.0, 0.0, 0.0]
-   * //   [0.0, 0.0, 2.0, 0.0]
-   * //   [0.0, 0.0, 0.0, 1.0]
-   * const m = Matrix4.fromUniformScale(2.0);
-   */
-  static fromUniformScale(scale, result) {
-
-    if (!defined(result)) {
-      return new Matrix4(
-        scale,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        scale,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        scale,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      );
-    }
-
-    result[0] = scale;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = scale;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = 0.0;
-    result[9] = 0.0;
-    result[10] = scale;
-    result[11] = 0.0;
-    result[12] = 0.0;
-    result[13] = 0.0;
-    result[14] = 0.0;
-    result[15] = 1.0;
-    return result;
-  };
-
-  /**
-   * Creates a rotation matrix.
-   *
-   * @param {Matrix3} rotation The rotation matrix.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
-  static fromRotation(rotation, result) {
-
+  static fromRotation(rotation: Matrix3, result: Matrix4): Matrix4 {
     if (!defined(result)) {
       result = new Matrix4();
     }
@@ -703,249 +435,87 @@ class Matrix4 {
     result[15] = 1.0;
 
     return result;
-  };
+  }
 
-
-
-  /**
-   * Computes a Matrix4 instance from a Camera.
-   *
-   * @param {Camera} camera The camera to use.
-   * @param {Matrix4} [result] The object in which the result will be stored, if undefined a new instance will be created.
-   * @returns {Matrix4} The modified result parameter, or a new Matrix4 instance if one was not provided.
-   */
-  static fromCamera(camera, result) {
-
-    const position = camera.position;
-    const direction = camera.direction;
-    const up = camera.up;
-
-    Vector3.normalize(direction, fromCameraF);
-    Vector3.normalize(
-      Vector3.cross(fromCameraF, up, fromCameraR),
-      fromCameraR
-    );
-    Vector3.normalize(
-      Vector3.cross(fromCameraR, fromCameraF, fromCameraU),
-      fromCameraU
-    );
-
-    const sX = fromCameraR.x;
-    const sY = fromCameraR.y;
-    const sZ = fromCameraR.z;
-    const fX = fromCameraF.x;
-    const fY = fromCameraF.y;
-    const fZ = fromCameraF.z;
-    const uX = fromCameraU.x;
-    const uY = fromCameraU.y;
-    const uZ = fromCameraU.z;
-    const positionX = position.x;
-    const positionY = position.y;
-    const positionZ = position.z;
-    const t0 = sX * -positionX + sY * -positionY + sZ * -positionZ;
-    const t1 = uX * -positionX + uY * -positionY + uZ * -positionZ;
-    const t2 = fX * positionX + fY * positionY + fZ * positionZ;
-
-    // The code below this comment is an optimized
-    // version of the commented lines.
-    // Rather that create two matrices and then multiply,
-    // we just bake in the multiplcation as part of creation.
-    // const rotation = new Matrix4(
-    //                 sX,  sY,  sZ, 0.0,
-    //                 uX,  uY,  uZ, 0.0,
-    //                -fX, -fY, -fZ, 0.0,
-    //                 0.0,  0.0,  0.0, 1.0);
-    // const translation = new Matrix4(
-    //                 1.0, 0.0, 0.0, -position.x,
-    //                 0.0, 1.0, 0.0, -position.y,
-    //                 0.0, 0.0, 1.0, -position.z,
-    //                 0.0, 0.0, 0.0, 1.0);
-    // return rotation.multiply(translation);
-    if (!defined(result)) {
-      return new Matrix4(
-        sX,
-        sY,
-        sZ,
-        t0,
-        uX,
-        uY,
-        uZ,
-        t1,
-        -fX,
-        -fY,
-        -fZ,
-        t2,
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      );
-    }
-    result[0] = sX;
-    result[1] = uX;
-    result[2] = -fX;
-    result[3] = 0.0;
-    result[4] = sY;
-    result[5] = uY;
-    result[6] = -fY;
-    result[7] = 0.0;
-    result[8] = sZ;
-    result[9] = uZ;
-    result[10] = -fZ;
-    result[11] = 0.0;
-    result[12] = t0;
-    result[13] = t1;
-    result[14] = t2;
-    result[15] = 1.0;
-    return result;
-  };
-  static makePerspective(left, right, top, bottom, near, far) {
-   // from three.js
-		const matrix = new Matrix4();
-		const x = 2 * near / ( right - left );
-		const y = 2 * near / ( top - bottom );
-
-		const a = ( right + left ) / ( right - left );
-		const b = ( top + bottom ) / ( top - bottom );
-		const c = - ( far + near ) / ( far - near );
-		const d = - 2 * far * near / ( far - near );
-
-		matrix[ 0 ] = x;	matrix[ 4 ] = 0;	matrix[ 8 ] = a;	matrix[ 12 ] = 0;
-		matrix[ 1 ] = 0;	matrix[ 5 ] = y;	matrix[ 9 ] = b;	matrix[ 13 ] = 0;
-		matrix[ 2 ] = 0;	matrix[ 6 ] = 0;	matrix[ 10 ] = c;	matrix[ 14 ] = d;
-		matrix[ 3 ] = 0;	matrix[ 7 ] = 0;	matrix[ 11 ] = - 1;	matrix[ 15 ] = 0;
-		return matrix;
-
-	}
-  static makeOrthographic( left, right, top, bottom, near, far ) {
-
+  static makePerspective(
+    left: number,
+    right: number,
+    top: number,
+    bottom: number,
+    near: number,
+    far: number
+  ): Matrix4 {
+    // from three.js
     const matrix = new Matrix4();
-		const w = 1.0 / ( right - left );
-		const h = 1.0 / ( top - bottom );
-		const p = 1.0 / ( far - near );
+    const x = (2 * near) / (right - left);
+    const y = (2 * near) / (top - bottom);
 
-		const x = ( right + left ) * w;
-		const y = ( top + bottom ) * h;
-		const z = ( far + near ) * p;
+    const a = (right + left) / (right - left);
+    const b = (top + bottom) / (top - bottom);
+    const c = -(far + near) / (far - near);
+    const d = (-2 * far * near) / (far - near);
 
-		matrix[ 0 ] = 2 * w;	matrix[ 4 ] = 0;	matrix[ 8 ] = 0;	matrix[ 12 ] = - x;
-		matrix[ 1 ] = 0;	matrix[ 5 ] = 2 * h;	matrix[ 9 ] = 0;	matrix[ 13 ] = - y;
-		matrix[ 2 ] = 0;	matrix[ 6 ] = 0;	matrix[ 10 ] = - 2 * p;	matrix[ 14 ] = - z;
-		matrix[ 3 ] = 0;	matrix[ 7 ] = 0;	matrix[ 11 ] = 0;	matrix[ 15 ] = 1;
-		return matrix;
-	}
+    matrix[0] = x;
+    matrix[4] = 0;
+    matrix[8] = a;
+    matrix[12] = 0;
+    matrix[1] = 0;
+    matrix[5] = y;
+    matrix[9] = b;
+    matrix[13] = 0;
+    matrix[2] = 0;
+    matrix[6] = 0;
+    matrix[10] = c;
+    matrix[14] = d;
+    matrix[3] = 0;
+    matrix[7] = 0;
+    matrix[11] = -1;
+    matrix[15] = 0;
+    return matrix;
+  }
+  static makeOrthographic(
+    left: number,
+    right: number,
+    top: number,
+    bottom: number,
+    near: number,
+    far: number
+  ): Matrix4 {
+    const matrix = new Matrix4();
+    const w = 1.0 / (right - left);
+    const h = 1.0 / (top - bottom);
+    const p = 1.0 / (far - near);
 
-  /**
-   * Computes a Matrix4 instance that transforms from normalized device coordinates to window coordinates.
-   *
-   * @param {Object} [viewport = { x : 0.0, y : 0.0, width : 0.0, height : 0.0 }] The viewport's corners as shown in Example 1.
-   * @param {Number} [nearDepthRange=0.0] The near plane distance in window coordinates.
-   * @param {Number} [farDepthRange=1.0] The far plane distance in window coordinates.
-   * @param {Matrix4} [result] The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * // Create viewport transformation using an explicit viewport and depth range.
-   * const m = Matrix4.computeViewportTransformation({
-   *     x : 0.0,
-   *     y : 0.0,
-   *     width : 1024.0,
-   *     height : 768.0
-   * }, 0.0, 1.0, new Matrix4());
-   */
-  static computeViewportTransformation(
-    viewport,
-    nearDepthRange,
-    farDepthRange,
-    result
-  ) {
-    if (!defined(result)) {
-      result = new Matrix4();
-    }
+    const x = (right + left) * w;
+    const y = (top + bottom) * h;
+    const z = (far + near) * p;
 
-    viewport = defaultValue(viewport, defaultValue.EMPTY_OBJECT);
-    const x = defaultValue(viewport.x, 0.0);
-    const y = defaultValue(viewport.y, 0.0);
-    const width = defaultValue(viewport.width, 0.0);
-    const height = defaultValue(viewport.height, 0.0);
-    nearDepthRange = defaultValue(nearDepthRange, 0.0);
-    farDepthRange = defaultValue(farDepthRange, 1.0);
-
-    const halfWidth = width * 0.5;
-    const halfHeight = height * 0.5;
-    const halfDepth = (farDepthRange - nearDepthRange) * 0.5;
-
-    const column0Row0 = halfWidth;
-    const column1Row1 = halfHeight;
-    const column2Row2 = halfDepth;
-    const column3Row0 = x + halfWidth;
-    const column3Row1 = y + halfHeight;
-    const column3Row2 = nearDepthRange + halfDepth;
-    const column3Row3 = 1.0;
-
-    result[0] = column0Row0;
-    result[1] = 0.0;
-    result[2] = 0.0;
-    result[3] = 0.0;
-    result[4] = 0.0;
-    result[5] = column1Row1;
-    result[6] = 0.0;
-    result[7] = 0.0;
-    result[8] = 0.0;
-    result[9] = 0.0;
-    result[10] = column2Row2;
-    result[11] = 0.0;
-    result[12] = column3Row0;
-    result[13] = column3Row1;
-    result[14] = column3Row2;
-    result[15] = column3Row3;
-
-    return result;
-  };
-
-  /**
-   * Computes a Matrix4 instance that transforms from world space to view space.
-   *
-   * @param {Vector3} position The position of the camera.
-   * @param {Vector3} direction The forward direction.
-   * @param {Vector3} up The up direction.
-   * @param {Vector3} right The right direction.
-   * @param {Matrix4} result The object in which the result will be stored.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static computeView(position, direction, up, right, result) {
-
-    result[0] = right.x;
-    result[1] = up.x;
-    result[2] = direction.x;
-    result[3] = 0.0;
-    result[4] = right.y;
-    result[5] = up.y;
-    result[6] = direction.y;
-    result[7] = 0.0;
-    result[8] = right.z;
-    result[9] = up.z;
-    result[10] = direction.z;
-    result[11] = 0.0;
-    result[12] = -Vector3.dot(right, position);
-    result[13] = -Vector3.dot(up, position);
-    result[14] = -Vector3.dot(direction, position);
-    result[15] = 1.0;
-    return result;
-  };
-  toArray(){
-    const result=[];
-    Matrix4.toArray(this,result)
+    matrix[0] = 2 * w;
+    matrix[4] = 0;
+    matrix[8] = 0;
+    matrix[12] = -x;
+    matrix[1] = 0;
+    matrix[5] = 2 * h;
+    matrix[9] = 0;
+    matrix[13] = -y;
+    matrix[2] = 0;
+    matrix[6] = 0;
+    matrix[10] = -2 * p;
+    matrix[14] = -z;
+    matrix[3] = 0;
+    matrix[7] = 0;
+    matrix[11] = 0;
+    matrix[15] = 1;
+    return matrix;
+  }
+  toArray() {
+    const result = [];
+    Matrix4.toArray(this, result);
     return result;
   }
   /**
    * Computes an Array from the provided Matrix4 instance.
    * The array will be in column-major order.
-   *
-   * @param {Matrix4} matrix The matrix to use..
-   * @param {Number[]} [result] The Array onto which to store the result.
-   * @returns {Number[]} The modified Array parameter or a new Array instance if one was not provided.
-   *
    * @example
    * //create an array from an instance of Matrix4
    * // m = [10.0, 14.0, 18.0, 22.0]
@@ -957,8 +527,10 @@ class Matrix4 {
    * // m remains the same
    * //creates a = [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0]
    */
-  static toArray(matrix, result) {
-
+  static toArray(
+    matrix: Array<number> | Matrix4,
+    result: Array<number>
+  ): Array<number> {
     if (!defined(result)) {
       return [
         matrix[0],
@@ -996,58 +568,13 @@ class Matrix4 {
     result[14] = matrix[14];
     result[15] = matrix[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes the array index of the element at the provided row and column.
-   *
-   * @param {Number} row The zero-based index of the row.
-   * @param {Number} column The zero-based index of the column.
-   * @returns {Number} The index of the element at the provided row and column.
-   *
-   * @exception {Error} row must be 0, 1, 2, or 3.
-   * @exception {Error} column must be 0, 1, 2, or 3.
-   *
-   * @example
-   * const myMatrix = new Matrix4();
-   * const column1Row0Index = Matrix4.getElementIndex(1, 0);
-   * const column1Row0 = myMatrix[column1Row0Index];
-   * myMatrix[column1Row0Index] = 10.0;
-   */
-  static getElementIndex(column, row) {
-
+  static getElementIndex(column: number, row: number): number {
     return column * 4 + row;
-  };
+  }
 
-  /**
-   * Retrieves a copy of the matrix column at the provided index as a Vector4 instance.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Number} index The zero-based index of the column to retrieve.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   *
-   * @exception {Error} index must be 0, 1, 2, or 3.
-   *
-   * @example
-   * //returns a Vector4 instance with values from the specified column
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * //Example 1: Creates an instance of Cartesian
-   * const a = Matrix4.getColumn(m, 2, new Vector4());
-   *
-   * @example
-   * //Example 2: Sets values for Cartesian instance
-   * const a = new Vector4();
-   * Matrix4.getColumn(m, 2, a);
-   *
-   * // a.x = 12.0; a.y = 16.0; a.z = 20.0; a.w = 24.0;
-   */
-  static getColumn(matrix, index, result) {
-
+  static getColumn(matrix: Matrix4, index: number, result: Vector4): Vector4 {
     const startIndex = index * 4;
     const x = matrix[startIndex];
     const y = matrix[startIndex + 1];
@@ -1059,36 +586,14 @@ class Matrix4 {
     result.z = z;
     result.w = w;
     return result;
-  };
+  }
 
-  /**
-   * Computes a new matrix that replaces the specified column in the provided matrix with the provided Vector4 instance.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Number} index The zero-based index of the column to set.
-   * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified column.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @exception {Error} index must be 0, 1, 2, or 3.
-   *
-   * @example
-   * //creates a new Matrix4 instance with new column values from the Vector4 instance
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * const a = Matrix4.setColumn(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
-   *
-   * // m remains the same
-   * // a = [10.0, 11.0, 99.0, 13.0]
-   * //     [14.0, 15.0, 98.0, 17.0]
-   * //     [18.0, 19.0, 97.0, 21.0]
-   * //     [22.0, 23.0, 96.0, 25.0]
-   */
-  static setColumn(matrix, index, cartesian, result) {
-
+  static setColumn(
+    matrix: Matrix4,
+    index: number,
+    cartesian: Vector4,
+    result: Matrix4
+  ): Matrix4 {
     result = Matrix4.clone(matrix, result);
     const startIndex = index * 4;
     result[startIndex] = cartesian.x;
@@ -1096,37 +601,9 @@ class Matrix4 {
     result[startIndex + 2] = cartesian.z;
     result[startIndex + 3] = cartesian.w;
     return result;
-  };
+  }
 
-  /**
-   * Retrieves a copy of the matrix row at the provided index as a Vector4 instance.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Number} index The zero-based index of the row to retrieve.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   *
-   * @exception {Error} index must be 0, 1, 2, or 3.
-   *
-   * @example
-   * //returns a Vector4 instance with values from the specified column
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * //Example 1: Returns an instance of Cartesian
-   * const a = Matrix4.getRow(m, 2, new Vector4());
-   *
-   * @example
-   * //Example 2: Sets values for a Cartesian instance
-   * const a = new Vector4();
-   * Matrix4.getRow(m, 2, a);
-   *
-   * // a.x = 18.0; a.y = 19.0; a.z = 20.0; a.w = 21.0;
-   */
-  static getRow(matrix, index, result) {
-
+  static getRow(matrix: Matrix4, index: number, result: Vector4): Vector4 {
     const x = matrix[index];
     const y = matrix[index + 4];
     const z = matrix[index + 8];
@@ -1137,55 +614,27 @@ class Matrix4 {
     result.z = z;
     result.w = w;
     return result;
-  };
+  }
 
-  /**
-   * Computes a new matrix that replaces the specified row in the provided matrix with the provided Vector4 instance.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Number} index The zero-based index of the row to set.
-   * @param {Vector4} cartesian The Cartesian whose values will be assigned to the specified row.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @exception {Error} index must be 0, 1, 2, or 3.
-   *
-   * @example
-   * //create a new Matrix4 instance with new row values from the Vector4 instance
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * const a = Matrix4.setRow(m, 2, new Vector4(99.0, 98.0, 97.0, 96.0), new Matrix4());
-   *
-   * // m remains the same
-   * // a = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [99.0, 98.0, 97.0, 96.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   */
-  static setRow(matrix, index, cartesian, result) {
-
+  static setRow(
+    matrix: Matrix4,
+    index: number,
+    cartesian: Vector4,
+    result: Matrix4
+  ): Matrix4 {
     result = Matrix4.clone(matrix, result);
     result[index] = cartesian.x;
     result[index + 4] = cartesian.y;
     result[index + 8] = cartesian.z;
     result[index + 12] = cartesian.w;
     return result;
-  };
+  }
 
-  /**
-   * Computes a new matrix that replaces the translation in the rightmost column of the provided
-   * matrix with the provided translation. This assumes the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Vector3} translation The translation that replaces the translation of the provided matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static setTranslation(matrix, translation, result) {
-
+  static setTranslation(
+    matrix: Matrix4,
+    translation: Vector3,
+    result: Matrix4
+  ): Matrix4 {
     result[0] = matrix[0];
     result[1] = matrix[1];
     result[2] = matrix[2];
@@ -1207,28 +656,9 @@ class Matrix4 {
     result[15] = matrix[15];
 
     return result;
-  };
+  }
 
-
-
-  /**
-   * Computes a new matrix that replaces the scale with the provided scale.
-   * This assumes the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Vector3} scale The scale that replaces the scale of the provided matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @see Matrix4.setUniformScale
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.multiplyByScale
-   * @see Matrix4.multiplyByUniformScale
-   * @see Matrix4.getScale
-   */
-  static setScale(matrix, scale, result) {
-
+  static setScale(matrix: Matrix4, scale: Vector3, result: Matrix4): Matrix4 {
     const existingScale = Matrix4.getScale(matrix, scaleScratch1);
     const scaleRatioX = scale.x / existingScale.x;
     const scaleRatioY = scale.y / existingScale.y;
@@ -1255,73 +685,9 @@ class Matrix4 {
     result[15] = matrix[15];
 
     return result;
-  };
+  }
 
-
-
-  /**
-   * Computes a new matrix that replaces the scale with the provided uniform scale.
-   * This assumes the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Number} scale The uniform scale that replaces the scale of the provided matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @see Matrix4.setScale
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.multiplyByScale
-   * @see Matrix4.multiplyByUniformScale
-   * @see Matrix4.getScale
-   */
-  static setUniformScale(matrix, scale, result) {
-
-    const existingScale = Matrix4.getScale(matrix, scaleScratch2);
-    const scaleRatioX = scale / existingScale.x;
-    const scaleRatioY = scale / existingScale.y;
-    const scaleRatioZ = scale / existingScale.z;
-
-    result[0] = matrix[0] * scaleRatioX;
-    result[1] = matrix[1] * scaleRatioX;
-    result[2] = matrix[2] * scaleRatioX;
-    result[3] = matrix[3];
-
-    result[4] = matrix[4] * scaleRatioY;
-    result[5] = matrix[5] * scaleRatioY;
-    result[6] = matrix[6] * scaleRatioY;
-    result[7] = matrix[7];
-
-    result[8] = matrix[8] * scaleRatioZ;
-    result[9] = matrix[9] * scaleRatioZ;
-    result[10] = matrix[10] * scaleRatioZ;
-    result[11] = matrix[11];
-
-    result[12] = matrix[12];
-    result[13] = matrix[13];
-    result[14] = matrix[14];
-    result[15] = matrix[15];
-
-    return result;
-  };
-
-
-  /**
-   * Extracts the non-uniform scale assuming the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Vector3} result The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter
-   *
-   * @see Matrix4.multiplyByScale
-   * @see Matrix4.multiplyByUniformScale
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.setScale
-   * @see Matrix4.setUniformScale
-   */
-  static getScale(matrix, result) {
-
+  static getScale(matrix: Matrix4, result: Vector3): Vector3 {
     result.x = Vector3.magnitude(
       Vector3.fromElements(matrix[0], matrix[1], matrix[2], scratchColumn)
     );
@@ -1332,35 +698,18 @@ class Matrix4 {
       Vector3.fromElements(matrix[8], matrix[9], matrix[10], scratchColumn)
     );
     return result;
-  };
+  }
 
-
-  /**
-   * Computes the maximum scale assuming the matrix is an affine transformation.
-   * The maximum scale is the maximum length of the column vectors in the upper-left
-   * 3x3 matrix.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @returns {Number} The maximum scale.
-   */
-  static getMaximumScale(matrix) {
+  static getMaximumScale(matrix: Matrix4): number {
     Matrix4.getScale(matrix, scaleScratch3);
     return Vector3.maximumComponent(scaleScratch3);
-  };
+  }
 
-
-  /**
-   * Sets the rotation assuming the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Matrix3} rotation The rotation matrix.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @see Matrix4.fromRotation
-   * @see Matrix4.getRotation
-   */
-  static setRotation(matrix, rotation, result) {
-
+  static setRotation(
+    matrix: Matrix4,
+    rotation: Matrix3,
+    result: Matrix4
+  ): Matrix4 {
     const scale = Matrix4.getScale(matrix, scaleScratch4);
 
     result[0] = rotation[0] * scale.x;
@@ -1384,21 +733,9 @@ class Matrix4 {
     result[15] = matrix[15];
 
     return result;
-  };
+  }
 
-
-  /**
-   * Extracts the rotation matrix assuming the matrix is an affine transformation.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Matrix3} result The object onto which to store the result.
-   * @returns {Matrix3} The modified result parameter.
-   *
-   * @see Matrix4.setRotation
-   * @see Matrix4.fromRotation
-   */
-  static getRotation(matrix, result) {
-
+  static getRotation(matrix: Matrix4, result: Matrix3): Matrix3 {
     const scale = Matrix4.getScale(matrix, scaleScratch5);
 
     result[0] = matrix[0] / scale.x;
@@ -1414,18 +751,9 @@ class Matrix4 {
     result[8] = matrix[10] / scale.z;
 
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of two matrices.
-   *
-   * @param {Matrix4} left The first matrix.
-   * @param {Matrix4} right The second matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static multiply(left, right, result) {
-
+  static multiply(left: Matrix4, right: Matrix4, result: Matrix4): Matrix4 {
     const left0 = left[0];
     const left1 = left[1];
     const left2 = left[2];
@@ -1513,18 +841,9 @@ class Matrix4 {
     result[14] = column3Row2;
     result[15] = column3Row3;
     return result;
-  };
+  }
 
-  /**
-   * Computes the sum of two matrices.
-   *
-   * @param {Matrix4} left The first matrix.
-   * @param {Matrix4} right The second matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static add(left, right, result) {
-
+  static add(left: Matrix4, right: Matrix4, result: Matrix4): Matrix4 {
     result[0] = left[0] + right[0];
     result[1] = left[1] + right[1];
     result[2] = left[2] + right[2];
@@ -1542,18 +861,9 @@ class Matrix4 {
     result[14] = left[14] + right[14];
     result[15] = left[15] + right[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes the difference of two matrices.
-   *
-   * @param {Matrix4} left The first matrix.
-   * @param {Matrix4} right The second matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static subtract(left, right, result) {
-
+  static subtract(left: Matrix4, right: Matrix4, result: Matrix4) {
     result[0] = left[0] - right[0];
     result[1] = left[1] - right[1];
     result[2] = left[2] - right[2];
@@ -1571,29 +881,13 @@ class Matrix4 {
     result[14] = left[14] - right[14];
     result[15] = left[15] - right[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of two matrices assuming the matrices are affine transformation matrices,
-   * where the upper left 3x3 elements are any matrix, and
-   * the upper three elements in the fourth column are the translation.
-   * The bottom row is assumed to be [0, 0, 0, 1].
-   * The matrix is not verified to be in the proper form.
-   * This method is faster than computing the product for general 4x4
-   * matrices using {@link Matrix4.multiply}.
-   *
-   * @param {Matrix4} left The first matrix.
-   * @param {Matrix4} right The second matrix.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * const m1 = new Matrix4(1.0, 6.0, 7.0, 0.0, 2.0, 5.0, 8.0, 0.0, 3.0, 4.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-   * const m2 = Transforms.eastNorthUpToFixedFrame(new Vector3(1.0, 1.0, 1.0));
-   * const m3 = Matrix4.multiplyTransformation(m1, m2, new Matrix4());
-   */
-  static multiplyTransformation(left, right, result) {
-
+  static multiplyTransformation(
+    left: Matrix4,
+    right: Matrix4,
+    result: Matrix4
+  ): Matrix4 {
     const left0 = left[0];
     const left1 = left[1];
     const left2 = left[2];
@@ -1656,24 +950,13 @@ class Matrix4 {
     result[14] = column3Row2;
     result[15] = 1.0;
     return result;
-  };
+  }
 
-  /**
-   * Multiplies a transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-   * by a 3x3 rotation matrix.  This is an optimization
-   * for <code>Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);</code> with less allocations and arithmetic operations.
-   *
-   * @param {Matrix4} matrix The matrix on the left-hand side.
-   * @param {Matrix3} rotation The 3x3 rotation matrix on the right-hand side.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * // Instead of Matrix4.multiply(m, Matrix4.fromRotationTranslation(rotation), m);
-   * Matrix4.multiplyByMatrix3(m, rotation, m);
-   */
-  static multiplyByMatrix3(matrix, rotation, result) {
-
+  static multiplyByMatrix3(
+    matrix: Matrix4,
+    rotation: Matrix3,
+    result: Matrix4
+  ): Matrix4 {
     const left0 = matrix[0];
     const left1 = matrix[1];
     const left2 = matrix[2];
@@ -1723,24 +1006,13 @@ class Matrix4 {
     result[14] = matrix[14];
     result[15] = matrix[15];
     return result;
-  };
+  }
 
-  /**
-   * Multiplies a transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-   * by an implicit translation matrix defined by a {@link Vector3}.  This is an optimization
-   * for <code>Matrix4.multiply(m, Matrix4.fromTranslation(position), m);</code> with less allocations and arithmetic operations.
-   *
-   * @param {Matrix4} matrix The matrix on the left-hand side.
-   * @param {Vector3} translation The translation on the right-hand side.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * // Instead of Matrix4.multiply(m, Matrix4.fromTranslation(position), m);
-   * Matrix4.multiplyByTranslation(m, position, m);
-   */
-  static multiplyByTranslation(matrix, translation, result) {
-
+  static multiplyByTranslation(
+    matrix: Matrix4,
+    translation: Vector3,
+    result: Matrix4
+  ): Matrix4 {
     const x = translation.x;
     const y = translation.y;
     const z = translation.z;
@@ -1766,34 +1038,13 @@ class Matrix4 {
     result[14] = tz;
     result[15] = matrix[15];
     return result;
-  };
+  }
 
-  /**
-   * Multiplies an affine transformation matrix (with a bottom row of <code>[0.0, 0.0, 0.0, 1.0]</code>)
-   * by an implicit non-uniform scale matrix. This is an optimization
-   * for <code>Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);</code>, where
-   * <code>m</code> must be an affine matrix.
-   * This function performs fewer allocations and arithmetic operations.
-   *
-   * @param {Matrix4} matrix The affine matrix on the left-hand side.
-   * @param {Vector3} scale The non-uniform scale on the right-hand side.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   *
-   * @example
-   * // Instead of Matrix4.multiply(m, Matrix4.fromScale(scale), m);
-   * Matrix4.multiplyByScale(m, scale, m);
-   *
-   * @see Matrix4.multiplyByUniformScale
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.setScale
-   * @see Matrix4.setUniformScale
-   * @see Matrix4.getScale
-   */
-  static multiplyByScale(matrix, scale, result) {
-
+  static multiplyByScale(
+    matrix: Matrix4,
+    scale: Vector3,
+    result: Matrix4
+  ): Matrix4 {
     const scaleX = scale.x;
     const scaleY = scale.y;
     const scaleZ = scale.z;
@@ -1824,29 +1075,13 @@ class Matrix4 {
     result[15] = matrix[15];
 
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of a matrix times a uniform scale, as if the scale were a scale matrix.
-   *
-   * @param {Matrix4} matrix The matrix on the left-hand side.
-   * @param {Number} scale The uniform scale on the right-hand side.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * // Instead of Matrix4.multiply(m, Matrix4.fromUniformScale(scale), m);
-   * Matrix4.multiplyByUniformScale(m, scale, m);
-   *
-   * @see Matrix4.multiplyByScale
-   * @see Matrix4.fromScale
-   * @see Matrix4.fromUniformScale
-   * @see Matrix4.setScale
-   * @see Matrix4.setUniformScale
-   * @see Matrix4.getScale
-   */
-  static multiplyByUniformScale(matrix, scale, result) {
-
+  static multiplyByUniformScale(
+    matrix: Matrix4,
+    scale: number,
+    result: Matrix4
+  ): Matrix4 {
     result[0] = matrix[0] * scale;
     result[1] = matrix[1] * scale;
     result[2] = matrix[2] * scale;
@@ -1868,53 +1103,39 @@ class Matrix4 {
     result[15] = matrix[15];
 
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of a matrix and a column vector.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Vector4} cartesian The vector.
-   * @param {Vector4} result The object onto which to store the result.
-   * @returns {Vector4} The modified result parameter.
-   */
-  static multiplyByVector(matrix, cartesian, result) {
-
+  static multiplyByVector(
+    matrix: Matrix4,
+    cartesian: Vector4,
+    result: Vector4
+  ): Vector4 {
     const vX = cartesian.x;
     const vY = cartesian.y;
     const vZ = cartesian.z;
     const vW = cartesian.w;
 
-    const x = matrix[0] * vX + matrix[4] * vY + matrix[8] * vZ + matrix[12] * vW;
-    const y = matrix[1] * vX + matrix[5] * vY + matrix[9] * vZ + matrix[13] * vW;
-    const z = matrix[2] * vX + matrix[6] * vY + matrix[10] * vZ + matrix[14] * vW;
-    const w = matrix[3] * vX + matrix[7] * vY + matrix[11] * vZ + matrix[15] * vW;
+    const x =
+      matrix[0] * vX + matrix[4] * vY + matrix[8] * vZ + matrix[12] * vW;
+    const y =
+      matrix[1] * vX + matrix[5] * vY + matrix[9] * vZ + matrix[13] * vW;
+    const z =
+      matrix[2] * vX + matrix[6] * vY + matrix[10] * vZ + matrix[14] * vW;
+    const w =
+      matrix[3] * vX + matrix[7] * vY + matrix[11] * vZ + matrix[15] * vW;
 
     result.x = x;
     result.y = y;
     result.z = z;
     result.w = w;
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of a matrix and a {@link Vector3}.  This is equivalent to calling {@link Matrix4.multiplyByVector}
-   * with a {@link Vector4} with a <code>w</code> component of zero.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Vector3} cartesian The point.
-   * @param {Vector3} result The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter.
-   *
-   * @example
-   * const p = new Vector3(1.0, 2.0, 3.0);
-   * const result = Matrix4.multiplyByPointAsVector(matrix, p, new Vector3());
-   * // A shortcut for
-   * //   Vector3 p = ...
-   * //   Matrix4.multiplyByVector(matrix, new Vector4(p.x, p.y, p.z, 0.0), result);
-   */
-  static multiplyByPointAsVector(matrix, cartesian, result) {
-
+  static multiplyByPointAsVector(
+    matrix: Matrix4,
+    cartesian: Vector3,
+    result: Vector3
+  ): Vector3 {
     const vX = cartesian.x;
     const vY = cartesian.y;
     const vZ = cartesian.z;
@@ -1927,23 +1148,13 @@ class Matrix4 {
     result.y = y;
     result.z = z;
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of a matrix and a {@link Vector3}. This is equivalent to calling {@link Matrix4.multiplyByVector}
-   * with a {@link Vector4} with a <code>w</code> component of 1, but returns a {@link Vector3} instead of a {@link Vector4}.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Vector3} cartesian The point.
-   * @param {Vector3} result The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter.
-   *
-   * @example
-   * const p = new Vector3(1.0, 2.0, 3.0);
-   * const result = Matrix4.multiplyByPoint(matrix, p, new Vector3());
-   */
-  static multiplyByPoint(matrix, cartesian, result) {
-
+  static multiplyByPoint(
+    matrix: Matrix4,
+    cartesian: Vector3,
+    result: Vector3
+  ): Vector3 {
     const vX = cartesian.x;
     const vY = cartesian.y;
     const vZ = cartesian.z;
@@ -1956,33 +1167,13 @@ class Matrix4 {
     result.y = y;
     result.z = z;
     return result;
-  };
+  }
 
-  /**
-   * Computes the product of a matrix and a scalar.
-   *
-   * @param {Matrix4} matrix The matrix.
-   * @param {Number} scalar The number to multiply by.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * //create a Matrix4 instance which is a scaled version of the supplied Matrix4
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * const a = Matrix4.multiplyByScalar(m, -2, new Matrix4());
-   *
-   * // m remains the same
-   * // a = [-20.0, -22.0, -24.0, -26.0]
-   * //     [-28.0, -30.0, -32.0, -34.0]
-   * //     [-36.0, -38.0, -40.0, -42.0]
-   * //     [-44.0, -46.0, -48.0, -50.0]
-   */
-  static multiplyByScalar(matrix, scalar, result) {
-
+  static multiplyByScalar(
+    matrix: Matrix4,
+    scalar: number,
+    result: Matrix4
+  ): Matrix4 {
     result[0] = matrix[0] * scalar;
     result[1] = matrix[1] * scalar;
     result[2] = matrix[2] * scalar;
@@ -2000,32 +1191,9 @@ class Matrix4 {
     result[14] = matrix[14] * scalar;
     result[15] = matrix[15] * scalar;
     return result;
-  };
+  }
 
-  /**
-   * Computes a negated copy of the provided matrix.
-   *
-   * @param {Matrix4} matrix The matrix to negate.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * //create a new Matrix4 instance which is a negation of a Matrix4
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * const a = Matrix4.negate(m, new Matrix4());
-   *
-   * // m remains the same
-   * // a = [-10.0, -11.0, -12.0, -13.0]
-   * //     [-14.0, -15.0, -16.0, -17.0]
-   * //     [-18.0, -19.0, -20.0, -21.0]
-   * //     [-22.0, -23.0, -24.0, -25.0]
-   */
-  static negate(matrix, result) {
-
+  static negate(matrix: Matrix4, result: Matrix4): Matrix4 {
     result[0] = -matrix[0];
     result[1] = -matrix[1];
     result[2] = -matrix[2];
@@ -2043,32 +1211,9 @@ class Matrix4 {
     result[14] = -matrix[14];
     result[15] = -matrix[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes the transpose of the provided matrix.
-   *
-   * @param {Matrix4} matrix The matrix to transpose.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @example
-   * //returns transpose of a Matrix4
-   * // m = [10.0, 11.0, 12.0, 13.0]
-   * //     [14.0, 15.0, 16.0, 17.0]
-   * //     [18.0, 19.0, 20.0, 21.0]
-   * //     [22.0, 23.0, 24.0, 25.0]
-   *
-   * const a = Matrix4.transpose(m, new Matrix4());
-   *
-   * // m remains the same
-   * // a = [10.0, 14.0, 18.0, 22.0]
-   * //     [11.0, 15.0, 19.0, 23.0]
-   * //     [12.0, 16.0, 20.0, 24.0]
-   * //     [13.0, 17.0, 21.0, 25.0]
-   */
-  static transpose(matrix, result) {
-
+  static transpose(matrix: Matrix4, result: Matrix4): Matrix4 {
     const matrix1 = matrix[1];
     const matrix2 = matrix[2];
     const matrix3 = matrix[3];
@@ -2093,17 +1238,9 @@ class Matrix4 {
     result[14] = matrix11;
     result[15] = matrix[15];
     return result;
-  };
+  }
 
-  /**
-   * Computes a matrix, which contains the absolute (unsigned) values of the provided matrix's elements.
-   *
-   * @param {Matrix4} matrix The matrix with signed elements.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static abs(matrix, result) {
-
+  static abs(matrix: Matrix4, result: Matrix4) {
     result[0] = Math.abs(matrix[0]);
     result[1] = Math.abs(matrix[1]);
     result[2] = Math.abs(matrix[2]);
@@ -2122,38 +1259,9 @@ class Matrix4 {
     result[15] = Math.abs(matrix[15]);
 
     return result;
-  };
+  }
 
-  /**
-   * Compares the provided matrices componentwise and returns
-   * <code>true</code> if they are equal, <code>false</code> otherwise.
-   *
-   * @param {Matrix4} [left] The first matrix.
-   * @param {Matrix4} [right] The second matrix.
-   * @returns {Boolean} <code>true</code> if left and right are equal, <code>false</code> otherwise.
-   *
-   * @example
-   * //compares two Matrix4 instances
-   *
-   * // a = [10.0, 14.0, 18.0, 22.0]
-   * //     [11.0, 15.0, 19.0, 23.0]
-   * //     [12.0, 16.0, 20.0, 24.0]
-   * //     [13.0, 17.0, 21.0, 25.0]
-   *
-   * // b = [10.0, 14.0, 18.0, 22.0]
-   * //     [11.0, 15.0, 19.0, 23.0]
-   * //     [12.0, 16.0, 20.0, 24.0]
-   * //     [13.0, 17.0, 21.0, 25.0]
-   *
-   * if(Matrix4.equals(a,b)) {
-   *      console.log("Both matrices are equal");
-   * } else {
-   *      console.log("They are not equal");
-   * }
-   *
-   * //Prints "Both matrices are equal" on the console
-   */
-  static equals(left, right) {
+  static equals(left: Matrix4, right: Matrix4): boolean {
     // Given that most matrices will be transformation matrices, the elements
     // are tested in order such that the test is likely to fail as early
     // as possible.  I _think_ this is just as friendly to the L1 cache
@@ -2182,40 +1290,13 @@ class Matrix4 {
         left[11] === right[11] &&
         left[15] === right[15])
     );
-  };
+  }
 
-  /**
-   * Compares the provided matrices componentwise and returns
-   * <code>true</code> if they are within the provided epsilon,
-   * <code>false</code> otherwise.
-   *
-   * @param {Matrix4} [left] The first matrix.
-   * @param {Matrix4} [right] The second matrix.
-   * @param {Number} [epsilon=0] The epsilon to use for equality testing.
-   * @returns {Boolean} <code>true</code> if left and right are within the provided epsilon, <code>false</code> otherwise.
-   *
-   * @example
-   * //compares two Matrix4 instances
-   *
-   * // a = [10.5, 14.5, 18.5, 22.5]
-   * //     [11.5, 15.5, 19.5, 23.5]
-   * //     [12.5, 16.5, 20.5, 24.5]
-   * //     [13.5, 17.5, 21.5, 25.5]
-   *
-   * // b = [10.0, 14.0, 18.0, 22.0]
-   * //     [11.0, 15.0, 19.0, 23.0]
-   * //     [12.0, 16.0, 20.0, 24.0]
-   * //     [13.0, 17.0, 21.0, 25.0]
-   *
-   * if(Matrix4.equalsEpsilon(a,b,0.1)){
-   *      console.log("Difference between both the matrices is less than 0.1");
-   * } else {
-   *      console.log("Difference between both the matrices is not less than 0.1");
-   * }
-   *
-   * //Prints "Difference between both the matrices is not less than 0.1" on the console
-   */
-  static equalsEpsilon(left, right, epsilon) {
+  static equalsEpsilon(
+    left: Matrix4,
+    right: Matrix4,
+    epsilon: number
+  ): boolean {
     epsilon = defaultValue(epsilon, 0);
 
     return (
@@ -2239,47 +1320,16 @@ class Matrix4 {
         Math.abs(left[14] - right[14]) <= epsilon &&
         Math.abs(left[15] - right[15]) <= epsilon)
     );
-  };
+  }
 
-  /**
-   * Gets the translation portion of the provided matrix, assuming the matrix is an affine transformation matrix.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Vector3} result The object onto which to store the result.
-   * @returns {Vector3} The modified result parameter.
-   */
-  static getTranslation(matrix, result) {
-
+  static getTranslation(matrix: Matrix4, result: Vector3): Vector3 {
     result.x = matrix[12];
     result.y = matrix[13];
     result.z = matrix[14];
     return result;
-  };
+  }
 
-  /**
-   * Gets the upper left 3x3 matrix of the provided matrix.
-   *
-   * @param {Matrix4} matrix The matrix to use.
-   * @param {Matrix3} result The object onto which to store the result.
-   * @returns {Matrix3} The modified result parameter.
-   *
-   * @example
-   * // returns a Matrix3 instance from a Matrix4 instance
-   *
-   * // m = [10.0, 14.0, 18.0, 22.0]
-   * //     [11.0, 15.0, 19.0, 23.0]
-   * //     [12.0, 16.0, 20.0, 24.0]
-   * //     [13.0, 17.0, 21.0, 25.0]
-   *
-   * const b = new Matrix3();
-   * Matrix4.getMatrix3(m,b);
-   *
-   * // b = [10.0, 14.0, 18.0]
-   * //     [11.0, 15.0, 19.0]
-   * //     [12.0, 16.0, 20.0]
-   */
-  static getMatrix3(matrix, result) {
-
+  static getMatrix3(matrix: Matrix4, result: Matrix3): Matrix3 {
     result[0] = matrix[0];
     result[1] = matrix[1];
     result[2] = matrix[2];
@@ -2290,22 +1340,9 @@ class Matrix4 {
     result[7] = matrix[9];
     result[8] = matrix[10];
     return result;
-  };
+  }
 
-
-  /**
-   * Computes the inverse of the provided matrix using Cramers Rule.
-   * If the determinant is zero, the matrix can not be inverted, and an exception is thrown.
-   * If the matrix is a proper rigid transformation, it is more efficient
-   * to invert it with {@link Matrix4.inverseTransformation}.
-   *
-   * @param {Matrix4} matrix The matrix to invert.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   *
-   * @exception {Error} matrix is not invertible because its determinate is zero.
-   */
-  static inverse(matrix, result) {
+  static inverse(matrix: Matrix4, result: Matrix4) {
     //
     // Ported from:
     //   ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf
@@ -2500,23 +1537,9 @@ class Matrix4 {
     result[14] = dst14 * det;
     result[15] = dst15 * det;
     return result;
-  };
+  }
 
-  /**
-   * Computes the inverse of the provided matrix assuming it is a proper rigid matrix,
-   * where the upper left 3x3 elements are a rotation matrix,
-   * and the upper three elements in the fourth column are the translation.
-   * The bottom row is assumed to be [0, 0, 0, 1].
-   * The matrix is not verified to be in the proper form.
-   * This method is faster than computing the inverse for a general 4x4
-   * matrix using {@link Matrix4.inverse}.
-   *
-   * @param {Matrix4} matrix The matrix to invert.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static inverseTransformation(matrix, result) {
-
+  static inverseTransformation(matrix: Matrix4, result: Matrix4): Matrix4 {
     //This function is an optimized version of the below 4 lines.
     //const rT = Matrix3.transpose(Matrix4.getMatrix3(matrix));
     //const rTN = Matrix3.negate(rT);
@@ -2558,25 +1581,22 @@ class Matrix4 {
     result[14] = z;
     result[15] = 1.0;
     return result;
-  };
-  /**
-   * Computes the inverse transpose of a matrix.
-   *
-   * @param {Matrix4} matrix The matrix to transpose and invert.
-   * @param {Matrix4} result The object onto which to store the result.
-   * @returns {Matrix4} The modified result parameter.
-   */
-  static inverseTranspose(matrix, result) {
+  }
 
+  static inverseTranspose(matrix: Matrix4, result: Matrix4): Matrix4 {
     return Matrix4.inverse(
       Matrix4.transpose(matrix, scratchTransposeMatrix),
       result
     );
-  };
+  }
   /**
- * @private
- */
-static equalsArray(matrix, array, offset) {
+   * @private
+   */
+  static equalsArray(
+    matrix: Matrix4,
+    array: Array<number>,
+    offset: number
+  ): boolean {
     return (
       matrix[0] === array[offset] &&
       matrix[1] === array[offset + 1] &&
@@ -2595,9 +1615,7 @@ static equalsArray(matrix, array, offset) {
       matrix[14] === array[offset + 14] &&
       matrix[15] === array[offset + 15]
     );
-  };
-
-
+  }
 }
 
 const scratchTransposeMatrix = new Matrix4();
@@ -2616,7 +1634,7 @@ const scratchInverseRotation = new Matrix3();
 const scratchMatrix3Zero = new Matrix3();
 const scratchBottomRow = new Vector4();
 const scratchExpectedBottomRow = new Vector4(0.0, 0.0, 0.0, 1.0);
-const x=new Vector3();
-const y=new Vector3();
-const z=new Vector3();
+const x = new Vector3();
+const y = new Vector3();
+const z = new Vector3();
 export default Matrix4;

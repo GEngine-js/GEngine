@@ -74,11 +74,11 @@
         const primitive=new Mesh(geometry,phongMaterial)
         // primitive.rotateY(Math.PI/3)
         const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
-        camera.position=new Vector3(20,20,20);
-        camera.target=new Vector3(0,0,0);
+        camera.position.set(20,20,20);
+        camera.lookAt(0,0,0);
 
         // console.log(camera.viewMatrix);
-        const dirtectLight=new DirtectLight(new Vector3(1.0,1.0,1.0),10,new Vector3(0, 1, 0));
+        const dirtectLight=new DirtectLight(new Vector3(1.0,1.0,1.0),10,new Vector3(1,1,1));
         // spotLight.position=new Vector3(0,16,0);
 
         const scene=new Scene({container:'app'});

@@ -28,23 +28,11 @@ function hue2rgb(m1, m2, h) {
   return m1;
 }
 
-/**
- * A color, specified using red, green, blue,
- * which range from <code>0</code> (no intensity) to <code>1.0</code> (full intensity).
- * @param {Number} [red=1.0] The red component.
- * @param {Number} [green=1.0] The green component.
- * @param {Number} [blue=1.0] The blue component.
- *
- * @constructor
- * @alias Color
- *
- * @see Packable
- */
 class Color {
   green: number;
   red: number;
   blue: number;
-  constructor(red=1.0, green=1.0, blue=1.0) {
+  constructor(red:number=1.0, green:number=1.0, blue:number=1.0) {
     /**
      * The red component.
      * @type {Number}
@@ -64,41 +52,25 @@ class Color {
      */
     this.blue =blue;
   }
-  set(value){
+  set(value:string):Color{
       if (typeof value==='string') {
         Color.fromCssColorString(value,this);
       }
       return this;
   }
-  toArray(){
+  toArray():number[]{
     return [this.red,this.green,this.blue]
   }
-  /**
- * Returns a duplicate of a Color instance.
- *
- * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
- * @returns {Color} The modified result parameter or a new instance if result was undefined.
- */
-  clone(result) {
+
+  clone(result:Color):Color {
     return Color.clone(this, result);
   };
 
-  /**
-   * Returns true if this Color equals other.
-   *
-   * @param {Color} other The Color to compare for equality.
-   * @returns {Boolean} <code>true</code> if the Colors are equal; otherwise, <code>false</code>.
-   */
-  equals(other) {
+  equals(other:Color):boolean {
     return Color.equals(this, other);
   };
 
-  /**
-   * Creates a string containing CSS hex string color value for this color.
-   *
-   * @returns {String} The CSS hex string equivalent of this color.
-   */
-  toCssHexString() {
+  toCssHexString():string {
     let r = Color.floatToByte(this.red).toString(16);
     if (r.length < 2) {
       r = `0${r}`;
@@ -114,14 +86,7 @@ class Color {
     return `#${r}${g}${b}`;
   };
 
-  /**
-   * Converts this color to an array of red, green, blue
-   * that are in the range of 0 to 255.
-   *
-   * @param {Number[]} [result] The array to store the result in, if undefined a new instance will be created.
-   * @returns {Number[]} The modified result parameter or a new instance if result was undefined.
-   */
-  toBytes(result) {
+  toBytes(result:number[]):number[] {
     const red = Color.floatToByte(this.red);
     const green = Color.floatToByte(this.green);
     const blue = Color.floatToByte(this.blue);
@@ -134,17 +99,8 @@ class Color {
     result[2] = blue;
     return result;
   };
-  /**
-   * Creates a new Color specified using red, green, blue
-   * that are in the range of 0 to 255, converting them internally to a range of 0.0 to 1.0.
-   *
-   * @param {Number} [red=255] The red component.
-   * @param {Number} [green=255] The green component.
-   * @param {Number} [blue=255] The blue component.
-   * @param {Color} [result] The object onto which to store the result.
-   * @returns {Color} The modified result parameter or a new Color instance if one was not provided.
-   */
-  static fromBytes(red, green, blue,  result) {
+
+  static fromBytes(red:number, green:number, blue:number,  result:Color):Color {
     red = Color.byteToFloat(defaultValue(red, 255.0));
     green = Color.byteToFloat(defaultValue(green, 255.0));
     blue = Color.byteToFloat(defaultValue(blue, 255.0));
@@ -159,18 +115,7 @@ class Color {
     return result;
   };
 
-  /**
-   * Creates a Color instance from hue, saturation, and lightness.
-   *
-   * @param {Number} [hue=0] The hue angle 0...1
-   * @param {Number} [saturation=0] The saturation value 0...1
-   * @param {Number} [lightness=0] The lightness value 0...1
-   * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-   * @returns {Color} The color object.
-   *
-   * @see {@link http://www.w3.org/TR/css3-color/#hsl-color|CSS color values}
-   */
-  static fromHsl(hue, saturation, lightness, result) {
+  static fromHsl(hue:number, saturation:number, lightness:number, result:Color):Color {
     hue = defaultValue(hue, 0.0) % 1.0;
     saturation = defaultValue(saturation, 0.0);
     lightness = defaultValue(lightness, 0.0);
@@ -241,7 +186,7 @@ class Color {
    *     minimumBlue : 0.75,
    * });
    */
-  static fromRandom(options, result) {
+  static fromRandom(options, result:Color):Color {
     options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
     let red = options.red;
@@ -281,21 +226,7 @@ class Color {
     return result;
   };
 
-  /**
-   * Creates a Color instance from a CSS color value.
-   *
-   * @param {String} color The CSS color value in #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(), rgba(), hsl(), or hsla() format.
-   * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-   * @returns {Color} The color object, or undefined if the string was not a valid CSS color.
-   *
-   *
-   * @example
-   * const blue = Color.fromCssColorString('#67ADDF');
-   * const green = Color.fromCssColorString('green');
-   *
-   * @see {@link http://www.w3.org/TR/css3-color|CSS color values}
-   */
-  static fromCssColorString(color, result=new Color()) {
+  static fromCssColorString(color:string, result:Color=new Color()):Color {
     // Remove all whitespaces from the color string
     color = color.replace(/\s/g, "");
 
@@ -345,36 +276,16 @@ class Color {
     result = undefined;
     return result;
   };
-  /**
-   * Converts a 'byte' color component in the range of 0 to 255 into
-   * a 'float' color component in the range of 0 to 1.0.
-   *
-   * @param {Number} number The number to be converted.
-   * @returns {Number} The converted number.
-   */
-  static byteToFloat(number) {
-    return number / 255.0;
+
+  static byteToFloat(value:number):number {
+    return value / 255.0;
   };
 
-  /**
-   * Converts a 'float' color component in the range of 0 to 1.0 into
-   * a 'byte' color component in the range of 0 to 255.
-   *
-   * @param {Number} number The number to be converted.
-   * @returns {Number} The converted number.
-   */
-  static floatToByte(number) {
-    return number === 1.0 ? 255.0 : (number * 256.0) | 0;
+  static floatToByte(value:number):number {
+    return value === 1.0 ? 255.0 : (value * 256.0) | 0;
   };
 
-  /**
-   * Duplicates a Color.
-   *
-   * @param {Color} color The Color to duplicate.
-   * @param {Color} [result] The object to store the result in, if undefined a new instance will be created.
-   * @returns {Color} The modified result parameter or a new instance if result was undefined. (Returns undefined if color is undefined)
-   */
-  static clone(color, result) {
+  static clone(color:Color, result:Color):Color {
     if (!defined(color)) {
       return undefined;
     }
@@ -387,14 +298,7 @@ class Color {
     return result;
   };
 
-  /**
-   * Returns true if the first Color equals the second color.
-   *
-   * @param {Color} left The first Color to compare for equality.
-   * @param {Color} right The second Color to compare for equality.
-   * @returns {Boolean} <code>true</code> if the Colors are equal; otherwise, <code>false</code>.
-   */
-  static equals(left, right) {
+  static equals(left:Color, right:Color):boolean {
     return (
       left === right || //
       (defined(left) && //
@@ -408,7 +312,7 @@ class Color {
   /**
    * @private
    */
-  static equalsArray(color, array, offset) {
+  static equalsArray(color:Color, array:number[], offset:number):boolean {
     return (
       color.red === array[offset] &&
       color.green === array[offset + 1] &&
