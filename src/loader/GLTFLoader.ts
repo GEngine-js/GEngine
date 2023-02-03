@@ -6,7 +6,6 @@ import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import {
   generateNormals,
-  generateTangents,
   getTextures,
   gltfEnum,
   newTypedArray,

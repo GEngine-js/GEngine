@@ -6,10 +6,18 @@
   "main": "dist/index.js",
   "source": "src/index.ts",
   "scripts": {
-    "build": "cross-env NODE_ENV=production rollup -c",
-    "dev": "cross-env NODE_ENV=development rollup -c"
+    "prepare": "husky install",
+    "pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md|html)\"",
+    "pre-build": "node hooks/checkDependency.js",
+    "install:npm": "npm install --registry=https://registry.npmmirror.com",
+		"install:yarn": "yarn install --registry=https://registry.npmmirror.com",
+    "build": "npm run pre-build && cross-env NODE_ENV=production rollup -c",
+    "dev": "npm run pre-build && cross-env NODE_ENV=development rollup -c"
   },
   "devDependencies": {
+    "husky": "^8.0.3",
+    "prettier": "^2.8.3",
+    "pretty-quick": "^3.1.3",
     "typescript": "^4.8.4"
   },
   "dependencies": {

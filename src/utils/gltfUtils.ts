@@ -144,68 +144,68 @@ export function generateNormals(
   return normals;
 }
 
-export function generateTangents(
-  indices: TypedArray | null,
-  positions: TypedArray,
-  normals: TypedArray,
-  uvs: TypedArray
-) {
-  const tangents = new Float32Array((normals.length / 3) * 4);
-  const vertexCount = indices ? indices.length : positions.length;
-  for (let i = 0; i < vertexCount; i += 3) {
-    const triIndices = [];
-    for (let n = 0; n < 3; n += 1) {
-      if (indices) {
-        triIndices.push(indices[i + n]);
-      } else {
-        triIndices.push(i + n);
-      }
-    }
-    const pos = triIndices.map((vertexIndex) => {
-      const index = vertexIndex * 3;
-      return new Vector3(
-        positions[index],
-        positions[index + 1],
-        positions[index + 2]
-      );
-    });
-    const uv = triIndices.map((vertexIndex) => {
-      const index = vertexIndex * 2;
-      return new Vector2(uvs![index], uvs![index + 1]);
-    });
+// export function generateTangents(
+//   indices: TypedArray | null,
+//   positions: TypedArray,
+//   normals: TypedArray,
+//   uvs: TypedArray
+// ) {
+//   const tangents = new Float32Array((normals.length / 3) * 4);
+//   const vertexCount = indices ? indices.length : positions.length;
+//   for (let i = 0; i < vertexCount; i += 3) {
+//     const triIndices = [];
+//     for (let n = 0; n < 3; n += 1) {
+//       if (indices) {
+//         triIndices.push(indices[i + n]);
+//       } else {
+//         triIndices.push(i + n);
+//       }
+//     }
+//     const pos = triIndices.map((vertexIndex) => {
+//       const index = vertexIndex * 3;
+//       return new Vector3(
+//         positions[index],
+//         positions[index + 1],
+//         positions[index + 2]
+//       );
+//     });
+//     const uv = triIndices.map((vertexIndex) => {
+//       const index = vertexIndex * 2;
+//       return new Vector2(uvs![index], uvs![index + 1]);
+//     });
 
-    let dv1 = new Vector3();
-    Vector3.subtract(pos[1], pos[0], dv1);
-    let dv2 = new Vector3();
-    Vector3.subtract(pos[2], pos[0], dv2);
-    const duv1 = new Vector3();
-    Vector3.subtract(uv[1], uv[0], duv1);
-    const duv2 = new Vector3();
-    Vector3.subtract(uv[2], uv[0], duv2);
+//     let dv1 = new Vector3();
+//     Vector3.subtract(pos[1], pos[0], dv1);
+//     let dv2 = new Vector3();
+//     Vector3.subtract(pos[2], pos[0], dv2);
+//     const duv1 = new Vector3();
+//     Vector3.subtract(uv[1], uv[0], duv1);
+//     const duv2 = new Vector3();
+//     Vector3.subtract(uv[2], uv[0], duv2);
 
-    const tangent = new Vector3();
-    Vector3.multiplyByScalar(dv1, duv1.y, dv1);
-    Vector3.multiplyByScalar(dv2, duv2.y, dv2);
-    Vector3.subtract(dv1, dv2, tangent);
+//     const tangent = new Vector3();
+//     Vector3.multiplyByScalar(dv1, duv1.y, dv1);
+//     Vector3.multiplyByScalar(dv2, duv2.y, dv2);
+//     Vector3.subtract(dv1, dv2, tangent);
 
-    Vector3.multiplyByScalar(
-      tangent,
-      duv2.y * duv1.x - duv1.y * duv2.x,
-      tangent
-    );
+//     Vector3.multiplyByScalar(
+//       tangent,
+//       duv2.y * duv1.x - duv1.y * duv2.x,
+//       tangent
+//     );
 
-    tangent.normalize();
-    for (let n = 0; n < 3; n += 1) {
-      const index = (i + n) * 4;
+//     tangent.normalize();
+//     for (let n = 0; n < 3; n += 1) {
+//       const index = (i + n) * 4;
 
-      tangents[index + 0] += tangent.x;
-      tangents[index + 1] += tangent.y;
-      tangents[index + 2] += tangent.z;
-      tangents[index + 3] = 1;
-    }
-  }
-  return tangents;
-}
+//       tangents[index + 0] += tangent.x;
+//       tangents[index + 1] += tangent.y;
+//       tangents[index + 2] += tangent.z;
+//       tangents[index + 3] = 1;
+//     }
+//   }
+//   return tangents;
+// }
 
 export function getTextures(material: any) {
   const { baseColorTexture, metallicRoughnessTexture } =
