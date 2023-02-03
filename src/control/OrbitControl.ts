@@ -286,7 +286,7 @@ export default class OrbitControl extends EventDispatcher {
   }
 
   getDistance() {
-    return this.object.position.distanceTo(this.target);
+    return  Vector3.distance(this.object.position,this.target);
   }
 
   listenToKeyEvents(domElement) {
@@ -1018,9 +1018,6 @@ function getSecondPointerPosition(event) {
 
   return pointerPositions[pointer.pointerId];
 }
-//
-// event callbacks - update the object state
-//
 
 function handleMouseDownRotate(event) {
   rotateStart.set(event.clientX, event.clientY);
@@ -1066,4 +1063,3 @@ function handleTouchStartDolly() {
 
   dollyStart.set(0, distance);
 }
-//

@@ -21,7 +21,6 @@ class TextureCache {
         minFilter: 'linear',
         addressModeU: "repeat",
         addressModeV: "repeat",
-    
     });
   }
   get numberOfTextures(): number {

@@ -47,8 +47,6 @@ export default class RenderObject{
 		} else {
 			_m1.lookAt( _target, this.position, this.up );
 		}
-        // Matrix4.getRotation(_m1,_matrix3)
-        // Quaternion.fromRotationMatrix(_matrix3,this.quaternion);
         this.quaternion.setFromRotationMatrix(_m1)
     }
     rotateOnAxis( axis, angle ) {

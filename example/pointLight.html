@@ -102,9 +102,9 @@
         pbr.roughness =1.0;
 		pbr.metalness =0.0;
         const primitive=new Mesh(geometry,pbr);
-        primitive.scale.set(3,3,3)
+        // primitive.scale.set(3,3,3)
         // primitive.rotateY(Math.PI/3)
-        const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
+        const camera=new PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.01, 1000)
         camera.position.set(25,25,25);
         camera.lookAt(0,0,0);
 

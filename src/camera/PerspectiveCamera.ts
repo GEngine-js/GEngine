@@ -69,5 +69,4 @@ export default class PerspectiveCamera extends Camera {
       this.projectMatrixDirty = false;
     }
   }
-
 }

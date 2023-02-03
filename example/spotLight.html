@@ -67,7 +67,7 @@
         phongMaterial.shininess=10;
         const primitive=new Mesh(geometry,phongMaterial)
         primitive.rotateY(Math.PI/3)
-        const camera=new PerspectiveCamera(Math.PI / 3.0,window.innerWidth/window.innerHeight,0.01, 1000)
+        const camera=new PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.01, 1000)
         camera.position.set(20,20,20);
         camera.lookAt(0,0,0);
 

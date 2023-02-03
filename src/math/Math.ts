@@ -126,29 +126,23 @@ class GMath {
   static RADIANS_PER_ARCSECOND = GMath.RADIANS_PER_DEGREE / 3600.0;
 
   static toRadians(degrees: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(degrees)) {
       throw new Error("degrees is required.");
     }
-    //>>includeEnd('debug');
     return degrees * GMath.RADIANS_PER_DEGREE;
   }
 
   static toDegrees(radians: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(radians)) {
       throw new Error("radians is required.");
     }
-    //>>includeEnd('debug');
     return radians * GMath.DEGREES_PER_RADIAN;
   }
 
   static negativePiToPi(angle: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(angle)) {
       throw new Error("angle is required.");
     }
-    //>>includeEnd('debug');
     if (angle >= -GMath.PI && angle <= GMath.PI) {
       // Early exit if the input is already inside the range. This avoids
       // unnecessary math which could introduce floating point error.
@@ -158,11 +152,9 @@ class GMath {
   }
 
   static zeroToTwoPi(angle: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(angle)) {
       throw new Error("angle is required.");
     }
-    //>>includeEnd('debug');
     if (angle >= 0 && angle <= GMath.TWO_PI) {
       // Early exit if the input is already inside the range. This avoids
       // unnecessary math which could introduce floating point error.
@@ -176,7 +168,6 @@ class GMath {
   }
 
   static mod(m: number, n: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(m)) {
       throw new Error("m is required.");
     }
@@ -186,7 +177,6 @@ class GMath {
     if (n === 0.0) {
       throw new Error("divisor cannot be 0.");
     }
-    //>>includeEnd('debug');
     if (GMath.sign(m) === GMath.sign(n) && Math.abs(m) < Math.abs(n)) {
       // Early exit if the input does not need to be modded. This avoids
       // unnecessary math which could introduce floating point error.
@@ -202,14 +192,12 @@ class GMath {
     relativeEpsilon: number,
     absoluteEpsilon: number = relativeEpsilon
   ): boolean {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(left)) {
       throw new Error("left is required.");
     }
     if (!defined(right)) {
       throw new Error("right is required.");
     }
-    //>>includeEnd('debug');
 
     relativeEpsilon = defaultValue(relativeEpsilon, 0.0);
     absoluteEpsilon = defaultValue(absoluteEpsilon, relativeEpsilon);
@@ -225,7 +213,6 @@ class GMath {
     right: number,
     absoluteEpsilon: number = 0
   ): boolean {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(left)) {
       throw new Error("first is required.");
     }
@@ -235,7 +222,6 @@ class GMath {
     if (!defined(absoluteEpsilon)) {
       throw new Error("absoluteEpsilon is required.");
     }
-    //>>includeEnd('debug');
     return left - right < -absoluteEpsilon;
   }
 
@@ -244,7 +230,6 @@ class GMath {
     right: number,
     absoluteEpsilon: number = 0
   ): boolean {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(left)) {
       throw new Error("first is required.");
     }
@@ -254,7 +239,6 @@ class GMath {
     if (!defined(absoluteEpsilon)) {
       throw new Error("absoluteEpsilon is required.");
     }
-    //>>includeEnd('debug');
     return left - right < absoluteEpsilon;
   }
 
@@ -263,7 +247,6 @@ class GMath {
     right: number,
     absoluteEpsilon: number = 0
   ): boolean {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(left)) {
       throw new Error("first is required.");
     }
@@ -273,7 +256,6 @@ class GMath {
     if (!defined(absoluteEpsilon)) {
       throw new Error("absoluteEpsilon is required.");
     }
-    //>>includeEnd('debug');
     return left - right > absoluteEpsilon;
   }
 
@@ -282,7 +264,6 @@ class GMath {
     right: number,
     absoluteEpsilon: number = 0
   ): boolean {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(left)) {
       throw new Error("first is required.");
     }
@@ -292,7 +273,6 @@ class GMath {
     if (!defined(absoluteEpsilon)) {
       throw new Error("absoluteEpsilon is required.");
     }
-    //>>includeEnd('debug');
     return left - right > -absoluteEpsilon;
   }
 
@@ -307,12 +287,9 @@ class GMath {
   }
 
   static nextPowerOfTwo(n: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (typeof n !== "number" || n < 0 || n > 2147483648) {
       throw new Error("A number between 0 and 2^31 is required.");
     }
-    //>>includeEnd('debug');
-
     // From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
     --n;
     n |= n >> 1;
@@ -326,11 +303,10 @@ class GMath {
   }
 
   static previousPowerOfTwo(n: number): number {
-    //>>includeStart('debug', pragmas.debug);
     if (typeof n !== "number" || n < 0 || n > 4294967295) {
       throw new Error("A number between 0 and (2^32)-1 is required.");
     }
-    //>>includeEnd('debug');
+
 
     n |= n >> 1;
     n |= n >> 2;
@@ -358,44 +334,44 @@ class GMath {
   };
 
   static acosClamped = function (value: number): number {
-    //>>includeStart('debug', pragmas.debug);
+
     if (!defined(value)) {
       throw new Error("value is required.");
     }
-    //>>includeEnd('debug');
+
     return Math.acos(GMath.clamp(value, -1.0, 1.0));
   };
 
   static asinClamped = function (value: number): number {
-    //>>includeStart('debug', pragmas.debug);
+
     if (!defined(value)) {
       throw new Error("value is required.");
     }
-    //>>includeEnd('debug');
+
     return Math.asin(GMath.clamp(value, -1.0, 1.0));
   };
 
   static chordLength = function (angle: number, radius: number): number {
-    //>>includeStart('debug', pragmas.debug);
+
     if (!defined(angle)) {
       throw new Error("angle is required.");
     }
     if (!defined(radius)) {
       throw new Error("radius is required.");
     }
-    //>>includeEnd('debug');
+
     return 2.0 * radius * Math.sin(angle * 0.5);
   };
 
   static logBase = function (number: number, base: number): number {
-    //>>includeStart('debug', pragmas.debug);
+
     if (!defined(number)) {
       throw new Error("number is required.");
     }
     if (!defined(base)) {
       throw new Error("base is required.");
     }
-    //>>includeEnd('debug');
+
     return Math.log(number) / Math.log(base);
   };
 

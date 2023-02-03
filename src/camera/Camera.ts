@@ -14,7 +14,7 @@ export default class Camera extends RenderObject {
     this._viewMatrix = undefined;
     this.isCamera = true;
     this.cullingVolume = new CullingVolume();
-    this._viewMatrix=new Matrix4();
+    this._viewMatrix = new Matrix4();
     this.projectMatrixDirty = true;
   }
   get viewMatrix() {
@@ -26,7 +26,7 @@ export default class Camera extends RenderObject {
     this.updateProjectionMatrix();
     return this._projectionMatrix;
   }
-  get inverseViewMatrix(){
+  get inverseViewMatrix() {
     this.updateMatrix();
     return this.modelMatrix;
   }
