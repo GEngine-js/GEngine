@@ -1,5 +1,5 @@
 import Vector3 from "../math/Vector3";
-import Vector from "../math/Vector4";
+import Vector4 from "../math/Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import Intersect from "./Intersect";
@@ -11,7 +11,7 @@ import Plane from "../math/Plane";
  * @alias CullingVolume
  * @constructor
  *
- * @param {Vector[]} [planes] An array of clipping planes.
+ * @param {Vector4[]} [planes] An array of clipping planes.
  */
 class CullingVolume {
     planes: Plane[];
@@ -60,10 +60,10 @@ class CullingVolume {
             let plane1 = planes[planeIndex + 1];
 
             if (!defined(plane0)) {
-                plane0 = planes[planeIndex] = new Vector();
+                plane0 = planes[planeIndex] = new Vector4();
             }
             if (!defined(plane1)) {
-                plane1 = planes[planeIndex + 1] = new Vector();
+                plane1 = planes[planeIndex + 1] = new Vector4();
             }
 
             Vector3.multiplyByScalar(faceNormal, -radius, scratchPlaneCenter);
@@ -161,9 +161,9 @@ class CullingVolume {
                 // boundingVolume is known to be INSIDE this plane.
                 continue;
             }
-
+            scratchPlanes.set(planes[k].normal.x, planes[k].normal.y, planes[k].normal.z, planes[k].distance)
             const result = boundingVolume.intersectPlane(
-                Plane.fromVector4(planes[k], scratchPlane)
+                Plane.fromVector4(scratchPlanes, scratchPlane)
             );
             if (result === Intersect.OUTSIDE) {
                 return CullingVolume.MASK_OUTSIDE;
@@ -183,6 +183,7 @@ Vector3.clone(Vector3.UNIT_Z, faces[2]);
 
 const scratchPlaneCenter = new Vector3();
 const scratchPlaneNormal = new Vector3();
+const scratchPlanes = new Vector4()
 const scratchPlane = new Plane(new Vector3(1.0, 0.0, 0.0), 0.0);
 
 export default CullingVolume;

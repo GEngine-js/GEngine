@@ -419,7 +419,7 @@ export class Quaternion {
     start: Quaternion,
     end: Quaternion,
     t: number,
-    result: number
+    result: Quaternion
   ): number {
     let dot = Quaternion.dot(start, end);
 

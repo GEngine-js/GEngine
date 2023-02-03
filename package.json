@@ -7,9 +7,12 @@
   "source": "src/index.ts",
   "scripts": {
     "prepare": "husky install",
-    "pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md)\"",
-    "build": "cross-env NODE_ENV=production rollup -c",
-    "dev": "cross-env NODE_ENV=development rollup -c"
+    "pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md|html)\"",
+    "pre-build": "node hooks/checkDependency.js",
+    "install:npm": "npm install --registry=https://registry.npmmirror.com",
+		"install:yarn": "yarn install --registry=https://registry.npmmirror.com",
+    "build": "npm run pre-build && cross-env NODE_ENV=production rollup -c",
+    "dev": "npm run pre-build && cross-env NODE_ENV=development rollup -c"
   },
   "devDependencies": {
     "husky": "^8.0.3",
