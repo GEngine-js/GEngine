@@ -60,7 +60,7 @@
 					"title": "Merge"
 				},
 				"demo": {
-					"description": "新增演示demo",
+					"description": "新增演示demo,或修改",
 					"title": "Demo"
 				},
 				"release": {
