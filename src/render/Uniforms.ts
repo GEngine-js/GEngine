@@ -28,7 +28,7 @@ export class Uniform<T> {
         this.cb=cb;
         this.binding=binding||0;
         this.visibility=ShaderStage.Vertex|ShaderStage.Fragment;
-        this.type='number'      
+        this.type='number';      
     }
     setBuffer(array:Array<number>){
         for (let i = 0; i < array.length; i++) {
@@ -66,6 +66,7 @@ export class UniformFloat extends Uniform<number>{
         this._value = 0;
         this.size=4;
         this.buffer=new Float32Array(buffer.buffer,byteOffset,1)
+        this.type='vec1'
     }
     set () {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -85,6 +86,7 @@ export class UniformFloatVec2 extends Uniform<Vector2>{
         this._value = new Vector2();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,2)
         this.size=8;
+        this.type='vec2';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -105,6 +107,7 @@ export class UniformFloatVec3 extends Uniform<Vector3>{
         this._value =new Vector3();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,3)
         this.size=12;
+        this.type='vec3';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -125,6 +128,7 @@ export class UniformFloatVec4 extends Uniform<Vector4>{
         this._value =new Vector4();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,4)
         this.size=16;
+        this.type='vec4';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -145,6 +149,7 @@ export class UniformColor extends Uniform<Color>{
         this._value =new Color();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,3)
         this.size=12;
+        this.type='vec3';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -166,6 +171,7 @@ export class UniformMat2 extends Uniform<Matrix2>{
         this._value =new Matrix2();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,4)
         this.size=12;
+        this.type='mat2';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -186,6 +192,7 @@ export class UniformMat3 extends Uniform<Matrix3>{
         this._value = new Matrix3();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,9)
         this.size=48;
+        this.type='mat3';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();
@@ -206,6 +213,7 @@ export class UniformMat4 extends Uniform<Matrix4>{
         this._value = new Matrix4();
         this.buffer=new Float32Array(buffer.buffer,byteOffset,16)
         this.size=64;
+        this.type='mat4';
     }
     set ():boolean {
         if(this.cb!=undefined)this.value=this.getValue();

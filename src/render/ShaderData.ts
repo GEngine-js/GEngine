@@ -1,4 +1,4 @@
-import {UniformColor, UniformFloat, UniformFloatVec2, UniformFloatVec3, UniformFloatVec4, UniformLight, UniformMat2, UniformMat3, UniformMat4, UniformSampler, UniformTexture } from "./Uniforms";
+import {Uniform, UniformColor, UniformFloat, UniformFloatVec2, UniformFloatVec3, UniformFloatVec4, UniformLight, UniformMat2, UniformMat3, UniformMat4, UniformSampler, UniformTexture } from "./Uniforms";
 import Buffer from './Buffer';
 import BindGroupEntity from "./BindGroupEntity";
 import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
@@ -179,25 +179,6 @@ export default class ShaderData{
         this.buffer.destroy();
         this._uniforms=new Map(); 
     }
-    protected uploadUniform(context:Context){
-        this._uniforms.forEach((uniform)=>{
-            if (uniform.type=='texture'||uniform.type=='sampler') {
-                uniform.update(context)
-            } else {
-                const result= uniform.set();
-                if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
-            }
-        });
-        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.uniformsSize*4);
-        if(this.uniformDirty){
-            this.uniformDirty=false;        
-            this.buffer.setSubData(0,this.data.slice(0,this.uniformsSize));
-        }
-    }
-    private checkUniformOffset(byteSize:number,Align:number):number{
-        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-       return Math.ceil(byteSize/Align)*Align-byteSize;
-    }
     public getBindGroupAndLayout(device:GPUDevice,label:string,index:number){
         const layoutEntities=this.createBindGroupLayoutEntry();
         const groupLayout= BindGroupLayout.getBindGroupLayoutFromCache(device,label,layoutEntities,index);
@@ -223,6 +204,61 @@ export default class ShaderData{
             index:groupIndex||0//后续改成groupIndex
            });
        return {groupLayout,bindGroup}
+    }
+    public getUniformStruct(){
+        let uniformStruct=  `struct MaterialUniform {\n `
+        this._uniforms.forEach((uniform)=>{
+             uniformStruct+=this.createUniformString(uniform);
+        });
+        uniformStruct+= `}\n`
+        return uniformStruct;
+    }
+    protected uploadUniform(context:Context){
+        this._uniforms.forEach((uniform)=>{
+            if (uniform.type=='texture'||uniform.type=='sampler') {
+                uniform.update(context)
+            } else {
+                const result= uniform.set();
+                if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
+            }
+        });
+        if(!this.buffer)this.buffer=Buffer.createUniformBuffer(context.device,this.uniformsSize*4);
+        if(this.uniformDirty){
+            this.uniformDirty=false;        
+            this.buffer.setSubData(0,this.data.slice(0,this.uniformsSize));
+        }
+    }
+    private createUniformString(uniform){
+        let result= ``;
+        //modelMatrix: mat4x4<f32>
+        switch (uniform.type) {
+            case 'vec1':
+                result= `${uniform.name} :f32,\n`;
+                break;
+            case 'vec2':
+                result= `${uniform.name} :vec2<f32>,\n`;
+                break;
+            case 'vec3':
+                result= `${uniform.name} :vec3<f32>,\n`;
+                break;
+            case 'vec4':
+                result= `${uniform.name} :vec4<f32>,\n`;
+                break;
+            case 'mat2':
+                result= `${uniform.name} :mat2x2<f32>,\n`;
+            break;
+            case 'mat3':
+                result= `${uniform.name} :mat3x3<f32>,\n`;
+            break;
+            case 'mat4':
+                result= `${uniform.name} :mat4x4<f32>,\n`;
+                break;
+        }
+        return result;
+    }
+    private checkUniformOffset(byteSize:number,Align:number):number{
+        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+       return Math.ceil(byteSize/Align)*Align-byteSize;
     }
     private createBindGroupLayoutEntry(){
         const result=new Map()
@@ -254,7 +290,7 @@ export default class ShaderData{
     }
     private createOneLayoutEntry(uniform){
         let layoutEntity;
-        if(uniform.type==='number'){
+        if(uniform.type!='texture'&&uniform.type!='sampler'){
             layoutEntity= new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 buffer:uniform?.lightBuffer?.layoutType||this.buffer.layoutType,
@@ -280,7 +316,7 @@ export default class ShaderData{
     }
     private creayeOneGroupEntity(uniform){
         let groupEntity;
-        if(uniform.type==='number'){
+        if(uniform.type!='texture'&&uniform.type!='sampler'){
             groupEntity=new BindGroupEntity({
                 binding:uniform.binding,
                 resource:{

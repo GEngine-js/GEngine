@@ -1010,27 +1010,21 @@ class GMath {
         return (1.0 - time) * p + time * q;
     }
     static toRadians(degrees) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(degrees)) {
             throw new Error("degrees is required.");
         }
-        //>>includeEnd('debug');
         return degrees * GMath.RADIANS_PER_DEGREE;
     }
     static toDegrees(radians) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(radians)) {
             throw new Error("radians is required.");
         }
-        //>>includeEnd('debug');
         return radians * GMath.DEGREES_PER_RADIAN;
     }
     static negativePiToPi(angle) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(angle)) {
             throw new Error("angle is required.");
         }
-        //>>includeEnd('debug');
         if (angle >= -GMath.PI && angle <= GMath.PI) {
             // Early exit if the input is already inside the range. This avoids
             // unnecessary math which could introduce floating point error.
@@ -1039,11 +1033,9 @@ class GMath {
         return GMath.zeroToTwoPi(angle + GMath.PI) - GMath.PI;
     }
     static zeroToTwoPi(angle) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(angle)) {
             throw new Error("angle is required.");
         }
-        //>>includeEnd('debug');
         if (angle >= 0 && angle <= GMath.TWO_PI) {
             // Early exit if the input is already inside the range. This avoids
             // unnecessary math which could introduce floating point error.
@@ -1056,7 +1048,6 @@ class GMath {
         return mod;
     }
     static mod(m, n) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(m)) {
             throw new Error("m is required.");
         }
@@ -1066,7 +1057,6 @@ class GMath {
         if (n === 0.0) {
             throw new Error("divisor cannot be 0.");
         }
-        //>>includeEnd('debug');
         if (GMath.sign(m) === GMath.sign(n) && Math.abs(m) < Math.abs(n)) {
             // Early exit if the input does not need to be modded. This avoids
             // unnecessary math which could introduce floating point error.
@@ -1075,14 +1065,12 @@ class GMath {
         return ((m % n) + n) % n;
     }
     static equalsEpsilon(left, right, relativeEpsilon, absoluteEpsilon = relativeEpsilon) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("left is required.");
         }
         if (!defined(right)) {
             throw new Error("right is required.");
         }
-        //>>includeEnd('debug');
         relativeEpsilon = defaultValue(relativeEpsilon, 0.0);
         absoluteEpsilon = defaultValue(absoluteEpsilon, relativeEpsilon);
         const absDiff = Math.abs(left - right);
@@ -1090,7 +1078,6 @@ class GMath {
             absDiff <= relativeEpsilon * Math.max(Math.abs(left), Math.abs(right)));
     }
     static lessThan(left, right, absoluteEpsilon = 0) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
         }
@@ -1100,11 +1087,9 @@ class GMath {
         if (!defined(absoluteEpsilon)) {
             throw new Error("absoluteEpsilon is required.");
         }
-        //>>includeEnd('debug');
         return left - right < -absoluteEpsilon;
     }
     static lessThanOrEquals(left, right, absoluteEpsilon = 0) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
         }
@@ -1114,11 +1099,9 @@ class GMath {
         if (!defined(absoluteEpsilon)) {
             throw new Error("absoluteEpsilon is required.");
         }
-        //>>includeEnd('debug');
         return left - right < absoluteEpsilon;
     }
     static greaterThan(left, right, absoluteEpsilon = 0) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
         }
@@ -1128,11 +1111,9 @@ class GMath {
         if (!defined(absoluteEpsilon)) {
             throw new Error("absoluteEpsilon is required.");
         }
-        //>>includeEnd('debug');
         return left - right > absoluteEpsilon;
     }
     static greaterThanOrEquals(left, right, absoluteEpsilon = 0) {
-        //>>includeStart('debug', pragmas.debug);
         if (!defined(left)) {
             throw new Error("first is required.");
         }
@@ -1142,7 +1123,6 @@ class GMath {
         if (!defined(absoluteEpsilon)) {
             throw new Error("absoluteEpsilon is required.");
         }
-        //>>includeEnd('debug');
         return left - right > -absoluteEpsilon;
     }
     static isPowerOfTwo(n) {
@@ -1154,11 +1134,9 @@ class GMath {
         return n !== 0 && (n & (n - 1)) === 0;
     }
     static nextPowerOfTwo(n) {
-        //>>includeStart('debug', pragmas.debug);
         if (typeof n !== "number" || n < 0 || n > 2147483648) {
             throw new Error("A number between 0 and 2^31 is required.");
         }
-        //>>includeEnd('debug');
         // From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
         --n;
         n |= n >> 1;
@@ -1170,11 +1148,9 @@ class GMath {
         return n;
     }
     static previousPowerOfTwo(n) {
-        //>>includeStart('debug', pragmas.debug);
         if (typeof n !== "number" || n < 0 || n > 4294967295) {
             throw new Error("A number between 0 and (2^32)-1 is required.");
         }
-        //>>includeEnd('debug');
         n |= n >> 1;
         n |= n >> 2;
         n |= n >> 4;
@@ -1256,41 +1232,33 @@ GMath.randomBetween = function (min, max) {
     return GMath.nextRandomNumber() * (max - min) + min;
 };
 GMath.acosClamped = function (value) {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(value)) {
         throw new Error("value is required.");
     }
-    //>>includeEnd('debug');
     return Math.acos(GMath.clamp(value, -1.0, 1.0));
 };
 GMath.asinClamped = function (value) {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(value)) {
         throw new Error("value is required.");
     }
-    //>>includeEnd('debug');
     return Math.asin(GMath.clamp(value, -1.0, 1.0));
 };
 GMath.chordLength = function (angle, radius) {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(angle)) {
         throw new Error("angle is required.");
     }
     if (!defined(radius)) {
         throw new Error("radius is required.");
     }
-    //>>includeEnd('debug');
     return 2.0 * radius * Math.sin(angle * 0.5);
 };
 GMath.logBase = function (number, base) {
-    //>>includeStart('debug', pragmas.debug);
     if (!defined(number)) {
         throw new Error("number is required.");
     }
     if (!defined(base)) {
         throw new Error("base is required.");
     }
-    //>>includeEnd('debug');
     return Math.log(number) / Math.log(base);
 };
 // eslint-disable-next-line es/no-math-cbrt
@@ -4488,6 +4456,7 @@ class UniformFloat extends Uniform {
         this._value = 0;
         this.size = 4;
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 1);
+        this.type = 'vec1';
     }
     set() {
         if (this.cb != undefined)
@@ -4509,6 +4478,7 @@ class UniformFloatVec2 extends Uniform {
         this._value = new Vector2();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 2);
         this.size = 8;
+        this.type = 'vec2';
     }
     set() {
         if (this.cb != undefined)
@@ -4530,6 +4500,7 @@ class UniformFloatVec3 extends Uniform {
         this._value = new Vector3();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
         this.size = 12;
+        this.type = 'vec3';
     }
     set() {
         if (this.cb != undefined)
@@ -4551,6 +4522,7 @@ class UniformFloatVec4 extends Uniform {
         this._value = new Vector4();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
         this.size = 16;
+        this.type = 'vec4';
     }
     set() {
         if (this.cb != undefined)
@@ -4573,6 +4545,7 @@ class UniformColor extends Uniform {
         this._value = new Color();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
         this.size = 12;
+        this.type = 'vec3';
     }
     set() {
         if (this.cb != undefined)
@@ -4594,6 +4567,7 @@ class UniformMat2 extends Uniform {
         this._value = new Matrix2();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
         this.size = 12;
+        this.type = 'mat2';
     }
     set() {
         if (this.cb != undefined)
@@ -4615,6 +4589,7 @@ class UniformMat3 extends Uniform {
         this._value = new Matrix3();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 9);
         this.size = 48;
+        this.type = 'mat3';
     }
     set() {
         if (this.cb != undefined)
@@ -4636,6 +4611,7 @@ class UniformMat4 extends Uniform {
         this._value = new Matrix4();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 16);
         this.size = 64;
+        this.type = 'mat4';
     }
     set() {
         if (this.cb != undefined)
@@ -4936,28 +4912,6 @@ class ShaderData {
         this.buffer.destroy();
         this._uniforms = new Map();
     }
-    uploadUniform(context) {
-        this._uniforms.forEach((uniform) => {
-            if (uniform.type == 'texture' || uniform.type == 'sampler') {
-                uniform.update(context);
-            }
-            else {
-                const result = uniform.set();
-                if (result != undefined && this.uniformDirty == false)
-                    this.uniformDirty = result;
-            }
-        });
-        if (!this.buffer)
-            this.buffer = Buffer.createUniformBuffer(context.device, this.uniformsSize * 4);
-        if (this.uniformDirty) {
-            this.uniformDirty = false;
-            this.buffer.setSubData(0, this.data.slice(0, this.uniformsSize));
-        }
-    }
-    checkUniformOffset(byteSize, Align) {
-        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-        return Math.ceil(byteSize / Align) * Align - byteSize;
-    }
     getBindGroupAndLayout(device, label, index) {
         const layoutEntities = this.createBindGroupLayoutEntry();
         const groupLayout = BindGroupLayout.getBindGroupLayoutFromCache(device, label, layoutEntities, index);
@@ -4983,6 +4937,64 @@ class ShaderData {
             index: groupIndex || 0 //后续改成groupIndex
         });
         return { groupLayout, bindGroup };
+    }
+    getUniformStruct() {
+        let uniformStruct = `struct MaterialUniform {\n `;
+        this._uniforms.forEach((uniform) => {
+            uniformStruct += this.createUniformString(uniform);
+        });
+        uniformStruct += `}\n`;
+        return uniformStruct;
+    }
+    uploadUniform(context) {
+        this._uniforms.forEach((uniform) => {
+            if (uniform.type == 'texture' || uniform.type == 'sampler') {
+                uniform.update(context);
+            }
+            else {
+                const result = uniform.set();
+                if (result != undefined && this.uniformDirty == false)
+                    this.uniformDirty = result;
+            }
+        });
+        if (!this.buffer)
+            this.buffer = Buffer.createUniformBuffer(context.device, this.uniformsSize * 4);
+        if (this.uniformDirty) {
+            this.uniformDirty = false;
+            this.buffer.setSubData(0, this.data.slice(0, this.uniformsSize));
+        }
+    }
+    createUniformString(uniform) {
+        let result = ``;
+        //modelMatrix: mat4x4<f32>
+        switch (uniform.type) {
+            case 'vec1':
+                result = `${uniform.name} :f32,\n`;
+                break;
+            case 'vec2':
+                result = `${uniform.name} :vec2<f32>,\n`;
+                break;
+            case 'vec3':
+                result = `${uniform.name} :vec3<f32>,\n`;
+                break;
+            case 'vec4':
+                result = `${uniform.name} :vec4<f32>,\n`;
+                break;
+            case 'mat2':
+                result = `${uniform.name} :mat2x2<f32>,\n`;
+                break;
+            case 'mat3':
+                result = `${uniform.name} :mat3x3<f32>,\n`;
+                break;
+            case 'mat4':
+                result = `${uniform.name} :mat4x4<f32>,\n`;
+                break;
+        }
+        return result;
+    }
+    checkUniformOffset(byteSize, Align) {
+        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+        return Math.ceil(byteSize / Align) * Align - byteSize;
     }
     createBindGroupLayoutEntry() {
         const result = new Map();
@@ -5012,7 +5024,7 @@ class ShaderData {
     }
     createOneLayoutEntry(uniform) {
         let layoutEntity;
-        if (uniform.type === 'number') {
+        if (uniform.type != 'texture' && uniform.type != 'sampler') {
             layoutEntity = new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 buffer: uniform?.lightBuffer?.layoutType || this.buffer.layoutType,
@@ -5040,7 +5052,7 @@ class ShaderData {
     }
     creayeOneGroupEntity(uniform) {
         let groupEntity;
-        if (uniform.type === 'number') {
+        if (uniform.type != 'texture' && uniform.type != 'sampler') {
             groupEntity = new BindGroupEntity({
                 binding: uniform.binding,
                 resource: {
@@ -5551,6 +5563,7 @@ class Context {
     render(command, passEncoder) {
         if (command.shaderData)
             command.shaderData.bind(this, passEncoder);
+        console.log(command.shaderData.getUniformStruct());
         //设置系统
         this.systemRenderResource.bind(this, passEncoder);
         if (command.renderState) {
@@ -6367,8 +6380,6 @@ class RenderObject {
         else {
             _m1.lookAt(_target, this.position, this.up);
         }
-        // Matrix4.getRotation(_m1,_matrix3)
-        // Quaternion.fromRotationMatrix(_matrix3,this.quaternion);
         this.quaternion.setFromRotationMatrix(_m1);
     }
     rotateOnAxis(axis, angle) {
@@ -9756,14 +9767,6 @@ class Material {
     }
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-11-15 15:29:51
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-16 16:02:27
- * @FilePath: \GEngine\src\material\ColorMaterial.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class ColorMaterial extends Material {
     constructor() {
         super();
@@ -11107,8 +11110,6 @@ class FrameState {
         this._defines = combine(value, this._defines, false);
     }
     update(camera) {
-        if (this.environment)
-            this.environment.update(this.context);
         this.camera = camera;
         this.renderQueue.reset();
         this.cullingVolume = this.camera.getCullingVolume();
@@ -11214,7 +11215,7 @@ class SpotData {
         this.decay = undefined;
     }
 }
-//array<light> light of byteSize must be k*16 
+//array<light> light of byteSize must be k*16
 SpotData.byteSize = 64;
 SpotData.size = 16;
 class PointData {
@@ -13117,7 +13118,7 @@ class OrbitControl extends EventDispatcher {
         return this.spherical.theta;
     }
     getDistance() {
-        return this.object.position.distanceTo(this.target);
+        return Vector3.distance(this.object.position, this.target);
     }
     listenToKeyEvents(domElement) {
         domElement.addEventListener("keydown", this.onKeyDown);
@@ -13143,15 +13144,15 @@ class OrbitControl extends EventDispatcher {
     }
     init() {
         const that = this;
-        const panLeft = function () {
+        const panLeft = (function () {
             const v = new Vector3();
             return function panLeft(distance, objectMatrix) {
                 v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
                 v.multiplyByScalar(-distance);
                 panOffset.add(v);
             };
-        }();
-        const panUp = function () {
+        })();
+        const panUp = (function () {
             const panUpV = new Vector3();
             return function panUp(distance, objectMatrix) {
                 if (that.screenSpacePanning === true) {
@@ -13165,9 +13166,9 @@ class OrbitControl extends EventDispatcher {
                 panUpV.multiplyByScalar(distance);
                 panOffset.add(panUpV);
             };
-        }();
+        })();
         // deltaX and deltaY are in pixels; right and down are positive
-        const pan = function () {
+        const pan = (function () {
             const offset = new Vector3();
             return function pan(deltaX, deltaY) {
                 const element = that.domElement;
@@ -13197,7 +13198,7 @@ class OrbitControl extends EventDispatcher {
                     that.enablePan = false;
                 }
             };
-        }();
+        })();
         const dollyOut = (dollyScale) => {
             if (this.object.isPerspectiveCamera) {
                 scale /= dollyScale;
@@ -13254,7 +13255,6 @@ class OrbitControl extends EventDispatcher {
         };
         const handleMouseMovePan = (event) => {
             panEnd.set(event.clientX, event.clientY);
-            console.log(`end: ${event.clientX}--${event.clientY} `);
             Vector2.subtract(panEnd, panStart, panDelta);
             Vector2.multiplyByScalar(panDelta, this.panSpeed, panDelta);
             //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
@@ -13683,9 +13683,6 @@ function getSecondPointerPosition(event) {
     const pointer = event.pointerId === pointers[0].pointerId ? pointers[1] : pointers[0];
     return pointerPositions[pointer.pointerId];
 }
-//
-// event callbacks - update the object state
-//
 function handleMouseDownRotate(event) {
     rotateStart.set(event.clientX, event.clientY);
 }
@@ -13694,7 +13691,6 @@ function handleMouseDownDolly(event) {
 }
 function handleMouseDownPan(event) {
     panStart.set(event.clientX, event.clientY);
-    console.log(`end: ${panStart.x}--${panStart.y} `);
 }
 function onPointerCancel(event) {
     removePointer(event);
@@ -13725,6 +13721,5 @@ function handleTouchStartDolly() {
     const distance = Math.sqrt(dx * dx + dy * dy);
     dollyStart.set(0, distance);
 }
-//
 
 export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, OrbitControl, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };

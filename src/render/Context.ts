@@ -137,7 +137,7 @@ class Context {
     passEncoder: GPURenderPassEncoder | GPUComputePassEncoder
   ): void {
     if (command.shaderData)
-      command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
+      command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);  
     //设置系统
     this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
     if (command.renderState) {
