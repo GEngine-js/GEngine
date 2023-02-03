@@ -8,9 +8,6 @@ export default function skyBoxVert(defines){
    }; 
    struct MaterialUniform {
     modelMatrix: mat4x4<f32>,
-    color: vec3<f32>,
-    opacity:f32,
-    normalMatrix: mat3x3<f32>,
  }
    @binding(0) @group(0) var<uniform> selfUniform : MaterialUniform;
    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;

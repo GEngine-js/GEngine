@@ -8372,9 +8372,6 @@ function colorVert(defines) {
     };
    struct SelfUniform {
       modelMatrix: mat4x4<f32>,
-      color: vec3<f32>,
-      opacity:f32,
-      normalMatrix: mat3x3<f32>,
    }
    struct SystemUniform {
       projectionMatrix: mat4x4<f32>,
@@ -9084,9 +9081,6 @@ function skyBoxVert(defines) {
    }; 
    struct MaterialUniform {
     modelMatrix: mat4x4<f32>,
-    color: vec3<f32>,
-    opacity:f32,
-    normalMatrix: mat3x3<f32>,
  }
    @binding(0) @group(0) var<uniform> selfUniform : MaterialUniform;
    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
@@ -9138,20 +9132,6 @@ function quadVert(defines) {
          @builtin(position) position: vec4<f32>,
          @location(0) uv: vec2<f32>,
      };
-    struct SelfUniform {
-          modelMatrix: mat4x4<f32>,
-          color: vec3<f32>,
-          opacity:f32,
-          normalMatrix: mat3x3<f32>,
-     }
-     struct SystemUniform {
-          projectionMatrix: mat4x4<f32>,
-          viewMatrix: mat4x4<f32>,
-          inverseViewMatrix: mat4x4<f32>,
-          cameraPosition: vec3<f32>,
-     };
-     @binding(0) @group(0) var<uniform> selfUniform : SelfUniform;
-     @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
     @vertex
     fn main(input: VertexInput) -> VertexOutput {
      var output:VertexOutput;
@@ -9747,15 +9727,6 @@ class Material {
     }
     createShaderData(mesh, frameState) {
         this.shaderData = new ShaderData(this.type, 0);
-        this.shaderData.setMatrix4('modelMatrix', () => {
-            return mesh.modelMatrix;
-        });
-        this.shaderData.setColor("diffuse", this);
-        this.shaderData.setFloat("opacity", this);
-        this.shaderData.setMatrix3("normalMtrix", () => {
-            return mesh.normalMatrix;
-        });
-        this.shaderData.setColor('emissive', this);
     }
     destroy() {
         this.label = undefined;
@@ -9779,6 +9750,9 @@ class ColorMaterial extends Material {
     update(frameState, mesh) {
         if (!this.shaderData)
             this.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix', () => {
+            return mesh.modelMatrix;
+        });
     }
 }
 
@@ -9915,7 +9889,7 @@ async function CubeTextureLoader(urls) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-12-10 20:24:50
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-29 18:14:46
+ * @LastEditTime: 2023-02-03 17:27:41
  * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -9947,6 +9921,9 @@ class SkyBoxMaterial extends Material {
     }
     createShaderData(mesh) {
         super.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix', () => {
+            return mesh.modelMatrix;
+        });
         this.shaderData.setTexture('baseTexture', this);
         this.shaderData.setSampler('baseSampler', this);
     }
@@ -10401,6 +10378,15 @@ class PhongMaterial extends Material {
     }
     createShaderData(mesh) {
         super.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix', () => {
+            return mesh.modelMatrix;
+        });
+        this.shaderData.setColor("diffuse", this);
+        this.shaderData.setFloat("opacity", this);
+        this.shaderData.setMatrix3("normalMtrix", () => {
+            return mesh.normalMatrix;
+        });
+        this.shaderData.setColor('emissive', this);
         this.shaderData.setFloat('shininess', this);
         this.shaderData.setColor('specular', this);
         if (this.baseTexture) {
@@ -10570,6 +10556,15 @@ class PbrMat extends Material {
     }
     createShaderData(mesh, frameState) {
         super.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix', () => {
+            return mesh.modelMatrix;
+        });
+        this.shaderData.setColor("diffuse", this);
+        this.shaderData.setFloat("opacity", this);
+        this.shaderData.setMatrix3("normalMtrix", () => {
+            return mesh.normalMatrix;
+        });
+        this.shaderData.setColor('emissive', this);
         this.shaderData.setFloat("metalness", this);
         this.shaderData.setFloat("roughness", this);
         this.brdfTexture = textureCache.getTexture('brdf');

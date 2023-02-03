@@ -144,16 +144,7 @@ export class Material{
     update(frameState:FrameState,mesh:Mesh){
     }
     protected createShaderData(mesh:Mesh,frameState?:FrameState){
-        this.shaderData=new ShaderData(this.type,0);
-        this.shaderData.setMatrix4('modelMatrix',()=>{
-            return mesh.modelMatrix;
-        });
-        this.shaderData.setColor("diffuse",this);
-        this.shaderData.setFloat("opacity",this);
-        this.shaderData.setMatrix3("normalMtrix",()=>{
-            return mesh.normalMatrix;
-        });
-        this.shaderData.setColor('emissive',this);  
+        this.shaderData=new ShaderData(this.type,0);  
     }
     public destroy(){
         this.label=undefined;

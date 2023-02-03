@@ -88,6 +88,15 @@ export default class PbrMat extends Material {
     protected createShaderData( mesh: Mesh, frameState?: FrameState) {
 
         super.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix',()=>{
+            return mesh.modelMatrix;
+        });
+        this.shaderData.setColor("diffuse",this);
+        this.shaderData.setFloat("opacity",this);
+        this.shaderData.setMatrix3("normalMtrix",()=>{
+            return mesh.normalMatrix;
+        });
+        this.shaderData.setColor('emissive',this);
         this.shaderData.setFloat("metalness", this);
         this.shaderData.setFloat("roughness", this);
         this.brdfTexture=textureCache.getTexture('brdf');

@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-12-10 20:24:50
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-29 18:14:46
+ * @LastEditTime: 2023-02-03 17:27:41
  * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -41,6 +41,9 @@ export default class SkyBoxMaterial extends Material{
     }
     protected createShaderData(mesh:Mesh){
         super.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix',()=>{
+            return mesh.modelMatrix;
+        });
         this.shaderData.setTexture('baseTexture',this);
         this.shaderData.setSampler('baseSampler',this)
     }

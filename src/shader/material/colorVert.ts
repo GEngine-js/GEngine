@@ -10,9 +10,6 @@ export default function colorVert(defines){
     };
    struct SelfUniform {
       modelMatrix: mat4x4<f32>,
-      color: vec3<f32>,
-      opacity:f32,
-      normalMatrix: mat3x3<f32>,
    }
    struct SystemUniform {
       projectionMatrix: mat4x4<f32>,

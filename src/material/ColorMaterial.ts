@@ -15,5 +15,8 @@ export default class ColorMaterial extends Material{
     }
     update(frameState:FrameState,mesh:Mesh){
         if(!this.shaderData) this.createShaderData(mesh);
+        this.shaderData.setMatrix4('modelMatrix',()=>{
+            return mesh.modelMatrix;
+        });
     }
 }
