@@ -78,7 +78,7 @@
         const primitive=gltf.meshes[0][0];
         primitive.scale.set(2.2,2.2,2.2)
         primitive.rotateX(Math.PI/2)
-        const camera=new PerspectiveCamera(Math.PI / 2.0,window.innerWidth/window.innerHeight,0.01, 100)
+        const camera=new PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.01, 100)
         camera.position.set(4,0,4);
         camera.lookAt(0,0,0);
         const control=new OrbitControl(camera,document.getElementById('app'));

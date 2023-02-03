@@ -30,7 +30,7 @@ export default class Camera extends RenderObject {
     this.updateMatrix();
     return this.modelMatrix;
   }
-  protected updateProjectionMatrix() {}
+  public updateProjectionMatrix() {}
   /**
    * get a culling volume for this frustum.
    */

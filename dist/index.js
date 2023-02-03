@@ -12356,7 +12356,7 @@ class PerspectiveCamera extends Camera {
         this._fov = v;
     }
     updateCameraParms() {
-        this.top = this.near * Math.tan(0.5 * this.fov);
+        this.top = this.near * Math.tan(0.5 * GMath.RADIANS_PER_DEGREE * this.fov);
         this.height = 2 * this.top;
         this.width = this.aspect * this.height;
         this.left = -0.5 * this.width;
@@ -13012,7 +13012,6 @@ class OrbitControl extends EventDispatcher {
         //
         // public methods
         //
-        this.init();
         // this method is exposed, but perhaps it would be better if we can make it private...
         const that = this;
         this.update = (function () {
@@ -13080,7 +13079,7 @@ class OrbitControl extends EventDispatcher {
                 // rotate offset back to "camera-up-vector-is-up" space
                 offset.applyQuaternion(quatInverse);
                 position.copy(that.target).add(offset);
-                that.object.target = that.target;
+                that.object.lookAt(that.target.x, that.target.y, that.target.z);
                 if (that.enableDamping === true) {
                     sphericalDelta.theta *= 1 - that.dampingFactor;
                     sphericalDelta.phi *= 1 - that.dampingFactor;
@@ -13109,6 +13108,7 @@ class OrbitControl extends EventDispatcher {
                 return false;
             };
         })();
+        this.init();
     }
     getPolarAngle() {
         return this.spherical.phi;
@@ -13254,6 +13254,7 @@ class OrbitControl extends EventDispatcher {
         };
         const handleMouseMovePan = (event) => {
             panEnd.set(event.clientX, event.clientY);
+            console.log(`end: ${event.clientX}--${event.clientY} `);
             Vector2.subtract(panEnd, panStart, panDelta);
             Vector2.multiplyByScalar(panDelta, this.panSpeed, panDelta);
             //panDelta.subVectors( panEnd, panStart ).multiplyScalar( this.panSpeed );
@@ -13693,6 +13694,7 @@ function handleMouseDownDolly(event) {
 }
 function handleMouseDownPan(event) {
     panStart.set(event.clientX, event.clientY);
+    console.log(`end: ${panStart.x}--${panStart.y} `);
 }
 function onPointerCancel(event) {
     removePointer(event);

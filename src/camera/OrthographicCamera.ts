@@ -37,7 +37,7 @@ export default class OrthographicCamera extends Camera {
       bottom: cy - dy,
     };
   }
-  protected updateProjectionMatrix() {
+  public updateProjectionMatrix() {
     if (this.projectMatrixDirty) {
       const { left, right, top, bottom } = this.updateCameraParms();
       this._projectionMatrix = Matrix4.makeOrthographic(

@@ -49,7 +49,7 @@ export default class OrbitControl extends EventDispatcher {
   onMouseWheel: (event: any) => void;
   onKeyDown: (event: any) => void;
   getAutoRotationAngle: () => number;
-    update: () => boolean;
+  update: () => boolean;
   constructor(object, domElement) {
     super();
 
@@ -144,141 +144,143 @@ export default class OrbitControl extends EventDispatcher {
     //
     // public methods
     //
-    this.init();
-      // this method is exposed, but perhaps it would be better if we can make it private...
-      const that=this;
-  this.update = (function () {
-    const offset = new Vector3();
-
-    // so camera.up is the orbit axis
-    const quat = new Quaternion().setFromUnitVectors(
+    // this method is exposed, but perhaps it would be better if we can make it private...
+    const that = this;
+    this.update = (function () {
+      const offset = new Vector3();
+      // so camera.up is the orbit axis
+      const quat = new Quaternion().setFromUnitVectors(
         that.object.up,
-      new Vector3(0, 1, 0)
-    );
-    const quatInverse = quat.clone().invert();
+        new Vector3(0, 1, 0)
+      );
+      const quatInverse = quat.clone().invert();
 
-    const lastPosition = new Vector3();
-    const lastQuaternion = new Quaternion();
+      const lastPosition = new Vector3();
+      const lastQuaternion = new Quaternion();
 
-    const twoPI = 2 * Math.PI;
-    return function update() {
-    const position = that.object.position;
+      const twoPI = 2 * Math.PI;
+      return function update() {
+        const position = that.object.position;
 
-    offset.copy(position).subtract(that.target);
+        offset.copy(position).subtract(that.target);
 
-    // rotate offset to "y-axis-is-up" space
-    offset.applyQuaternion(quat);
+        // rotate offset to "y-axis-is-up" space
+        offset.applyQuaternion(quat);
 
-    // angle from z-axis around y-axis
-    spherical.setFromVector3(offset);
+        // angle from z-axis around y-axis
+        spherical.setFromVector3(offset);
 
-    if (that.autoRotate && state === STATE.NONE) {
-      rotateLeft(that.getAutoRotationAngle());
-    }
+        if (that.autoRotate && state === STATE.NONE) {
+          rotateLeft(that.getAutoRotationAngle());
+        }
 
-    if (that.enableDamping) {
-      spherical.theta += sphericalDelta.theta * that.dampingFactor;
-      spherical.phi += sphericalDelta.phi * that.dampingFactor;
-    } else {
-      spherical.theta += sphericalDelta.theta;
-      spherical.phi += sphericalDelta.phi;
-    }
+        if (that.enableDamping) {
+          spherical.theta += sphericalDelta.theta * that.dampingFactor;
+          spherical.phi += sphericalDelta.phi * that.dampingFactor;
+        } else {
+          spherical.theta += sphericalDelta.theta;
+          spherical.phi += sphericalDelta.phi;
+        }
 
-    // restrict theta to be between desired limits
+        // restrict theta to be between desired limits
 
-    let min = that.minAzimuthAngle;
-    let max = that.maxAzimuthAngle;
+        let min = that.minAzimuthAngle;
+        let max = that.maxAzimuthAngle;
 
-    if (isFinite(min) && isFinite(max)) {
-      if (min < -Math.PI) min += twoPI;
-      else if (min > Math.PI) min -= twoPI;
+        if (isFinite(min) && isFinite(max)) {
+          if (min < -Math.PI) min += twoPI;
+          else if (min > Math.PI) min -= twoPI;
 
-      if (max < -Math.PI) max += twoPI;
-      else if (max > Math.PI) max -= twoPI;
+          if (max < -Math.PI) max += twoPI;
+          else if (max > Math.PI) max -= twoPI;
 
-      if (min <= max) {
-        spherical.theta = Math.max(min, Math.min(max, spherical.theta));
-      } else {
-        spherical.theta =
-          spherical.theta > (min + max) / 2
-            ? Math.max(min, spherical.theta)
-            : Math.min(max, spherical.theta);
-      }
-    }
+          if (min <= max) {
+            spherical.theta = Math.max(min, Math.min(max, spherical.theta));
+          } else {
+            spherical.theta =
+              spherical.theta > (min + max) / 2
+                ? Math.max(min, spherical.theta)
+                : Math.min(max, spherical.theta);
+          }
+        }
 
-    // restrict phi to be between desired limits
-    spherical.phi = Math.max(
-        that.minPolarAngle,
-      Math.min(that.maxPolarAngle, spherical.phi)
-    );
+        // restrict phi to be between desired limits
+        spherical.phi = Math.max(
+          that.minPolarAngle,
+          Math.min(that.maxPolarAngle, spherical.phi)
+        );
 
-    spherical.makeSafe();
+        spherical.makeSafe();
 
-    spherical.radius *= scale;
+        spherical.radius *= scale;
 
-    // restrict radius to be between desired limits
-    spherical.radius = Math.max(
-        that.minDistance,
-      Math.min(that.maxDistance, spherical.radius)
-    );
+        // restrict radius to be between desired limits
+        spherical.radius = Math.max(
+          that.minDistance,
+          Math.min(that.maxDistance, spherical.radius)
+        );
 
-    // move target to panned location
+        // move target to panned location
 
-    if (that.enableDamping === true) {
-        that.target.addScaledVector(panOffset, that.dampingFactor);
-    } else {
-        that.target.add(panOffset);
-    }
-    Vector3.fromSpherical(spherical, offset);
-    // rotate offset back to "camera-up-vector-is-up" space
-    offset.applyQuaternion(quatInverse);
+        if (that.enableDamping === true) {
+          that.target.addScaledVector(panOffset, that.dampingFactor);
+        } else {
+          that.target.add(panOffset);
+        }
+        Vector3.fromSpherical(spherical, offset);
+        // rotate offset back to "camera-up-vector-is-up" space
+        offset.applyQuaternion(quatInverse);
 
-    position.copy(that.target).add(offset);
+        position.copy(that.target).add(offset);
 
-    that.object.target = that.target;
+        that.object.lookAt(that.target.x, that.target.y, that.target.z);
 
-    if (that.enableDamping === true) {
-      sphericalDelta.theta *= 1 - that.dampingFactor;
-      sphericalDelta.phi *= 1 - that.dampingFactor;
+        if (that.enableDamping === true) {
+          sphericalDelta.theta *= 1 - that.dampingFactor;
+          sphericalDelta.phi *= 1 - that.dampingFactor;
 
-      Vector3.multiplyByScalar(panOffset, 1 - that.dampingFactor, panOffset);
-      // panOffset.multiplyScalar( 1 - this.dampingFactor );
-    } else {
-      sphericalDelta.set(0, 0, 0);
+          Vector3.multiplyByScalar(
+            panOffset,
+            1 - that.dampingFactor,
+            panOffset
+          );
+          // panOffset.multiplyScalar( 1 - this.dampingFactor );
+        } else {
+          sphericalDelta.set(0, 0, 0);
 
-      panOffset.set(0, 0, 0);
-    }
+          panOffset.set(0, 0, 0);
+        }
 
-    scale = 1;
+        scale = 1;
 
-    // update condition is:
-    // min(camera displacement, camera rotation in radians)^2 > EPS
-    // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+        // update condition is:
+        // min(camera displacement, camera rotation in radians)^2 > EPS
+        // using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
-    if (
-      zoomChanged ||
-      Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
-      8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
-    ) {
-        that.dispatchEvent(_changeEvent);
+        if (
+          zoomChanged ||
+          Vector3.distanceSquared(lastPosition, that.object.position) > EPS ||
+          8 * (1 - lastQuaternion.dot(that.object.quaternion)) > EPS
+        ) {
+          that.dispatchEvent(_changeEvent);
 
-      //lastPosition.copy( this.object.position );
-      Vector3.clone(that.object.position, lastPosition);
-      Quaternion.clone(that.object.quaternion, lastQuaternion);
-      //lastQuaternion.copy( this.object.quaternion );
-      zoomChanged = false;
+          //lastPosition.copy( this.object.position );
+          Vector3.clone(that.object.position, lastPosition);
+          Quaternion.clone(that.object.quaternion, lastQuaternion);
+          //lastQuaternion.copy( this.object.quaternion );
+          zoomChanged = false;
 
-      return true;
-    }
+          return true;
+        }
 
-    return false;
-}
-})()
+        return false;
+      };
+    })();
+    this.init();
   }
   getPolarAngle() {
     return this.spherical.phi;
   }
-
   getAzimuthalAngle() {
     return this.spherical.theta;
   }
@@ -317,79 +319,76 @@ export default class OrbitControl extends EventDispatcher {
 
   private init() {
     const that = this;
-    const panLeft = function () {
-        const v = new Vector3();
-      
-        return function panLeft(distance, objectMatrix) {
-          v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
-          v.multiplyByScalar(-distance);
-      
-          panOffset.add(v);
-        };
-      }();
-      const panUp = function () {
-        const panUpV = new Vector3();
-      
-        return function panUp(distance, objectMatrix) {
-          if (that.screenSpacePanning === true) {
-            panUpV.setFromMatrixColumn(objectMatrix, 1);
-          } else {
-            panUpV.setFromMatrixColumn(objectMatrix, 0);
-            //panUpV.crossVectors( this.object.up, panUpV );
-            Vector3.cross(that.object.up, panUpV, panUpV);
-          }
-      
-          panUpV.multiplyByScalar(distance);
-      
-          panOffset.add(panUpV);
-        };
-      }();
-      // deltaX and deltaY are in pixels; right and down are positive
-      const pan = function () {
-        const offset = new Vector3();
-        return function pan(deltaX, deltaY) {
-          const element = that.domElement;
-          if (that.object.isPerspectiveCamera) {
-            // perspective
-            const position = that.object.position;
-            offset.copy(position).subtract(that.target);
-            let targetDistance = offset.length();
-      
-            // half of the fov is center to top of screen
-            targetDistance *= Math.tan(((that.object.fov / 2) * Math.PI) / 180.0);
-      
-            // we use only clientHeight here so aspect ratio does not distort speed
-            panLeft(
-              (2 * deltaX * targetDistance) / element.clientHeight,
-              that.object.modelMatrix
-            );
-            panUp(
-              (2 * deltaY * targetDistance) / element.clientHeight,
-              that.object.modelMatrix
-            );
-          } else if (that.object.isOrthographicCamera) {
-            // orthographic
-            panLeft(
-              (deltaX * (that.object.right - that.object.left)) /
-                that.object.zoom /
-                element.clientWidth,
-              that.object.modelMatrix
-            );
-            panUp(
-              (deltaY * (that.object.top - that.object.bottom)) /
-                that.object.zoom /
-                element.clientHeight,
-              that.object.modelMatrix
-            );
-          } else {
-            // camera neither orthographic nor perspective
-            console.warn(
-              "WARNING: OrbitControls.js encountered an unknown camera type - pan disabled."
-            );
-            that.enablePan = false;
-          }
-        };
-      }();
+    const panLeft = (function () {
+      const v = new Vector3();
+      return function panLeft(distance, objectMatrix) {
+        v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
+        v.multiplyByScalar(-distance);
+        panOffset.add(v);
+      };
+    })();
+    const panUp = (function () {
+      const panUpV = new Vector3();
+      return function panUp(distance, objectMatrix) {
+        if (that.screenSpacePanning === true) {
+          panUpV.setFromMatrixColumn(objectMatrix, 1);
+        } else {
+          panUpV.setFromMatrixColumn(objectMatrix, 0);
+          //panUpV.crossVectors( this.object.up, panUpV );
+          Vector3.cross(that.object.up, panUpV, panUpV);
+        }
+
+        panUpV.multiplyByScalar(distance);
+
+        panOffset.add(panUpV);
+      };
+    })();
+    // deltaX and deltaY are in pixels; right and down are positive
+    const pan = (function () {
+      const offset = new Vector3();
+      return function pan(deltaX, deltaY) {
+        const element = that.domElement;
+        if (that.object.isPerspectiveCamera) {
+          // perspective
+          const position = that.object.position;
+          offset.copy(position).subtract(that.target);
+          let targetDistance = offset.length();
+
+          // half of the fov is center to top of screen
+          targetDistance *= Math.tan(((that.object.fov / 2) * Math.PI) / 180.0);
+
+          // we use only clientHeight here so aspect ratio does not distort speed
+          panLeft(
+            (2 * deltaX * targetDistance) / element.clientHeight,
+            that.object.modelMatrix
+          );
+          panUp(
+            (2 * deltaY * targetDistance) / element.clientHeight,
+            that.object.modelMatrix
+          );
+        } else if (that.object.isOrthographicCamera) {
+          // orthographic
+          panLeft(
+            (deltaX * (that.object.right - that.object.left)) /
+              that.object.zoom /
+              element.clientWidth,
+            that.object.modelMatrix
+          );
+          panUp(
+            (deltaY * (that.object.top - that.object.bottom)) /
+              that.object.zoom /
+              element.clientHeight,
+            that.object.modelMatrix
+          );
+        } else {
+          // camera neither orthographic nor perspective
+          console.warn(
+            "WARNING: OrbitControls.js encountered an unknown camera type - pan disabled."
+          );
+          that.enablePan = false;
+        }
+      };
+    })();
     const dollyOut = (dollyScale) => {
       if (this.object.isPerspectiveCamera) {
         scale /= dollyScale;
