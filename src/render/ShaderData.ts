@@ -323,7 +323,6 @@ export default class ShaderData{
                     buffer:uniform?.lightBuffer?.gpuBuffer||this.buffer.gpuBuffer,
                     offset: 0,
                     //兼容灯光
-                    //size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
                     size:uniform.bufferSize!=undefined?uniform.bufferSize:this.uniformsSize*4
                 }
               });

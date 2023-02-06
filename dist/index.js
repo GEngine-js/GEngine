@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35731/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 /** @internal */
 // eslint-disable-next-line import/export
 var PredefinedColorSpace;
@@ -477,13 +477,11 @@ class Buffer {
             size: size != undefined ? size : data.byteLength,
             usage,
         });
-        //if(usage===(BufferUsage.Uniform|BufferUsage.CopyDst)){
         this.layoutType = defaultValue(layoutType, {
             type: 'uniform',
             hasDynamicOffset: false,
             minBindingSize: 0
         });
-        //}
         if (data)
             this.setSubData(0, data);
     }
@@ -4416,10 +4414,11 @@ const y = new Vector3();
 const z = new Vector3();
 
 class Uniform {
-    constructor(uniformName, cb, binding) {
+    constructor(uniformName, cb, binding, offset) {
         this.name = uniformName;
         this.cb = cb;
-        this.binding = binding || 0;
+        this.binding = defaultValue(binding, 0);
+        this.offset = defaultValue(offset, 0);
         this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
         this.type = 'number';
     }
@@ -4450,11 +4449,12 @@ class Uniform {
     }
 }
 class UniformFloat extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = 0;
         this.size = 4;
+        this.byteSize = 4;
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 1);
         this.type = 'vec1';
     }
@@ -4472,12 +4472,13 @@ class UniformFloat extends Uniform {
 }
 UniformFloat.align = 4;
 class UniformFloatVec2 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Vector2();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 2);
         this.size = 8;
+        this.byteSize = 8;
         this.type = 'vec2';
     }
     set() {
@@ -4494,12 +4495,13 @@ class UniformFloatVec2 extends Uniform {
 }
 UniformFloatVec2.align = 8;
 class UniformFloatVec3 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Vector3();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
         this.size = 12;
+        this.byteSize = 12;
         this.type = 'vec3';
     }
     set() {
@@ -4516,12 +4518,13 @@ class UniformFloatVec3 extends Uniform {
 }
 UniformFloatVec3.align = 16;
 class UniformFloatVec4 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Vector4();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
         this.size = 16;
+        this.byteSize = 16;
         this.type = 'vec4';
     }
     set() {
@@ -4539,12 +4542,13 @@ class UniformFloatVec4 extends Uniform {
 }
 UniformFloatVec4.align = 16;
 class UniformColor extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Color();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
         this.size = 12;
+        this.byteSize = 12;
         this.type = 'vec3';
     }
     set() {
@@ -4561,12 +4565,13 @@ class UniformColor extends Uniform {
 }
 UniformColor.align = 16;
 class UniformMat2 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, offset);
         this.value = undefined;
         this._value = new Matrix2();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
-        this.size = 12;
+        this.size = 16;
+        this.byteSize = 16;
         this.type = 'mat2';
     }
     set() {
@@ -4583,12 +4588,13 @@ class UniformMat2 extends Uniform {
 }
 UniformMat2.align = 8;
 class UniformMat3 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Matrix3();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 9);
         this.size = 48;
+        this.byteSize = 48;
         this.type = 'mat3';
     }
     set() {
@@ -4605,12 +4611,13 @@ class UniformMat3 extends Uniform {
 }
 UniformMat3.align = 16;
 class UniformMat4 extends Uniform {
-    constructor(uniformName, buffer, byteOffset, cb, binding) {
-        super(uniformName, cb);
+    constructor(uniformName, buffer, byteOffset, cb, binding, offset) {
+        super(uniformName, cb, binding, offset);
         this.value = undefined;
         this._value = new Matrix4();
         this.buffer = new Float32Array(buffer.buffer, byteOffset, 16);
         this.size = 64;
+        this.byteSize = 64;
         this.type = 'mat4';
     }
     set() {
@@ -4628,7 +4635,7 @@ class UniformMat4 extends Uniform {
 UniformMat4.align = 16;
 class UniformTexture extends Uniform {
     constructor(uniformName, binding, cb) {
-        super(uniformName, cb);
+        super(uniformName, cb, binding);
         this.value = this.getValue();
         this.binding = binding;
         this.type = 'texture';
@@ -4643,7 +4650,7 @@ class UniformTexture extends Uniform {
 }
 class UniformSampler extends Uniform {
     constructor(uniformName, binding, cb) {
-        super(uniformName, cb);
+        super(uniformName, cb, binding);
         this.value = this.getValue();
         this.binding = binding;
         this.type = 'sampler';
@@ -4660,7 +4667,6 @@ class UniformLight extends Uniform {
     constructor(uniformName, binding, buffer, size) {
         super(uniformName);
         this.cb = buffer;
-        //this.lightBuffer =buffer;
         this.binding = binding;
         this.visibility = ShaderStage.Fragment;
         this.bufferSize = size;
@@ -5059,7 +5065,6 @@ class ShaderData {
                     buffer: uniform?.lightBuffer?.gpuBuffer || this.buffer.gpuBuffer,
                     offset: 0,
                     //兼容灯光
-                    //size:uniform.bufferSize!=undefined?uniform.bufferSize:Material.getBindingSize(uniforms)
                     size: uniform.bufferSize != undefined ? uniform.bufferSize : this.uniformsSize * 4
                 }
             });

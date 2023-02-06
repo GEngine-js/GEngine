@@ -18,14 +18,12 @@ class Buffer {
       size: size!=undefined?size: data.byteLength,
       usage,
     });
-    //if(usage===(BufferUsage.Uniform|BufferUsage.CopyDst)){
       this.layoutType=defaultValue(layoutType,{
         type:'uniform',
         hasDynamicOffset:false,
         minBindingSize:0
 
       })
-   //}
     if (data) this.setSubData(0, data);
   }
   static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?:number){
