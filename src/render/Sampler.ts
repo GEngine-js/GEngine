@@ -2,7 +2,7 @@ import Context from "./Context";
 
 class Sampler {
   public gpuSampler: GPUSampler;
-  layoutType: string;
+  layoutType: any;
   constructor(
     public descriptor: GPUSamplerDescriptor = {
       magFilter: "linear",
@@ -13,7 +13,9 @@ class Sampler {
       addressModeW: "clamp-to-edge",
     }
   ) {
-    this.layoutType = "filtering";
+    this.layoutType ={
+      type: "filtering",
+    }
   }
   update(context: Context) {
     if (!this.gpuSampler)

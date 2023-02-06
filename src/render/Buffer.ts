@@ -8,8 +8,7 @@ class Buffer {
   usage: number;
   data: ArrayBufferView;
   size: number;
-  layoutType?:bufferLayoutType;
-  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?: number,layoutType?:bufferLayoutType) {
+  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?: number,) {
     this.device=device;
     this.usage=usage;
     this.data=data;
@@ -18,12 +17,6 @@ class Buffer {
       size: size!=undefined?size: data.byteLength,
       usage,
     });
-      this.layoutType=defaultValue(layoutType,{
-        type:'uniform',
-        hasDynamicOffset:false,
-        minBindingSize:0
-
-      })
     if (data) this.setSubData(0, data);
   }
   static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?:number){
@@ -37,9 +30,8 @@ class Buffer {
     return new Buffer(device,BufferUsage.Index | BufferUsage.CopyDst, data); 
   }
 
-  static createUniformBuffer(device:GPUDevice,size: number,layoutType?:bufferLayoutType,bufferUsage?:BufferUsage): Buffer {
-    const usage=bufferUsage?bufferUsage| BufferUsage.CopyDst:BufferUsage.Uniform | BufferUsage.CopyDst
-    return new Buffer(device,usage, null,size,layoutType); 
+  static createUniformBuffer(device:GPUDevice,size: number,usage?:BufferUsage): Buffer {
+    return new Buffer(device,usage, null,size); 
   }
   static getBufferType(usage){
     let result;

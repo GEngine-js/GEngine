@@ -12,12 +12,13 @@ import { Light } from '../light/Light';
 import Buffer from './Buffer';
 import Context from './Context';
 import defaultValue from '../utils/defaultValue';
+import UniformBuffer from './UniformBuffer';
 export class Uniform<T> {
     _value: T;
     name: string;
     value: T;
     offset: number;
-    buffer:Float32Array|Uint16Array|Uint32Array|Uint8Array|Float64Array
+    buffer:Float32Array|Uint16Array|Uint32Array|Uint8Array|Float64Array|UniformBuffer
     size: number;
     cb: Function|number|Object;
     byteSize:number;
@@ -239,38 +240,49 @@ export class UniformMat4 extends Uniform<Matrix4>{
 }
 
 export class UniformTexture extends Uniform<Texture>{
-    constructor(uniformName:string, binding:number,cb:Function|number|Object) {
-        super(uniformName,cb,binding);
-        this.value = this.getValue();
+    public binding:number;
+    public type:string;
+    public visibility:ShaderStage;
+    public name:string;
+    public texture:Texture;
+    constructor(uniformName:string, binding:number,texture:Function|Texture){
+        super(uniformName)
         this.binding=binding;
         this.type='texture';
         this.visibility=ShaderStage.Fragment;
+        this.texture=texture instanceof Function?texture():texture;
     }
-    update(context:Context){
-        this.value.update(context)
+    get layoutType(){
+       return this.texture.layoutType 
     }
-    set(){
-        return undefined;
-     }
+    bind(context:Context){
+        this.texture.update(context);
+    }
 }
 export class UniformSampler extends Uniform<Sampler>{
-    constructor(uniformName:string,binding:number,cb:Function|number|Object) {
-        super(uniformName,cb,binding);
-        this.value =this.getValue();
+    public binding:number;
+    public type:string;
+    public visibility:ShaderStage;
+    public name:string;
+    public sampler:Texture;
+    constructor(uniformName:string, binding:number,sampler:Function|Sampler){
+        super(uniformName)
+        this.name=uniformName;
         this.binding=binding;
         this.type='sampler';
         this.visibility=ShaderStage.Fragment;
+        this.sampler=sampler instanceof Function?sampler():sampler;
     }
-    update(context:Context){
-        this.value.update(context)
-    }
-    set(){
-        return undefined;
+    get layoutType(){
+        return this.sampler.layoutType 
      }
+    bind(context:Context){
+        this.sampler.update(context);
+    }
 }
 export class UniformLight extends Uniform<Light>{
     bufferSize: number;
-    lightBuffer:Buffer;
+    buffer:UniformBuffer;
     constructor(uniformName:string,binding:number,buffer:Buffer|Function|Object,size:number) {
         super(uniformName);
         this.cb=buffer;
@@ -279,6 +291,6 @@ export class UniformLight extends Uniform<Light>{
         this.bufferSize=size;
     }
     set(){
-      this.lightBuffer=this.getValue();
+      this.buffer=this.getValue();
     }
 }

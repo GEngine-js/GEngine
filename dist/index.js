@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35731/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 /** @internal */
 // eslint-disable-next-line import/export
 var PredefinedColorSpace;
@@ -440,35 +440,8 @@ var GPUColorWrite;
     GPUColorWrite[GPUColorWrite["All"] = 15] = "All";
 })(GPUColorWrite || (GPUColorWrite = {}));
 
-/**
- * Returns the first parameter if not undefined, otherwise the second parameter.
- * Useful for setting a default value for a parameter.
- *
- * @function
- *
- * @param {*} a
- * @param {*} b
- * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
- *
- * @example
- * param = Cesium.defaultValue(param, 'default');
- */
-function defaultValue(a, b) {
-    if (a !== undefined && a !== null) {
-        return a;
-    }
-    return b;
-}
-/**
- * A frozen empty object that can be used as the default value for options passed as
- * an object literal.
- * @type {Object}
- * @memberof defaultValue
- */
-defaultValue.EMPTY_OBJECT = Object.freeze({});
-
 class Buffer {
-    constructor(device, usage, data, size, layoutType) {
+    constructor(device, usage, data, size) {
         this.device = device;
         this.usage = usage;
         this.data = data;
@@ -476,11 +449,6 @@ class Buffer {
         this.gpuBuffer = device.createBuffer({
             size: size != undefined ? size : data.byteLength,
             usage,
-        });
-        this.layoutType = defaultValue(layoutType, {
-            type: 'uniform',
-            hasDynamicOffset: false,
-            minBindingSize: 0
         });
         if (data)
             this.setSubData(0, data);
@@ -494,9 +462,8 @@ class Buffer {
     static createIndexBuffer(device, data) {
         return new Buffer(device, BufferUsage.Index | BufferUsage.CopyDst, data);
     }
-    static createUniformBuffer(device, size, layoutType, bufferUsage) {
-        const usage = bufferUsage ? bufferUsage | BufferUsage.CopyDst : BufferUsage.Uniform | BufferUsage.CopyDst;
-        return new Buffer(device, usage, null, size, layoutType);
+    static createUniformBuffer(device, size, usage) {
+        return new Buffer(device, usage, null, size);
     }
     static getBufferType(usage) {
         switch (usage) {
@@ -550,6 +517,33 @@ const GPUCanvasCompositingAlphaMode = {
     Opaque: "opaque",
     Premultiplied: "premultiplied",
 };
+
+/**
+ * Returns the first parameter if not undefined, otherwise the second parameter.
+ * Useful for setting a default value for a parameter.
+ *
+ * @function
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
+ *
+ * @example
+ * param = Cesium.defaultValue(param, 'default');
+ */
+function defaultValue(a, b) {
+    if (a !== undefined && a !== null) {
+        return a;
+    }
+    return b;
+}
+/**
+ * A frozen empty object that can be used as the default value for options passed as
+ * an object literal.
+ * @type {Object}
+ * @memberof defaultValue
+ */
+defaultValue.EMPTY_OBJECT = Object.freeze({});
 
 /**
  * @function
@@ -4634,45 +4628,34 @@ class UniformMat4 extends Uniform {
 }
 UniformMat4.align = 16;
 class UniformTexture extends Uniform {
-    constructor(uniformName, binding, cb) {
-        super(uniformName, cb, binding);
-        this.value = this.getValue();
+    constructor(uniformName, binding, texture) {
+        super(uniformName);
         this.binding = binding;
         this.type = 'texture';
         this.visibility = ShaderStage.Fragment;
+        this.texture = texture instanceof Function ? texture() : texture;
     }
-    update(context) {
-        this.value.update(context);
+    get layoutType() {
+        return this.texture.layoutType;
     }
-    set() {
-        return undefined;
+    bind(context) {
+        this.texture.update(context);
     }
 }
 class UniformSampler extends Uniform {
-    constructor(uniformName, binding, cb) {
-        super(uniformName, cb, binding);
-        this.value = this.getValue();
+    constructor(uniformName, binding, sampler) {
+        super(uniformName);
+        this.name = uniformName;
         this.binding = binding;
         this.type = 'sampler';
         this.visibility = ShaderStage.Fragment;
+        this.sampler = sampler instanceof Function ? sampler() : sampler;
     }
-    update(context) {
-        this.value.update(context);
+    get layoutType() {
+        return this.sampler.layoutType;
     }
-    set() {
-        return undefined;
-    }
-}
-class UniformLight extends Uniform {
-    constructor(uniformName, binding, buffer, size) {
-        super(uniformName);
-        this.cb = buffer;
-        this.binding = binding;
-        this.visibility = ShaderStage.Fragment;
-        this.bufferSize = size;
-    }
-    set() {
-        this.lightBuffer = this.getValue();
+    bind(context) {
+        this.sampler.update(context);
     }
 }
 
@@ -4767,95 +4750,20 @@ class BindGroup {
 }
 
 class ShaderData {
-    constructor(label, size, layoutIndex, groupIndex, buffer, data) {
-        this.byteOffset = 0;
-        this.defaultUnifromTotalSize = size > 0 ? size : 400;
-        this.data = defaultValue(data, new Float32Array(this.defaultUnifromTotalSize));
-        this.buffer = defaultValue(buffer, undefined);
+    constructor(label, size, layoutIndex, groupIndex) {
         this.label = label;
         this.textureBinding = 1;
         this.defineDirty = true;
-        this.uniformDirty = true;
-        this.uniformTotalSize = 0;
         this.defines = {};
         this._uniforms = new Map();
         this.groupIndex = defaultValue(groupIndex, 0);
         this.layoutIndex = defaultValue(layoutIndex, 0);
+        // this.uniformBuffer = new UniformBuffer();
     }
-    get uniformsSize() {
-        //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-        return Math.ceil(this.byteOffset / 16) * 16;
-    }
-    setFloat(name, value, binding) {
+    setUniformBuffer(name, uniformBuffer) {
         if (this._uniforms.get(name))
             return;
-        const uniform = new UniformFloat(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 1;
-    }
-    setFloatVec2(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
-        const uniform = new UniformFloatVec2(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 2;
-    }
-    setFloatVec3(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
-        const uniform = new UniformFloatVec3(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 3;
-    }
-    setColor(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
-        const uniform = new UniformColor(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 3;
-    }
-    setFloatVec4(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
-        const uniform = new UniformFloatVec4(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 4;
-    }
-    setMatrix2(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
-        const uniform = new UniformMat2(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 4;
-    }
-    setMatrix3(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
-        const uniform = new UniformMat3(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 12;
-    }
-    setMatrix4(name, value, binding) {
-        if (this._uniforms.get(name))
-            return;
-        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
-        const uniform = new UniformMat4(name, this.data, this.byteOffset, value, binding);
-        this._uniforms.set(name, uniform);
-        this.byteOffset += uniform.size;
-        this.uniformTotalSize += 16;
+        this._uniforms.set(name, uniformBuffer);
     }
     setTexture(name, value, binding) {
         if (this._uniforms.get(name))
@@ -4888,22 +4796,6 @@ class ShaderData {
             }
         }
     }
-    update(device, other) {
-        this._uniforms.forEach((uniform) => {
-            if (uniform.type == 'texture' || uniform.type == 'sampler') ;
-            else {
-                const result = uniform.set();
-                if (result != undefined && this.uniformDirty == false)
-                    this.uniformDirty = result;
-            }
-        });
-        if (!this.buffer)
-            this.buffer = Buffer.createUniformBuffer(device, this.uniformsSize);
-        if (this.uniformDirty) {
-            this.uniformDirty = false;
-            this.buffer.setSubData(0, this.data);
-        }
-    }
     bind(context, passEncoder) {
         this.uploadUniform(context);
         const { groupLayout, bindGroup } = this.createBindGroupAndLayout(context.device, this.label, this.layoutIndex, this.groupIndex);
@@ -4913,9 +4805,8 @@ class ShaderData {
     }
     destroy() {
         this.byteOffset = 0;
-        this.uniformTotalSize = 0;
         this.data = undefined;
-        this.buffer.destroy();
+        // this.uniformBuffer.destroy();
         this._uniforms = new Map();
     }
     getBindGroupAndLayout(device, label, index) {
@@ -4944,63 +4835,10 @@ class ShaderData {
         });
         return { groupLayout, bindGroup };
     }
-    getUniformStruct() {
-        let uniformStruct = `struct MaterialUniform {\n `;
-        this._uniforms.forEach((uniform) => {
-            uniformStruct += this.createUniformString(uniform);
-        });
-        uniformStruct += `}\n`;
-        return uniformStruct;
-    }
     uploadUniform(context) {
         this._uniforms.forEach((uniform) => {
-            if (uniform.type == 'texture' || uniform.type == 'sampler') {
-                uniform.update(context);
-            }
-            else {
-                const result = uniform.set();
-                if (result != undefined && this.uniformDirty == false)
-                    this.uniformDirty = result;
-            }
+            uniform.bind(context);
         });
-        if (!this.buffer)
-            this.buffer = Buffer.createUniformBuffer(context.device, this.uniformsSize * 4);
-        if (this.uniformDirty) {
-            this.uniformDirty = false;
-            this.buffer.setSubData(0, this.data.slice(0, this.uniformsSize));
-        }
-    }
-    createUniformString(uniform) {
-        let result = ``;
-        //modelMatrix: mat4x4<f32>
-        switch (uniform.type) {
-            case 'vec1':
-                result = `${uniform.name} :f32,\n`;
-                break;
-            case 'vec2':
-                result = `${uniform.name} :vec2<f32>,\n`;
-                break;
-            case 'vec3':
-                result = `${uniform.name} :vec3<f32>,\n`;
-                break;
-            case 'vec4':
-                result = `${uniform.name} :vec4<f32>,\n`;
-                break;
-            case 'mat2':
-                result = `${uniform.name} :mat2x2<f32>,\n`;
-                break;
-            case 'mat3':
-                result = `${uniform.name} :mat3x3<f32>,\n`;
-                break;
-            case 'mat4':
-                result = `${uniform.name} :mat4x4<f32>,\n`;
-                break;
-        }
-        return result;
-    }
-    checkUniformOffset(byteSize, Align) {
-        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-        return Math.ceil(byteSize / Align) * Align - byteSize;
     }
     createBindGroupLayoutEntry() {
         const result = new Map();
@@ -5030,58 +4868,203 @@ class ShaderData {
     }
     createOneLayoutEntry(uniform) {
         let layoutEntity;
-        if (uniform.type != 'texture' && uniform.type != 'sampler') {
+        if (uniform.type === 'uniform' || uniform.type === 'read-only-storage') {
             layoutEntity = new BindGroupLayoutEntry({
                 binding: uniform.binding,
-                buffer: uniform?.lightBuffer?.layoutType || this.buffer.layoutType,
+                buffer: uniform.layoutType,
                 visibility: uniform.visibility,
-                // uniforms: this.uniforms,
             });
         }
         else if (uniform.type === 'texture') {
             layoutEntity = new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 visibility: uniform.visibility,
-                texture: uniform.value.layoutType
+                texture: uniform.layoutType
             });
         }
         else if (uniform.type === 'sampler') {
             layoutEntity = new BindGroupLayoutEntry({
                 binding: uniform.binding,
                 visibility: uniform.visibility,
-                sampler: {
-                    type: uniform.value.layoutType,
-                }
+                sampler: uniform.layoutType
             });
         }
         return layoutEntity;
     }
     creayeOneGroupEntity(uniform) {
         let groupEntity;
-        if (uniform.type != 'texture' && uniform.type != 'sampler') {
+        if (uniform.type === 'uniform' || uniform.type === 'read-only-storage') {
             groupEntity = new BindGroupEntity({
                 binding: uniform.binding,
                 resource: {
-                    buffer: uniform?.lightBuffer?.gpuBuffer || this.buffer.gpuBuffer,
-                    offset: 0,
-                    //兼容灯光
-                    size: uniform.bufferSize != undefined ? uniform.bufferSize : this.uniformsSize * 4
+                    buffer: uniform.buffer.gpuBuffer,
+                    offset: uniform.offset,
+                    size: uniform.bufferSize,
                 }
             });
         }
         else if (uniform.type === 'texture') {
             groupEntity = new BindGroupEntity({
                 binding: uniform.binding,
-                resource: uniform.value.texureView
+                resource: uniform.texture.texureView
             });
         }
         else if (uniform.type === 'sampler') {
             groupEntity = new BindGroupEntity({
                 binding: uniform.binding,
-                resource: uniform.value.gpuSampler
+                resource: uniform.sampler.gpuSampler
             });
         }
         return groupEntity;
+    }
+}
+
+class UniformBuffer {
+    constructor(type, usage, size, dataBuffer, binding) {
+        this.type = defaultValue(type, 'uniform');
+        this.hasDynamicOffset = false,
+            this.minBindingSize = 0;
+        this.binding = defaultValue(binding, 0);
+        this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
+        this.usage = defaultValue(usage, BufferUsage.Uniform | BufferUsage.CopyDst);
+        this._uniforms = new Map();
+        this.uniformDirty = true;
+        this._bufferSize = size;
+        this.offset = 0;
+        this.dataBuffer = defaultValue(dataBuffer, new Float32Array(defaultValue(this._bufferSize, 400)));
+        this.byteOffset = 0;
+    }
+    get layoutType() {
+        return {
+            type: this.type,
+            hasDynamicOffset: this.hasDynamicOffset,
+            minBindingSize: this.minBindingSize
+        };
+    }
+    get bufferSize() {
+        return defaultValue(this._bufferSize, this.uniformsSize * 4);
+    }
+    get uniformsSize() {
+        //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+        return Math.ceil(this.byteOffset / 16) * 16;
+    }
+    bind(context) {
+        this._uniforms.forEach((uniform) => {
+            const result = uniform.set();
+            if (result != undefined && this.uniformDirty == false)
+                this.uniformDirty = result;
+        });
+        if (this.uniformDirty) {
+            this.uniformDirty = false;
+            if (!this.buffer)
+                this.buffer = Buffer.createUniformBuffer(context.device, this.bufferSize, this.usage);
+            this.buffer.setSubData(0, this.dataBuffer.slice(0, defaultValue(this?.bufferSize / 4, this.uniformsSize)));
+        }
+    }
+    getUniformBufferStruct() {
+        let uniformStruct = `struct MaterialUniform {\n `;
+        this._uniforms.forEach((uniform) => {
+            uniformStruct += this.createUniformString(uniform);
+        });
+        uniformStruct += `}\n`;
+        return uniformStruct;
+    }
+    createUniformString(uniform) {
+        let result = ``;
+        switch (uniform.type) {
+            case 'vec1':
+                result = `${uniform.name} :f32,\n`;
+                break;
+            case 'vec2':
+                result = `${uniform.name} :vec2<f32>,\n`;
+                break;
+            case 'vec3':
+                result = `${uniform.name} :vec3<f32>,\n`;
+                break;
+            case 'vec4':
+                result = `${uniform.name} :vec4<f32>,\n`;
+                break;
+            case 'mat2':
+                result = `${uniform.name} :mat2x2<f32>,\n`;
+                break;
+            case 'mat3':
+                result = `${uniform.name} :mat3x3<f32>,\n`;
+                break;
+            case 'mat4':
+                result = `${uniform.name} :mat4x4<f32>,\n`;
+                break;
+        }
+        return result;
+    }
+    setFloat(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setFloatVec2(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
+        const uniform = new UniformFloatVec2(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setFloatVec3(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
+        const uniform = new UniformFloatVec3(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setColor(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
+        const uniform = new UniformColor(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setFloatVec4(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
+        const uniform = new UniformFloatVec4(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setMatrix2(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
+        const uniform = new UniformMat2(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setMatrix3(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
+        const uniform = new UniformMat3(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    setMatrix4(name, value, binding) {
+        if (this._uniforms.get(name))
+            return;
+        this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
+        const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
+        this._uniforms.set(name, uniform);
+        this.byteOffset += uniform.size;
+    }
+    checkUniformOffset(byteSize, Align) {
+        //from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+        return Math.ceil(byteSize / Align) * Align - byteSize;
+    }
+    destroy() {
+        this.buffer.destroy();
     }
 }
 
@@ -5091,22 +5074,14 @@ class LightShaderData extends ShaderData {
         this.lightManger = lightManger;
         this.dirty = true;
     }
-    update(device, lightManger) {
-        if (this.dirty) {
-            this.destroy();
-            this.dirty = false;
-            this.createLightUniformBuffer(device, lightManger);
-        }
-        this.setLightData(lightManger);
-    }
     uploadUniform(context, lightManger) {
         if (this.dirty) {
             this.destroy();
             this.dirty = false;
-            this.createLightUniformBuffer(context.device, lightManger);
-            this._uniforms.forEach((uniform) => uniform.set());
+            this.createLightUniformBuffer(lightManger);
         }
-        this.setLightData(lightManger);
+        debugger;
+        this._uniforms.forEach((uniform) => uniform.bind(context));
     }
     bind(context, passEncoder) {
         this.uploadUniform(context, this.lightManger);
@@ -5115,29 +5090,21 @@ class LightShaderData extends ShaderData {
         this.bindGroup = bindGroup;
         this.groupLayout = groupLayout;
     }
-    createLightUniformBuffer(device, lightManger) {
-        this.commonBuffer = Buffer.createUniformBuffer(device, lightManger.commonTatalByte, { type: 'read-only-storage' }, BufferUsage.Storage);
-        if (lightManger.lightDefines.spotLight)
-            this.spotLightsBuffer = Buffer.createUniformBuffer(device, lightManger.spotLightsByte, { type: 'read-only-storage' }, BufferUsage.Storage);
-        if (lightManger.lightDefines.pointLight)
-            this.pointLightsBuffer = Buffer.createUniformBuffer(device, lightManger.pointLightsByte, { type: 'read-only-storage' }, BufferUsage.Storage);
-        if (lightManger.lightDefines.dirtectLight)
-            this.dirtectLightsBuffer = Buffer.createUniformBuffer(device, lightManger.dirtectLightsByte, { type: 'read-only-storage' }, BufferUsage.Storage);
-    }
-    setLightData(lightManger) {
-        this.commonBuffer.setSubData(0, lightManger.commonLightBuffer);
-        if (this.pointLightsBuffer)
-            this.pointLightsBuffer.setSubData(0, lightManger.pointLightsBuffer);
-        if (this.spotLightsBuffer)
-            this.spotLightsBuffer.setSubData(0, lightManger.spotLightsBuffer);
-        if (this.dirtectLightsBuffer)
-            this.dirtectLightsBuffer.setSubData(0, lightManger.dirtectLightsBuffer);
-    }
-    setLight(name, binding, size) {
-        if (this._uniforms.get(name))
-            return;
-        const uniform = new UniformLight(name, binding, this, size);
-        this._uniforms.set(name, uniform);
+    createLightUniformBuffer(lightManger) {
+        this.commonBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.commonTatalByte, lightManger.commonLightBuffer);
+        this.setUniformBuffer('commonBuffer', this.commonBuffer);
+        if (lightManger.lightDefines.spotLight) {
+            this.spotLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.spotLightsByte, lightManger.spotLightsBuffer, lightManger.lightDefines.spotLightBinding);
+            this.setUniformBuffer('spotLightsBuffer', this.spotLightsBuffer);
+        }
+        if (lightManger.lightDefines.pointLight) {
+            this.pointLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.pointLightsByte, lightManger.pointLightsBuffer, lightManger.lightDefines.pointLightBinding);
+            this.setUniformBuffer('pointLightsBuffer', this.pointLightsBuffer);
+        }
+        if (lightManger.lightDefines.dirtectLight) {
+            this.dirtectLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.dirtectLightsByte, lightManger.dirtectLightsBuffer, lightManger.lightDefines.dirtectLightBinding);
+            this.setUniformBuffer('dirtectLightsBuffer', this.dirtectLightsBuffer);
+        }
     }
     destroy() {
         if (this.commonBuffer)
@@ -5181,32 +5148,24 @@ class SystemRenderResource {
     }
     createCameraShaderData(frameState) {
         this.cameraShaderData = new ShaderData('system', 0, 1, 1);
-        this.cameraShaderData.setMatrix4('projectionMatrix', () => {
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('projectionMatrix', () => {
             return frameState.camera.projectionMatrix;
         });
-        this.cameraShaderData.setMatrix4('viewMatrix', () => {
+        uniformBuffer.setMatrix4('viewMatrix', () => {
             return frameState.camera.viewMatrix;
         });
-        this.cameraShaderData.setMatrix4('inverseViewMatrix', () => {
+        uniformBuffer.setMatrix4('inverseViewMatrix', () => {
             return frameState.camera.inverseViewMatrix;
         });
-        this.cameraShaderData.setFloatVec3('position', () => {
+        uniformBuffer.setFloatVec3('position', () => {
             return frameState.camera.position;
         });
+        this.cameraShaderData.setUniformBuffer('system', uniformBuffer);
     }
     createLightShaderData(lightManger) {
         if (!this.lightShaderData)
             this.lightShaderData = new LightShaderData(lightManger, 2, 2);
-        this.lightShaderData.setLight('commonBuffer', 0, lightManger.commonTatalByte);
-        if (lightManger.lightDefines.spotLight) {
-            this.lightShaderData.setLight('spotLightsBuffer', lightManger.lightDefines.spotLightBinding, lightManger.spotLightsByte);
-        }
-        if (lightManger.lightDefines.pointLight) {
-            this.lightShaderData.setLight('pointLightsBuffer', lightManger.lightDefines.pointLightBinding, lightManger.pointLightsByte);
-        }
-        if (lightManger.lightDefines.dirtectLight) {
-            this.lightShaderData.setLight('dirtectLightsBuffer', lightManger.lightDefines.dirtectLightBinding, lightManger.dirtectLightsByte);
-        }
     }
     destroy() {
     }
@@ -5691,7 +5650,9 @@ class Sampler {
         addressModeW: "clamp-to-edge",
     }) {
         this.descriptor = descriptor;
-        this.layoutType = "filtering";
+        this.layoutType = {
+            type: "filtering",
+        };
     }
     update(context) {
         if (!this.gpuSampler)
@@ -9755,9 +9716,11 @@ class ColorMaterial extends Material {
     update(frameState, mesh) {
         if (!this.shaderData)
             this.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix', () => {
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix', () => {
             return mesh.modelMatrix;
         });
+        this.shaderData.setUniformBuffer('color', uniformBuffer);
     }
 }
 
@@ -9890,14 +9853,6 @@ async function CubeTextureLoader(urls) {
     };
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-12-10 20:24:50
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-02-03 17:27:41
- * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class SkyBoxMaterial extends Material {
     constructor() {
         super();
@@ -9926,11 +9881,13 @@ class SkyBoxMaterial extends Material {
     }
     createShaderData(mesh) {
         super.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix', () => {
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix', () => {
             return mesh.modelMatrix;
         });
-        this.shaderData.setTexture('baseTexture', this);
-        this.shaderData.setSampler('baseSampler', this);
+        this.shaderData.setUniformBuffer('sky', uniformBuffer);
+        this.shaderData.setTexture('baseTexture', this.baseTexture);
+        this.shaderData.setSampler('baseSampler', this.baseSampler);
     }
 }
 
@@ -10383,23 +10340,25 @@ class PhongMaterial extends Material {
     }
     createShaderData(mesh) {
         super.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix', () => {
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix', () => {
             return mesh.modelMatrix;
         });
-        this.shaderData.setColor("diffuse", this);
-        this.shaderData.setFloat("opacity", this);
-        this.shaderData.setMatrix3("normalMtrix", () => {
+        uniformBuffer.setColor("diffuse", this);
+        uniformBuffer.setFloat("opacity", this);
+        uniformBuffer.setMatrix3("normalMtrix", () => {
             return mesh.normalMatrix;
         });
-        this.shaderData.setColor('emissive', this);
-        this.shaderData.setFloat('shininess', this);
-        this.shaderData.setColor('specular', this);
+        uniformBuffer.setColor('emissive', this);
+        uniformBuffer.setFloat('shininess', this);
+        uniformBuffer.setColor('specular', this);
+        this.shaderData.setUniformBuffer('phong', uniformBuffer);
         if (this.baseTexture) {
             this.shaderData.setDefine('baseTexture', true);
-            this.shaderData.setTexture('baseTexture', this);
+            this.shaderData.setTexture('baseTexture', this.baseTexture);
         }
         if (this.baseSampler)
-            this.shaderData.setSampler('sampler', this.baseTexture);
+            this.shaderData.setSampler('sampler', this.baseSampler);
     }
     destroy() {
     }
@@ -10561,349 +10520,58 @@ class PbrMat extends Material {
     }
     createShaderData(mesh, frameState) {
         super.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix', () => {
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix', () => {
             return mesh.modelMatrix;
         });
-        this.shaderData.setColor("diffuse", this);
-        this.shaderData.setFloat("opacity", this);
-        this.shaderData.setMatrix3("normalMtrix", () => {
+        uniformBuffer.setColor("diffuse", this);
+        uniformBuffer.setFloat("opacity", this);
+        uniformBuffer.setMatrix3("normalMtrix", () => {
             return mesh.normalMatrix;
         });
-        this.shaderData.setColor('emissive', this);
-        this.shaderData.setFloat("metalness", this);
-        this.shaderData.setFloat("roughness", this);
+        uniformBuffer.setColor('emissive', this);
+        uniformBuffer.setFloat("metalness", this);
+        uniformBuffer.setFloat("roughness", this);
+        this.shaderData.setUniformBuffer('pbr', uniformBuffer);
         this.brdfTexture = textureCache.getTexture('brdf');
         this.diffuseEnvTexture = textureCache.getTexture('diffuse');
         this.specularEnvTexture = textureCache.getTexture('specular');
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE', true);
-            this.shaderData.setTexture('baseTexture', this);
-            this.shaderData.setSampler('baseSampler', this);
+            this.shaderData.setTexture('baseTexture', this.baseTexture);
+            this.shaderData.setSampler('baseSampler', this.baseSampler);
         }
         if (this.metalnessRoughnessTexture) {
             this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
-            this.shaderData.setTexture('metalnessRoughnessTexture', this);
+            this.shaderData.setTexture('metalnessRoughnessTexture', this.metalnessRoughnessTexture);
         }
         if (this.normalTexture) {
-            this.shaderData.setFloatVec2("normalScale", this);
+            uniformBuffer.setFloatVec2("normalScale", this);
             this.shaderData.setDefine('USE_NORMALTEXTURE', true);
-            this.shaderData.setTexture('normalTexture', this);
+            this.shaderData.setTexture('normalTexture', this.normalTexture);
         }
         if (this.aoTexture) {
             this.shaderData.setDefine('USE_AOTEXTURE', true);
-            this.shaderData.setTexture('aoTexture', this);
-            this.shaderData.setFloat('aoTextureIntensity', this);
+            this.shaderData.setTexture('aoTexture', this.aoTexture);
+            uniformBuffer.setFloat('aoTextureIntensity', this);
         }
         if (this.emissiveTexture) {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
-            this.shaderData.setTexture('emissiveTexture', this);
+            this.shaderData.setTexture('emissiveTexture', this.emissiveTexture);
         }
         if (this.specularEnvTexture) {
-            this.shaderData.setTexture('specularEnvTexture', this);
+            this.shaderData.setTexture('specularEnvTexture', this.specularEnvTexture);
         }
         if (this.diffuseEnvTexture) {
-            this.shaderData.setTexture('diffuseEnvTexture', this);
+            this.shaderData.setTexture('diffuseEnvTexture', this.diffuseEnvTexture);
         }
         if (this.brdfTexture) {
-            this.shaderData.setTexture('brdfTexture', this);
+            this.shaderData.setTexture('brdfTexture', this.brdfTexture);
         }
     }
     destroy() {
     }
 }
-
-class PbrBaseMaterial extends Material {
-    constructor() {
-        super();
-        this.type = 'pbr';
-        this._roughness = 0.1;
-        this._metalness = 0.1;
-        this._lightTextureIntensity = 1.0;
-        this._aoTextureIntensity = 1.0;
-        this._bumpScale = 1;
-        this._normalScale = new Vector2(1, 1);
-        this._displacementScale = 1;
-        this._displacementBias = 0;
-        this._envTextureIntensity = 1.0;
-        this._flatShading = false;
-        this._ior = 1.5;
-        // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
-        this._flipEnvTexture = -1;
-        this.shaderSource = new ShaderSource({
-            type: this.type,
-            render: true,
-            defines: {
-                materialPbr: true
-            }
-        });
-        //this.shaderData.setDefine('materialPbr',true);
-        // uniforms.reflectivity.value = material.reflectivity;
-        // uniforms.ior.value = material.ior;
-        // uniforms.refractionRatio.value = material.refractionRatio;
-    }
-    get roughness() {
-        return this._roughness;
-    }
-    set roughness(value) {
-        this._roughness = value;
-    }
-    get metalness() {
-        return this._metalness;
-    }
-    set metalness(v) {
-        this._metalness = v;
-    }
-    get lightTextureIntensity() {
-        return this._lightTextureIntensity;
-    }
-    set lightTextureIntensity(v) {
-        this._lightTextureIntensity = v;
-    }
-    get aoTextureIntensity() {
-        return this._aoTextureIntensity;
-    }
-    set aoTextureIntensity(v) {
-        this._aoTextureIntensity = v;
-    }
-    get bumpScale() {
-        if (this.renderState && this.renderState.primitive) {
-            if (this.renderState.primitive.cullMode == CullMode.Back)
-                return this._bumpScale * -1;
-        }
-        return this._bumpScale;
-    }
-    set bumpScale(v) {
-        this._bumpScale = v;
-    }
-    get normalScale() {
-        if (this.renderState && this.renderState.primitive) {
-            if (this.renderState.primitive.cullMode == CullMode.Back) {
-                return Vector2.negate(this._normalScale, new Vector2());
-            }
-        }
-        return this._normalScale;
-    }
-    set normalScale(v) {
-        this._normalScale = v;
-    }
-    get displacementScale() {
-        return this._displacementScale;
-    }
-    set displacementScale(v) {
-        this._displacementScale = v;
-    }
-    get displacementBias() {
-        return this._displacementBias;
-    }
-    set displacementBias(v) {
-        this._displacementBias = v;
-    }
-    get envTextureIntensity() {
-        return this._envTextureIntensity;
-    }
-    set envTextureIntensity(v) {
-        this._envTextureIntensity = v;
-    }
-    get flatShading() {
-        return this._flatShading;
-    }
-    set flatShading(v) {
-        this._flatShading = v;
-    }
-    get ior() {
-        return this._ior;
-    }
-    set ior(v) {
-        this._ior = v;
-    }
-    get reflectivity() {
-        return (GMath.clamp(2.5 * (this.ior - 1) / (this.ior + 1), 0, 1));
-    }
-    set reflectivity(v) {
-        this.ior = (1 + 0.4 * v) / (1 - 0.4 * v);
-    }
-    get flipEnvTexture() {
-        return this._flipEnvTexture;
-    }
-    set flipEnvTexture(v) {
-        this._flipEnvTexture = v;
-    }
-    update(frameState, mesh) {
-        if (!this.shaderData) {
-            this.createShaderData(mesh, frameState);
-        }
-    }
-    createShaderData(mesh, frameState) {
-        super.createShaderData(mesh);
-        this.shaderData.setFloat("roughness", this);
-        this.shaderData.setFloat("metalness", this);
-        if (this.baseTexture) {
-            this.shaderData.setDefine('USE_TEXTURE', true);
-            this.shaderData.setTexture('baseTexture', this);
-            this.shaderData.setSampler('baseSampler', this);
-        }
-        if (this.metalnessTexture) {
-            this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
-            this.shaderData.setTexture('metalnessTexture', this);
-        }
-        if (this.roughnessTexture) {
-            this.shaderData.setDefine('USE_ROUGHNESSTEXTURE', true);
-            this.shaderData.setTexture('roughnessTexture', this);
-        }
-        if (this.bumpTexture) {
-            //if ( material.side === BackSide ) uniforms.bumpScale.value *= - 1;
-            this.shaderData.setFloat("bumpScale", this);
-            this.shaderData.setDefine('USE_BUMPTEXTURE', true);
-            this.shaderData.setTexture('bumpTexture', this);
-        }
-        if (this.aoTexture) {
-            this.shaderData.setDefine('USE_AOTEXTURE', true);
-            this.shaderData.setDefine('vUv2OutLocation', 4);
-            this.shaderData.setFloat("aoMapIntensity", this);
-            this.shaderData.setTexture('aoTexture', this);
-        }
-        if (this.lightTexture) {
-            // artist-friendly light intensity scaling factor
-            //const scaleFactor = ( renderer.physicallyCorrectLights !== true ) ? Math.PI : 1;
-            //uniforms.lightMapIntensity.value = material.lightMapIntensity * scaleFactor;
-            this.shaderData.setFloat("lightMapIntensity", this);
-            this.shaderData.setDefine('USE_LIGHTTEXTURE', true);
-            this.shaderData.setDefine('vUv2OutLocation', 4);
-            this.shaderData.setTexture('lightTexture', this);
-        }
-        if (this.displacementTexture) {
-            this.shaderData.setFloat("displacementBias", this);
-            this.shaderData.setFloat("displacementScale", this);
-            this.shaderData.setDefine('USE_DISPLACEMENTTEXTURE', true);
-            this.shaderData.setTexture('displacementTexture', this);
-        }
-        if (this.normalTexture) {
-            // uniforms.normalScale.value.copy( material.normalScale );
-            // if ( material.side === BackSide ) uniforms.normalScale.value.negate();
-            this.shaderData.setFloatVec2("normalScale", this);
-            this.shaderData.setDefine('USE_NORMALTEXTURE', true);
-            this.shaderData.setTexture('normalTexture', this);
-        }
-        if (frameState.environment) {
-            // uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
-            // uniforms.refractionRatio.value = material.refractionRatio;
-            this.shaderData.setFloat("flipEnvTexture", this);
-            this.shaderData.setDefine('USE_ENVTEXTURE', true);
-            this.shaderData.setDefine('ENVTEXTURE_TYPE_CUBE_UV', true);
-            this.shaderData.setFloat("ior", this);
-            this.shaderData.setFloat("reflectivity", this);
-            this.shaderData.setTexture('envTexture', () => {
-                return frameState.environment;
-            });
-        }
-        if (this.emissiveTexture) {
-            this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
-            this.shaderData.setTexture('emissiveTexture', this);
-        }
-    }
-    destory() {
-    }
-}
-// const defines={
-//     USE_COLOR_ALPHA:false,
-//     USE_COLOR:false,
-//     USE_INSTANCING_COLOR:false,
-//     USE_SKINNING:false,
-//     USE_DISPLACEMENTMAP:false,
-//     USE_MORPHTARGETS:false,
-//     MORPHTARGETS_TEXTURE:false,
-//     USE_INSTANCING:false,
-//     USE_TANGENT:false,
-//     USE_MORPHNORMALS:false,
-//     USE_UV:false,
-//     USE_MORPHCOLORS:false,
-//     FLIP_SIDED:false,
-//     FLAT_SHADED:false,
-//     USE_ENVMAP:false,
-//     DISTANCE:false,
-//     USE_TRANSMISSION:false,
-//     SPECULAR:false,////////
-//     USE_SHEEN:false,
-//     USE_CLEARCOAT_NORMALMAP:false,
-//     USE_NORMALMAP:false,
-//     IOR:false,
-//     USE_CLEARCOAT:false,
-//     USE_IRIDESCENCE:false,
-//     OBJECTSPACE_NORMALMAP:false,
-//     USE_ALPHATEST:false,
-//     STANDARD:false,
-//     DITHERING:false,
-//     ENVMAP_TYPE_CUBE_UV:false,
-//     ENVMAP_TYPE_CUBE:false,
-//     USE_BUMPMAP:false,
-//     TANGENTSPACE_NORMALMAP:false,
-//     USE_MAP:false,
-//     DECODE_VIDEO_TEXTURE:false,
-//     USE_ROUGHNESSMAP:false,
-//     USE_METALNESSMAP:false,
-//     DOUBLE_SIDED:false,
-//     USE_EMISSIVEMAP:false,
-//     USE_SPECULARINTENSITYMAP:false,
-//     USE_SPECULARCOLORMAP:false,
-//     USE_CLEARCOATMAP:false,
-//     USE_CLEARCOAT_ROUGHNESSMAP:false,
-//     USE_IRIDESCENCEMAP:false,
-//     USE_IRIDESCENCE_THICKNESSMAP:false,
-//     USE_SHEENCOLORMAP:false,
-//     USE_SHEENROUGHNESSMAP:false,
-//     USE_TRANSMISSIONMAP:false,
-//     USE_THICKNESSMAP:false,
-//     TONE_MAPPING:false,
-//     PREMULTIPLIED_ALPHA:false,
-//     USE_LIGHTMAP:false,
-//     USE_AOMAP:false,
-//     uv2Location:0,
-//     instanceMatrixLocation:1,
-//     instanceColorLocation:2,
-//     tangentLocation:3,
-//     colorLocation:4,
-//     morphTarget0Location:5,
-//     morphTarget1Location:6,
-//     morphTarget2Location:7,
-//     morphTarget3Location:8,
-//     morphNormal0Location:9,
-//     morphNormal1Location:10,
-//     morphNormal2Location:11,
-//     morphNormal3Location:12,
-//     morphTarget4Location:13,
-//     morphTarget5Location:14,
-//     morphTarget6Location:15,
-//     morphTarget7Location:16,
-//     skinIndexLocation:17,
-//     skinWeightLocation:18,
-//     //vert
-//     samplerBinding:0,
-//     boneTextureBinding:1,
-//     displacementMapBinding:2,
-//     morphTargetsTextureBinding:3,
-//     //frag
-//     transmissionMapBinding:0,
-//     thicknessMapBinding:1,
-//     transmissionSamplerMapBinding:2,
-//     envMapBinding:3,
-//     normalMapBinding:4,
-//     clearcoatMapBinding:5,
-//     clearcoatRoughnessMapBinding:6,
-//     clearcoatNormalMapBinding:7,
-//     iridescenceMapBinding:8,
-//     iridescenceThicknessMapBinding:9,
-//     roughnessMapBinding:10,
-//     metalnessMapBinding:11,
-//     specularIntensityMapBinding:12,
-//     specularColorMapBinding:13,
-//     sheenColorMapBinding:14,
-//     sheenRoughnessMapBinding:15,
-//     baseTextureBinding:16,
-//     alphaMapBinding:17,
-//     aoMapBinding:18,
-//     lightMapBinding:19,
-//     emissiveMapBinding:20,
-// }
 
 class EventDispatcher {
     constructor() { }
@@ -11728,6 +11396,7 @@ class ShaderMaterial extends Material {
             render: true
         });
         this.uniforms = uniforms;
+        this.uniformBuffer = undefined;
     }
     update(frameState, mesh) {
         if (!this.shaderData)
@@ -11735,43 +11404,60 @@ class ShaderMaterial extends Material {
     }
     createShaderData(mesh) {
         super.createShaderData(mesh);
+        // 
         const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
         uniformsNames.map((uniformsName) => {
             this.addUniformToShaderData(uniformsName, this.uniforms[uniformsName]);
         });
+        if (this.uniformBuffer)
+            this.shaderData.setUniformBuffer('custom', this.uniformBuffer);
     }
     addUniformToShaderData(name, uniform) {
         switch (uniform.type) {
             case "vec2":
-                this.shaderData.setFloatVec2(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setFloatVec2(name, () => {
                     return this.uniforms[name].value;
                 });
                 break;
             case "vec3":
-                this.shaderData.setFloatVec3(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setFloatVec3(name, () => {
                     return this.uniforms[name].value;
                 });
                 break;
             case "color":
-                this.shaderData.setColor(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setColor(name, () => {
                     return this.uniforms[name].value;
                 });
                 break;
             case "vec4":
-                this.shaderData.setFloatVec4(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setFloatVec4(name, () => {
                     return this.uniforms[name].value;
                 });
             case "mat2":
-                this.shaderData.setMatrix2(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setMatrix2(name, () => {
                     return this.uniforms[name].value;
                 });
                 break;
             case "mat3":
-                this.shaderData.setMatrix3(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setMatrix3(name, () => {
                     return this.uniforms[name].value;
                 });
             case "mat4":
-                this.shaderData.setMatrix4(name, () => {
+                if (this.uniformBuffer)
+                    this.uniformBuffer = new UniformBuffer();
+                this.uniformBuffer.setMatrix4(name, () => {
                     return this.uniforms[name].value;
                 });
                 break;
@@ -13772,4 +13458,4 @@ function handleTouchStartDolly() {
     dollyStart.set(0, distance);
 }
 
-export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, OrbitControl, PbrBaseMaterial, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };
+export { AddressMode, Attachment, Attribute, Axes, BindGroup, BindGroupEntity, BlendFactor, BlendOperation, BoxGeometry, Buffer, BufferUsage, Color, ColorWriteFlags, CompareFunction, Context, CubeTextureLoader, CullMode, DirtectLight, DrawCommand, FilterMode, FrontFace, IndexFormat, InputStepMode, Mesh, OrbitControl, PbrMat, PerspectiveCamera, PhongMaterial, PointLight, PrimitiveTopology, RenderState, Sampler, Scene, ShaderStage, SkyBox, SphereGeometry, SpotLight, StencilOperation, StorageTextureAccess, Texture, TextureAspect, TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDimension, TorusKnotGeometry, Vector3, VertexFormat, loadGLTF, loadTexture };

@@ -1,17 +1,10 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-12-10 20:24:50
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-02-03 17:27:41
- * @FilePath: \GEngine\src\material\SkyBoxMaterial.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
 import { CompareFunction, TextureFormat } from "../core/WebGPUConstant";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
+import UniformBuffer from "../render/UniformBuffer";
 export default class SkyBoxMaterial extends Material{
     images: any[];
     constructor(){
@@ -41,10 +34,12 @@ export default class SkyBoxMaterial extends Material{
     }
     protected createShaderData(mesh:Mesh){
         super.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix',()=>{
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;
         });
-        this.shaderData.setTexture('baseTexture',this);
-        this.shaderData.setSampler('baseSampler',this)
+        this.shaderData.setUniformBuffer('sky',uniformBuffer)
+        this.shaderData.setTexture('baseTexture',this.baseTexture);
+        this.shaderData.setSampler('baseSampler',this.baseSampler);
     }
 }

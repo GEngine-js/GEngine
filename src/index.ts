@@ -1,11 +1,3 @@
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-23 18:08:25
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-02-01 10:04:25
- * @FilePath: \GEngine\src\index.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 //render
 export { default as Buffer } from "./render/Buffer";
 export { default as DrawCommand } from "./render/DrawCommand";
@@ -30,7 +22,6 @@ export {default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 //Material
 export {default as PhongMaterial} from "./material/PhongMaterial";
 export {default as PbrMat }from "./material/PbrMat";
-export {default as PbrBaseMaterial } from "./material/PbrBaseMaterial";
 
 
 export {Scene} from './Scene';

@@ -6,6 +6,7 @@ import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
 import textureCache from "../core/TextureCache";
+import UniformBuffer from "../render/UniformBuffer";
 
 export default class PbrMat extends Material {
 
@@ -86,53 +87,54 @@ export default class PbrMat extends Material {
         }
     }
     protected createShaderData( mesh: Mesh, frameState?: FrameState) {
-
         super.createShaderData(mesh);
-        this.shaderData.setMatrix4('modelMatrix',()=>{
+        const uniformBuffer = new UniformBuffer();
+        uniformBuffer.setMatrix4('modelMatrix',()=>{
             return mesh.modelMatrix;
         });
-        this.shaderData.setColor("diffuse",this);
-        this.shaderData.setFloat("opacity",this);
-        this.shaderData.setMatrix3("normalMtrix",()=>{
+        uniformBuffer.setColor("diffuse",this);
+        uniformBuffer.setFloat("opacity",this);
+        uniformBuffer.setMatrix3("normalMtrix",()=>{
             return mesh.normalMatrix;
         });
-        this.shaderData.setColor('emissive',this);
-        this.shaderData.setFloat("metalness", this);
-        this.shaderData.setFloat("roughness", this);
+        uniformBuffer.setColor('emissive',this);
+        uniformBuffer.setFloat("metalness", this);
+        uniformBuffer.setFloat("roughness", this);
+        this.shaderData.setUniformBuffer('pbr',uniformBuffer);
         this.brdfTexture=textureCache.getTexture('brdf');
         this.diffuseEnvTexture=textureCache.getTexture('diffuse');
         this.specularEnvTexture=textureCache.getTexture('specular');
         if (this.baseTexture) {
             this.shaderData.setDefine('USE_TEXTURE', true);
-            this.shaderData.setTexture('baseTexture', this);
-            this.shaderData.setSampler('baseSampler', this);
+            this.shaderData.setTexture('baseTexture', this.baseTexture);
+            this.shaderData.setSampler('baseSampler', this.baseSampler);
         }
         if (this.metalnessRoughnessTexture) {
             this.shaderData.setDefine('USE_METALNESSTEXTURE', true);
-            this.shaderData.setTexture('metalnessRoughnessTexture', this);
+            this.shaderData.setTexture('metalnessRoughnessTexture', this.metalnessRoughnessTexture);
         }
         if (this.normalTexture) {
-            this.shaderData.setFloatVec2("normalScale", this);
+            uniformBuffer.setFloatVec2("normalScale", this);
             this.shaderData.setDefine('USE_NORMALTEXTURE', true);
-            this.shaderData.setTexture('normalTexture', this);
+            this.shaderData.setTexture('normalTexture', this.normalTexture);
         }
         if (this.aoTexture) {
             this.shaderData.setDefine('USE_AOTEXTURE', true);
-            this.shaderData.setTexture('aoTexture', this);
-            this.shaderData.setFloat('aoTextureIntensity',this)
+            this.shaderData.setTexture('aoTexture', this.aoTexture);
+            uniformBuffer.setFloat('aoTextureIntensity',this)
         }
         if (this.emissiveTexture) {
             this.shaderData.setDefine('USE_EMISSIVETEXTURE', true);
-            this.shaderData.setTexture('emissiveTexture', this)
+            this.shaderData.setTexture('emissiveTexture', this.emissiveTexture)
         }
         if (this.specularEnvTexture) {
-            this.shaderData.setTexture('specularEnvTexture', this);
+            this.shaderData.setTexture('specularEnvTexture', this.specularEnvTexture);
         }
         if (this.diffuseEnvTexture) {
-            this.shaderData.setTexture('diffuseEnvTexture', this)
+            this.shaderData.setTexture('diffuseEnvTexture', this.diffuseEnvTexture)
         }
         if (this.brdfTexture) {
-            this.shaderData.setTexture('brdfTexture', this)
+            this.shaderData.setTexture('brdfTexture', this.brdfTexture)
         }
     }
     destroy() {
