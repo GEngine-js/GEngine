@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 /** @internal */
 // eslint-disable-next-line import/export
 var PredefinedColorSpace;
@@ -4758,7 +4758,6 @@ class ShaderData {
         this._uniforms = new Map();
         this.groupIndex = defaultValue(groupIndex, 0);
         this.layoutIndex = defaultValue(layoutIndex, 0);
-        // this.uniformBuffer = new UniformBuffer();
     }
     setUniformBuffer(name, uniformBuffer) {
         if (this._uniforms.get(name))
@@ -4804,10 +4803,9 @@ class ShaderData {
         this.groupLayout = groupLayout;
     }
     destroy() {
-        this.byteOffset = 0;
-        this.data = undefined;
-        // this.uniformBuffer.destroy();
-        this._uniforms = new Map();
+        this._uniforms.forEach((uniform) => {
+            uniform.destroy();
+        });
     }
     getBindGroupAndLayout(device, label, index) {
         const layoutEntities = this.createBindGroupLayoutEntry();
@@ -5068,56 +5066,6 @@ class UniformBuffer {
     }
 }
 
-class LightShaderData extends ShaderData {
-    constructor(lightManger, layoutIndex, groupIndex) {
-        super('light', 0, layoutIndex, groupIndex);
-        this.lightManger = lightManger;
-        this.dirty = true;
-    }
-    uploadUniform(context, lightManger) {
-        if (this.dirty) {
-            this.destroy();
-            this.dirty = false;
-            this.createLightUniformBuffer(lightManger);
-        }
-        debugger;
-        this._uniforms.forEach((uniform) => uniform.bind(context));
-    }
-    bind(context, passEncoder) {
-        this.uploadUniform(context, this.lightManger);
-        const { groupLayout, bindGroup } = this.createBindGroupAndLayout(context.device, this.label, this.layoutIndex, this.groupIndex);
-        bindGroup.bind(passEncoder);
-        this.bindGroup = bindGroup;
-        this.groupLayout = groupLayout;
-    }
-    createLightUniformBuffer(lightManger) {
-        this.commonBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.commonTatalByte, lightManger.commonLightBuffer);
-        this.setUniformBuffer('commonBuffer', this.commonBuffer);
-        if (lightManger.lightDefines.spotLight) {
-            this.spotLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.spotLightsByte, lightManger.spotLightsBuffer, lightManger.lightDefines.spotLightBinding);
-            this.setUniformBuffer('spotLightsBuffer', this.spotLightsBuffer);
-        }
-        if (lightManger.lightDefines.pointLight) {
-            this.pointLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.pointLightsByte, lightManger.pointLightsBuffer, lightManger.lightDefines.pointLightBinding);
-            this.setUniformBuffer('pointLightsBuffer', this.pointLightsBuffer);
-        }
-        if (lightManger.lightDefines.dirtectLight) {
-            this.dirtectLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.dirtectLightsByte, lightManger.dirtectLightsBuffer, lightManger.lightDefines.dirtectLightBinding);
-            this.setUniformBuffer('dirtectLightsBuffer', this.dirtectLightsBuffer);
-        }
-    }
-    destroy() {
-        if (this.commonBuffer)
-            this.commonBuffer.destroy();
-        if (this.spotLightsBuffer)
-            this.spotLightsBuffer.destroy();
-        if (this.pointLightsBuffer)
-            this.pointLightsBuffer.destroy();
-        if (this.dirtectLightsBuffer)
-            this.dirtectLightsBuffer.destroy();
-    }
-}
-
 class SystemRenderResource {
     constructor() {
     }
@@ -5143,6 +5091,8 @@ class SystemRenderResource {
     updateLight(lightManger) {
         if (lightManger.lightCountDirty) {
             lightManger.lightCountDirty = false;
+            if (this.lightShaderData)
+                this.lightShaderData.destroy();
             this.createLightShaderData(lightManger);
         }
     }
@@ -5164,10 +5114,25 @@ class SystemRenderResource {
         this.cameraShaderData.setUniformBuffer('system', uniformBuffer);
     }
     createLightShaderData(lightManger) {
-        if (!this.lightShaderData)
-            this.lightShaderData = new LightShaderData(lightManger, 2, 2);
+        this.lightShaderData = new ShaderData('light', 0, 2, 2);
+        const commonBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.commonTatalByte, lightManger.commonLightBuffer);
+        this.lightShaderData.setUniformBuffer('commonBuffer', commonBuffer);
+        if (lightManger.lightDefines.spotLight) {
+            const spotLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.spotLightsByte, lightManger.spotLightsBuffer, lightManger.lightDefines.spotLightBinding);
+            this.lightShaderData.setUniformBuffer('spotLightsBuffer', spotLightsBuffer);
+        }
+        if (lightManger.lightDefines.pointLight) {
+            const pointLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.pointLightsByte, lightManger.pointLightsBuffer, lightManger.lightDefines.pointLightBinding);
+            this.lightShaderData.setUniformBuffer('pointLightsBuffer', pointLightsBuffer);
+        }
+        if (lightManger.lightDefines.dirtectLight) {
+            const dirtectLightsBuffer = new UniformBuffer('read-only-storage', BufferUsage.Storage | BufferUsage.CopyDst, lightManger.dirtectLightsByte, lightManger.dirtectLightsBuffer, lightManger.lightDefines.dirtectLightBinding);
+            this.lightShaderData.setUniformBuffer('dirtectLightsBuffer', dirtectLightsBuffer);
+        }
     }
     destroy() {
+        this.cameraShaderData.destroy();
+        this.lightShaderData.destroy();
     }
 }
 

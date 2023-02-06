@@ -52,6 +52,8 @@
         const baseSampler=new Sampler({
             magFilter: 'linear',
             minFilter: 'linear',
+            addressModeU: "repeat",
+            addressModeV: "repeat",
           });
         const baseTexture=new Texture({
             size: {width:imageBitmap.width, height:imageBitmap.height, depth:1},
