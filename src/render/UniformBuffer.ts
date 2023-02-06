@@ -1,8 +1,9 @@
+import { BufferUsage, ShaderStage } from '../core/WebGPUConstant';
 import defaultValue from '../utils/defaultValue';
 import Buffer from './Buffer';
 import Context from './Context';
 import { UniformColor, UniformFloat, UniformFloatVec2, UniformFloatVec3, UniformFloatVec4, UniformMat2, UniformMat3, UniformMat4 } from './Uniforms';
-export default class UniformBuffer extends Buffer {
+export default class UniformBuffer{
     public type: string;
     public hasDynamicOffset: boolean;
     public minBindingSize: number;
@@ -10,21 +11,27 @@ export default class UniformBuffer extends Buffer {
     private array:Float32Array;
     byteOffset: number;
     uniformDirty: boolean;
-    constructor(device: GPUDevice, usage: GPUBufferUsageFlags, data?: ArrayBufferView | null, size?: number,) {
-        super(device, usage, data);
+    binding: number;
+    visibility: ShaderStage;
+    usage: BufferUsage;
+    constructor(usage?:BufferUsage,size?: number,binding?:number) {
+        // super(device, usage, data);
         this.type = 'uniform',
         this.hasDynamicOffset = false,
         this.minBindingSize = 0;
+        this.binding=defaultValue(binding,0);
+        this.visibility=ShaderStage.Fragment|ShaderStage.Vertex;
+        this.usage=defaultValue(usage,BufferUsage.Uniform | BufferUsage.CopyDst)
         this._uniforms=new Map(); 
         this.array=new Float32Array(defaultValue(size,400));
     }
-    // get layoutType(){
-    //     return {
-    //         type:this.type,
-    //         hasDynamicOffset:this.hasDynamicOffset,
-    //         minBindingSize:this.minBindingSize
-    //     }
-    // }
+    get layoutType(){
+        return {
+            type:this.type,
+            hasDynamicOffset:this.hasDynamicOffset,
+            minBindingSize:this.minBindingSize
+        }
+    }
     get uniformsSize(){
         //https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
         return Math.ceil(this.byteOffset/16)*16
@@ -35,7 +42,7 @@ export default class UniformBuffer extends Buffer {
             if(result!=undefined&&this.uniformDirty==false) this.uniformDirty=result;
         });
         if(this.uniformDirty){
-            this.uniformDirty=false;        
+            this.uniformDirty=false;   
             this.setSubData(0,this.array.slice(0,this.uniformsSize));
         }
     }

@@ -295,7 +295,6 @@ export default class ShaderData{
                 binding: uniform.binding,
                 buffer:uniform?.lightBuffer?.layoutType||this.buffer.layoutType,
                 visibility: uniform.visibility,
-                // uniforms: this.uniforms,
             });
         } else if(uniform.type==='texture'){
             layoutEntity = new BindGroupLayoutEntry({
