@@ -6,48 +6,25 @@ import QuerySet from "./QuerySet";
 import Texture from "./Texture";
 
 export default class RenderTarget {
-  context:Context;
+  public context:Context;
   private _renderPassDescriptor: GPURenderPassDescriptor;
   private renderEncoder: GPURenderPassEncoder;
   private commandEncoder: GPUCommandEncoder | null;
   constructor(
     public type: PassType,
-    // public context: Context,
     public colorAttachments?: Attachment[],
     public depthAttachment?: Attachment,
     public stencilAttachment?: Attachment,
     public querySet?: QuerySet
   ) {
-    // this.init();
     this.renderEncoder = undefined;
     this._renderPassDescriptor = undefined;
     this.commandEncoder=undefined;
     this.context=undefined;
   }
   get renderPassDescriptor() {
-   //if (!this._renderPassDescriptor)
       this._renderPassDescriptor = this.getRenderPassDescriptor();
     return this._renderPassDescriptor;
-  }
-  private preParse() {
-    if (this?.colorAttachments[0]?.texture == undefined) {
-      const colorTexture = new Texture({
-        size: this.context.presentationSize,
-        format: this.context.presentationFormat,
-        usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
-      });
-      colorTexture.update(this.context);
-      this.colorAttachments[0].texture = colorTexture;
-    }
-    if (this.depthAttachment && this.depthAttachment?.texture == undefined) {
-      const depthTexture = new Texture({
-        size: this.context.presentationSize,
-        format: TextureFormat.Depth24Plus,
-        usage: TextureUsage.RenderAttachment,
-      });
-      depthTexture.update(this.context);
-      this.depthAttachment.texture = depthTexture;
-    }
   }
   public getColorTexture(index: number = 0): Texture {
     const colAtt = this.colorAttachments[index];
@@ -64,10 +41,11 @@ export default class RenderTarget {
   }
   private getRenderPassDescriptor(): GPURenderPassDescriptor | null {
     if (this.type === "render") { 
-      this.preParse();
+      this.depthAttachment?.texture?.update(this.context)
       return {
         ...(this.colorAttachments && {
           colorAttachments: this.colorAttachments.map((colorAttachment) => {
+            (colorAttachment?.texture?.update)&&colorAttachment?.texture?.update(this.context)
             return {
               view:
               //暂时这么写
@@ -82,7 +60,7 @@ export default class RenderTarget {
             } as GPURenderPassColorAttachment;
           }),
         }),
-        ...((this.depthAttachment || this.stencilAttachment) && {
+        ...((this.depthAttachment || this.stencilAttachment)&& {
           depthStencilAttachment: {
             view:
               this.depthAttachment?.texture?.gpuTexture?.createView() ||
@@ -99,7 +77,7 @@ export default class RenderTarget {
     }
     return null;
   }
-  public getRenderPassEncoder(context: Context) {
+  public beginRenderPassEncoder(context: Context) {
     if (!this.context) this.context = context;
     const { device } = this.context;
     this.commandEncoder = device.createCommandEncoder();
@@ -114,15 +92,14 @@ export default class RenderTarget {
     this.commandEncoder = null;
     this.renderEncoder = null;
   }
-  resize() {
-    const { width, height } = this.context.canvas;
+  resize(width:number,height:number) {
     const size = {
       width,
       height,
-      depth: (<Texture>this.colorAttachments[0]?.texture)?.textureProp?.size.depth || 0,
+      depth: (<Texture>this.colorAttachments[0]?.texture)?.textureProp?.size.depth || 1,
     };
     for (let i = 0; i < this.colorAttachments.length; ++i) {
-      if (this.colorAttachments[i]) {
+      if (this.colorAttachments[i].texture) {
         const resizedTexture = new Texture({
           ...(<Texture>this.colorAttachments[i].texture).textureProp,
           size,
@@ -135,7 +112,7 @@ export default class RenderTarget {
       }
     }
 
-    if (this.depthAttachment) {
+    if (this.depthAttachment.texture) {
       const resizedTexture = new Texture({
         ...(<Texture>this.depthAttachment.texture).textureProp,
         size,

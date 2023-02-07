@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 /** @internal */
 // eslint-disable-next-line import/export
 var PredefinedColorSpace;
@@ -11141,7 +11141,7 @@ class Pass {
     render(renderQueue) { }
     ;
     beforRender() {
-        this.passRenderEncoder = this.renderTarget.getRenderPassEncoder(this.context);
+        this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
     }
     getColorTexture(index = 0) {
         return this.renderTarget.getColorTexture(index);
@@ -11159,7 +11159,7 @@ class Pass {
     }
     excuteCommand(command) {
         if (command.renderTarget) {
-            const currentRenderPassEncoder = command.renderTarget.getRenderPassEncoder(this.context);
+            const currentRenderPassEncoder = command.renderTarget.beginRenderPassEncoder(this.context);
             this.context.render(command, currentRenderPassEncoder);
             command.renderTarget.endRenderPassEncoder();
         }
@@ -11172,22 +11172,18 @@ class Pass {
 }
 
 class RenderTarget {
-    constructor(type, 
-    // public context: Context,
-    colorAttachments, depthAttachment, stencilAttachment, querySet) {
+    constructor(type, colorAttachments, depthAttachment, stencilAttachment, querySet) {
         this.type = type;
         this.colorAttachments = colorAttachments;
         this.depthAttachment = depthAttachment;
         this.stencilAttachment = stencilAttachment;
         this.querySet = querySet;
-        // this.init();
         this.renderEncoder = undefined;
         this._renderPassDescriptor = undefined;
         this.commandEncoder = undefined;
         this.context = undefined;
     }
     get renderPassDescriptor() {
-        //if (!this._renderPassDescriptor)
         this._renderPassDescriptor = this.getRenderPassDescriptor();
         return this._renderPassDescriptor;
     }
@@ -11227,10 +11223,12 @@ class RenderTarget {
     }
     getRenderPassDescriptor() {
         if (this.type === "render") {
-            this.preParse();
+            // this.preParse();
+            this.depthAttachment?.texture?.update(this.context);
             return {
                 ...(this.colorAttachments && {
                     colorAttachments: this.colorAttachments.map((colorAttachment) => {
+                        (colorAttachment?.texture?.update) && colorAttachment?.texture?.update(this.context);
                         return {
                             view: 
                             //暂时这么写
@@ -11260,7 +11258,7 @@ class RenderTarget {
         }
         return null;
     }
-    getRenderPassEncoder(context) {
+    beginRenderPassEncoder(context) {
         if (!this.context)
             this.context = context;
         const { device } = this.context;
@@ -11274,15 +11272,14 @@ class RenderTarget {
         this.commandEncoder = null;
         this.renderEncoder = null;
     }
-    resize() {
-        const { width, height } = this.context.canvas;
+    resize(width, height) {
         const size = {
             width,
             height,
-            depth: this.colorAttachments[0]?.texture?.textureProp?.size.depth || 0,
+            depth: this.colorAttachments[0]?.texture?.textureProp?.size.depth || 1,
         };
         for (let i = 0; i < this.colorAttachments.length; ++i) {
-            if (this.colorAttachments[i]) {
+            if (this.colorAttachments[i].texture) {
                 const resizedTexture = new Texture({
                     ...this.colorAttachments[i].texture.textureProp,
                     size,
@@ -11294,7 +11291,7 @@ class RenderTarget {
                     resizedTexture.gpuTexture.createView();
             }
         }
-        if (this.depthAttachment) {
+        if (this.depthAttachment.texture) {
             const resizedTexture = new Texture({
                 ...this.depthAttachment.texture.textureProp,
                 size,
@@ -11341,8 +11338,18 @@ class BasicPass extends Pass {
         this.createRenderTarget(context);
     }
     createRenderTarget(context) {
-        const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 });
-        const depthAttachment = new Attachment(1.0);
+        const colorTexture = new Texture({
+            size: this.context.presentationSize,
+            format: this.context.presentationFormat,
+            usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
+        });
+        const depthTexture = new Texture({
+            size: this.context.presentationSize,
+            format: TextureFormat.Depth24Plus,
+            usage: TextureUsage.RenderAttachment,
+        });
+        const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, { texture: colorTexture });
+        const depthAttachment = new Attachment(1.0, { texture: depthTexture });
         this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
     }
 }
@@ -11479,7 +11486,7 @@ class ResolveFrame {
         this.material.update(undefined, this.quadMesh);
         this.quadMesh.beforeRender();
         const drawComand = this.quadMesh.getDrawCommand();
-        const currentRenderPassEncoder = this.canvasRenderTarget.getRenderPassEncoder(context);
+        const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context);
         context.render(drawComand, currentRenderPassEncoder);
         this.canvasRenderTarget.endRenderPassEncoder();
         this.quadMesh.afterRender();
@@ -11490,7 +11497,12 @@ class ResolveFrame {
                 gpuTexture: context.context.getCurrentTexture(),
             },
         });
-        const depthAttachment = new Attachment(1.0);
+        const depthTexture = new Texture({
+            size: context.presentationSize,
+            format: TextureFormat.Depth24Plus,
+            usage: TextureUsage.RenderAttachment,
+        });
+        const depthAttachment = new Attachment(1.0, { texture: depthTexture });
         this.canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
     }
 }

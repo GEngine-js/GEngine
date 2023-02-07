@@ -6,7 +6,6 @@ import {
 import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
-import RenderTarget from "./RenderTarget";
 import RenderState from "./RenderState";
 import SystemRenderResource from "../core/SystemRenderResource";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
@@ -24,10 +23,6 @@ class Context {
   private adapter: GPUAdapter;
 
   public commandEncoder: GPUCommandEncoder | null;
-
-  private passEncoder: GPURenderPassEncoder | GPUComputePassEncoder | null;
-
-  public currentRenderTarget: RenderTarget;
 
   public systemRenderResource: SystemRenderResource;
 

@@ -20,7 +20,7 @@ class Pass {
   }
   render(renderQueue: RenderQueue): void{};
   beforRender(){
-    this.passRenderEncoder=this.renderTarget.getRenderPassEncoder(this.context);
+    this.passRenderEncoder=this.renderTarget.beginRenderPassEncoder(this.context);
   }
   getColorTexture(index:number=0):Texture{
      return this.renderTarget.getColorTexture(index) as Texture
@@ -38,7 +38,7 @@ class Pass {
   }
   protected excuteCommand(command:DrawCommand){
     if (command.renderTarget) {
-      const currentRenderPassEncoder=command.renderTarget.getRenderPassEncoder(this.context);
+      const currentRenderPassEncoder=command.renderTarget.beginRenderPassEncoder(this.context);
       this.context.render(command,currentRenderPassEncoder);
       command.renderTarget.endRenderPassEncoder();
     } else {

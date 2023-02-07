@@ -1,3 +1,4 @@
+import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import ShaderMaterial from "../material/ShaderMaterial";
 import { Mesh } from "../mesh/Mesh";
@@ -48,7 +49,7 @@ export default class ResolveFrame {
      this.material.update(undefined,this.quadMesh)
      this.quadMesh.beforeRender();
      const drawComand=this.quadMesh.getDrawCommand();
-     const currentRenderPassEncoder=this.canvasRenderTarget.getRenderPassEncoder(context);
+     const currentRenderPassEncoder=this.canvasRenderTarget.beginRenderPassEncoder(context);
      context.render(drawComand,currentRenderPassEncoder);
      this.canvasRenderTarget.endRenderPassEncoder();
      this.quadMesh.afterRender();
@@ -62,7 +63,12 @@ export default class ResolveFrame {
           } as Texture,
         }
       );
-      const depthAttachment = new Attachment(1.0);
+      const depthTexture = new Texture({
+        size: context.presentationSize,
+        format: TextureFormat.Depth24Plus,
+        usage: TextureUsage.RenderAttachment,
+      });
+      const depthAttachment = new Attachment(1.0,{texture:depthTexture});
       this.canvasRenderTarget = new RenderTarget(
         "render",
         [colorAttachment],
