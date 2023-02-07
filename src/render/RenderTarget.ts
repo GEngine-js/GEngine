@@ -19,8 +19,8 @@ export default class RenderTarget {
   ) {
     this.renderEncoder = undefined;
     this._renderPassDescriptor = undefined;
-    this.commandEncoder=undefined;
-    this.context=undefined;
+    this.commandEncoder = undefined;
+    this.context = undefined;
   }
   get renderPassDescriptor() {
       this._renderPassDescriptor = this.getRenderPassDescriptor();
@@ -34,7 +34,7 @@ export default class RenderTarget {
       return null;
     }
   }
-  public getDepthTexture(): Texture{
+  public getDepthTexture(): Texture {
     if (this.depthAttachment) {
       return this.depthAttachment.texture as Texture;
     }
@@ -48,8 +48,8 @@ export default class RenderTarget {
             (colorAttachment?.texture?.update)&&colorAttachment?.texture?.update(this.context)
             return {
               view:
-              //暂时这么写
-              colorAttachment.texture.gpuTexture.createView() || undefined,
+                //暂时这么写
+                colorAttachment.texture.gpuTexture.createView() || undefined,
               resolveTarget:
                 colorAttachment.resolveTarget != undefined
                   ? colorAttachment.resolveTarget.gpuTexture.createView()

@@ -26,8 +26,8 @@ export class Attribute {
       offset: this.offset,
     };
   }
-  destroy(){
-    this.value=[];
+  destroy() {
+    this.value = [];
   }
   applyMatrix3(matrix3) {
     if (this.itemSize === 2) {
@@ -106,7 +106,7 @@ export class Attribute {
 export class Float32Attribute extends Attribute {
   constructor(name: string, value: Array<number>, itemSize: number) {
     super(name, value, itemSize);
-    this.format = getAttributeFormat('float32', itemSize);
+    this.format = getAttributeFormat("float32", itemSize);
     this.attributeByteSize = Float32Array.BYTES_PER_ELEMENT * itemSize;
   }
 }

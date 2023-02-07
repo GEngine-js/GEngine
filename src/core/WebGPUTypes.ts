@@ -57,7 +57,7 @@ export type ShaderStageBodyNameObjectKeys = {
 };
 export interface AttachmentOptions {
   op?: GPUStoreOp;
-  texture?:Texture;
+  texture?: Texture;
   resolveTarget?: Texture;
 }
 
@@ -181,8 +181,8 @@ export type PrimitiveState = {
   frontFace?: FrontFace;
   cullMode?: CullMode;
   unclippedDepth?: boolean;
-  topology?:PrimitiveTopology;
-  stripIndexFormat?:IndexFormat;
+  topology?: PrimitiveTopology;
+  stripIndexFormat?: IndexFormat;
 };
 export type MultiSample = {
   count?: number;
@@ -241,6 +241,6 @@ export type ShaderMaterialParms = {
   uniforms: { [uniform: string]: IUniform };
 };
 export interface IUniform<TValue = any> {
-  type:string;
+  type: string;
   value: TValue;
 }

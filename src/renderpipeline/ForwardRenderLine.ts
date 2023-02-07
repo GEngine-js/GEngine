@@ -12,21 +12,23 @@ import IBaseRenderLine from "./IBaseRenderLine";
 import { FrameState } from "../core/FrameState";
 import ResolveFrame from "../post-process/ResolveFrame";
 
-export default class ForwardRenderLine implements IBaseRenderLine{
-    private basicPass:BasicPass;
-    private resolveFrame:ResolveFrame;
-       constructor(public context:Context){
-        this.basicPass=new BasicPass(context);
-        this.resolveFrame=new ResolveFrame();
-    }
-    render(frameState:FrameState) {
-        this.basicPass.beforRender();
-        this.basicPass.render(frameState.renderQueue);
-        this.basicPass.afterRender();       
-        this.resolveFrame.render(frameState.context,this.basicPass.getColorTexture(0))
-    }
-    destroy(){
-        this.basicPass=undefined;
-    }
-    
+export default class ForwardRenderLine implements IBaseRenderLine {
+  private basicPass: BasicPass;
+  private resolveFrame: ResolveFrame;
+  constructor(public context: Context) {
+    this.basicPass = new BasicPass(context);
+    this.resolveFrame = new ResolveFrame();
+  }
+  render(frameState: FrameState) {
+    this.basicPass.beforRender();
+    this.basicPass.render(frameState.renderQueue);
+    this.basicPass.afterRender();
+    this.resolveFrame.render(
+      frameState.context,
+      this.basicPass.getColorTexture(0)
+    );
+  }
+  destroy() {
+    this.basicPass = undefined;
+  }
 }

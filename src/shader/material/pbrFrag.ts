@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 
-export default function pbrFrag(defines){
-    return wgslParseDefines `
+export default function pbrFrag(defines) {
+  return wgslParseDefines`
     #include <lightCommon>
     #include <light>
     #include <brdf>
@@ -26,13 +26,13 @@ struct VertexOutput {
     @location(2) vWorldPosition: vec3<f32>,
     @location(3) vNormal: vec3<f32>,
     // 可选
-    #if ${defines.USE_LIGHTTEXTURE||defines.USE_AOTEXTURE}
+    #if ${defines.USE_LIGHTTEXTURE || defines.USE_AOTEXTURE}
         @location(${defines.vUv2OutLocation}) vUv2: vec2<f32>,
     #endif
 
     #if ${defines.USE_COLOR_ALPHA}
         @location(${defines.vColorOutLocation}) vColor: vec4<f32>,
-    #elif ${defines.USE_COLOR||defines.USE_INSTANCING_COLOR}
+    #elif ${defines.USE_COLOR || defines.USE_INSTANCING_COLOR}
         @location(${defines.vColorOutLocation}) vColor: vec3<f32>,
     #endif
 
@@ -126,7 +126,10 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
                     tangent = tangent * faceDirection;
                     bitangent = bitangent * faceDirection;
                 #endif
-                #if ${defines.TANGENTSPACE_NORMALTEXTURE||defines.USE_CLEARCOAT_NORMALTEXTURE}
+                #if ${
+                  defines.TANGENTSPACE_NORMALTEXTURE ||
+                  defines.USE_CLEARCOAT_NORMALTEXTURE
+                }
                     let vTBN:mat3x3<f32> = mat3x3<f32>( tangent, bitangent, normal );
                 #endif
             #endif
@@ -373,5 +376,5 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
             finnalColor.rgb = dithering( finnalColor.rgb );
         #endif
         return finnalColor;
-    }`
+    }`;
 }

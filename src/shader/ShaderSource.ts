@@ -42,15 +42,14 @@ export class ShaderSource {
     globalDefines?: object,
     materialDefines?: object,
     geometryDefines?: object
-  ) {
-  }
+  ) {}
   private updateShaderStr() {
     if (this.render) {
       const source = getVertFrag(this.type, this.defines);
       this.vert = source.vert;
       this.frag = source.frag;
     } else if (this.customShader) {
-        //TODO 
+      //TODO
     }
   }
   public setDefines(defines) {

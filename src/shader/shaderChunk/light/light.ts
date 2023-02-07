@@ -1,6 +1,6 @@
-import {wgslParseDefines} from '../../WgslPreprocessor'
-export default function light(defines){
-return wgslParseDefines`   
+import { wgslParseDefines } from "../../WgslPreprocessor";
+export default function light(defines) {
+  return wgslParseDefines`   
     #if ${defines.spotLight}
         struct SpotLight {
             position: vec3<f32>,
@@ -138,5 +138,5 @@ return wgslParseDefines`
             }
         #endif
         return reflectedLight;
-    }`
+    }`;
 }

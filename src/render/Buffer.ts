@@ -1,5 +1,5 @@
 import { BufferUsage } from "../core/WebGPUConstant";
-import {bufferLayoutType} from "../core/WebGPUTypes";
+import { bufferLayoutType } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 
 class Buffer {
@@ -8,43 +8,62 @@ class Buffer {
   usage: number;
   data: ArrayBufferView;
   size: number;
-  constructor(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?: number,) {
-    this.device=device;
-    this.usage=usage;
-    this.data=data;
-    this.size=size;
+  constructor(
+    device: GPUDevice,
+    usage: GPUBufferUsageFlags,
+    data: ArrayBufferView | null,
+    size?: number
+  ) {
+    this.device = device;
+    this.usage = usage;
+    this.data = data;
+    this.size = size;
     this.gpuBuffer = device.createBuffer({
-      size: size!=undefined?size: data.byteLength,
+      size: size != undefined ? size : data.byteLength,
       usage,
     });
     if (data) this.setSubData(0, data);
   }
-  static create(device: GPUDevice,usage: GPUBufferUsageFlags,data:ArrayBufferView | null,size?:number){
-      return new Buffer(device,usage,data,size)
+  static create(
+    device: GPUDevice,
+    usage: GPUBufferUsageFlags,
+    data: ArrayBufferView | null,
+    size?: number
+  ) {
+    return new Buffer(device, usage, data, size);
   }
-  static createVertexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
-    return new Buffer(device,BufferUsage.Vertex | BufferUsage.CopyDst, data,data.byteLength);
+  static createVertexBuffer(device: GPUDevice, data: ArrayBufferView): Buffer {
+    return new Buffer(
+      device,
+      BufferUsage.Vertex | BufferUsage.CopyDst,
+      data,
+      data.byteLength
+    );
   }
 
-  static createIndexBuffer(device:GPUDevice,data: ArrayBufferView): Buffer {
-    return new Buffer(device,BufferUsage.Index | BufferUsage.CopyDst, data); 
+  static createIndexBuffer(device: GPUDevice, data: ArrayBufferView): Buffer {
+    return new Buffer(device, BufferUsage.Index | BufferUsage.CopyDst, data);
   }
 
-  static createUniformBuffer(device:GPUDevice,size: number,usage?:BufferUsage): Buffer {
-    return new Buffer(device,usage, null,size); 
+  static createUniformBuffer(
+    device: GPUDevice,
+    size: number,
+    usage?: BufferUsage
+  ): Buffer {
+    return new Buffer(device, usage, null, size);
   }
-  static getBufferType(usage){
+  static getBufferType(usage) {
     let result;
-      switch (usage) {
-         case BufferUsage.Uniform:
-          result="uniform"
-          break;
-          case BufferUsage.Storage:
-          result="storage"
-            break;
-        default:
-          break;
-      }
+    switch (usage) {
+      case BufferUsage.Uniform:
+        result = "uniform";
+        break;
+      case BufferUsage.Storage:
+        result = "storage";
+        break;
+      default:
+        break;
+    }
   }
   // https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
   public setSubData(offset: number, data: ArrayBufferView): void {

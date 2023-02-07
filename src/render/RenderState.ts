@@ -36,18 +36,9 @@ export default class RenderState {
     const rs = defaultValue(renderState, {});
     const targets = defaultValue(rs.targets, {});
     const blend = defaultValue(rs.blend, { color: {}, alpha: {} });
-    const depthStencil = defaultValue(
-      rs.depthStencil,
-      {}
-    );
-    const depthStencilFront = defaultValue(
-      depthStencil.front,
-     {}
-    );
-    const depthStencilBack = defaultValue(
-      depthStencil.back,
-      {}
-    );
+    const depthStencil = defaultValue(rs.depthStencil, {});
+    const depthStencilFront = defaultValue(depthStencil.front, {});
+    const depthStencilBack = defaultValue(depthStencil.back, {});
     const viewport = rs.viewport;
     this.stencilEnabled = defaultValue(rs.stencilEnabled, false);
     this.scissorTestEnabled = defaultValue(rs.scissorTestEnabled, false);

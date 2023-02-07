@@ -154,7 +154,7 @@ class Matrix4 {
       `(${this[3]}, ${this[7]}, ${this[11]}, ${this[15]})`
     );
   }
-  static clone(matrix: Matrix4|number[], result: Matrix4): Matrix4 {
+  static clone(matrix: Matrix4 | number[], result: Matrix4): Matrix4 {
     if (!defined(matrix)) {
       return undefined;
     }

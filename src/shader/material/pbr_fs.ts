@@ -1,6 +1,6 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
-export default function pbr_fs(defines){
-   return   wgslParseDefines`
+export default function pbr_fs(defines) {
+  return wgslParseDefines`
         // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
         struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
@@ -258,5 +258,5 @@ export default function pbr_fs(defines){
         #endif
        return vec4<f32>(color.xyz, baseColor.a);
     }
-   `
+   `;
 }

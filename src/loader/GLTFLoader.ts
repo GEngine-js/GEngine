@@ -61,7 +61,7 @@ export class GLTF {
     json: any,
     buffers: Array<ArrayBuffer>,
     images: Array<ImageBitmap>,
-    glbOffset = 0,    
+    glbOffset = 0
   ) {
     this.scenes = json.scenes;
     this.defaultScene = json.scene || 0;
@@ -216,18 +216,21 @@ export class GLTF {
         if (primitive.attributes.COLOR_0 !== undefined) {
           colors = accessors[primitive.attributes.COLOR_0];
         }
-        return generateMesh({
-          vertexCount,
-          indices,
-          positions,
-          normals,
-          uvs,
-          uv1s,
-          tangents,
-          colors,
-          material,
-          boundingBox,
-        },this.images)
+        return generateMesh(
+          {
+            vertexCount,
+            indices,
+            positions,
+            normals,
+            uvs,
+            uv1s,
+            tangents,
+            colors,
+            material,
+            boundingBox,
+          },
+          this.images
+        );
         // return {
         //   vertexCount,
         //   indices,
@@ -356,9 +359,9 @@ export async function loadGLTF(url: string) {
   const jsonLength = new Uint32Array(glb, 12, 1)[0];
   const jsonChunk = new Uint8Array(glb, 20, jsonLength);
   const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
-  return loadGLTFObject(json, url,28 + jsonLength,glb,);
+  return loadGLTFObject(json, url, 28 + jsonLength, glb);
 }
-function generateMesh(options,images) {
+function generateMesh(options, images) {
   const {
     vertexCount,
     indices,
@@ -380,41 +383,58 @@ function generateMesh(options,images) {
     pbrMetallicRoughness,
   } = material;
   const geo = new Geometry({});
-  if(indices)geo.setIndice(Array.from(indices));
-  if(positions)geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
-  if(normals)geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
-  if(uvs)geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+  if (indices) geo.setIndice(Array.from(indices));
+  if (positions)
+    geo.setAttribute(
+      new Float32Attribute("position", Array.from(positions), 3)
+    );
+  if (normals)
+    geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+  if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
   geo.computeBoundingSphere(Array.from(positions));
-  geo.count=vertexCount;
+  geo.count = vertexCount;
   const mat = new PbrMat();
-  if(normalTexture)mat.normalTexture=generateTexture(normalTexture,images);
-  if(occlusionTexture)mat.aoTexture=generateTexture(occlusionTexture,images);
-  if(emissiveTexture)mat.emissiveTexture=generateTexture(emissiveTexture,images);
-  if(pbrMetallicRoughness?.baseColorTexture)mat.baseTexture=generateTexture(pbrMetallicRoughness.baseColorTexture,images);
-  if(pbrMetallicRoughness?.metallicRoughnessTexture)mat.metalnessRoughnessTexture=generateTexture(pbrMetallicRoughness.metallicRoughnessTexture,images);
-  mat.baseSampler=new Sampler({
-    magFilter: 'linear',
-    minFilter: 'linear',
+  if (normalTexture) mat.normalTexture = generateTexture(normalTexture, images);
+  if (occlusionTexture)
+    mat.aoTexture = generateTexture(occlusionTexture, images);
+  if (emissiveTexture)
+    mat.emissiveTexture = generateTexture(emissiveTexture, images);
+  if (pbrMetallicRoughness?.baseColorTexture)
+    mat.baseTexture = generateTexture(
+      pbrMetallicRoughness.baseColorTexture,
+      images
+    );
+  if (pbrMetallicRoughness?.metallicRoughnessTexture)
+    mat.metalnessRoughnessTexture = generateTexture(
+      pbrMetallicRoughness.metallicRoughnessTexture,
+      images
+    );
+  mat.baseSampler = new Sampler({
+    magFilter: "linear",
+    minFilter: "linear",
     addressModeU: "repeat",
     addressModeV: "repeat",
-
   });
-  mat.roughness =0.0;
-  mat.metalness =1.0;
-  const mesh=new Mesh(geo,mat);
-  return mesh
+  mat.roughness = 0.0;
+  mat.metalness = 1.0;
+  const mesh = new Mesh(geo, mat);
+  return mesh;
 }
-function generateTexture(texture,images){
-    const {sampler,index}=texture;
-    return new Texture({
-      size: {width:images[index].width, height:images[index].height, depth:1},
-      data:{
-        source:images[index]
-      },
-      format: 'rgba8unorm',
-      usage:
-        GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.COPY_DST |
-        GPUTextureUsage.RENDER_ATTACHMENT,
-    }); 
+function generateTexture(texture, images) {
+  const { sampler, index } = texture;
+  return new Texture({
+    size: {
+      width: images[index].width,
+      height: images[index].height,
+      depth: 1,
+    },
+    data: {
+      source: images[index],
+    },
+    format: "rgba8unorm",
+    usage:
+      GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.RENDER_ATTACHMENT,
+  });
 }

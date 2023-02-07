@@ -307,7 +307,6 @@ class GMath {
       throw new Error("A number between 0 and (2^32)-1 is required.");
     }
 
-
     n |= n >> 1;
     n |= n >> 2;
     n |= n >> 4;
@@ -334,7 +333,6 @@ class GMath {
   };
 
   static acosClamped = function (value: number): number {
-
     if (!defined(value)) {
       throw new Error("value is required.");
     }
@@ -343,7 +341,6 @@ class GMath {
   };
 
   static asinClamped = function (value: number): number {
-
     if (!defined(value)) {
       throw new Error("value is required.");
     }
@@ -352,7 +349,6 @@ class GMath {
   };
 
   static chordLength = function (angle: number, radius: number): number {
-
     if (!defined(angle)) {
       throw new Error("angle is required.");
     }
@@ -364,7 +360,6 @@ class GMath {
   };
 
   static logBase = function (number: number, base: number): number {
-
     if (!defined(number)) {
       throw new Error("number is required.");
     }

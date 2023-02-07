@@ -1,5 +1,5 @@
-export default function phongUtils(defines){
-   return   `
+export default function phongUtils(defines) {
+  return `
    struct BlinnPhongMaterial {
         diffuseColor:vec3<f32>,
         specularColor:vec3<f32>,
@@ -15,5 +15,5 @@ export default function phongUtils(defines){
        let result=vec3<f32>( 0.3333333,  0.3333333, 0.3333333);
        return dot( v,result ); 
    }
-   `
+   `;
 }

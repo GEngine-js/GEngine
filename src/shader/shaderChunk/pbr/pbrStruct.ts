@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
-export default function pbrStruct(defines){
-   return  wgslParseDefines`
+export default function pbrStruct(defines) {
+  return wgslParseDefines`
         struct MaterialUniform{
 
             modelMatrix: mat4x4<f32>,
@@ -131,5 +131,5 @@ export default function pbrStruct(defines){
             #endif
         }
 
-   `
+   `;
 }

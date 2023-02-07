@@ -7,8 +7,8 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { wgslParseDefines } from "../WgslPreprocessor";
-export default function pbr_vs(defines){
-   return   wgslParseDefines`
+export default function pbr_vs(defines) {
+  return wgslParseDefines`
    struct MaterialUniform {
         modelMatrix: mat4x4<f32>,
         color: vec3<f32>,
@@ -92,5 +92,5 @@ export default function pbr_vs(defines){
         output.worldPos = pos.xyz/pos.w; 
         return output;   
    }
-   `
+   `;
 }

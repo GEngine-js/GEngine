@@ -251,18 +251,18 @@ export function interpQuat(
     const v0 = new Quaternion(o[i - 8], o[i - 7], o[i - 6], o[i - 5]);
     const b0 = new Quaternion(o[i - 4], o[i - 3], o[i - 2], o[i - 1]);
     const v1 = new Quaternion(o[i + 4], o[i + 5], o[i + 6], o[i + 7]);
-    const a1 =new Quaternion(o[i], o[i + 1], o[i + 2], o[i + 3]);
-    Quaternion.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1,v0);
-    Quaternion.multiplyByScalar(b0, td * (t3 - 2 * t2 + t),b0);
-    Quaternion.multiplyByScalar(v1, -2 * t3 + 3 * t2,v1);
-    Quaternion.multiplyByScalar(a1, td * (t3 - t2),a1);
+    const a1 = new Quaternion(o[i], o[i + 1], o[i + 2], o[i + 3]);
+    Quaternion.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1, v0);
+    Quaternion.multiplyByScalar(b0, td * (t3 - 2 * t2 + t), b0);
+    Quaternion.multiplyByScalar(v1, -2 * t3 + 3 * t2, v1);
+    Quaternion.multiplyByScalar(a1, td * (t3 - t2), a1);
 
-    const result =new Quaternion();
-    Quaternion.add(result, v0,result);
-    Quaternion.add(result, b0,result);
-    Quaternion.add(result, v1,result);
-    Quaternion.add(result, a1,result);
-    Quaternion.normalize(result,result)
+    const result = new Quaternion();
+    Quaternion.add(result, v0, result);
+    Quaternion.add(result, b0, result);
+    Quaternion.add(result, v1, result);
+    Quaternion.add(result, a1, result);
+    Quaternion.normalize(result, result);
     return result;
   }
 
@@ -275,8 +275,8 @@ export function interpQuat(
   if (method === "STEP") {
     return t < 1 ? q[0] : q[1];
   }
-  const result =new Quaternion();
-  Quaternion.slerp( q[0], q[1], t,result)
+  const result = new Quaternion();
+  Quaternion.slerp(q[0], q[1], t, result);
   return result;
 }
 
@@ -297,19 +297,19 @@ export function interpVec3(
     const t2 = t * t;
     const t3 = t2 * t;
     const i = 9 * index;
-    const v0 =new Vector3(output[i - 6], output[i - 5], output[i - 4]);
+    const v0 = new Vector3(output[i - 6], output[i - 5], output[i - 4]);
     const b0 = new Vector3(output[i - 3], output[i - 2], output[i - 1]);
     const v1 = new Vector3(output[i + 3], output[i + 4], output[i + 5]);
     const a1 = new Vector3(output[i], output[i + 1], output[i + 2]);
-    Vector3.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1,v0);
-    Vector3.multiplyByScalar(b0,td * (t3 - 2 * t2 + t), b0);
-    Vector3.multiplyByScalar(v1, -2 * t3 + 3 * t2,v1);
-    Vector3.multiplyByScalar(a1,td * (t3 - t2), a1,);
+    Vector3.multiplyByScalar(v0, 2 * t3 - 3 * t2 + 1, v0);
+    Vector3.multiplyByScalar(b0, td * (t3 - 2 * t2 + t), b0);
+    Vector3.multiplyByScalar(v1, -2 * t3 + 3 * t2, v1);
+    Vector3.multiplyByScalar(a1, td * (t3 - t2), a1);
     const result = new Vector3();
-    Vector3.add(result, v0,result);
-    Vector3.add(result, b0,result);
-    Vector3.add(result, v1,result);
-    Vector3.add(result, a1,result);
+    Vector3.add(result, v0, result);
+    Vector3.add(result, b0, result);
+    Vector3.add(result, v1, result);
+    Vector3.add(result, a1, result);
     return result;
   }
 
@@ -323,7 +323,7 @@ export function interpVec3(
     return t < 1 ? v[0] : v[1];
   }
   const result = new Vector3();
-  return Vector3.lerp( v[0], v[1], t,result)
+  return Vector3.lerp(v[0], v[1], t, result);
 }
 
 export const gltfEnum: { [key: string]: string | number } = {

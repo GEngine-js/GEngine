@@ -1,4 +1,4 @@
-export default function brdf(defines){
+export default function brdf(defines) {
   return `
         fn BRDF_Lambert(diffuseColor:vec3<f32>)->vec3<f32> {
 
@@ -66,5 +66,5 @@ export default function brdf(defines){
 
         }
 
-  `
+  `;
 }

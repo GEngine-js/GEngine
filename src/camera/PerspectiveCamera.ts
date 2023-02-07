@@ -31,7 +31,7 @@ export default class PerspectiveCamera extends Camera {
     this.projectMatrixDirty = true;
     this.updateCameraParms();
     this.cullingVolume = new CullingVolume();
-    this.isPerspectiveCamera=true;
+    this.isPerspectiveCamera = true;
   }
   get aspect(): number {
     return this._aspect;
@@ -50,7 +50,7 @@ export default class PerspectiveCamera extends Camera {
     this._fov = v;
   }
   private updateCameraParms() {
-    this.top = this.near * Math.tan(0.5 * GMath.RADIANS_PER_DEGREE*this.fov);
+    this.top = this.near * Math.tan(0.5 * GMath.RADIANS_PER_DEGREE * this.fov);
     this.height = 2 * this.top;
     this.width = this.aspect * this.height;
     this.left = -0.5 * this.width;

@@ -1,6 +1,6 @@
-import {wgslParseDefines} from '../../WgslPreprocessor'
-export default function lightCommon(defines){
- return  wgslParseDefines`
+import { wgslParseDefines } from "../../WgslPreprocessor";
+export default function lightCommon(defines) {
+  return wgslParseDefines`
     struct ReflectedLight {
         directDiffuse:vec3<f32>,
         directSpecular:vec3<f32>,
@@ -57,5 +57,5 @@ export default function lightCommon(defines){
         let irradiance:vec3<f32> = shGetIrradianceAt( worldNormal, lightProbe );
         return irradiance;
     }
- `
+ `;
 }

@@ -286,7 +286,7 @@ export default class OrbitControl extends EventDispatcher {
   }
 
   getDistance() {
-    return  Vector3.distance(this.object.position,this.target);
+    return Vector3.distance(this.object.position, this.target);
   }
 
   listenToKeyEvents(domElement) {

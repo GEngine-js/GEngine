@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
-export default function pbrFunction(defines){
-   return wgslParseDefines `
+export default function pbrFunction(defines) {
+  return wgslParseDefines`
 
     #if ${defines.DITHERING}
         fn dithering(color:vec3<f32> )->vec3<f32> {
@@ -211,7 +211,10 @@ export default function pbrFunction(defines){
     #endif
 
     //! defined ( USE_TANGENT ) && ( defined ( TANGENTSPACE_NORMALTEXTURE ) || defined ( USE_CLEARCOAT_NORMALTEXTURE ) )
-    #if ${!defines.USE_TANGENT&&defines.TANGENTSPACE_NORMALTEXTURE||defines.USE_CLEARCOAT_NORMALTEXTURE}
+    #if ${
+      (!defines.USE_TANGENT && defines.TANGENTSPACE_NORMALTEXTURE) ||
+      defines.USE_CLEARCOAT_NORMALTEXTURE
+    }
     fn perturbNormal2Arb( eye_pos:vec3<f32>, surf_norm:vec3<f32>, textureN:vec3<f32>, faceDirection:f32 )->vec3<f32> {
         let q0:vec3<f32> = dpdx( eye_pos.xyz );
         let q1:vec3<f32> = dpdy( eye_pos.xyz );
@@ -314,5 +317,5 @@ export default function pbrFunction(defines){
        reflectedLight.indirectDiffuse = diffuse * cosineWeightedIrradiance;
        return reflectedLight;
    }
-   `
+   `;
 }

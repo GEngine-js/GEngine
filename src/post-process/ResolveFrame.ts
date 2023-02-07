@@ -11,39 +11,45 @@ import Texture from "../render/Texture";
 import getVertFrag from "../shader/Shaders";
 export default class ResolveFrame {
   canvasRenderTarget: RenderTarget;
-  material:ShaderMaterial;
-    geometry: Geometry;
-    quadMesh: Mesh;
+  material: ShaderMaterial;
+  geometry: Geometry;
+  quadMesh: Mesh;
   constructor() {
-    this.geometry=new Geometry({});
-    this.geometry.setAttribute( new Float32Attribute( 'position', [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0],2 ) );
-    this.geometry.count=6;
-    const shader=getVertFrag('resolve',{});
-    this.material=new ShaderMaterial({
-        type:'resolve',
-        frag:shader.frag,
-        vert:shader.vert,
-        uniforms:{
-            texture:{
-                type:'texture',
-                value:undefined,
-            },
-            sampler:{
-                type:'sampler',
-                value:new Sampler({
-                    magFilter: 'linear',
-                    minFilter: 'linear',
-                }),
-            }
-        }
+    this.geometry = new Geometry({});
+    this.geometry.setAttribute(
+      new Float32Attribute(
+        "position",
+        [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0],
+        2
+      )
+    );
+    this.geometry.count = 6;
+    const shader = getVertFrag("resolve", {});
+    this.material = new ShaderMaterial({
+      type: "resolve",
+      frag: shader.frag,
+      vert: shader.vert,
+      uniforms: {
+        texture: {
+          type: "texture",
+          value: undefined,
+        },
+        sampler: {
+          type: "sampler",
+          value: new Sampler({
+            magFilter: "linear",
+            minFilter: "linear",
+          }),
+        },
+      },
     });
-    this.quadMesh=new Mesh(this.geometry,this.material);
+    this.quadMesh = new Mesh(this.geometry, this.material);
   }
-  render(context: Context,colorTexture?:Texture) {
-     if(!this.canvasRenderTarget) this.initRenderTarget(context);
+  render(context: Context, colorTexture?: Texture) {
+    if (!this.canvasRenderTarget) this.initRenderTarget(context);
     // this.material
-     this.material.uniforms.texture.value=colorTexture;
-     this.canvasRenderTarget.colorAttachments[0].texture={
+    this.material.uniforms.texture.value = colorTexture;
+    this.canvasRenderTarget.colorAttachments[0].texture = {
       gpuTexture: context.context.getCurrentTexture(),
      } as Texture;
      this.material.update(undefined,this.quadMesh)
@@ -54,7 +60,7 @@ export default class ResolveFrame {
      this.canvasRenderTarget.endRenderPassEncoder();
      this.quadMesh.afterRender();
   }
-  private initRenderTarget(context: Context){
+  private initRenderTarget(context: Context) {
     const colorAttachment = new Attachment(
         { r: 0.14, g: 0.14, b: 0.14, a: 1 },
         {

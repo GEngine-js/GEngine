@@ -1,5 +1,5 @@
-export default function phongFunction(defines){
-    return  `
+export default function phongFunction(defines) {
+  return `
     fn G_BlinnPhong_Implicit( )->f32 {
 
         // geometry term is (n dot l)(n dot v) / 4(n dot l)(n dot v)
@@ -42,5 +42,5 @@ export default function phongFunction(defines){
         reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
         return reflectedLight;
     }
-    `
+    `;
 }

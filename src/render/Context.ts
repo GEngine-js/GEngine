@@ -82,7 +82,7 @@ class Context {
         // format: navigator.gpu.getPreferredCanvasFormat(),
         format: this.presentationFormat,
         usage: TextureUsage.RenderAttachment,
-        alphaMode: 'opaque',
+        alphaMode: "opaque",
         ...presentationContextDescriptor,
       });
       this._viewPort = {
@@ -132,12 +132,12 @@ class Context {
     passEncoder: GPURenderPassEncoder | GPUComputePassEncoder
   ): void {
     if (command.shaderData)
-      command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);  
+      command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
     //设置系统
     this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
     if (command.renderState) {
-      command.renderState.viewport=this._viewPort;
-      command.renderState.scissorTestEnabled=this._scissorTestEnabled;
+      command.renderState.viewport = this._viewPort;
+      command.renderState.scissorTestEnabled = this._scissorTestEnabled;
       RenderState.applyRenderState(
         passEncoder as GPURenderPassEncoder,
         command.renderState

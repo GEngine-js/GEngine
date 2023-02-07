@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
 export default function pbrTexture(defines) {
-     return wgslParseDefines`        
+  return wgslParseDefines`        
             #if ${defines.USE_BUMPTEXTURE}
                 @group(0) @binding(${defines.bumpTextureBinding}) var bumpTexture: texture_2d<f32>;
             #endif
@@ -88,5 +88,5 @@ export default function pbrTexture(defines) {
             #if ${defines.USE_EMISSIVETEXTURE}
                 @group(0) @binding(${defines.emissiveTextureBinding}) var emissiveTexture: texture_2d<f32>;
             #endif
-     `
+     `;
 }

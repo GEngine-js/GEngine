@@ -26,10 +26,10 @@ export class Scene extends EventDispatcher {
   viewport: { x: number; y: number; width: number; height: number };
   skybox: SkyBox;
   private ready: boolean;
-  private brdfUrl:string;
-  private specularEnvUrls:Array<string>;
-  private diffuseEnvUrls:Array<string>;
-  private inited:boolean;
+  private brdfUrl: string;
+  private specularEnvUrls: Array<string>;
+  private diffuseEnvUrls: Array<string>;
+  private inited: boolean;
   constructor(options) {
     super();
     this.container =
@@ -43,39 +43,43 @@ export class Scene extends EventDispatcher {
       container: this.container,
       pixelRatio: 1,
     });
-    this.brdfUrl=defaultValue(options.brdfUrl,undefined);
-    this.specularEnvUrls=defaultValue(options.specularEnvUrls,[]);
-    this.diffuseEnvUrls=defaultValue(options.diffuseEnvUrls,[]);
+    this.brdfUrl = defaultValue(options.brdfUrl, undefined);
+    this.specularEnvUrls = defaultValue(options.specularEnvUrls, []);
+    this.diffuseEnvUrls = defaultValue(options.diffuseEnvUrls, []);
     this.requestAdapter = options.requestAdapter || {};
     this.deviceDescriptor = options.deviceDescriptor || {};
     this.presentationContextDescriptor = options.presentationContextDescriptor;
     this.ready = false;
     this.skybox = defaultValue(options.skybox, undefined);
-    this.inited=false;
+    this.inited = false;
     //this.init();
   }
-  private async init() { 
+  private async init() {
     await this.context.init(
       this.requestAdapter,
       this.deviceDescriptor,
       this.presentationContextDescriptor
-    )
-      this.currentRenderPipeline = new ForwardRenderLine(this.context);
-      this.frameState = new FrameState(this.context);
-      this.viewport = {
-        x: 0,
-        y: 0,
-        width: this.context.presentationSize.width,
-        height: this.context.presentationSize.height,
-      };
-      if(this.brdfUrl){
-        const {brdfTexture,diffuseTexture,specularTexture,}= await loadPbrTexture(this.brdfUrl,this.diffuseEnvUrls,this.specularEnvUrls);
-        textureCache.addTexture('brdf',brdfTexture);
-        textureCache.addTexture('diffuse',diffuseTexture);
-        textureCache.addTexture('specular',specularTexture);
-      }
-      this.ready = true;
-    
+    );
+    this.currentRenderPipeline = new ForwardRenderLine(this.context);
+    this.frameState = new FrameState(this.context);
+    this.viewport = {
+      x: 0,
+      y: 0,
+      width: this.context.presentationSize.width,
+      height: this.context.presentationSize.height,
+    };
+    if (this.brdfUrl) {
+      const { brdfTexture, diffuseTexture, specularTexture } =
+        await loadPbrTexture(
+          this.brdfUrl,
+          this.diffuseEnvUrls,
+          this.specularEnvUrls
+        );
+      textureCache.addTexture("brdf", brdfTexture);
+      textureCache.addTexture("diffuse", diffuseTexture);
+      textureCache.addTexture("specular", specularTexture);
+    }
+    this.ready = true;
   }
   add(instance) {
     if (
@@ -102,8 +106,8 @@ export class Scene extends EventDispatcher {
   getPrimitiveById() {}
   async render() {
     if (!this.inited) {
-      this.inited=true;
-       await this.init();
+      this.inited = true;
+      await this.init();
     }
     this.update();
   }

@@ -1,6 +1,6 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
-export default function environment(defines){
-   return  wgslParseDefines `
+export default function environment(defines) {
+  return wgslParseDefines`
    #if ${defines.ENVTEXTURE_TYPE_CUBE_UV}
         const cubeUV_minMipLevel:f32= 4.0;
         const cubeUV_minTileSize:f32= 16.0;
@@ -137,5 +137,5 @@ export default function environment(defines){
             #endif
             }
     #endif
-   `
+   `;
 }

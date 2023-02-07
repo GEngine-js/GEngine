@@ -13,7 +13,7 @@ class Attachment {
   public op: GPULoadOp = "clear";
   public storeOp: GPUStoreOp = "store";
 
-  public texture?:Texture;
+  public texture?: Texture;
   public resolveTarget?: Texture;
 
   constructor(

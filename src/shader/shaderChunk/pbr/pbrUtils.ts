@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
-export default function pbrUtils(defines){
-    return  wgslParseDefines`
+export default function pbrUtils(defines) {
+  return wgslParseDefines`
     const PI:f32= 3.141592653589793;
     const PI2:f32= 6.283185307179586;
     const PI_HALF:f32= 1.5707963267948966;
@@ -83,5 +83,5 @@ export default function pbrUtils(defines){
     fn linearToOutputTexel(value:vec4<f32> )->vec4<f32> {
         return LinearTosRGB( value );
     }
-    `
+    `;
 }

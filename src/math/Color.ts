@@ -4,11 +4,14 @@ import GMath from "./Math";
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
 //#rrggbbaa
-const rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
+const rrggbbaaMatcher =
+  /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
 //rgb(), rgba(), or rgb%()
-const rgbParenthesesMatcher = /^rgba?\(\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
+const rgbParenthesesMatcher =
+  /^rgba?\(\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
 //hsl() or hsla()
-const hslParenthesesMatcher = /^hsla?\(\s*([0-9.]+)\s*,\s*([0-9.]+%)\s*,\s*([0-9.]+%)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
+const hslParenthesesMatcher =
+  /^hsla?\(\s*([0-9.]+)\s*,\s*([0-9.]+%)\s*,\s*([0-9.]+%)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
 function hue2rgb(m1, m2, h) {
   if (h < 0) {
     h += 1;
@@ -32,7 +35,7 @@ class Color {
   green: number;
   red: number;
   blue: number;
-  constructor(red:number=1.0, green:number=1.0, blue:number=1.0) {
+  constructor(red: number = 1.0, green: number = 1.0, blue: number = 1.0) {
     /**
      * The red component.
      * @type {Number}
@@ -50,27 +53,27 @@ class Color {
      * @type {Number}
      * @default 1.0
      */
-    this.blue =blue;
+    this.blue = blue;
   }
-  set(value:string):Color{
-      if (typeof value==='string') {
-        Color.fromCssColorString(value,this);
-      }
-      return this;
+  set(value: string): Color {
+    if (typeof value === "string") {
+      Color.fromCssColorString(value, this);
+    }
+    return this;
   }
-  toArray():number[]{
-    return [this.red,this.green,this.blue]
+  toArray(): number[] {
+    return [this.red, this.green, this.blue];
   }
 
-  clone(result:Color):Color {
+  clone(result: Color): Color {
     return Color.clone(this, result);
-  };
+  }
 
-  equals(other:Color):boolean {
+  equals(other: Color): boolean {
     return Color.equals(this, other);
-  };
+  }
 
-  toCssHexString():string {
+  toCssHexString(): string {
     let r = Color.floatToByte(this.red).toString(16);
     if (r.length < 2) {
       r = `0${r}`;
@@ -84,9 +87,9 @@ class Color {
       b = `0${b}`;
     }
     return `#${r}${g}${b}`;
-  };
+  }
 
-  toBytes(result:number[]):number[] {
+  toBytes(result: number[]): number[] {
     const red = Color.floatToByte(this.red);
     const green = Color.floatToByte(this.green);
     const blue = Color.floatToByte(this.blue);
@@ -98,9 +101,14 @@ class Color {
     result[1] = green;
     result[2] = blue;
     return result;
-  };
+  }
 
-  static fromBytes(red:number, green:number, blue:number,  result:Color):Color {
+  static fromBytes(
+    red: number,
+    green: number,
+    blue: number,
+    result: Color
+  ): Color {
     red = Color.byteToFloat(defaultValue(red, 255.0));
     green = Color.byteToFloat(defaultValue(green, 255.0));
     blue = Color.byteToFloat(defaultValue(blue, 255.0));
@@ -113,9 +121,14 @@ class Color {
     result.green = green;
     result.blue = blue;
     return result;
-  };
+  }
 
-  static fromHsl(hue:number, saturation:number, lightness:number, result:Color):Color {
+  static fromHsl(
+    hue: number,
+    saturation: number,
+    lightness: number,
+    result: Color
+  ): Color {
     hue = defaultValue(hue, 0.0) % 1.0;
     saturation = defaultValue(saturation, 0.0);
     lightness = defaultValue(lightness, 0.0);
@@ -138,14 +151,14 @@ class Color {
     }
 
     if (!defined(result)) {
-      return new Color(red, green, blue,);
+      return new Color(red, green, blue);
     }
 
     result.red = red;
     result.green = green;
     result.blue = blue;
     return result;
-  };
+  }
 
   /**
    * Creates a random color using the provided options. For reproducible random colors, you should
@@ -186,7 +199,7 @@ class Color {
    *     minimumBlue : 0.75,
    * });
    */
-  static fromRandom(options, result:Color):Color {
+  static fromRandom(options, result: Color): Color {
     options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
     let red = options.red;
@@ -194,8 +207,7 @@ class Color {
       const minimumRed = defaultValue(options.minimumRed, 0);
       const maximumRed = defaultValue(options.maximumRed, 1.0);
 
-      red =
-        minimumRed + GMath.nextRandomNumber() * (maximumRed - minimumRed);
+      red = minimumRed + GMath.nextRandomNumber() * (maximumRed - minimumRed);
     }
 
     let green = options.green;
@@ -204,8 +216,7 @@ class Color {
       const maximumGreen = defaultValue(options.maximumGreen, 1.0);
 
       green =
-        minimumGreen +
-        GMath.nextRandomNumber() * (maximumGreen - minimumGreen);
+        minimumGreen + GMath.nextRandomNumber() * (maximumGreen - minimumGreen);
     }
 
     let blue = options.blue;
@@ -224,9 +235,9 @@ class Color {
     result.green = green;
     result.blue = blue;
     return result;
-  };
+  }
 
-  static fromCssColorString(color:string, result:Color=new Color()):Color {
+  static fromCssColorString(color: string, result: Color = new Color()): Color {
     // Remove all whitespaces from the color string
     color = color.replace(/\s/g, "");
 
@@ -255,11 +266,14 @@ class Color {
     matches = rgbParenthesesMatcher.exec(color);
     if (matches !== null) {
       result.red =
-        parseFloat(matches[1]) / ("%" === matches[1].substr(-1) ? 100.0 : 255.0);
+        parseFloat(matches[1]) /
+        ("%" === matches[1].substr(-1) ? 100.0 : 255.0);
       result.green =
-        parseFloat(matches[2]) / ("%" === matches[2].substr(-1) ? 100.0 : 255.0);
+        parseFloat(matches[2]) /
+        ("%" === matches[2].substr(-1) ? 100.0 : 255.0);
       result.blue =
-        parseFloat(matches[3]) / ("%" === matches[3].substr(-1) ? 100.0 : 255.0);
+        parseFloat(matches[3]) /
+        ("%" === matches[3].substr(-1) ? 100.0 : 255.0);
       return result;
     }
 
@@ -275,17 +289,17 @@ class Color {
 
     result = undefined;
     return result;
-  };
+  }
 
-  static byteToFloat(value:number):number {
+  static byteToFloat(value: number): number {
     return value / 255.0;
-  };
+  }
 
-  static floatToByte(value:number):number {
+  static floatToByte(value: number): number {
     return value === 1.0 ? 255.0 : (value * 256.0) | 0;
-  };
+  }
 
-  static clone(color:Color, result:Color):Color {
+  static clone(color: Color, result: Color): Color {
     if (!defined(color)) {
       return undefined;
     }
@@ -296,9 +310,9 @@ class Color {
     result.green = color.green;
     result.blue = color.blue;
     return result;
-  };
+  }
 
-  static equals(left:Color, right:Color):boolean {
+  static equals(left: Color, right: Color): boolean {
     return (
       left === right || //
       (defined(left) && //
@@ -307,17 +321,17 @@ class Color {
         left.green === right.green && //
         left.blue === right.blue)
     );
-  };
+  }
 
   /**
    * @private
    */
-  static equalsArray(color:Color, array:number[], offset:number):boolean {
+  static equalsArray(color: Color, array: number[], offset: number): boolean {
     return (
       color.red === array[offset] &&
       color.green === array[offset + 1] &&
       color.blue === array[offset + 2]
     );
-  };
+  }
 }
 export default Color;

@@ -7,7 +7,7 @@ type TextureCacheProp = {
   count: number;
 };
 class TextureCache {
-  public defaultSampler:Sampler;
+  public defaultSampler: Sampler;
   private _numberOfTextures: number;
   private _textures: Map<string, TextureCacheProp>;
   private _texturesToRelease: Map<string, TextureCacheProp>;
@@ -16,11 +16,11 @@ class TextureCache {
     this._textures = new Map();
     this._numberOfTextures = 0;
     this._texturesToRelease = new Map();
-    this.defaultSampler=new Sampler({
-        magFilter: 'linear',
-        minFilter: 'linear',
-        addressModeU: "repeat",
-        addressModeV: "repeat",
+    this.defaultSampler = new Sampler({
+      magFilter: "linear",
+      minFilter: "linear",
+      addressModeU: "repeat",
+      addressModeV: "repeat",
     });
   }
   get numberOfTextures(): number {

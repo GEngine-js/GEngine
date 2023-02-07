@@ -13,9 +13,9 @@ class Sampler {
       addressModeW: "clamp-to-edge",
     }
   ) {
-    this.layoutType ={
+    this.layoutType = {
       type: "filtering",
-    }
+    };
   }
   update(context: Context) {
     if (!this.gpuSampler)

@@ -23,7 +23,7 @@ export default class OrthographicCamera extends Camera {
     this.top = top;
     this.bottom = bottom;
     this.right = right;
-    this.isOrthographicCamera=true;
+    this.isOrthographicCamera = true;
   }
   private updateCameraParms() {
     const dx = (this.right - this.left) / 2;

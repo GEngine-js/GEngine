@@ -9,13 +9,14 @@ import Intersect from "./Intersect";
 export default class BoundingSphere {
   radius: number;
   center: Vector3;
-  constructor(center: Vector3 = new Vector3(0,0,0), radius = 0) {
+  constructor(center: Vector3 = new Vector3(0, 0, 0), radius = 0) {
     this.center = center;
     this.radius = radius;
-  }/**
-    * @param {Vector3[]} [positions] An array of points that the bounding sphere will enclose.  Each point must have <code>x</code>, <code>y</code>, and <code>z</code> properties.
-    * @returns {BoundingSphere} The modified result parameter or a new BoundingSphere instance if one was not provided.
-    */
+  }
+  /**
+   * @param {Vector3[]} [positions] An array of points that the bounding sphere will enclose.  Each point must have <code>x</code>, <code>y</code>, and <code>z</code> properties.
+   * @returns {BoundingSphere} The modified result parameter or a new BoundingSphere instance if one was not provided.
+   */
   static fromPoints(positions) {
     let result = new BoundingSphere();
 
@@ -202,7 +203,11 @@ export default class BoundingSphere {
    * const sphere = BoundingSphere.fromVertices(points, center, 5);
    *
    */
-  static fromVertices(positions: number[], center: Vector3 = Vector3.ZERO, stride: number = 3) {
+  static fromVertices(
+    positions: number[],
+    center: Vector3 = Vector3.ZERO,
+    stride: number = 3
+  ) {
     const result = new BoundingSphere();
 
     if (!defined(positions) || positions.length === 0) {
@@ -367,7 +372,7 @@ export default class BoundingSphere {
     }
 
     return result;
-  };
+  }
 
   intersectPlane(plane: Plane) {
     const center = this.center;
@@ -385,20 +390,15 @@ export default class BoundingSphere {
     return Intersect.INSIDE;
   }
   update(transform: Matrix4) {
-    this.center = Matrix4.multiplyByPoint(
-      transform,
-      this.center,
-      this.center
-    );
+    this.center = Matrix4.multiplyByPoint(transform, this.center, this.center);
     this.radius = Matrix4.getMaximumScale(transform) * this.radius;
   }
   distanceToCamera(frameState) {
     return Math.max(
       0.0,
-      Vector3.distance(this.center, frameState.camera.position) -
-        this.radius
+      Vector3.distance(this.center, frameState.camera.position) - this.radius
     );
-  };
+  }
 }
 const fromPointsXMin = new Vector3();
 const fromPointsYMin = new Vector3();

@@ -1,5 +1,5 @@
-export default function skyBoxFrag(defines){
-    return `
+export default function skyBoxFrag(defines) {
+  return `
     fn lessThanEqual(a:vec3<f32>,b:vec3<f32>)->vec3<f32>{
         let xValue:f32=select(b.x,a.x,a.x<=b.x);
         let yValue:f32=select(b.y,a.y,a.y<=b.y);
