@@ -2,7 +2,7 @@
 	if (!l || l.getElementById("livereloadscript")) return;
 	r = l.createElement("script");
 	r.async = 1;
-	r.src = "//" + (self.location.host || "localhost").split(":")[0] + ":35730/livereload.js?snipver=1";
+	r.src = "//" + (self.location.host || "localhost").split(":")[0] + ":35731/livereload.js?snipver=1";
 	r.id = "livereloadscript";
 	l.getElementsByTagName("head")[0].appendChild(r);
 })(self.document);
@@ -518,7 +518,36 @@ class Buffer {
 
 class DrawCommand {
 	constructor(options) {
-		Object.assign(this, options);
+		this.type = options.type;
+		this.shaderData = options.shaderData;
+		this.renderTarget = options.renderTarget;
+		this.vertexBuffer = options.vertexBuffer;
+		this.indexBuffer = options.indexBuffer;
+		this.renderState = options.renderState;
+		this.queryIndex = options.queryIndex;
+		this.count = options.count;
+		this.instances = options.instances;
+		this.dispatch = options.dispatch;
+		this.shaderSource = options.shaderSource;
+		this.dirty = options.dirty;
+		this.materialType = options.materialType;
+		this.light = options.light;
+	}
+	shallowClone(material) {
+		if (material) {
+			return new DrawCommand({
+				vertexBuffer: this.vertexBuffer,
+				indexBuffer: this.indexBuffer,
+				shaderData: material.shaderData,
+				instances: this.instances,
+				count: this.count,
+				renderState: material.renderState,
+				shaderSource: material.shaderSource,
+				type: "render",
+				materialType: material.type,
+				light: material.light
+			});
+		}
 	}
 }
 
@@ -527,32 +556,315 @@ const GPUCanvasCompositingAlphaMode = {
 	Premultiplied: "premultiplied"
 };
 
-/**
- * Returns the first parameter if not undefined, otherwise the second parameter.
- * Useful for setting a default value for a parameter.
- *
- * @function
- *
- * @param {*} a
- * @param {*} b
- * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
- *
- * @example
- * param = Cesium.defaultValue(param, 'default');
- */
-function defaultValue(a, b) {
-	if (a !== undefined && a !== null) {
-		return a;
+class MipmapGenerator {
+	constructor(device) {
+		this.device = device;
+		this.sampler = device.createSampler({ minFilter: "linear" });
+		// We'll need a new pipeline for every texture format used.
+		this.pipelines = {};
 	}
-	return b;
+	getMipmapPipeline(format) {
+		let pipeline = this.pipelines[format];
+		if (!pipeline) {
+			// Shader modules is shared between all pipelines, so only create once.
+			if (!this.mipmapShaderModule) {
+				this.mipmapShaderModule = this.device.createShaderModule({
+					code: `
+              var<private> pos : array<vec2<f32>, 3> = array<vec2<f32>, 3>(
+                vec2<f32>(-1.0, -1.0), vec2<f32>(-1.0, 3.0), vec2<f32>(3.0, -1.0));
+              struct VertexOutput {
+                @builtin(position) position : vec4<f32>,
+                @location(0) texCoord : vec2<f32>,
+              };
+              @vertex
+              fn vertexMain(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
+                var output : VertexOutput;
+                output.texCoord = pos[vertexIndex] * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+                output.position = vec4<f32>(pos[vertexIndex], 0.0, 1.0);
+                return output;
+              }
+              @group(0) @binding(0) var imgSampler : sampler;
+              @group(0) @binding(1) var img : texture_2d<f32>;
+              @fragment
+              fn fragmentMain(@location(0) texCoord : vec2<f32>) -> @location(0) vec4<f32> {
+                return textureSample(img, imgSampler, texCoord);
+              }
+            `
+				});
+			}
+			pipeline = this.device.createRenderPipeline({
+				layout: "auto",
+				vertex: {
+					module: this.mipmapShaderModule,
+					entryPoint: "vertexMain"
+				},
+				fragment: {
+					module: this.mipmapShaderModule,
+					entryPoint: "fragmentMain",
+					targets: [{ format }]
+				}
+			});
+			this.pipelines[format] = pipeline;
+		}
+		return pipeline;
+	}
+	/**
+	 * Generates mipmaps for the given GPUTexture from the data in level 0.
+	 *
+	 * @param {module:External.GPUTexture} texture - Texture to generate mipmaps for.
+	 * @param {object} textureDescriptor - GPUTextureDescriptor the texture was created with.
+	 * @returns {module:External.GPUTexture} - The originally passed texture
+	 */
+	generateMipmap(sourceTexture) {
+		const texture = sourceTexture.gpuTexture;
+		const textureDescriptor = sourceTexture.textureProp;
+		// TODO: Does this need to handle sRGB formats differently?
+		const pipeline = this.getMipmapPipeline(textureDescriptor.format);
+		if (textureDescriptor.dimension == "3d" || textureDescriptor.dimension == "1d") {
+			throw new Error("Generating mipmaps for non-2d textures is currently unsupported!");
+		}
+		let mipTexture = texture;
+		const arrayLayerCount = textureDescriptor.size.depth || 1; // Only valid for 2D textures.
+		// If the texture was created with RENDER_ATTACHMENT usage we can render directly between mip levels.
+		const renderToSource = textureDescriptor.usage & GPUTextureUsage.RENDER_ATTACHMENT;
+		if (!renderToSource) {
+			// Otherwise we have to use a separate texture to render into. It can be one mip level smaller than the source
+			// texture, since we already have the top level.
+			const mipTextureDescriptor = {
+				size: {
+					width: Math.ceil(textureDescriptor.size.width / 2),
+					height: Math.ceil(textureDescriptor.size.height / 2),
+					depthOrArrayLayers: arrayLayerCount
+				},
+				format: textureDescriptor.format,
+				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
+				mipLevelCount: textureDescriptor.mipLevelCount - 1
+			};
+			mipTexture = this.device.createTexture(mipTextureDescriptor);
+		}
+		const commandEncoder = this.device.createCommandEncoder({});
+		// TODO: Consider making this static.
+		const bindGroupLayout = pipeline.getBindGroupLayout(0);
+		for (let arrayLayer = 0; arrayLayer < arrayLayerCount; ++arrayLayer) {
+			let srcView = texture.createView({
+				baseMipLevel: 0,
+				mipLevelCount: 1,
+				dimension: "2d",
+				baseArrayLayer: arrayLayer,
+				arrayLayerCount: 1
+			});
+			let dstMipLevel = renderToSource ? 1 : 0;
+			for (let i = 1; i < textureDescriptor.mipLevelCount; ++i) {
+				const dstView = mipTexture.createView({
+					baseMipLevel: dstMipLevel++,
+					mipLevelCount: 1,
+					dimension: "2d",
+					baseArrayLayer: arrayLayer,
+					arrayLayerCount: 1
+				});
+				const passEncoder = commandEncoder.beginRenderPass({
+					colorAttachments: [
+						{
+							view: dstView,
+							loadOp: "clear",
+							storeOp: "store"
+						}
+					]
+				});
+				const bindGroup = this.device.createBindGroup({
+					layout: bindGroupLayout,
+					entries: [
+						{
+							binding: 0,
+							resource: this.sampler
+						},
+						{
+							binding: 1,
+							resource: srcView
+						}
+					]
+				});
+				passEncoder.setPipeline(pipeline);
+				passEncoder.setBindGroup(0, bindGroup);
+				passEncoder.draw(3, 1, 0, 0);
+				passEncoder.end();
+				srcView = dstView;
+			}
+		}
+		// If we didn't render to the source texture, finish by copying the mip results from the temporary mipmap texture
+		// to the source.
+		if (!renderToSource) {
+			const mipLevelSize = {
+				width: Math.ceil(textureDescriptor.size.width / 2),
+				height: Math.ceil(textureDescriptor.size.height / 2),
+				depthOrArrayLayers: arrayLayerCount
+			};
+			for (let i = 1; i < textureDescriptor.mipLevelCount; ++i) {
+				commandEncoder.copyTextureToTexture(
+					{
+						texture: mipTexture,
+						mipLevel: i - 1
+					},
+					{
+						texture: texture,
+						mipLevel: i
+					},
+					mipLevelSize
+				);
+				mipLevelSize.width = Math.ceil(mipLevelSize.width / 2);
+				mipLevelSize.height = Math.ceil(mipLevelSize.height / 2);
+			}
+		}
+		this.device.queue.submit([commandEncoder.finish()]);
+		if (!renderToSource) {
+			mipTexture.destroy();
+		}
+		return texture;
+	}
 }
-/**
- * A frozen empty object that can be used as the default value for options passed as
- * an object literal.
- * @type {Object}
- * @memberof defaultValue
- */
-defaultValue.EMPTY_OBJECT = Object.freeze({});
+
+const pipelineLayoutCache = new Map();
+class PipelineLayout {
+	constructor(device, label, groupLayouts = [], index) {
+		this.groupLayouts = groupLayouts;
+		this.index = index || 0;
+		this.gpuPipelineLayout = device.createPipelineLayout({
+			label: label,
+			bindGroupLayouts: groupLayouts.map((layout) => {
+				return layout.gpuBindGroupLayout;
+			})
+		});
+	}
+	static getPipelineLayoutFromCache(device, label, groupLayouts) {
+		if (pipelineLayoutCache.has(label)) {
+			return pipelineLayoutCache.get(label);
+		} else {
+			const bindGroupLayout = new PipelineLayout(device, label, groupLayouts);
+			pipelineLayoutCache.set(label, bindGroupLayout);
+			return bindGroupLayout;
+		}
+	}
+}
+
+const renderPipelines = new Map();
+const computePipelines = new Map();
+class Pipeline {
+	constructor(type, device, descriptor) {
+		this.type = type;
+		this.descriptor = descriptor;
+		this.device = device;
+		this.createPipeline();
+	}
+	createPipeline() {
+		if (this.type == "render") {
+			this.gpuPipeline = this.device.createRenderPipeline(this.descriptor);
+		} else {
+			this.gpuPipeline = this.device.createComputePipeline(this.descriptor);
+		}
+	}
+	bind(passEncoder) {
+		if (this.type == "render") {
+			passEncoder.setPipeline(this.gpuPipeline);
+		} else {
+			passEncoder.setPipeline(this.gpuPipeline);
+		}
+	}
+	static getRenderPipelineFromCache(device, drawComand, groupLayouts) {
+		const { renderState, shaderSource, materialType } = drawComand;
+		const rsStr = JSON.stringify(renderState);
+		const combineStr = materialType.concat(shaderSource.uid).concat(rsStr);
+		const hashId = stringToHash(combineStr);
+		const combineLayouts = groupLayouts.sort((layout1, layout2) => layout1.index - layout2.index);
+		let pipeline = renderPipelines.get(hashId);
+		if (!pipeline) {
+			const descriptor = Pipeline.getPipelineDescriptor(
+				device,
+				drawComand,
+				renderState,
+				combineLayouts,
+				hashId.toString()
+			);
+			pipeline = new Pipeline("render", device, descriptor);
+			renderPipelines.set(hashId, pipeline);
+		}
+		return pipeline;
+	}
+	static getComputePipelineFromCache(device, drawComand, groupLayouts) {
+		const { shaderSource, materialType } = drawComand;
+		const hashId = stringToHash(materialType.concat(shaderSource.uid));
+		let pipeline = computePipelines.get(hashId);
+		if (!pipeline) {
+			const { shaderSource } = drawComand;
+			pipeline = device.createComputePipeline({
+				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
+					.gpuPipelineLayout,
+				compute: {
+					module: shaderSource.createShaderModule(device),
+					entryPoint: shaderSource.computeMain
+				}
+			});
+			computePipelines.set(hashId, pipeline);
+		}
+		return pipeline;
+	}
+	static getPipelineDescriptor(device, drawComand, renderState, groupLayouts, hashId) {
+		const { vertexBuffer, shaderSource } = drawComand;
+		const { vert, frag } = shaderSource.createShaderModule(device);
+		const pipelineDec = {
+			layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout
+		};
+		if (vert)
+			pipelineDec.vertex = {
+				module: vert,
+				entryPoint: shaderSource.vertEntryPoint,
+				buffers: vertexBuffer.getBufferDes()
+			};
+		if (renderState.primitive) pipelineDec.primitive = renderState.primitive.getGPUPrimitiveDec();
+		if (renderState.depthStencil) pipelineDec.depthStencil = renderState.depthStencil.getGPUDepthStencilDec();
+		if (renderState.multisample) pipelineDec.multisample = renderState.multisample.getMultiSampleDec();
+		if (frag)
+			pipelineDec.fragment = {
+				module: frag,
+				entryPoint: shaderSource.fragEntryPoint,
+				targets: renderState.targets.map((target) => {
+					return target.getGPUTargetDec();
+				})
+			};
+		return pipelineDec;
+		// return {
+		//   //需要改动
+		//   layout: PipelineLayout.getPipelineLayoutFromCache(
+		//     device,
+		//     hashId,
+		//     groupLayouts
+		//   ).gpuPipelineLayout,
+		//   vertex: {
+		//     module: vert,
+		//     entryPoint: shaderSource.vertEntryPoint,
+		//     buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
+		//   },
+		//   primitive: renderState.primitive,
+		//   depthStencil: renderState.depthStencil as GPUDepthStencilState,
+		//   multisample: renderState.multisample,
+		//   fragment: {
+		//     module: frag,
+		//     entryPoint: shaderSource.fragEntryPoint,
+		//     targets: renderState.targets as Iterable<GPUColorTargetState>,
+		//   },
+		// };
+	}
+}
+// Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+function stringToHash(str) {
+	let hash = 0;
+	if (str.length == 0) return hash;
+	for (let i = 0; i < str.length; i++) {
+		const char = str.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash; // Convert to 32bit integer
+	}
+	return hash;
+}
 
 /**
  * @function
@@ -570,218 +882,6 @@ defaultValue.EMPTY_OBJECT = Object.freeze({});
 function defined(value) {
 	return value !== undefined && value !== null;
 }
-
-const renderStateCache = new WeakMap();
-class RenderState {
-	constructor(renderState) {
-		const rs = defaultValue(renderState, {});
-		const targets = defaultValue(rs.targets, {});
-		const blend = defaultValue(rs.blend, { color: {}, alpha: {} });
-		const depthStencil = defaultValue(rs.depthStencil, {});
-		const depthStencilFront = defaultValue(depthStencil.front, {});
-		const depthStencilBack = defaultValue(depthStencil.back, {});
-		const viewport = rs.viewport;
-		this.stencilEnabled = defaultValue(rs.stencilEnabled, false);
-		this.scissorTestEnabled = defaultValue(rs.scissorTestEnabled, false);
-		this.scissorTest = defaultValue(rs.scissorRect, {
-			x: viewport.x,
-			y: viewport.y,
-			width: viewport.width,
-			height: viewport.height
-		});
-		//
-		this.multisample = defaultValue(rs.multisampleState, {
-			count: 1,
-			mask: 0xffffffff,
-			alphaToCoverageEnabled: false
-		});
-		//已完善
-		this.blendConstant = defaultValue(rs.blendConstant, {
-			r: 1,
-			g: 1,
-			b: 1,
-			a: 1
-		});
-		//已完善
-		this.targets = Array.isArray(targets)
-			? targets
-			: [
-					{
-						format: TextureFormat.BGRA8Unorm,
-						blend: {
-							color: {
-								operation: defaultValue(blend.color.operation, BlendOperation.Add),
-								srcFactor: defaultValue(blend.color.srcFactor, BlendFactor.One),
-								dstFactor: defaultValue(blend.color.dstFactor, BlendFactor.Zero)
-							},
-							alpha: {
-								operation: defaultValue(blend.alpha.operation, BlendOperation.Add),
-								srcFactor: defaultValue(blend.alpha.srcFactor, BlendFactor.One),
-								dstFactor: defaultValue(blend.alpha.dstFactor, BlendFactor.Zero)
-							}
-						},
-						writeMask: defaultValue(targets.writeMask, GPUColorWrite.All)
-					}
-			  ];
-		//
-		this.stencilReference = defaultValue(rs.stencilReference, 0);
-		//已完善
-		this.depthStencil = {
-			format: defaultValue(depthStencil.format, TextureFormat.Depth24Plus),
-			depthWriteEnabled: defaultValue(depthStencil.depthWriteEnabled, true),
-			depthCompare: defaultValue(depthStencil.depthCompare, CompareFunction.Less),
-			stencilReadMask: defaultValue(depthStencil.stencilReadMask, 0xffffffff),
-			stencilWriteMask: defaultValue(depthStencil.stencilWriteMask, 0xffffffff),
-			stencilFront: {
-				compare: defaultValue(depthStencilFront.compare, CompareFunction.Always),
-				failOp: defaultValue(depthStencilFront.failOp, StencilOperation.Keep),
-				depthFailOp: defaultValue(depthStencilFront.depthFailOp, StencilOperation.Keep),
-				passOp: defaultValue(depthStencilFront.passOp, StencilOperation.Keep)
-			},
-			stencilBack: {
-				compare: defaultValue(depthStencilBack.compare, CompareFunction.Always),
-				failOp: defaultValue(depthStencilBack.failOp, StencilOperation.Keep),
-				depthFailOp: defaultValue(depthStencilBack.depthFailOp, StencilOperation.Keep),
-				passOp: defaultValue(depthStencilBack.passOp, StencilOperation.Keep)
-			},
-			depthBias: defaultValue(depthStencil.depthBias, 0),
-			depthBiasSlopeScale: defaultValue(depthStencil.depthBiasSlopeScale, 0),
-			depthBiasClamp: defaultValue(depthStencil.depthBiasClamp, 0)
-		};
-		//
-		this.primitive = defaultValue(rs.primitive, {
-			frontFace: FrontFace.CCW,
-			cullMode: CullMode.None,
-			unclippedDepth: false
-		});
-		//
-		this.viewport = defined(viewport) ? viewport : undefined;
-	}
-	static getFromRenderStateCache(renderstate) {
-		if (renderStateCache.has(renderstate)) {
-			return renderStateCache.get(renderstate);
-		}
-		const newRenderState = new RenderState(renderstate);
-		renderStateCache.set(renderstate, Object.freeze(newRenderState));
-		return newRenderState;
-	}
-	static checkRenderStateStatus(type, value) {
-		let result = false;
-		switch (type) {
-			case "blendConstant":
-				const blendConstant = RenderState.preRenderState.blendConstant;
-				if (
-					blendConstant?.r == value.r &&
-					blendConstant?.g == value.g &&
-					blendConstant?.b == value.b &&
-					blendConstant?.a == value.a
-				) {
-					RenderState.preRenderState.blendConstant = value;
-					result = true;
-				}
-				break;
-			case "viewport":
-				const viewport = RenderState.preRenderState.viewport;
-				if (
-					viewport?.x == value.x &&
-					viewport?.y == value.y &&
-					viewport?.width == value.width &&
-					viewport?.height == value.height
-				) {
-					RenderState.preRenderState.viewport = value;
-					result = true;
-				}
-				break;
-			case "stencilReference":
-				const stencilReference = RenderState.preRenderState.stencilReference;
-				if (stencilReference != value) {
-					RenderState.preRenderState.stencilReference = value;
-					result = true;
-				}
-				break;
-			default:
-				const scissorTest = RenderState.preRenderState.scissorTest;
-				if (
-					scissorTest?.x == value.x &&
-					scissorTest?.y == value.y &&
-					scissorTest?.width == value.width &&
-					scissorTest?.height == value.height
-				) {
-					RenderState.preRenderState.scissorTest = value;
-					result = true;
-				}
-				break;
-		}
-		return result;
-	}
-	static applyRenderState(passEncoder, renderState) {
-		const { blendConstant, stencilReference, viewport, scissorTest, stencilEnabled, scissorTestEnabled } =
-			RenderState.getFromRenderStateCache(renderState);
-		if (RenderState.checkRenderStateStatus("blendConstant", blendConstant))
-			passEncoder.setBlendConstant(blendConstant);
-		if (stencilEnabled && RenderState.checkRenderStateStatus("stencilReference", stencilReference))
-			passEncoder.setStencilReference(stencilReference);
-		if (RenderState.checkRenderStateStatus("viewport", viewport))
-			passEncoder.setViewport(viewport.x, viewport.y, viewport.width, viewport.height, 0, 1);
-		if (scissorTestEnabled && RenderState.checkRenderStateStatus("scissorTest", scissorTest))
-			passEncoder.setScissorRect(scissorTest.x, scissorTest.y, scissorTest.width, scissorTest.height);
-	}
-}
-RenderState.defaultDepthStencil = {
-	format: TextureFormat.Depth24Plus,
-	depthWriteEnabled: true,
-	depthCompare: CompareFunction.Less,
-	stencilReadMask: 0xffffffff,
-	stencilWriteMask: 0xffffffff,
-	stencilFront: {
-		compare: CompareFunction.Always,
-		failOp: StencilOperation.Keep,
-		depthFailOp: StencilOperation.Keep,
-		passOp: StencilOperation.Keep
-	},
-	stencilBack: {
-		compare: CompareFunction.Always,
-		failOp: StencilOperation.Keep,
-		depthFailOp: StencilOperation.Keep,
-		passOp: StencilOperation.Keep
-	},
-	depthBias: 0,
-	depthBiasSlopeScale: 0,
-	depthBiasClamp: 0
-};
-RenderState.defaultPrimitiveState = {
-	frontFace: FrontFace.CCW,
-	cullMode: CullMode.None,
-	unclippedDepth: false
-};
-RenderState.defaultMultisample = {
-	count: 1,
-	mask: 0xffffffff,
-	alphaToCoverageEnabled: false
-};
-RenderState.defaultTarget = {
-	format: TextureFormat.BGRA8Unorm,
-	blend: {
-		color: {
-			operation: BlendOperation.Add,
-			srcFactor: BlendFactor.SrcAlpha,
-			dstFactor: BlendFactor.OneMinusSrcAlpha
-		},
-		alpha: {
-			operation: BlendOperation.Add,
-			srcFactor: BlendFactor.One,
-			dstFactor: BlendFactor.One
-		}
-	},
-	writeMask: ColorWriteFlags.All
-};
-RenderState.defaultBlendConstant = { r: 1, g: 1, b: 1, a: 1 };
-RenderState.preRenderState = {
-	blendConstant: undefined,
-	stencilReference: 0,
-	viewport: undefined,
-	scissorTest: undefined
-};
 
 /*
   https://github.com/banksean wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
@@ -1005,6 +1105,33 @@ MersenneTwister.prototype.random_long = function () {
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
 var mersenneTwister = MersenneTwister;
+
+/**
+ * Returns the first parameter if not undefined, otherwise the second parameter.
+ * Useful for setting a default value for a parameter.
+ *
+ * @function
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
+ *
+ * @example
+ * param = Cesium.defaultValue(param, 'default');
+ */
+function defaultValue(a, b) {
+	if (a !== undefined && a !== null) {
+		return a;
+	}
+	return b;
+}
+/**
+ * A frozen empty object that can be used as the default value for options passed as
+ * an object literal.
+ * @type {Object}
+ * @memberof defaultValue
+ */
+defaultValue.EMPTY_OBJECT = Object.freeze({});
 
 class GMath {
 	static signNotZero(value) {
@@ -1286,6 +1413,533 @@ GMath.log2 = defaultValue(Math.log2, function log2(number) {
 	return Math.log(number) * Math.LOG2E;
 });
 let randomNumberGenerator = new mersenneTwister();
+
+class Vector3 {
+	constructor(x = 0, y = 0, z = 0) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	set(x, y, z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	toArray() {
+		return [this.x, this.y, this.z];
+	}
+	copy(v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+	}
+	lerp(end, t) {
+		Vector3.lerp(this, end, t, this);
+		return this;
+	}
+	add(v) {
+		Vector3.add(this, v, this);
+		return this;
+	}
+	addScaledVector(v, s) {
+		this.x += v.x * s;
+		this.y += v.y * s;
+		this.z += v.z * s;
+		return this;
+	}
+	subtract(v) {
+		Vector3.subtract(this, v, this);
+		return this;
+	}
+	applyQuaternion(q) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const qx = q.x,
+			qy = q.y,
+			qz = q.z,
+			qw = q.w;
+		// calculate quat * vector
+		const ix = qw * x + qy * z - qz * y;
+		const iy = qw * y + qz * x - qx * z;
+		const iz = qw * z + qx * y - qy * x;
+		const iw = -qx * x - qy * y - qz * z;
+		// calculate result * inverse quat
+		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+		return this;
+	}
+	setFromMatrixColumn(m, index) {
+		return this.fromArray(m, index * 4);
+	}
+	fromArray(array, offset = 0) {
+		this.x = array[offset];
+		this.y = array[offset + 1];
+		this.z = array[offset + 2];
+		return this;
+	}
+	multiplyByScalar(scale) {
+		Vector3.multiplyByScalar(this, scale, this);
+		return this;
+	}
+	clone() {
+		return Vector3.clone(this, new Vector3());
+	}
+	length() {
+		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+	}
+	applyMatrix4(matrix) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const e = matrix;
+		const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+		return this;
+	}
+	applyMatrix3(matrix) {
+		let x = this.x,
+			y = this.y,
+			z = this.z;
+		this.x = x * matrix[0] + y * matrix[3] + z * matrix[6];
+		this.y = x * matrix[1] + y * matrix[4] + z * matrix[7];
+		this.z = x * matrix[2] + y * matrix[5] + z * matrix[8];
+		return this;
+	}
+	transformDirection(matrix) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const e = matrix;
+		this.x = e[0] * x + e[4] * y + e[8] * z;
+		this.y = e[1] * x + e[5] * y + e[9] * z;
+		this.z = e[2] * x + e[6] * y + e[10] * z;
+		return this.normalize();
+	}
+	normalize() {
+		Vector3.normalize(this, this);
+		return this;
+	}
+	equals(right) {
+		return Vector3.equals(this, right);
+	}
+	equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
+		return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
+	}
+	toString() {
+		return `(${this.x}, ${this.y}, ${this.z})`;
+	}
+	fromBufferAttribute(attribute, index) {
+		this.x = attribute.getX(index);
+		this.y = attribute.getY(index);
+		this.z = attribute.getZ(index);
+		return this;
+	}
+	static fromVector4(vec4, result) {
+		result.x = vec4.x;
+		result.y = vec4.y;
+		result.z = vec4.z;
+		return result;
+	}
+	static fromSpherical(spherical, result) {
+		if (!defined(result)) {
+			result = new Vector3();
+		}
+		const { phi, radius, theta } = spherical;
+		const sinPhiRadius = Math.sin(phi) * radius;
+		result.x = sinPhiRadius * Math.sin(theta);
+		result.y = Math.cos(phi) * radius;
+		result.z = sinPhiRadius * Math.cos(theta);
+		return result;
+	}
+	static fromElements(x, y, z, result) {
+		if (!defined(result)) {
+			return new Vector3(x, y, z);
+		}
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+	static clone(cartesian, result = new Vector3()) {
+		if (!defined(cartesian)) {
+			return undefined;
+		}
+		if (!defined(result)) {
+			return new Vector3(cartesian.x, cartesian.y, cartesian.z);
+		}
+		result.x = cartesian.x;
+		result.y = cartesian.y;
+		result.z = cartesian.z;
+		return result;
+	}
+	static maximumComponent(cartesian) {
+		return Math.max(cartesian.x, cartesian.y, cartesian.z);
+	}
+	static minimumComponent(cartesian) {
+		return Math.min(cartesian.x, cartesian.y, cartesian.z);
+	}
+	static minimumByComponent(first, second, result) {
+		result.x = Math.min(first.x, second.x);
+		result.y = Math.min(first.y, second.y);
+		result.z = Math.min(first.z, second.z);
+		return result;
+	}
+	static maximumByComponent(first, second, result) {
+		result.x = Math.max(first.x, second.x);
+		result.y = Math.max(first.y, second.y);
+		result.z = Math.max(first.z, second.z);
+		return result;
+	}
+	static clamp(value, min, max, result) {
+		const x = GMath.clamp(value.x, min.x, max.x);
+		const y = GMath.clamp(value.y, min.y, max.y);
+		const z = GMath.clamp(value.z, min.z, max.z);
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+	static magnitudeSquared(cartesian) {
+		return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z;
+	}
+	static magnitude(cartesian) {
+		return Math.sqrt(Vector3.magnitudeSquared(cartesian));
+	}
+	static distance(left, right) {
+		Vector3.subtract(left, right, distanceScratch$2);
+		return Vector3.magnitude(distanceScratch$2);
+	}
+	static distanceSquared(left, right) {
+		Vector3.subtract(left, right, distanceScratch$2);
+		return Vector3.magnitudeSquared(distanceScratch$2);
+	}
+	static normalize(cartesian, result) {
+		const magnitude = Vector3.magnitude(cartesian);
+		result.x = cartesian.x / magnitude;
+		result.y = cartesian.y / magnitude;
+		result.z = cartesian.z / magnitude;
+		if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z)) {
+			throw new Error("normalized result is not a number");
+		}
+		return result;
+	}
+	static dot(left, right) {
+		return left.x * right.x + left.y * right.y + left.z * right.z;
+	}
+	static multiplyComponents(left, right, result) {
+		result.x = left.x * right.x;
+		result.y = left.y * right.y;
+		result.z = left.z * right.z;
+		return result;
+	}
+	static divideComponents(left, right, result) {
+		result.x = left.x / right.x;
+		result.y = left.y / right.y;
+		result.z = left.z / right.z;
+		return result;
+	}
+	static add(left, right, result) {
+		result.x = left.x + right.x;
+		result.y = left.y + right.y;
+		result.z = left.z + right.z;
+		return result;
+	}
+	static subtract(left, right, result) {
+		result.x = left.x - right.x;
+		result.y = left.y - right.y;
+		result.z = left.z - right.z;
+		return result;
+	}
+	static multiplyByScalar(cartesian, scalar, result) {
+		result.x = cartesian.x * scalar;
+		result.y = cartesian.y * scalar;
+		result.z = cartesian.z * scalar;
+		return result;
+	}
+	static divideByScalar(cartesian, scalar, result) {
+		result.x = cartesian.x / scalar;
+		result.y = cartesian.y / scalar;
+		result.z = cartesian.z / scalar;
+		return result;
+	}
+	static negate(cartesian, result) {
+		result.x = -cartesian.x;
+		result.y = -cartesian.y;
+		result.z = -cartesian.z;
+		return result;
+	}
+	static abs(cartesian, result) {
+		result.x = Math.abs(cartesian.x);
+		result.y = Math.abs(cartesian.y);
+		result.z = Math.abs(cartesian.z);
+		return result;
+	}
+	static lerp(start, end, t, result) {
+		Vector3.multiplyByScalar(end, t, lerpScratch$3);
+		result = Vector3.multiplyByScalar(start, 1.0 - t, result);
+		return Vector3.add(lerpScratch$3, result, result);
+	}
+	static angleBetween(left, right) {
+		Vector3.normalize(left, angleBetweenScratch$1);
+		Vector3.normalize(right, angleBetweenScratch2$1);
+		const cosine = Vector3.dot(angleBetweenScratch$1, angleBetweenScratch2$1);
+		const sine = Vector3.magnitude(
+			Vector3.cross(angleBetweenScratch$1, angleBetweenScratch2$1, angleBetweenScratch$1)
+		);
+		return Math.atan2(sine, cosine);
+	}
+	static mostOrthogonalAxis(cartesian, result) {
+		const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch$1);
+		Vector3.abs(f, f);
+		if (f.x <= f.y) {
+			if (f.x <= f.z) {
+				result = Vector3.clone(Vector3.UNIT_X, result);
+			} else {
+				result = Vector3.clone(Vector3.UNIT_Z, result);
+			}
+		} else if (f.y <= f.z) {
+			result = Vector3.clone(Vector3.UNIT_Y, result);
+		} else {
+			result = Vector3.clone(Vector3.UNIT_Z, result);
+		}
+		return result;
+	}
+	static projectVector(a, b, result) {
+		const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
+		return Vector3.multiplyByScalar(b, scalar, result);
+	}
+	static equals(left, right) {
+		return (
+			left === right ||
+			(defined(left) && defined(right) && left.x === right.x && left.y === right.y && left.z === right.z)
+		);
+	}
+	/**
+	 * @private
+	 */
+	static equalsArray(cartesian, array, offset) {
+		return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2];
+	}
+	static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
+		return (
+			left === right ||
+			(defined(left) &&
+				defined(right) &&
+				GMath.equalsEpsilon(left.x, right.x, relativeEpsilon, absoluteEpsilon) &&
+				GMath.equalsEpsilon(left.y, right.y, relativeEpsilon, absoluteEpsilon) &&
+				GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon))
+		);
+	}
+	static cross(left, right, result) {
+		const leftX = left.x;
+		const leftY = left.y;
+		const leftZ = left.z;
+		const rightX = right.x;
+		const rightY = right.y;
+		const rightZ = right.z;
+		const x = leftY * rightZ - leftZ * rightY;
+		const y = leftZ * rightX - leftX * rightZ;
+		const z = leftX * rightY - leftY * rightX;
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+}
+Vector3.ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
+Vector3.ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
+Vector3.UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
+Vector3.UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
+Vector3.UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
+Vector3.midpoint = function (left, right, result) {
+	result.x = (left.x + right.x) * 0.5;
+	result.y = (left.y + right.y) * 0.5;
+	result.z = (left.z + right.z) * 0.5;
+	return result;
+};
+const distanceScratch$2 = new Vector3();
+const lerpScratch$3 = new Vector3();
+const angleBetweenScratch$1 = new Vector3();
+const angleBetweenScratch2$1 = new Vector3();
+const mostOrthogonalAxisScratch$1 = new Vector3();
+
+class Light {
+	constructor(color, intensity) {
+		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
+		this._intensity = intensity;
+		this._position = new Vector3(0, 0, 0);
+		this.positionDirty = true;
+		this.colorDirty = true;
+		this.intensityDirty = true;
+	}
+	get position() {
+		return this._position;
+	}
+	set position(value) {
+		this.positionDirty = true;
+		this._position = value;
+	}
+	get color() {
+		return this._color;
+	}
+	set color(value) {
+		this.colorDirty = true;
+		this._color = value;
+	}
+	set intensity(value) {
+		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
+		this.intensityDirty = true;
+		this._intensity = value;
+	}
+	get intensity() {
+		return this._intensity;
+	}
+}
+
+class AmbientLight extends Light {
+	constructor(color, intensity) {
+		super(color, intensity);
+		this.type = "ambient";
+	}
+}
+//light.color ).multiplyScalar( light.intensity * scaleFactor );
+
+class SpotData {
+	constructor(buffer, byteOffset, spotLight) {
+		this.spotLight = spotLight;
+		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
+		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
+		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
+		this.coneCos = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
+		this.color = new Float32Array(buffer.buffer, byteOffset + 32, 3); //3
+		this.penumbraCos = new Float32Array(buffer.buffer, byteOffset + 44, 1); //1
+		this.decay = new Float32Array(buffer.buffer, byteOffset + 48, 1); //1
+	}
+	update(camera) {
+		const viewMatrix = camera.viewMatrix;
+		if (this.spotLight.colorDirty) {
+			this.spotLight.colorDirty = false;
+			copyData(this.spotLight.color.toArray(), this.color);
+		}
+		if (this.spotLight.positionDirty) {
+			this.spotLight.positionDirty = false;
+			let position = this.spotLight.position.clone();
+			position = position.applyMatrix4(viewMatrix);
+			copyData(position.toArray(), this.position);
+		}
+		if (this.spotLight.dirtectDirty) {
+			this.spotLight.dirtectDirty = false;
+			let dirtect = this.spotLight.dirtect.clone();
+			dirtect = dirtect.transformDirection(viewMatrix);
+			copyData(dirtect.toArray(), this.dirtect);
+		}
+		if (this.spotLight.distanceDirty) {
+			this.spotLight.distanceDirty = false;
+			this.distance[0] = this.spotLight.distance; //1
+		}
+		if (this.spotLight.coneCosDirty) {
+			this.spotLight.coneCosDirty = false;
+			this.coneCos[0] = this.spotLight.coneCos; //1
+		}
+		if (this.spotLight.penumbraCosDirty) {
+			this.spotLight.penumbraCosDirty = false;
+			this.penumbraCos[0] = this.spotLight.penumbraCos; //1
+		}
+		if (this.spotLight.decayDirty) {
+			this.spotLight.decayDirty = false;
+			this.decay[0] = this.spotLight.decay; //1
+		}
+	}
+	destroy() {
+		this.spotLight = undefined;
+		this.color = undefined;
+		this.position = undefined;
+		this.dirtect = undefined;
+		this.distance = undefined;
+		this.coneCos = undefined;
+		this.penumbraCos = undefined;
+		this.decay = undefined;
+	}
+}
+//array<light> light of byteSize must be k*16
+SpotData.byteSize = 64;
+SpotData.size = 16;
+class PointData {
+	constructor(buffer, byteOffset, pointLight) {
+		this.pointLight = pointLight;
+		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
+		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
+		this.color = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
+		this.decay = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
+	}
+	update(camera) {
+		const viewMatrix = camera.viewMatrix;
+		if (this.pointLight.colorDirty) {
+			this.pointLight.colorDirty = false;
+			copyData(this.pointLight.color.toArray(), this.color);
+		}
+		if (this.pointLight.positionDirty) {
+			this.pointLight.positionDirty = false;
+			let position = this.pointLight.position.clone();
+			position = position.applyMatrix4(viewMatrix);
+			copyData(position.toArray(), this.position);
+		}
+		if (this.pointLight.decayDirty) {
+			this.pointLight.decayDirty = false;
+			this.decay[0] = this.pointLight.decay;
+		}
+		if (this.pointLight.distanceDirty) {
+			this.pointLight.distanceDirty = false;
+			this.distance[0] = this.pointLight.distance;
+		}
+	}
+	destroy() {
+		this.pointLight = undefined;
+		this.color = undefined;
+		this.position = undefined;
+		this.decay = undefined;
+		this.distance = undefined;
+	}
+}
+PointData.byteSize = 32;
+PointData.size = 8;
+class DirtectData {
+	constructor(buffer, byteOffset, dirtectLight) {
+		this.dirtectLight = dirtectLight;
+		this.color = new Float32Array(buffer.buffer, byteOffset, 3); //3
+		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
+	}
+	update(camera) {
+		const viewMatrix = camera.viewMatrix;
+		if (this.dirtectLight.colorDirty) {
+			this.dirtectLight.colorDirty = false;
+			copyData(this.dirtectLight.color.toArray(), this.color);
+		}
+		if (this.dirtectLight.dirtectDirty) {
+			this.dirtectLight.dirtectDirty = false;
+			let dirtect = this.dirtectLight.dirtect.clone();
+			dirtect = dirtect.transformDirection(viewMatrix);
+			copyData(dirtect.toArray(), this.dirtect);
+		}
+	}
+	destroy() {
+		this.dirtectLight = undefined;
+		this.color = undefined;
+		this.dirtect = undefined;
+	}
+}
+DirtectData.byteSize = 32;
+DirtectData.size = 8;
+function copyData(src, dis) {
+	src.forEach((element, index) => {
+		dis[index] = element;
+	});
+}
 
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
@@ -1655,12 +2309,12 @@ class Vector2 {
 		return Math.sqrt(Vector2.magnitudeSquared(cartesian));
 	}
 	static distance(left, right) {
-		Vector2.subtract(left, right, distanceScratch$2);
-		return Vector2.magnitude(distanceScratch$2);
+		Vector2.subtract(left, right, distanceScratch$1);
+		return Vector2.magnitude(distanceScratch$1);
 	}
 	static distanceSquared(left, right) {
-		Vector2.subtract(left, right, distanceScratch$2);
-		return Vector2.magnitudeSquared(distanceScratch$2);
+		Vector2.subtract(left, right, distanceScratch$1);
+		return Vector2.magnitudeSquared(distanceScratch$1);
 	}
 	static normalize(cartesian, result) {
 		const magnitude = Vector2.magnitude(cartesian);
@@ -1720,17 +2374,17 @@ class Vector2 {
 		return result;
 	}
 	static lerp(start, end, t, result) {
-		Vector2.multiplyByScalar(end, t, lerpScratch$3);
+		Vector2.multiplyByScalar(end, t, lerpScratch$2);
 		result = Vector2.multiplyByScalar(start, 1.0 - t, result);
-		return Vector2.add(lerpScratch$3, result, result);
+		return Vector2.add(lerpScratch$2, result, result);
 	}
 	static angleBetween(left, right) {
-		Vector2.normalize(left, angleBetweenScratch$1);
-		Vector2.normalize(right, angleBetweenScratch2$1);
-		return GMath.acosClamped(Vector2.dot(angleBetweenScratch$1, angleBetweenScratch2$1));
+		Vector2.normalize(left, angleBetweenScratch);
+		Vector2.normalize(right, angleBetweenScratch2);
+		return GMath.acosClamped(Vector2.dot(angleBetweenScratch, angleBetweenScratch2));
 	}
 	static mostOrthogonalAxis(cartesian, result) {
-		const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch$1);
+		const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch);
 		Vector2.abs(f, f);
 		if (f.x <= f.y) {
 			result = Vector2.clone(Vector2.UNIT_X, result);
@@ -1762,11 +2416,11 @@ Vector2.ZERO = Object.freeze(new Vector2(0.0, 0.0));
 Vector2.ONE = Object.freeze(new Vector2(1.0, 1.0));
 Vector2.UNIT_X = Object.freeze(new Vector2(1.0, 0.0));
 Vector2.UNIT_Y = Object.freeze(new Vector2(0.0, 1.0));
-const distanceScratch$2 = new Vector2();
-const lerpScratch$3 = new Vector2();
-const angleBetweenScratch$1 = new Vector2();
-const angleBetweenScratch2$1 = new Vector2();
-const mostOrthogonalAxisScratch$1 = new Vector2();
+const distanceScratch$1 = new Vector2();
+const lerpScratch$2 = new Vector2();
+const angleBetweenScratch = new Vector2();
+const angleBetweenScratch2 = new Vector2();
+const mostOrthogonalAxisScratch = new Vector2();
 
 /**
  * A 2x2 matrix, indexable as a column-major order array.
@@ -2060,358 +2714,6 @@ const scaleScratch3$2 = new Vector2();
 const scaleScratch4$2 = new Vector2();
 const scratchColumn$2 = new Vector2();
 const scaleScratch5$2 = new Vector2();
-
-class Vector3 {
-	constructor(x = 0, y = 0, z = 0) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-	set(x, y, z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-	toArray() {
-		return [this.x, this.y, this.z];
-	}
-	copy(v) {
-		this.x = v.x;
-		this.y = v.y;
-		this.z = v.z;
-		return this;
-	}
-	lerp(end, t) {
-		Vector3.lerp(this, end, t, this);
-		return this;
-	}
-	add(v) {
-		Vector3.add(this, v, this);
-		return this;
-	}
-	addScaledVector(v, s) {
-		this.x += v.x * s;
-		this.y += v.y * s;
-		this.z += v.z * s;
-		return this;
-	}
-	subtract(v) {
-		Vector3.subtract(this, v, this);
-		return this;
-	}
-	applyQuaternion(q) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const qx = q.x,
-			qy = q.y,
-			qz = q.z,
-			qw = q.w;
-		// calculate quat * vector
-		const ix = qw * x + qy * z - qz * y;
-		const iy = qw * y + qz * x - qx * z;
-		const iz = qw * z + qx * y - qy * x;
-		const iw = -qx * x - qy * y - qz * z;
-		// calculate result * inverse quat
-		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-		return this;
-	}
-	setFromMatrixColumn(m, index) {
-		return this.fromArray(m, index * 4);
-	}
-	fromArray(array, offset = 0) {
-		this.x = array[offset];
-		this.y = array[offset + 1];
-		this.z = array[offset + 2];
-		return this;
-	}
-	multiplyByScalar(scale) {
-		Vector3.multiplyByScalar(this, scale, this);
-		return this;
-	}
-	clone() {
-		return Vector3.clone(this, new Vector3());
-	}
-	length() {
-		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-	}
-	applyMatrix4(matrix) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const e = matrix;
-		const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
-		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
-		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
-		return this;
-	}
-	applyMatrix3(matrix) {
-		let x = this.x,
-			y = this.y,
-			z = this.z;
-		this.x = x * matrix[0] + y * matrix[3] + z * matrix[6];
-		this.y = x * matrix[1] + y * matrix[4] + z * matrix[7];
-		this.z = x * matrix[2] + y * matrix[5] + z * matrix[8];
-		return this;
-	}
-	transformDirection(matrix) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const e = matrix;
-		this.x = e[0] * x + e[4] * y + e[8] * z;
-		this.y = e[1] * x + e[5] * y + e[9] * z;
-		this.z = e[2] * x + e[6] * y + e[10] * z;
-		return this.normalize();
-	}
-	normalize() {
-		Vector3.normalize(this, this);
-		return this;
-	}
-	equals(right) {
-		return Vector3.equals(this, right);
-	}
-	equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
-		return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
-	}
-	toString() {
-		return `(${this.x}, ${this.y}, ${this.z})`;
-	}
-	fromBufferAttribute(attribute, index) {
-		this.x = attribute.getX(index);
-		this.y = attribute.getY(index);
-		this.z = attribute.getZ(index);
-		return this;
-	}
-	static fromVector4(vec4, result) {
-		result.x = vec4.x;
-		result.y = vec4.y;
-		result.z = vec4.z;
-		return result;
-	}
-	static fromSpherical(spherical, result) {
-		if (!defined(result)) {
-			result = new Vector3();
-		}
-		const { phi, radius, theta } = spherical;
-		const sinPhiRadius = Math.sin(phi) * radius;
-		result.x = sinPhiRadius * Math.sin(theta);
-		result.y = Math.cos(phi) * radius;
-		result.z = sinPhiRadius * Math.cos(theta);
-		return result;
-	}
-	static fromElements(x, y, z, result) {
-		if (!defined(result)) {
-			return new Vector3(x, y, z);
-		}
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-	static clone(cartesian, result = new Vector3()) {
-		if (!defined(cartesian)) {
-			return undefined;
-		}
-		if (!defined(result)) {
-			return new Vector3(cartesian.x, cartesian.y, cartesian.z);
-		}
-		result.x = cartesian.x;
-		result.y = cartesian.y;
-		result.z = cartesian.z;
-		return result;
-	}
-	static maximumComponent(cartesian) {
-		return Math.max(cartesian.x, cartesian.y, cartesian.z);
-	}
-	static minimumComponent(cartesian) {
-		return Math.min(cartesian.x, cartesian.y, cartesian.z);
-	}
-	static minimumByComponent(first, second, result) {
-		result.x = Math.min(first.x, second.x);
-		result.y = Math.min(first.y, second.y);
-		result.z = Math.min(first.z, second.z);
-		return result;
-	}
-	static maximumByComponent(first, second, result) {
-		result.x = Math.max(first.x, second.x);
-		result.y = Math.max(first.y, second.y);
-		result.z = Math.max(first.z, second.z);
-		return result;
-	}
-	static clamp(value, min, max, result) {
-		const x = GMath.clamp(value.x, min.x, max.x);
-		const y = GMath.clamp(value.y, min.y, max.y);
-		const z = GMath.clamp(value.z, min.z, max.z);
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-	static magnitudeSquared(cartesian) {
-		return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z;
-	}
-	static magnitude(cartesian) {
-		return Math.sqrt(Vector3.magnitudeSquared(cartesian));
-	}
-	static distance(left, right) {
-		Vector3.subtract(left, right, distanceScratch$1);
-		return Vector3.magnitude(distanceScratch$1);
-	}
-	static distanceSquared(left, right) {
-		Vector3.subtract(left, right, distanceScratch$1);
-		return Vector3.magnitudeSquared(distanceScratch$1);
-	}
-	static normalize(cartesian, result) {
-		const magnitude = Vector3.magnitude(cartesian);
-		result.x = cartesian.x / magnitude;
-		result.y = cartesian.y / magnitude;
-		result.z = cartesian.z / magnitude;
-		if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z)) {
-			throw new Error("normalized result is not a number");
-		}
-		return result;
-	}
-	static dot(left, right) {
-		return left.x * right.x + left.y * right.y + left.z * right.z;
-	}
-	static multiplyComponents(left, right, result) {
-		result.x = left.x * right.x;
-		result.y = left.y * right.y;
-		result.z = left.z * right.z;
-		return result;
-	}
-	static divideComponents(left, right, result) {
-		result.x = left.x / right.x;
-		result.y = left.y / right.y;
-		result.z = left.z / right.z;
-		return result;
-	}
-	static add(left, right, result) {
-		result.x = left.x + right.x;
-		result.y = left.y + right.y;
-		result.z = left.z + right.z;
-		return result;
-	}
-	static subtract(left, right, result) {
-		result.x = left.x - right.x;
-		result.y = left.y - right.y;
-		result.z = left.z - right.z;
-		return result;
-	}
-	static multiplyByScalar(cartesian, scalar, result) {
-		result.x = cartesian.x * scalar;
-		result.y = cartesian.y * scalar;
-		result.z = cartesian.z * scalar;
-		return result;
-	}
-	static divideByScalar(cartesian, scalar, result) {
-		result.x = cartesian.x / scalar;
-		result.y = cartesian.y / scalar;
-		result.z = cartesian.z / scalar;
-		return result;
-	}
-	static negate(cartesian, result) {
-		result.x = -cartesian.x;
-		result.y = -cartesian.y;
-		result.z = -cartesian.z;
-		return result;
-	}
-	static abs(cartesian, result) {
-		result.x = Math.abs(cartesian.x);
-		result.y = Math.abs(cartesian.y);
-		result.z = Math.abs(cartesian.z);
-		return result;
-	}
-	static lerp(start, end, t, result) {
-		Vector3.multiplyByScalar(end, t, lerpScratch$2);
-		result = Vector3.multiplyByScalar(start, 1.0 - t, result);
-		return Vector3.add(lerpScratch$2, result, result);
-	}
-	static angleBetween(left, right) {
-		Vector3.normalize(left, angleBetweenScratch);
-		Vector3.normalize(right, angleBetweenScratch2);
-		const cosine = Vector3.dot(angleBetweenScratch, angleBetweenScratch2);
-		const sine = Vector3.magnitude(Vector3.cross(angleBetweenScratch, angleBetweenScratch2, angleBetweenScratch));
-		return Math.atan2(sine, cosine);
-	}
-	static mostOrthogonalAxis(cartesian, result) {
-		const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch);
-		Vector3.abs(f, f);
-		if (f.x <= f.y) {
-			if (f.x <= f.z) {
-				result = Vector3.clone(Vector3.UNIT_X, result);
-			} else {
-				result = Vector3.clone(Vector3.UNIT_Z, result);
-			}
-		} else if (f.y <= f.z) {
-			result = Vector3.clone(Vector3.UNIT_Y, result);
-		} else {
-			result = Vector3.clone(Vector3.UNIT_Z, result);
-		}
-		return result;
-	}
-	static projectVector(a, b, result) {
-		const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
-		return Vector3.multiplyByScalar(b, scalar, result);
-	}
-	static equals(left, right) {
-		return (
-			left === right ||
-			(defined(left) && defined(right) && left.x === right.x && left.y === right.y && left.z === right.z)
-		);
-	}
-	/**
-	 * @private
-	 */
-	static equalsArray(cartesian, array, offset) {
-		return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2];
-	}
-	static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
-		return (
-			left === right ||
-			(defined(left) &&
-				defined(right) &&
-				GMath.equalsEpsilon(left.x, right.x, relativeEpsilon, absoluteEpsilon) &&
-				GMath.equalsEpsilon(left.y, right.y, relativeEpsilon, absoluteEpsilon) &&
-				GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon))
-		);
-	}
-	static cross(left, right, result) {
-		const leftX = left.x;
-		const leftY = left.y;
-		const leftZ = left.z;
-		const rightX = right.x;
-		const rightY = right.y;
-		const rightZ = right.z;
-		const x = leftY * rightZ - leftZ * rightY;
-		const y = leftZ * rightX - leftX * rightZ;
-		const z = leftX * rightY - leftY * rightX;
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-}
-Vector3.ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
-Vector3.ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
-Vector3.UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
-Vector3.UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
-Vector3.UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
-Vector3.midpoint = function (left, right, result) {
-	result.x = (left.x + right.x) * 0.5;
-	result.y = (left.y + right.y) * 0.5;
-	result.z = (left.z + right.z) * 0.5;
-	return result;
-};
-const distanceScratch$1 = new Vector3();
-const lerpScratch$2 = new Vector3();
-const angleBetweenScratch = new Vector3();
-const angleBetweenScratch2 = new Vector3();
-const mostOrthogonalAxisScratch = new Vector3();
 
 /**
  * A 3x3 matrix, indexable as a column-major order array.
@@ -4792,7 +5094,10 @@ class BindGroup {
 		this.gpuBindGroup = options.device.createBindGroup({
 			label: options.label,
 			layout: options.layout.gpuBindGroupLayout,
-			entries: options.entires.map((entity) => ({ binding: entity.binding, resource: entity.resource }))
+			entries: options.entires.map((entity) => ({
+				binding: entity.binding,
+				resource: entity.resource
+			}))
 		});
 	}
 	bind(passEncoder) {
@@ -5117,381 +5422,204 @@ class UniformBuffer {
 	}
 }
 
-class SystemRenderResource {
-	constructor() {}
-	get layouts() {
-		return [this.cameraShaderData.groupLayout, this.lightShaderData.groupLayout];
+class LightManger {
+	constructor() {
+		this.spotLights = [];
+		this.pointLights = [];
+		this.dirtectLights = [];
+		this.spotDatas = new WeakMap();
+		this.pointDatas = new WeakMap();
+		this.dirtectDatas = new WeakMap();
+		this.ambientLight = new AmbientLight(new Vector3(1, 1, 1), 0.1);
+		this.lightDefines = {
+			ambientLight: false,
+			spotLight: false,
+			pointLight: false,
+			dirtectLight: false,
+			spotLightBinding: 1,
+			pointLightBinding: 2,
+			dirtectLightBinding: 3
+		};
+		this.totalByte = 0;
+		this.lightCountDirty = true;
 	}
-	update(frameState, scene) {
-		const { lightManger } = scene;
-		this.updateLight(lightManger);
-		this.updateCamera(frameState);
+	update(frameState, camera) {
+		this.updateLight(camera);
+		frameState.defines = this.lightDefines;
 	}
-	bind(context, passEncoder) {
-		this.lightShaderData.bind(context, passEncoder);
-		this.cameraShaderData.bind(context, passEncoder);
-	}
-	// camera
-	updateCamera(frameState) {
-		if (!this.cameraShaderData) {
-			this.createCameraShaderData(frameState);
+	add(light) {
+		this.lightCountDirty = true;
+		if (light.type == "ambient") {
+			this.ambientLight = light;
+		} else if (light.type == "dirtect") {
+			this.dirtectLights.push(light);
+		} else if (light.type == "point") {
+			this.pointLights.push(light);
+		} else if (light.type == "spot") {
+			this.spotLights.push(light);
 		}
 	}
-	// light
-	updateLight(lightManger) {
-		if (lightManger.lightCountDirty) {
-			lightManger.lightCountDirty = false;
+	remove() {}
+	updateLight(camera) {
+		if (this.lightCountDirty) {
+			this.initBuffer();
+		}
+		this.updateLightData(camera);
+		if (this.lightCountDirty) {
+			this.lightCountDirty = false;
 			if (this.lightShaderData) this.lightShaderData.destroy();
-			this.createLightShaderData(lightManger);
+			this.createLightShaderData();
 		}
 	}
-	createCameraShaderData(frameState) {
-		this.cameraShaderData = new ShaderData("system", 0, 1, 1);
-		const uniformBuffer = new UniformBuffer();
-		uniformBuffer.setMatrix4("projectionMatrix", () => {
-			return frameState.camera.projectionMatrix;
-		});
-		uniformBuffer.setMatrix4("viewMatrix", () => {
-			return frameState.camera.viewMatrix;
-		});
-		uniformBuffer.setMatrix4("inverseViewMatrix", () => {
-			return frameState.camera.inverseViewMatrix;
-		});
-		uniformBuffer.setFloatVec3("position", () => {
-			return frameState.camera.position;
-		});
-		this.cameraShaderData.setUniformBuffer("system", uniformBuffer);
+	updateLightData(camera) {
+		this.updateSpotLight(camera);
+		this.updatePointLight(camera);
+		this.updateDirtectLight(camera);
+		this.updateAmbientLight(camera);
+		this.updateLightCount();
 	}
-	createLightShaderData(lightManger) {
+	updateSpotLight(camera) {
+		this.spotLights.forEach((light) => {
+			const lightData = this.spotDatas.get(light);
+			if (lightData) lightData.update(camera);
+		});
+	}
+	updatePointLight(camera) {
+		this.pointLights.forEach((light) => {
+			const lightData = this.pointDatas.get(light);
+			if (lightData) lightData.update(camera);
+		});
+	}
+	updateAmbientLight(camera) {
+		if (this.ambientLight) {
+			this.ambient[0] = this.ambientLight.color.x;
+			this.ambient[1] = this.ambientLight.color.y;
+			this.ambient[2] = this.ambientLight.color.z;
+		}
+	}
+	updateDirtectLight(camera) {
+		this.dirtectLights.forEach((light) => {
+			const lightData = this.dirtectDatas.get(light);
+			if (lightData) lightData.update(camera);
+		});
+	}
+	updateLightCount() {
+		if (this.lightCountDirty) {
+			this.lightCount[0] = this.spotLights.length;
+			this.lightCount[1] = this.pointLights.length;
+			this.lightCount[2] = this.dirtectLights.length;
+			this.lightCount[3] = this.ambient != undefined ? 1 : 0;
+		}
+	}
+	initBuffer() {
+		const ambientSize = this.ambientLight != undefined ? 3 : 0;
+		const lightCount = 4;
+		const pointLightCount = this.pointLights.length;
+		const spotLightCount = this.spotLights.length;
+		const dirtectLightCount = this.dirtectLights.length;
+		const pointLightCountSize = pointLightCount * PointData.size;
+		const spotLightCountSize = spotLightCount * SpotData.size;
+		const dirtectLightCountSize = dirtectLightCount * DirtectData.size;
+		let currentBinding = 1;
+		this.reset();
+		//common
+		if (ambientSize > 0) {
+			this.commonLightBuffer = new Float32Array(ambientSize + lightCount);
+			this.commonTatalByte = 0;
+			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
+			this.commonTatalByte += 16;
+			this.ambient = new Float32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 3);
+			this.commonTatalByte += 16;
+			this.lightDefines.ambientLight = true;
+		} else {
+			this.commonLightBuffer = new Float32Array(lightCount);
+			this.commonTatalByte = 0;
+			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
+			this.commonTatalByte += 16;
+		}
+		if (spotLightCountSize > 0) {
+			//初始化聚光灯
+			this.spotLightsBuffer = new Float32Array(spotLightCountSize);
+			this.spotLights.forEach((spotLight, i) => {
+				this.spotDatas.set(spotLight, new SpotData(this.spotLightsBuffer, SpotData.byteSize * i, spotLight));
+			});
+			this.spotLightsByte = spotLightCount * SpotData.byteSize;
+			this.lightDefines.spotLight = true;
+			this.lightDefines.spotLightBinding = currentBinding;
+			currentBinding += 1;
+		}
+		if (pointLightCountSize > 0) {
+			//点光源
+			this.pointLightsBuffer = new Float32Array(pointLightCountSize);
+			this.pointLights.forEach((pointLight, i) => {
+				this.pointDatas.set(
+					pointLight,
+					new PointData(this.pointLightsBuffer, PointData.byteSize * i, pointLight)
+				);
+			});
+			this.pointLightsByte = pointLightCount * PointData.byteSize;
+			this.lightDefines.pointLight = true;
+			this.lightDefines.pointLightBinding = currentBinding;
+			currentBinding += 1;
+		}
+		if (dirtectLightCountSize) {
+			//方向光
+			this.dirtectLightsBuffer = new Float32Array(dirtectLightCountSize);
+			this.dirtectLights.forEach((dirtect, i) => {
+				this.dirtectDatas.set(
+					dirtect,
+					new DirtectData(this.dirtectLightsBuffer, DirtectData.byteSize * i, dirtect)
+				);
+			});
+			this.dirtectLightsByte = dirtectLightCount * DirtectData.byteSize;
+			this.lightDefines.dirtectLight = true;
+			this.lightDefines.dirtectLightBinding = currentBinding;
+		}
+	}
+	createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
 		const commonBuffer = new UniformBuffer(
 			"read-only-storage",
 			BufferUsage.Storage | BufferUsage.CopyDst,
-			lightManger.commonTatalByte,
-			lightManger.commonLightBuffer
+			this.commonTatalByte,
+			this.commonLightBuffer
 		);
 		this.lightShaderData.setUniformBuffer("commonBuffer", commonBuffer);
-		if (lightManger.lightDefines.spotLight) {
+		if (this.lightDefines.spotLight) {
 			const spotLightsBuffer = new UniformBuffer(
 				"read-only-storage",
 				BufferUsage.Storage | BufferUsage.CopyDst,
-				lightManger.spotLightsByte,
-				lightManger.spotLightsBuffer,
-				lightManger.lightDefines.spotLightBinding
+				this.spotLightsByte,
+				this.spotLightsBuffer,
+				this.lightDefines.spotLightBinding
 			);
 			this.lightShaderData.setUniformBuffer("spotLightsBuffer", spotLightsBuffer);
 		}
-		if (lightManger.lightDefines.pointLight) {
+		if (this.lightDefines.pointLight) {
 			const pointLightsBuffer = new UniformBuffer(
 				"read-only-storage",
 				BufferUsage.Storage | BufferUsage.CopyDst,
-				lightManger.pointLightsByte,
-				lightManger.pointLightsBuffer,
-				lightManger.lightDefines.pointLightBinding
+				this.pointLightsByte,
+				this.pointLightsBuffer,
+				this.lightDefines.pointLightBinding
 			);
 			this.lightShaderData.setUniformBuffer("pointLightsBuffer", pointLightsBuffer);
 		}
-		if (lightManger.lightDefines.dirtectLight) {
+		if (this.lightDefines.dirtectLight) {
 			const dirtectLightsBuffer = new UniformBuffer(
 				"read-only-storage",
 				BufferUsage.Storage | BufferUsage.CopyDst,
-				lightManger.dirtectLightsByte,
-				lightManger.dirtectLightsBuffer,
-				lightManger.lightDefines.dirtectLightBinding
+				this.dirtectLightsByte,
+				this.dirtectLightsBuffer,
+				this.lightDefines.dirtectLightBinding
 			);
 			this.lightShaderData.setUniformBuffer("dirtectLightsBuffer", dirtectLightsBuffer);
 		}
 	}
+	reset() {}
 	destroy() {
-		this.cameraShaderData.destroy();
 		this.lightShaderData.destroy();
 	}
-}
-
-class MipmapGenerator {
-	constructor(device) {
-		this.device = device;
-		this.sampler = device.createSampler({ minFilter: "linear" });
-		// We'll need a new pipeline for every texture format used.
-		this.pipelines = {};
-	}
-	getMipmapPipeline(format) {
-		let pipeline = this.pipelines[format];
-		if (!pipeline) {
-			// Shader modules is shared between all pipelines, so only create once.
-			if (!this.mipmapShaderModule) {
-				this.mipmapShaderModule = this.device.createShaderModule({
-					code: `
-              var<private> pos : array<vec2<f32>, 3> = array<vec2<f32>, 3>(
-                vec2<f32>(-1.0, -1.0), vec2<f32>(-1.0, 3.0), vec2<f32>(3.0, -1.0));
-              struct VertexOutput {
-                @builtin(position) position : vec4<f32>,
-                @location(0) texCoord : vec2<f32>,
-              };
-              @vertex
-              fn vertexMain(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
-                var output : VertexOutput;
-                output.texCoord = pos[vertexIndex] * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
-                output.position = vec4<f32>(pos[vertexIndex], 0.0, 1.0);
-                return output;
-              }
-              @group(0) @binding(0) var imgSampler : sampler;
-              @group(0) @binding(1) var img : texture_2d<f32>;
-              @fragment
-              fn fragmentMain(@location(0) texCoord : vec2<f32>) -> @location(0) vec4<f32> {
-                return textureSample(img, imgSampler, texCoord);
-              }
-            `
-				});
-			}
-			pipeline = this.device.createRenderPipeline({
-				layout: "auto",
-				vertex: {
-					module: this.mipmapShaderModule,
-					entryPoint: "vertexMain"
-				},
-				fragment: {
-					module: this.mipmapShaderModule,
-					entryPoint: "fragmentMain",
-					targets: [{ format }]
-				}
-			});
-			this.pipelines[format] = pipeline;
-		}
-		return pipeline;
-	}
-	/**
-	 * Generates mipmaps for the given GPUTexture from the data in level 0.
-	 *
-	 * @param {module:External.GPUTexture} texture - Texture to generate mipmaps for.
-	 * @param {object} textureDescriptor - GPUTextureDescriptor the texture was created with.
-	 * @returns {module:External.GPUTexture} - The originally passed texture
-	 */
-	generateMipmap(sourceTexture) {
-		const texture = sourceTexture.gpuTexture;
-		const textureDescriptor = sourceTexture.textureProp;
-		// TODO: Does this need to handle sRGB formats differently?
-		const pipeline = this.getMipmapPipeline(textureDescriptor.format);
-		if (textureDescriptor.dimension == "3d" || textureDescriptor.dimension == "1d") {
-			throw new Error("Generating mipmaps for non-2d textures is currently unsupported!");
-		}
-		let mipTexture = texture;
-		const arrayLayerCount = textureDescriptor.size.depth || 1; // Only valid for 2D textures.
-		// If the texture was created with RENDER_ATTACHMENT usage we can render directly between mip levels.
-		const renderToSource = textureDescriptor.usage & GPUTextureUsage.RENDER_ATTACHMENT;
-		if (!renderToSource) {
-			// Otherwise we have to use a separate texture to render into. It can be one mip level smaller than the source
-			// texture, since we already have the top level.
-			const mipTextureDescriptor = {
-				size: {
-					width: Math.ceil(textureDescriptor.size.width / 2),
-					height: Math.ceil(textureDescriptor.size.height / 2),
-					depthOrArrayLayers: arrayLayerCount
-				},
-				format: textureDescriptor.format,
-				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
-				mipLevelCount: textureDescriptor.mipLevelCount - 1
-			};
-			mipTexture = this.device.createTexture(mipTextureDescriptor);
-		}
-		const commandEncoder = this.device.createCommandEncoder({});
-		// TODO: Consider making this static.
-		const bindGroupLayout = pipeline.getBindGroupLayout(0);
-		for (let arrayLayer = 0; arrayLayer < arrayLayerCount; ++arrayLayer) {
-			let srcView = texture.createView({
-				baseMipLevel: 0,
-				mipLevelCount: 1,
-				dimension: "2d",
-				baseArrayLayer: arrayLayer,
-				arrayLayerCount: 1
-			});
-			let dstMipLevel = renderToSource ? 1 : 0;
-			for (let i = 1; i < textureDescriptor.mipLevelCount; ++i) {
-				const dstView = mipTexture.createView({
-					baseMipLevel: dstMipLevel++,
-					mipLevelCount: 1,
-					dimension: "2d",
-					baseArrayLayer: arrayLayer,
-					arrayLayerCount: 1
-				});
-				const passEncoder = commandEncoder.beginRenderPass({
-					colorAttachments: [
-						{
-							view: dstView,
-							loadOp: "clear",
-							storeOp: "store"
-						}
-					]
-				});
-				const bindGroup = this.device.createBindGroup({
-					layout: bindGroupLayout,
-					entries: [
-						{
-							binding: 0,
-							resource: this.sampler
-						},
-						{
-							binding: 1,
-							resource: srcView
-						}
-					]
-				});
-				passEncoder.setPipeline(pipeline);
-				passEncoder.setBindGroup(0, bindGroup);
-				passEncoder.draw(3, 1, 0, 0);
-				passEncoder.end();
-				srcView = dstView;
-			}
-		}
-		// If we didn't render to the source texture, finish by copying the mip results from the temporary mipmap texture
-		// to the source.
-		if (!renderToSource) {
-			const mipLevelSize = {
-				width: Math.ceil(textureDescriptor.size.width / 2),
-				height: Math.ceil(textureDescriptor.size.height / 2),
-				depthOrArrayLayers: arrayLayerCount
-			};
-			for (let i = 1; i < textureDescriptor.mipLevelCount; ++i) {
-				commandEncoder.copyTextureToTexture(
-					{
-						texture: mipTexture,
-						mipLevel: i - 1
-					},
-					{
-						texture: texture,
-						mipLevel: i
-					},
-					mipLevelSize
-				);
-				mipLevelSize.width = Math.ceil(mipLevelSize.width / 2);
-				mipLevelSize.height = Math.ceil(mipLevelSize.height / 2);
-			}
-		}
-		this.device.queue.submit([commandEncoder.finish()]);
-		if (!renderToSource) {
-			mipTexture.destroy();
-		}
-		return texture;
-	}
-}
-
-const pipelineLayoutCache = new Map();
-class PipelineLayout {
-	constructor(device, label, groupLayouts = [], index) {
-		this.groupLayouts = groupLayouts;
-		this.index = index || 0;
-		this.gpuPipelineLayout = device.createPipelineLayout({
-			label: label,
-			bindGroupLayouts: groupLayouts.map((layout) => {
-				return layout.gpuBindGroupLayout;
-			})
-		});
-	}
-	static getPipelineLayoutFromCache(device, label, groupLayouts) {
-		if (pipelineLayoutCache.has(label)) {
-			return pipelineLayoutCache.get(label);
-		} else {
-			const bindGroupLayout = new PipelineLayout(device, label, groupLayouts);
-			pipelineLayoutCache.set(label, bindGroupLayout);
-			return bindGroupLayout;
-		}
-	}
-}
-
-const renderPipelines = new Map();
-const computePipelines = new Map();
-class Pipeline {
-	constructor(type, device, descriptor) {
-		this.type = type;
-		this.descriptor = descriptor;
-		this.device = device;
-		this.createPipeline();
-	}
-	createPipeline() {
-		if (this.type == "render") {
-			this.gpuPipeline = this.device.createRenderPipeline(this.descriptor);
-		} else {
-			this.gpuPipeline = this.device.createComputePipeline(this.descriptor);
-		}
-	}
-	bind(passEncoder) {
-		if (this.type == "render") {
-			passEncoder.setPipeline(this.gpuPipeline);
-		} else {
-			passEncoder.setPipeline(this.gpuPipeline);
-		}
-	}
-	static getRenderPipelineFromCache(device, drawComand, groupLayouts) {
-		const { renderState, shaderSource, materialType } = drawComand;
-		const rs = RenderState.getFromRenderStateCache(renderState);
-		const rsStr = JSON.stringify(rs);
-		const combineStr = materialType.concat(shaderSource.uid).concat(rsStr);
-		const hashId = stringToHash(combineStr);
-		const combineLayouts = groupLayouts.sort((layout1, layout2) => layout1.index - layout2.index);
-		let pipeline = renderPipelines.get(hashId);
-		if (!pipeline) {
-			const descriptor = Pipeline.getPipelineDescriptor(
-				device,
-				drawComand,
-				rs,
-				combineLayouts,
-				hashId.toString()
-			);
-			pipeline = new Pipeline("render", device, descriptor);
-			renderPipelines.set(hashId, pipeline);
-		}
-		return pipeline;
-	}
-	static getComputePipelineFromCache(device, drawComand, groupLayouts) {
-		const { shaderSource, materialType } = drawComand;
-		const hashId = stringToHash(materialType.concat(shaderSource.uid));
-		let pipeline = computePipelines.get(hashId);
-		if (!pipeline) {
-			const { shaderSource } = drawComand;
-			pipeline = device.createComputePipeline({
-				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
-					.gpuPipelineLayout,
-				compute: {
-					module: shaderSource.createShaderModule(device),
-					entryPoint: shaderSource.computeMain
-				}
-			});
-			computePipelines.set(hashId, pipeline);
-		}
-		return pipeline;
-	}
-	static getPipelineDescriptor(device, drawComand, renderState, groupLayouts, hashId) {
-		const { vertexBuffer, shaderSource } = drawComand;
-		const { vert, frag } = shaderSource.createShaderModule(device);
-		return {
-			//需要改动
-			layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout,
-			vertex: {
-				module: vert,
-				entryPoint: shaderSource.vertEntryPoint,
-				buffers: vertexBuffer.getBufferDes()
-			},
-			primitive: renderState.primitive,
-			depthStencil: renderState.depthStencil,
-			multisample: renderState.multisample,
-			fragment: {
-				module: frag,
-				entryPoint: shaderSource.fragEntryPoint,
-				targets: renderState.targets
-			}
-		};
-	}
-}
-// Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-function stringToHash(str) {
-	let hash = 0;
-	if (str.length == 0) return hash;
-	for (let i = 0; i < str.length; i++) {
-		const char = str.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash; // Convert to 32bit integer
-	}
-	return hash;
 }
 
 class Context {
@@ -5504,6 +5632,7 @@ class Context {
 		this.context = context || this.canvas.getContext("webgpu");
 		this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
 		this.device = undefined;
+		this.lightManger = new LightManger();
 	}
 	async init(
 		requestAdapter = {},
@@ -5546,7 +5675,6 @@ class Context {
 				height: this.canvas.clientHeight * this.pixelRatio
 			};
 			this._scissorTestEnabled = false;
-			this.systemRenderResource = new SystemRenderResource();
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -5574,21 +5702,25 @@ class Context {
 			...presentationContextDescriptor
 		});
 	}
-	render(command, passEncoder) {
+	render(command, passEncoder, camera) {
+		const grouplayouts = [];
 		if (command.shaderData) command.shaderData.bind(this, passEncoder);
 		//设置系统
-		this.systemRenderResource.bind(this, passEncoder);
-		if (command.renderState) {
-			command.renderState.viewport = this._viewPort;
-			command.renderState.scissorTestEnabled = this._scissorTestEnabled;
-			RenderState.applyRenderState(passEncoder, command.renderState);
+		if (camera) {
+			camera.shaderData.bind(this, passEncoder);
+			grouplayouts.push(camera.shaderData.groupLayout);
 		}
+		if (command.light) {
+			this.lightManger.lightShaderData.bind(this, passEncoder);
+			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
+		}
+		if (command.renderState) command.renderState.bind(passEncoder);
 		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);
 		if (command.indexBuffer) command.indexBuffer.bind(this.device, passEncoder);
 		const pipeline = Pipeline.getRenderPipelineFromCache(
 			this.device,
 			command,
-			this.systemRenderResource.layouts.concat(command.shaderData.groupLayout)
+			grouplayouts.concat(command.shaderData.groupLayout)
 		);
 		pipeline.bind(passEncoder);
 		if (command.indexBuffer) {
@@ -5716,6 +5848,134 @@ class Sampler {
 	}
 	update(context) {
 		if (!this.gpuSampler) this.gpuSampler = context.device.createSampler(this.descriptor);
+	}
+}
+
+class RenderState {
+	constructor() {
+		this.scissorTest = undefined;
+		this.viewport = undefined;
+		this.depthStencil = undefined;
+		this.blendConstant = undefined;
+		this.stencilReference = 0;
+		this.multisample = undefined;
+		this.primitive = undefined;
+		this.stencilEnabled = false;
+		this.scissorTestEnabled = false;
+		this.targets = undefined;
+	}
+	bind(passEncoder) {
+		if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
+		if (this.viewport) {
+			const { x, y, width, height, minDepth, maxDepth } = this.viewport;
+			passEncoder.setViewport(x, y, width, height, minDepth, maxDepth);
+		}
+		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
+		if (this.scissorTest) {
+			const { x, y, width, height } = this.scissorTest;
+			passEncoder.setScissorRect(x, y, width, height);
+		}
+	}
+	destroy() {
+		this.scissorTest = undefined;
+		this.viewport = undefined;
+		this.depthStencil = undefined;
+		this.blendConstant = undefined;
+		this.stencilReference = -1;
+		this.multisample = undefined;
+		this.primitive = undefined;
+		this.stencilEnabled = false;
+		this.scissorTestEnabled = false;
+	}
+}
+class Primitive {
+	constructor(topology, cullMode, frontFace, unclippedDepth) {
+		this.frontFace = defaultValue(frontFace, FrontFace.CCW);
+		this.cullMode = defaultValue(cullMode, CullMode.None);
+		this.unclippedDepth = defaultValue(unclippedDepth, false);
+		this.topology = defaultValue(topology, PrimitiveTopology.TriangleList);
+	}
+	getGPUPrimitiveDec() {
+		return {
+			frontFace: this.frontFace,
+			cullMode: this.cullMode,
+			unclippedDepth: this.unclippedDepth,
+			topology: this.topology
+		};
+	}
+}
+class DepthStencil {
+	constructor(options) {
+		this.format = defaultValue(options?.format, TextureFormat.Depth24Plus);
+		this.depthWriteEnabled = defaultValue(options?.depthWriteEnabled, true);
+		this.depthCompare = defaultValue(options?.depthCompare, CompareFunction.Less);
+		this.stencilReadMask = defaultValue(options?.stencilReadMask, 0xffffffff);
+		this.stencilWriteMask = defaultValue(options?.stencilWriteMask, 0xffffffff);
+		this.stencilFrontCompare = defaultValue(options?.stencilFrontCompare, CompareFunction.Always);
+		this.stencilFrontFailOp = defaultValue(options?.stencilFrontFailOp, StencilOperation.Keep);
+		this.stencilFrontDepthFailOp = defaultValue(options?.stencilFrontDepthFailOp, StencilOperation.Keep);
+		this.stencilFrontPassOp = defaultValue(options?.stencilFrontPassOp, StencilOperation.Keep);
+		this.stencilBackCompare = defaultValue(options?.stencilBackCompare, CompareFunction.Always);
+		this.stencilBackFailOp = defaultValue(options?.stencilBackFailOp, StencilOperation.Keep);
+		this.stencilBackDepthFailOp = defaultValue(options?.stencilBackDepthFailOp, StencilOperation.Keep);
+		this.stencilBackPassOp = defaultValue(options?.stencilBackPassOp, StencilOperation.Keep);
+		this.depthBias = defaultValue(options?.depthBias, 0);
+		this.depthBiasSlopeScale = defaultValue(options?.depthBiasSlopeScale, 0);
+		this.depthBiasClamp = defaultValue(options?.depthBiasClamp, 0);
+	}
+	getGPUDepthStencilDec() {
+		return {
+			format: this.format,
+			depthWriteEnabled: this.depthWriteEnabled,
+			depthCompare: this.depthCompare,
+			stencilReadMask: this.stencilReadMask,
+			stencilWriteMask: this.stencilWriteMask,
+			stencilFront: {
+				compare: this.stencilFrontCompare,
+				failOp: this.stencilFrontFailOp,
+				depthFailOp: this.stencilFrontDepthFailOp,
+				passOp: this.stencilFrontPassOp
+			},
+			stencilBack: {
+				compare: this.stencilBackCompare,
+				failOp: this.stencilBackFailOp,
+				depthFailOp: this.stencilBackDepthFailOp,
+				passOp: this.stencilBackPassOp
+			},
+			depthBias: this.depthBias,
+			depthBiasSlopeScale: this.depthBiasSlopeScale,
+			depthBiasClamp: this.depthBiasClamp
+		};
+	}
+}
+class Target {
+	constructor(options) {
+		this.format = defaultValue(options?.format, TextureFormat.BGRA8Unorm);
+		this.blendColorOperation = defaultValue(options?.blendColorOperation, BlendOperation.Add);
+		this.blendColorSrcFactor = defaultValue(options?.blendColorSrcFactor, BlendFactor?.SrcAlpha);
+		this.blendColorDstFactor = defaultValue(options?.blendColorDstFactor, BlendFactor.OneMinusSrcAlpha);
+		this.blendAlphaOperation = defaultValue(options?.blendAlphaOperation, BlendOperation.Add);
+		this.blendAlphaSrcFactor = defaultValue(options?.blendAlphaSrcFactor, BlendFactor.One);
+		this.blendAlphaDstFactor = defaultValue(options?.blendAlphaDstFactor, BlendFactor.One);
+		this.writeMask = defaultValue(options?.writeMask, GPUColorWrite.All);
+	}
+	getGPUTargetDec() {
+		return {
+			format: this.format,
+			blend: {
+				color: {
+					operation: this.blendColorOperation,
+					srcFactor: this.blendColorSrcFactor,
+					dstFactor: this.blendColorDstFactor
+				},
+				alpha: {
+					operation: this.blendAlphaOperation,
+					srcFactor: this.blendAlphaSrcFactor,
+					dstFactor: this.blendAlphaDstFactor
+				}
+			},
+			writeMask: this.writeMask
+		};
 	}
 }
 
@@ -6434,17 +6694,17 @@ class Mesh extends RenderObject {
 		this.material = material;
 		this.type = "primitive";
 	}
-	update(frameState) {
+	update(frameState, camera) {
 		//update matrix
 		this.updateMatrix();
-		this.updateNormalMatrix(frameState.camera);
+		this.updateNormalMatrix(camera);
 		//create
 		this.geometry.update(frameState);
 		this.material.update(frameState, this);
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
-		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(frameState);
+		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		//视锥剔除
 		if (visibility === Intersect$1.INTERSECTING || visibility === Intersect$1.INSIDE) {
@@ -6461,7 +6721,7 @@ class Mesh extends RenderObject {
 	afterRender() {
 		// console.log('after');
 	}
-	getDrawCommand() {
+	getDrawCommand(overrideMaterial) {
 		if (!this.drawCommand || this.material.dirty) {
 			if (this.material.dirty) this.material.dirty = false;
 			this.drawCommand = new DrawCommand({
@@ -6473,10 +6733,15 @@ class Mesh extends RenderObject {
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				type: "render",
-				materialType: this.material.type
+				materialType: this.material.type,
+				light: this.material.light
 			});
 		}
 		this.material.shaderSource.setDefines(Object.assign(this.material.shaderData.defines, this.geometry.defines));
+		if (overrideMaterial) {
+			overrideMaterial.update();
+			return this.drawCommand.shallowClone(overrideMaterial);
+		}
 		return this.drawCommand;
 	}
 	destroy() {
@@ -6774,8 +7039,8 @@ class BoundingSphere {
 		this.center = Matrix4.multiplyByPoint(transform, this.center, this.center);
 		this.radius = Matrix4.getMaximumScale(transform) * this.radius;
 	}
-	distanceToCamera(frameState) {
-		return Math.max(0.0, Vector3.distance(this.center, frameState.camera.position) - this.radius);
+	distanceToCamera(camera) {
+		return Math.max(0.0, Vector3.distance(this.center, camera.position) - this.radius);
 	}
 }
 const fromPointsXMin = new Vector3();
@@ -6791,14 +7056,6 @@ const fromPointsMinBoxPt = new Vector3();
 const fromPointsMaxBoxPt = new Vector3();
 const fromPointsNaiveCenterScratch = new Vector3();
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2023-01-12 10:07:57
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-29 17:45:53
- * @FilePath: \GEngine\src\render\VertextBuffer.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class VertextBuffer {
 	constructor(attributes, index, stepMode) {
 		this.index = index || 0;
@@ -6995,6 +7252,13 @@ function combine(object1, object2, deep) {
 }
 
 class Geometry {
+	get defines() {
+		return this._defines;
+	}
+	set defines(value) {
+		this.definesDirty = true;
+		this._defines = combine(value, this._defines, false);
+	}
 	constructor(options) {
 		this.type = options.type || undefined;
 		this.boundingSphere = undefined;
@@ -7003,13 +7267,6 @@ class Geometry {
 		this.attributes = new Attributes();
 		this.vertBuffer = new VertextBuffer(this.attributes, 0);
 		this._defines = {};
-	}
-	get defines() {
-		return this._defines;
-	}
-	set defines(value) {
-		this.definesDirty = true;
-		this._defines = combine(value, this._defines, false);
 	}
 	getAttribute(name) {
 		return this.attributes.getAttribute(name);
@@ -9571,7 +9828,7 @@ class ShaderSource {
 	constructor(options) {
 		this.type = options.type;
 		this.defines = options.defines;
-		this.customShader = defaultValue(options.customShader, false);
+		this.custom = defaultValue(options.custom, false);
 		this.dirty = true;
 		if (options.render) {
 			this.render = true;
@@ -9588,13 +9845,12 @@ class ShaderSource {
 		this._uid == JSON.stringify(this.defines);
 		return this._uid;
 	}
-	update(globalDefines, materialDefines, geometryDefines) {}
 	updateShaderStr() {
 		if (this.render) {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
-		} else if (this.customShader);
+		} else if (this.custom);
 	}
 	setDefines(defines) {
 		this.dirty = true;
@@ -9605,13 +9861,17 @@ class ShaderSource {
 			this.updateShaderStr();
 			this.dirty = false;
 		}
-		if (this.vert) {
-			const vert = device.createShaderModule({
-				code: this.vert
-			});
-			const frag = device.createShaderModule({
-				code: this.frag
-			});
+		if (this.render) {
+			const vert = this.vert
+				? device.createShaderModule({
+						code: this.vert
+				  })
+				: undefined;
+			const frag = this.frag
+				? device.createShaderModule({
+						code: this.frag
+				  })
+				: undefined;
 			return { vert, frag };
 		} else {
 			const compute = device.createShaderModule({
@@ -9640,18 +9900,12 @@ class Material {
 		this.dirty = true;
 		this._emissive = new Color(0.0, 0.0, 0);
 		this._emissiveIntensity = 1.0;
-		this._renderState = {
-			primitive: {
-				frontFace: FrontFace.CCW,
-				cullMode: CullMode.None,
-				unclippedDepth: false,
-				topology: PrimitiveTopology.TriangleList
-			}
-		};
 		this._doubleSided = true;
+		this.light = false;
+		this.init();
 	}
 	set wireframe(value) {
-		this._renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
+		this.renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
 	}
 	get doubleSided() {
 		return this._doubleSided;
@@ -9687,47 +9941,21 @@ class Material {
 	set opacity(v) {
 		this._opacity = v;
 	}
-	get blendConstant() {
-		return this._renderState.blendConstant;
-	}
-	set blendConstant(value) {
-		this._renderState.blendConstant = value;
-	}
-	get targets() {
-		return this._renderState.targets;
-	}
-	set targets(value) {
-		this._renderState.targets = value;
-	}
-	get multisample() {
-		return this._renderState.multisample;
-	}
-	set multisample(value) {
-		this._renderState.multisample = value;
-	}
-	get primitive() {
-		return this._renderState.primitive;
-	}
-	set primitive(value) {
-		this._renderState.primitive = value;
-	}
-	get stencilReference() {
-		return this._renderState.stencilReference;
-	}
-	set stencilReference(value) {
-		this._renderState.stencilReference = value;
-	}
-	get depthStencil() {
-		return this._renderState.depthStencil;
-	}
-	set depthStencil(value) {
-		this._renderState.depthStencil = value;
-	}
 	onBeforeRender() {}
 	onBeforeCompile() {}
 	update(frameState, mesh) {}
 	createShaderData(mesh, frameState) {
 		this.shaderData = new ShaderData(this.type, 0);
+	}
+	init() {
+		//默认渲染状态
+		const primitive = new Primitive();
+		const target = new Target();
+		const depthStencil = new DepthStencil();
+		this._renderState = new RenderState();
+		this._renderState.primitive = primitive;
+		this._renderState.targets = [target];
+		this._renderState.depthStencil = depthStencil;
 	}
 	destroy() {
 		this.label = undefined;
@@ -9891,11 +10119,14 @@ class SkyBoxMaterial extends Material {
 			defines: {}
 		});
 		this.images = [];
-		this.depthStencil = {
-			depthWriteEnabled: false,
-			depthCompare: CompareFunction.LessEqual,
-			format: TextureFormat.Depth24Plus
-		};
+		this.renderState.depthStencil.depthWriteEnabled = false;
+		this.renderState.depthStencil.depthCompare = CompareFunction.LessEqual;
+		// this.renderState.depthStencil
+		// this.depthStencil = {
+		//   depthWriteEnabled: false,
+		//   depthCompare: CompareFunction.LessEqual,
+		//   format: TextureFormat.Depth24Plus,
+		// };
 	}
 	async loadTexture(urls) {
 		const result = await CubeTextureLoader(urls);
@@ -9932,7 +10163,7 @@ class SkyBox extends Mesh {
 		this.updateMatrix();
 		this.geometry.update(frameState);
 		this.material.update(frameState, this);
-		frameState.renderQueue.preRender.push(this);
+		frameState.renderQueue.pre.push(this);
 	}
 }
 
@@ -10237,7 +10468,9 @@ class BoxGeometry extends Geometry {
 	}
 	init() {
 		//generate pos uv normal so on
-		const { positions, normals, uvs } = createBox({ dimensions: [this.depth, this.width, this.height] });
+		const { positions, normals, uvs } = createBox({
+			dimensions: [this.depth, this.width, this.height]
+		});
 		this.position = positions;
 		this.normal = normals;
 		this.uv = uvs;
@@ -10367,6 +10600,7 @@ class PhongMaterial extends Material {
 				materialPhong: true
 			}
 		});
+		this.light = true;
 		this.specular = new Color(1.0, 1.0, 1.0);
 		this.shininess = 30.0;
 		this.baseTexture = undefined;
@@ -10504,21 +10738,6 @@ class TextureCache {
 const textureCache = new TextureCache();
 
 class PbrMat extends Material {
-	constructor() {
-		super();
-		this.type = "pbr_mat";
-		this._roughness = 0.1;
-		this._metalness = 0.1;
-		this._aoTextureIntensity = 1.0;
-		this._normalScale = new Vector2(1, 1);
-		this.shaderSource = new ShaderSource({
-			type: this.type,
-			render: true,
-			defines: {
-				materialPbr: true
-			}
-		});
-	}
 	get roughness() {
 		return this._roughness;
 	}
@@ -10547,6 +10766,21 @@ class PbrMat extends Material {
 	}
 	set normalScale(v) {
 		this._normalScale = v;
+	}
+	constructor() {
+		super();
+		this.type = "pbr_mat";
+		this._roughness = 0.1;
+		this._metalness = 0.1;
+		this._aoTextureIntensity = 1.0;
+		this._normalScale = new Vector2(1, 1);
+		this.shaderSource = new ShaderSource({
+			type: this.type,
+			render: true,
+			defines: {
+				materialPbr: true
+			}
+		});
 	}
 	update(frameState, mesh) {
 		if (!this.shaderData) {
@@ -10652,7 +10886,7 @@ class EventDispatcher {
 
 class RenderQueue {
 	constructor() {
-		this.preRender = [];
+		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
 		this.compute = [];
@@ -10661,8 +10895,45 @@ class RenderQueue {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
 		RenderQueue.sort(this.transparent, 0, this.transparent.length, RenderQueue._compareFromFarToNear);
 	}
+	opaqueRender(camera, context, passEncoder, replaceMaterial) {
+		this.opaque.map((mesh) => {
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
+			mesh.afterRender();
+		});
+	}
+	transparentRender(camera, context, passEncoder, replaceMaterial) {
+		this.transparent.map((mesh) => {
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
+			mesh.afterRender();
+		});
+	}
+	computeRender(camera, context, passEncoder, replaceMaterial) {
+		this.compute.map((mesh) => {
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
+			mesh.afterRender();
+		});
+	}
+	preRender(camera, context, passEncoder, replaceMaterial) {
+		this.pre.map((mesh) => {
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
+			mesh.afterRender();
+		});
+	}
+	static excuteCommand(command, context, passEncoder, camera) {
+		if (command.renderTarget) {
+			const currentRenderPassEncoder = command.renderTarget.beginRenderPassEncoder(context);
+			context.render(command, currentRenderPassEncoder, camera);
+			command.renderTarget.endRenderPassEncoder();
+		} else {
+			context.render(command, passEncoder, camera);
+		}
+	}
 	reset() {
-		this.preRender = [];
+		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
 		this.compute = [];
@@ -10784,7 +11055,6 @@ class FrameState {
 		this.frameNumber = 0;
 		this._defines = {};
 		this.definesDirty = true;
-		this.environment = undefined;
 	}
 	get defines() {
 		return this._defines;
@@ -10794,333 +11064,9 @@ class FrameState {
 		this._defines = combine(value, this._defines, false);
 	}
 	update(camera) {
-		this.camera = camera;
 		this.renderQueue.reset();
-		this.cullingVolume = this.camera.getCullingVolume();
+		this.cullingVolume = camera.getCullingVolume();
 		this.frameNumber += 1;
-	}
-}
-
-class Light {
-	constructor(color, intensity) {
-		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
-		this._intensity = intensity;
-		this._position = new Vector3(0, 0, 0);
-		this.positionDirty = true;
-		this.colorDirty = true;
-		this.intensityDirty = true;
-	}
-	get position() {
-		return this._position;
-	}
-	set position(value) {
-		this.positionDirty = true;
-		this._position = value;
-	}
-	get color() {
-		return this._color;
-	}
-	set color(value) {
-		this.colorDirty = true;
-		this._color = value;
-	}
-	set intensity(value) {
-		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
-		this.intensityDirty = true;
-		this._intensity = value;
-	}
-	get intensity() {
-		return this._intensity;
-	}
-}
-
-class AmbientLight extends Light {
-	constructor(color, intensity) {
-		super(color, intensity);
-		this.type = "ambient";
-	}
-}
-//light.color ).multiplyScalar( light.intensity * scaleFactor );
-
-class SpotData {
-	constructor(buffer, byteOffset, spotLight) {
-		this.spotLight = spotLight;
-		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-		this.coneCos = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
-		this.color = new Float32Array(buffer.buffer, byteOffset + 32, 3); //3
-		this.penumbraCos = new Float32Array(buffer.buffer, byteOffset + 44, 1); //1
-		this.decay = new Float32Array(buffer.buffer, byteOffset + 48, 1); //1
-	}
-	update(frameState) {
-		const viewMatrix = frameState.camera.viewMatrix;
-		if (this.spotLight.colorDirty) {
-			this.spotLight.colorDirty = false;
-			copyData(this.spotLight.color.toArray(), this.color);
-		}
-		if (this.spotLight.positionDirty) {
-			this.spotLight.positionDirty = false;
-			let position = this.spotLight.position.clone();
-			position = position.applyMatrix4(viewMatrix);
-			copyData(position.toArray(), this.position);
-		}
-		if (this.spotLight.dirtectDirty) {
-			this.spotLight.dirtectDirty = false;
-			let dirtect = this.spotLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
-		}
-		if (this.spotLight.distanceDirty) {
-			this.spotLight.distanceDirty = false;
-			this.distance[0] = this.spotLight.distance; //1
-		}
-		if (this.spotLight.coneCosDirty) {
-			this.spotLight.coneCosDirty = false;
-			this.coneCos[0] = this.spotLight.coneCos; //1
-		}
-		if (this.spotLight.penumbraCosDirty) {
-			this.spotLight.penumbraCosDirty = false;
-			this.penumbraCos[0] = this.spotLight.penumbraCos; //1
-		}
-		if (this.spotLight.decayDirty) {
-			this.spotLight.decayDirty = false;
-			this.decay[0] = this.spotLight.decay; //1
-		}
-	}
-	destroy() {
-		this.spotLight = undefined;
-		this.color = undefined;
-		this.position = undefined;
-		this.dirtect = undefined;
-		this.distance = undefined;
-		this.coneCos = undefined;
-		this.penumbraCos = undefined;
-		this.decay = undefined;
-	}
-}
-//array<light> light of byteSize must be k*16
-SpotData.byteSize = 64;
-SpotData.size = 16;
-class PointData {
-	constructor(buffer, byteOffset, pointLight) {
-		this.pointLight = pointLight;
-		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
-		this.color = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-		this.decay = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
-	}
-	update(frameState) {
-		const viewMatrix = frameState.camera.viewMatrix;
-		if (this.pointLight.colorDirty) {
-			this.pointLight.colorDirty = false;
-			copyData(this.pointLight.color.toArray(), this.color);
-		}
-		if (this.pointLight.positionDirty) {
-			this.pointLight.positionDirty = false;
-			let position = this.pointLight.position.clone();
-			position = position.applyMatrix4(viewMatrix);
-			copyData(position.toArray(), this.position);
-		}
-		if (this.pointLight.decayDirty) {
-			this.pointLight.decayDirty = false;
-			this.decay[0] = this.pointLight.decay;
-		}
-		if (this.pointLight.distanceDirty) {
-			this.pointLight.distanceDirty = false;
-			this.distance[0] = this.pointLight.distance;
-		}
-	}
-	destroy() {
-		this.pointLight = undefined;
-		this.color = undefined;
-		this.position = undefined;
-		this.decay = undefined;
-		this.distance = undefined;
-	}
-}
-PointData.byteSize = 32;
-PointData.size = 8;
-class DirtectData {
-	constructor(buffer, byteOffset, dirtectLight) {
-		this.dirtectLight = dirtectLight;
-		this.color = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-	}
-	update(frameState) {
-		const viewMatrix = frameState.camera.viewMatrix;
-		if (this.dirtectLight.colorDirty) {
-			this.dirtectLight.colorDirty = false;
-			copyData(this.dirtectLight.color.toArray(), this.color);
-		}
-		if (this.dirtectLight.dirtectDirty) {
-			this.dirtectLight.dirtectDirty = false;
-			let dirtect = this.dirtectLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
-		}
-	}
-	destroy() {
-		this.dirtectLight = undefined;
-		this.color = undefined;
-		this.dirtect = undefined;
-	}
-}
-DirtectData.byteSize = 32;
-DirtectData.size = 8;
-function copyData(src, dis) {
-	src.forEach((element, index) => {
-		dis[index] = element;
-	});
-}
-
-class LightManger {
-	constructor() {
-		this.spotLights = [];
-		this.pointLights = [];
-		this.dirtectLights = [];
-		this.spotDatas = new WeakMap();
-		this.pointDatas = new WeakMap();
-		this.dirtectDatas = new WeakMap();
-		this.ambientLight = new AmbientLight(new Vector3(1, 1, 1), 0.1);
-		this.lightDefines = {
-			ambientLight: false,
-			spotLight: false,
-			pointLight: false,
-			dirtectLight: false,
-			spotLightBinding: 1,
-			pointLightBinding: 2,
-			dirtectLightBinding: 3
-		};
-		this.totalByte = 0;
-		this.lightCountDirty = true;
-	}
-	update(frameState) {
-		this.updateLight(frameState);
-		frameState.defines = this.lightDefines;
-	}
-	add(light) {
-		this.lightCountDirty = true;
-		if (light.type == "ambient") {
-			this.ambientLight = light;
-		} else if (light.type == "dirtect") {
-			this.dirtectLights.push(light);
-		} else if (light.type == "point") {
-			this.pointLights.push(light);
-		} else if (light.type == "spot") {
-			this.spotLights.push(light);
-		}
-	}
-	remove() {}
-	updateLight(frameState) {
-		if (this.lightCountDirty) {
-			this.initBuffer();
-		}
-		this.updateLightData(frameState);
-	}
-	updateLightData(frameState) {
-		this.updateSpotLight(frameState);
-		this.updatePointLight(frameState);
-		this.updateDirtectLight(frameState);
-		this.updateAmbientLight(frameState);
-		this.updateLightCount();
-	}
-	updateSpotLight(frameState) {
-		this.spotLights.forEach((light) => {
-			const lightData = this.spotDatas.get(light);
-			if (lightData) lightData.update(frameState);
-		});
-	}
-	updatePointLight(frameState) {
-		this.pointLights.forEach((light) => {
-			const lightData = this.pointDatas.get(light);
-			if (lightData) lightData.update(frameState);
-		});
-	}
-	updateAmbientLight(frameState) {
-		if (this.ambientLight) {
-			this.ambient[0] = this.ambientLight.color.x;
-			this.ambient[1] = this.ambientLight.color.y;
-			this.ambient[2] = this.ambientLight.color.z;
-		}
-	}
-	updateDirtectLight(frameState) {
-		this.dirtectLights.forEach((light) => {
-			const lightData = this.dirtectDatas.get(light);
-			if (lightData) lightData.update(frameState);
-		});
-	}
-	updateLightCount() {
-		if (this.lightCountDirty) {
-			this.lightCount[0] = this.spotLights.length;
-			this.lightCount[1] = this.pointLights.length;
-			this.lightCount[2] = this.dirtectLights.length;
-			this.lightCount[3] = this.ambient != undefined ? 1 : 0;
-		}
-	}
-	initBuffer() {
-		const ambientSize = this.ambientLight != undefined ? 3 : 0;
-		const lightCount = 4;
-		const pointLightCount = this.pointLights.length;
-		const spotLightCount = this.spotLights.length;
-		const dirtectLightCount = this.dirtectLights.length;
-		const pointLightCountSize = pointLightCount * PointData.size;
-		const spotLightCountSize = spotLightCount * SpotData.size;
-		const dirtectLightCountSize = dirtectLightCount * DirtectData.size;
-		let currentBinding = 1;
-		//common
-		if (ambientSize > 0) {
-			this.commonLightBuffer = new Float32Array(ambientSize + lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-			this.ambient = new Float32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 3);
-			this.commonTatalByte += 16;
-			this.lightDefines.ambientLight = true;
-		} else {
-			this.commonLightBuffer = new Float32Array(lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-		}
-		if (spotLightCountSize > 0) {
-			//初始化聚光灯
-			this.spotLightsBuffer = new Float32Array(spotLightCountSize);
-			this.spotLights.forEach((spotLight, i) => {
-				this.spotDatas.set(spotLight, new SpotData(this.spotLightsBuffer, SpotData.byteSize * i, spotLight));
-			});
-			this.spotLightsByte = spotLightCount * SpotData.byteSize;
-			this.lightDefines.spotLight = true;
-			this.lightDefines.spotLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (pointLightCountSize > 0) {
-			//点光源
-			this.pointLightsBuffer = new Float32Array(pointLightCountSize);
-			this.pointLights.forEach((pointLight, i) => {
-				this.pointDatas.set(
-					pointLight,
-					new PointData(this.pointLightsBuffer, PointData.byteSize * i, pointLight)
-				);
-			});
-			this.pointLightsByte = pointLightCount * PointData.byteSize;
-			this.lightDefines.pointLight = true;
-			this.lightDefines.pointLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (dirtectLightCountSize) {
-			//方向光
-			this.dirtectLightsBuffer = new Float32Array(dirtectLightCountSize);
-			this.dirtectLights.forEach((dirtect, i) => {
-				this.dirtectDatas.set(
-					dirtect,
-					new DirtectData(this.dirtectLightsBuffer, DirtectData.byteSize * i, dirtect)
-				);
-			});
-			this.dirtectLightsByte = dirtectLightCount * DirtectData.byteSize;
-			this.lightDefines.dirtectLight = true;
-			this.lightDefines.dirtectLightBinding = currentBinding;
-		}
 	}
 }
 
@@ -11141,9 +11087,9 @@ class PrimitiveManger {
 	get length() {
 		return this._list.length;
 	}
-	update(frameState) {
+	update(frameState, camera) {
 		this._list.forEach((primitive) => {
-			primitive.update(frameState);
+			primitive.update(frameState, camera);
 		});
 	}
 	add(instance, index) {
@@ -11209,21 +11155,6 @@ class Pass {
 	afterRender() {
 		this.renderTarget.endRenderPassEncoder();
 	}
-	excuteCommands(commands) {
-		commands.forEach((command) => {
-			this.excuteCommand(command);
-		});
-	}
-	excuteCommand(command) {
-		if (command.renderTarget) {
-			const currentRenderPassEncoder = command.renderTarget.beginRenderPassEncoder(this.context);
-			this.context.render(command, currentRenderPassEncoder);
-			command.renderTarget.endRenderPassEncoder();
-		} else {
-			if (this.colorTargets) command.renderState.targets = this.colorTargets;
-			this.context.render(command, this.passRenderEncoder);
-		}
-	}
 }
 
 class RenderTarget {
@@ -11242,26 +11173,6 @@ class RenderTarget {
 		this._renderPassDescriptor = this.getRenderPassDescriptor();
 		return this._renderPassDescriptor;
 	}
-	preParse() {
-		if (this?.colorAttachments[0]?.texture == undefined) {
-			const colorTexture = new Texture({
-				size: this.context.presentationSize,
-				format: this.context.presentationFormat,
-				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
-			});
-			colorTexture.update(this.context);
-			this.colorAttachments[0].texture = colorTexture;
-		}
-		if (this.depthAttachment && this.depthAttachment?.texture == undefined) {
-			const depthTexture = new Texture({
-				size: this.context.presentationSize,
-				format: TextureFormat.Depth24Plus,
-				usage: TextureUsage.RenderAttachment
-			});
-			depthTexture.update(this.context);
-			this.depthAttachment.texture = depthTexture;
-		}
-	}
 	getColorTexture(index = 0) {
 		const colAtt = this.colorAttachments[index];
 		if (colAtt) {
@@ -11277,7 +11188,6 @@ class RenderTarget {
 	}
 	getRenderPassDescriptor() {
 		if (this.type === "render") {
-			// this.preParse();
 			this.depthAttachment?.texture?.update(this.context);
 			return {
 				...(this.colorAttachments && {
@@ -11361,29 +11271,11 @@ class BasicPass extends Pass {
 		super(context);
 		this.init(context);
 	}
-	render(renderQueue) {
+	render(renderQueue, camera) {
 		renderQueue.sort();
-		const { preRender, opaque, transparent, compute } = renderQueue;
-		compute.map((mesh) => {
-			mesh.beforeRender();
-			this.excuteCommand(mesh.getDrawCommand());
-			mesh.afterRender();
-		});
-		preRender.map((mesh) => {
-			mesh.beforeRender();
-			this.excuteCommand(mesh.getDrawCommand());
-			mesh.afterRender();
-		});
-		opaque.map((mesh) => {
-			mesh.beforeRender();
-			this.excuteCommand(mesh.getDrawCommand());
-			mesh.afterRender();
-		});
-		transparent.map((mesh) => {
-			mesh.beforeRender();
-			this.excuteCommand(mesh.getDrawCommand());
-			mesh.afterRender();
-		});
+		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
 	}
 	init(context) {
 		this.createRenderTarget(context);
@@ -11414,7 +11306,7 @@ class ShaderMaterial extends Material {
 			type,
 			frag,
 			vert,
-			customShader: true,
+			custom: true,
 			defines: {},
 			render: true
 		});
@@ -11559,9 +11451,9 @@ class ForwardRenderLine {
 		this.basicPass = new BasicPass(context);
 		this.resolveFrame = new ResolveFrame();
 	}
-	render(frameState) {
+	render(frameState, camera) {
 		this.basicPass.beforRender();
-		this.basicPass.render(frameState.renderQueue);
+		this.basicPass.render(frameState.renderQueue, camera);
 		this.basicPass.afterRender();
 		this.resolveFrame.render(frameState.context, this.basicPass.getColorTexture(0));
 	}
@@ -11644,7 +11536,6 @@ class Scene extends EventDispatcher {
 			options.container instanceof HTMLDivElement
 				? options.container
 				: document.getElementById(options.container);
-		this.lightManger = new LightManger();
 		this.primitiveManger = new PrimitiveManger();
 		this.context = new Context({
 			canvas: null,
@@ -11658,7 +11549,6 @@ class Scene extends EventDispatcher {
 		this.deviceDescriptor = options.deviceDescriptor || {};
 		this.presentationContextDescriptor = options.presentationContextDescriptor;
 		this.ready = false;
-		this.skybox = defaultValue(options.skybox, undefined);
 		this.inited = false;
 		//this.init();
 	}
@@ -11690,7 +11580,7 @@ class Scene extends EventDispatcher {
 		}
 	}
 	addLight(light) {
-		this.lightManger.add(light);
+		this.context.lightManger.add(light);
 	}
 	setCamera(camera) {
 		this.camera = camera;
@@ -11716,12 +11606,11 @@ class Scene extends EventDispatcher {
 		this.frameState.viewport = this.viewport;
 		this.frameState.update(this.camera);
 		//更新灯光
-		this.lightManger.update(this.frameState);
-		this.context.systemRenderResource.update(this.frameState, this);
+		this.context.lightManger.update(this.frameState, this.camera);
 		//update primitive and select
-		this.primitiveManger.update(this.frameState);
+		this.primitiveManger.update(this.frameState, this.camera);
 		//selct renderPipeline
-		this.currentRenderPipeline.render(this.frameState);
+		this.currentRenderPipeline.render(this.frameState, this.camera);
 	}
 }
 
@@ -11989,6 +11878,7 @@ class Camera extends RenderObject {
 		this.cullingVolume = new CullingVolume();
 		this._viewMatrix = new Matrix4();
 		this.projectMatrixDirty = true;
+		this.createShaderData();
 	}
 	get viewMatrix() {
 		this.updateMatrix();
@@ -12041,6 +11931,23 @@ class Camera extends RenderObject {
 		planes[5] = new Plane(new Vector3(me3 + me2, me7 + me6, me11 + me10), me15 + me14);
 		planes[5].normalize();
 		return this.cullingVolume;
+	}
+	createShaderData() {
+		this.shaderData = new ShaderData("camera", 0, 1, 1);
+		const uniformBuffer = new UniformBuffer();
+		uniformBuffer.setMatrix4("projectionMatrix", () => {
+			return this.projectionMatrix;
+		});
+		uniformBuffer.setMatrix4("viewMatrix", () => {
+			return this.viewMatrix;
+		});
+		uniformBuffer.setMatrix4("inverseViewMatrix", () => {
+			return this.inverseViewMatrix;
+		});
+		uniformBuffer.setFloatVec3("position", () => {
+			return this.position;
+		});
+		this.shaderData.setUniformBuffer("camera", uniformBuffer);
 	}
 }
 
@@ -12655,7 +12562,11 @@ function generateMesh(options, images) {
 function generateTexture(texture, images) {
 	const { sampler, index } = texture;
 	return new Texture({
-		size: { width: images[index].width, height: images[index].height, depth: 1 },
+		size: {
+			width: images[index].width,
+			height: images[index].height,
+			depth: 1
+		},
 		data: {
 			source: images[index]
 		},
