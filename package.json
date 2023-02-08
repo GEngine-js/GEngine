@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "source": "src/index.ts",
   "scripts": {
+    "check-keyword": "bash ./hooks/check-keyword.sh",
     "commit": "git cz",
     "prepare": "husky install",
     "pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md|html|ts)\"",

@@ -2,7 +2,6 @@ node_modules
 npm-debug.log
 package-lock.json
 public/workers
-dist
 *.mp4
 *.flv
 *.rar
