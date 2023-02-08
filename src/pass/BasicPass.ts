@@ -4,11 +4,7 @@ import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
 import DrawCommand from "../render/DrawCommand";
 import RenderQueue from "../core/RenderQueue";
-import {
-  PrimitiveTopology,
-  TextureFormat,
-  TextureUsage,
-} from "../core/WebGPUConstant";
+import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import Texture from "../render/Texture";
 import Camera from "../camera/Camera";
 

@@ -1,7 +1,6 @@
 import RenderTarget from "../render/RenderTarget.js";
 import { Material } from "../material/Material.js";
 import Context from "../render/Context.js";
-import DrawCommand from "../render/DrawCommand.js";
 import { Target } from "../render/RenderState";
 import Texture from "../render/Texture.js";
 import RenderQueue from "../core/RenderQueue.js";
@@ -29,22 +28,6 @@ class Pass {
   }
   afterRender() {
     this.renderTarget.endRenderPassEncoder();
-  }
-  protected excuteCommands(commands: DrawCommand[]) {
-    commands.forEach((command) => {
-      this.excuteCommand(command);
-    });
-  }
-  protected excuteCommand(command: DrawCommand) {
-    if (command.renderTarget) {
-      const currentRenderPassEncoder =
-        command.renderTarget.beginRenderPassEncoder(this.context);
-      this.context.render(command, currentRenderPassEncoder);
-      command.renderTarget.endRenderPassEncoder();
-    } else {
-      if (this.colorTargets) command.renderState.targets = this.colorTargets;
-      this.context.render(command, this.passRenderEncoder);
-    }
   }
 }
 

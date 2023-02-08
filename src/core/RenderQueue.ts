@@ -37,7 +37,7 @@ export default class RenderQueue {
     this.opaque.map((mesh) => {
       mesh.beforeRender();
       RenderQueue.excuteCommand(
-        mesh.getDrawCommand(),
+        mesh.getDrawCommand(replaceMaterial),
         context,
         passEncoder,
         camera
@@ -54,7 +54,7 @@ export default class RenderQueue {
     this.transparent.map((mesh) => {
       mesh.beforeRender();
       RenderQueue.excuteCommand(
-        mesh.getDrawCommand(),
+        mesh.getDrawCommand(replaceMaterial),
         context,
         passEncoder,
         camera

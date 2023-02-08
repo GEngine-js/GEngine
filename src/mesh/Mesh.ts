@@ -57,7 +57,7 @@ export class Mesh extends RenderObject {
   afterRender() {
     // console.log('after');
   }
-  public getDrawCommand() {
+  public getDrawCommand(overrideMaterial?: Material) {
     if (!this.drawCommand || this.material.dirty) {
       if (this.material.dirty) this.material.dirty = false;
       this.drawCommand = new DrawCommand({
@@ -76,6 +76,10 @@ export class Mesh extends RenderObject {
     this.material.shaderSource.setDefines(
       Object.assign(this.material.shaderData.defines, this.geometry.defines)
     );
+    if (overrideMaterial) {
+      overrideMaterial.update();
+      return this.drawCommand.shallowClone(overrideMaterial);
+    }
     return this.drawCommand;
   }
   destroy() {

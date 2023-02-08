@@ -107,7 +107,7 @@ export class Material {
 
   onBeforeCompile() {}
 
-  update(frameState: FrameState, mesh: Mesh) {}
+  update(frameState?: FrameState, mesh?: Mesh) {}
   protected createShaderData(mesh: Mesh, frameState?: FrameState) {
     this.shaderData = new ShaderData(this.type, 0);
   }
