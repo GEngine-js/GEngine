@@ -1,11 +1,15 @@
+import Camera from "../camera/Camera";
+import { Material } from "../material/Material";
 import { Mesh } from "../mesh/Mesh";
+import Context from "../render/Context";
+import DrawCommand from "../render/DrawCommand";
 export default class RenderQueue {
-  public preRender: Array<Mesh>;
+  public pre: Array<Mesh>;
   public opaque: Array<Mesh>;
   public transparent: Array<Mesh>;
   public compute: Array<Mesh>;
   constructor() {
-    this.preRender = [];
+    this.pre = [];
     this.opaque = [];
     this.transparent = [];
     this.compute = [];
@@ -24,8 +28,91 @@ export default class RenderQueue {
       RenderQueue._compareFromFarToNear
     );
   }
+  opaqueRender(
+    camera: Camera,
+    context: Context,
+    passEncoder?: GPURenderPassEncoder,
+    replaceMaterial?: Material
+  ) {
+    this.opaque.map((mesh) => {
+      mesh.beforeRender();
+      RenderQueue.excuteCommand(
+        mesh.getDrawCommand(),
+        context,
+        passEncoder,
+        camera
+      );
+      mesh.afterRender();
+    });
+  }
+  transparentRender(
+    camera: Camera,
+    context: Context,
+    passEncoder?: GPURenderPassEncoder,
+    replaceMaterial?: Material
+  ) {
+    this.transparent.map((mesh) => {
+      mesh.beforeRender();
+      RenderQueue.excuteCommand(
+        mesh.getDrawCommand(),
+        context,
+        passEncoder,
+        camera
+      );
+      mesh.afterRender();
+    });
+  }
+  computeRender(
+    camera: Camera,
+    context: Context,
+    passEncoder?: GPURenderPassEncoder,
+    replaceMaterial?: Material
+  ) {
+    this.compute.map((mesh) => {
+      mesh.beforeRender();
+      RenderQueue.excuteCommand(
+        mesh.getDrawCommand(),
+        context,
+        passEncoder,
+        camera
+      );
+      mesh.afterRender();
+    });
+  }
+  preRender(
+    camera: Camera,
+    context: Context,
+    passEncoder?: GPURenderPassEncoder,
+    replaceMaterial?: Material
+  ) {
+    this.pre.map((mesh) => {
+      mesh.beforeRender();
+      RenderQueue.excuteCommand(
+        mesh.getDrawCommand(),
+        context,
+        passEncoder,
+        camera
+      );
+      mesh.afterRender();
+    });
+  }
+  static excuteCommand(
+    command: DrawCommand,
+    context?: Context,
+    passEncoder?: GPURenderPassEncoder,
+    camera?: Camera
+  ) {
+    if (command.renderTarget) {
+      const currentRenderPassEncoder =
+        command.renderTarget.beginRenderPassEncoder(context);
+      context.render(command, currentRenderPassEncoder, camera);
+      command.renderTarget.endRenderPassEncoder();
+    } else {
+      context.render(command, passEncoder, camera);
+    }
+  }
   reset() {
-    this.preRender = [];
+    this.pre = [];
     this.opaque = [];
     this.transparent = [];
     this.compute = [];

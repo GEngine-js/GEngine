@@ -1,7 +1,7 @@
 import BindGroupLayout from "./BindGroupLayout";
 import DrawCommand from "./DrawCommand";
 import { PipelineLayout } from "./PipelineLayout";
-import RenderState from "./RenderState";
+import { RenderState } from "./RenderState";
 
 const renderPipelines = new Map();
 const computePipelines = new Map();
@@ -48,9 +48,7 @@ export default class Pipeline {
     groupLayouts: BindGroupLayout[]
   ): Pipeline {
     const { renderState, shaderSource, materialType } = drawComand;
-    const rs = RenderState.getFromRenderStateCache(renderState);
-    const rsStr = JSON.stringify(rs);
-
+    const rsStr = JSON.stringify(renderState);
     const combineStr = materialType.concat(shaderSource.uid).concat(rsStr);
     const hashId = stringToHash(combineStr);
     const combineLayouts = groupLayouts.sort(
@@ -61,7 +59,7 @@ export default class Pipeline {
       const descriptor = Pipeline.getPipelineDescriptor(
         device,
         drawComand,
-        rs,
+        renderState,
         combineLayouts,
         hashId.toString()
       );
@@ -107,27 +105,56 @@ export default class Pipeline {
       vert: GPUShaderModule;
       frag: GPUShaderModule;
     };
-    return {
-      //需要改动
+    const pipelineDec = {
       layout: PipelineLayout.getPipelineLayoutFromCache(
         device,
         hashId,
         groupLayouts
       ).gpuPipelineLayout,
-      vertex: {
+    } as any;
+    if (vert)
+      pipelineDec.vertex = {
         module: vert,
         entryPoint: shaderSource.vertEntryPoint,
         buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
-      },
-      primitive: renderState.primitive,
-      depthStencil: renderState.depthStencil as GPUDepthStencilState,
-      multisample: renderState.multisample,
-      fragment: {
+      };
+    if (renderState.primitive)
+      pipelineDec.primitive = renderState.primitive.getGPUPrimitiveDec();
+    if (renderState.depthStencil)
+      pipelineDec.depthStencil =
+        renderState.depthStencil.getGPUDepthStencilDec();
+    if (renderState.multisample)
+      pipelineDec.multisample = renderState.multisample.getMultiSampleDec();
+    if (frag)
+      pipelineDec.fragment = {
         module: frag,
         entryPoint: shaderSource.fragEntryPoint,
-        targets: renderState.targets as Iterable<GPUColorTargetState>,
-      },
-    };
+        targets: renderState.targets.map((target) => {
+          return target.getGPUTargetDec();
+        }),
+      };
+    return pipelineDec;
+    // return {
+    //   //需要改动
+    //   layout: PipelineLayout.getPipelineLayoutFromCache(
+    //     device,
+    //     hashId,
+    //     groupLayouts
+    //   ).gpuPipelineLayout,
+    //   vertex: {
+    //     module: vert,
+    //     entryPoint: shaderSource.vertEntryPoint,
+    //     buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
+    //   },
+    //   primitive: renderState.primitive,
+    //   depthStencil: renderState.depthStencil as GPUDepthStencilState,
+    //   multisample: renderState.multisample,
+    //   fragment: {
+    //     module: frag,
+    //     entryPoint: shaderSource.fragEntryPoint,
+    //     targets: renderState.targets as Iterable<GPUColorTargetState>,
+    //   },
+    // };
   }
 }
 // Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/

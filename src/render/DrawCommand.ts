@@ -3,7 +3,7 @@ import RenderTarget from "./RenderTarget";
 import ShaderData from "./ShaderData";
 import VertextBuffer from "./VertextBuffer";
 import IndexBuffer from "./IndexBuffer";
-import { RenderStateProps } from "../core/WebGPUTypes";
+import { RenderState } from "./RenderState";
 
 class DrawCommand {
   public type?: string;
@@ -16,7 +16,7 @@ class DrawCommand {
 
   public indexBuffer?: IndexBuffer;
 
-  public renderState?: RenderStateProps;
+  public renderState?: RenderState;
 
   public queryIndex?: number;
 
@@ -31,6 +31,8 @@ class DrawCommand {
   public dirty?: boolean;
 
   public materialType?: string;
+
+  public light?: boolean;
 
   constructor(options: DrawCommand) {
     Object.assign(this, options);

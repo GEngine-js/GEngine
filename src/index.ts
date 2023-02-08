@@ -4,7 +4,7 @@ export { default as DrawCommand } from "./render/DrawCommand";
 export { default as Context } from "./render/Context";
 export { default as Texture } from "./render/Texture";
 export { default as Sampler } from "./render/Sampler";
-export { default as RenderState } from "./render/RenderState";
+export { RenderState } from "./render/RenderState";
 export { default as Attachment } from "./render/Attachment";
 export { Attribute } from "./render/Attribute";
 export { default as BindGroup } from "./render/BindGroup";

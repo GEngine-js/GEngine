@@ -4,8 +4,13 @@ import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
 import DrawCommand from "../render/DrawCommand";
 import RenderQueue from "../core/RenderQueue";
-import { PrimitiveTopology, TextureFormat, TextureUsage } from "../core/WebGPUConstant";
+import {
+  PrimitiveTopology,
+  TextureFormat,
+  TextureUsage,
+} from "../core/WebGPUConstant";
 import Texture from "../render/Texture";
+import Camera from "../camera/Camera";
 
 export class BasicPass extends Pass {
   skyboxDrawComand: DrawCommand;
@@ -13,29 +18,11 @@ export class BasicPass extends Pass {
     super(context);
     this.init(context);
   }
-  render(renderQueue: RenderQueue) {
+  render(renderQueue: RenderQueue, camera?: Camera) {
     renderQueue.sort();
-    const { preRender, opaque, transparent, compute } = renderQueue;
-    compute.map((mesh) => {
-      mesh.beforeRender();
-      this.excuteCommand(mesh.getDrawCommand());
-      mesh.afterRender();
-    });
-    preRender.map((mesh) => {
-      mesh.beforeRender();
-      this.excuteCommand(mesh.getDrawCommand());
-      mesh.afterRender();
-    });
-    opaque.map((mesh) => {
-      mesh.beforeRender();
-      this.excuteCommand(mesh.getDrawCommand());
-      mesh.afterRender();
-    });
-    transparent.map((mesh) => {
-      mesh.beforeRender();
-      this.excuteCommand(mesh.getDrawCommand());
-      mesh.afterRender();
-    });
+    renderQueue.preRender(camera, this.context, this.passRenderEncoder);
+    renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
+    renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
   }
   private init(context: Context) {
     this.createRenderTarget(context);
@@ -51,8 +38,11 @@ export class BasicPass extends Pass {
       format: TextureFormat.Depth24Plus,
       usage: TextureUsage.RenderAttachment,
     });
-    const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 },{texture:colorTexture});
-    const depthAttachment = new Attachment(1.0,{texture:depthTexture});
+    const colorAttachment = new Attachment(
+      { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+      { texture: colorTexture }
+    );
+    const depthAttachment = new Attachment(1.0, { texture: depthTexture });
     this.renderTarget = new RenderTarget(
       "render",
       [colorAttachment],

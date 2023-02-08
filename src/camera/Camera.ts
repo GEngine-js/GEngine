@@ -3,12 +3,15 @@ import RenderObject from "../core/RenderObject";
 import Matrix4 from "../math/Matrix4";
 import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
+import ShaderData from "../render/ShaderData";
+import UniformBuffer from "../render/UniformBuffer";
 
 export default class Camera extends RenderObject {
   private _viewMatrix: Matrix4;
   protected _projectionMatrix: Matrix4;
   cullingVolume: CullingVolume;
   projectMatrixDirty: boolean;
+  shaderData: ShaderData;
   constructor() {
     super();
     this._viewMatrix = undefined;
@@ -16,6 +19,7 @@ export default class Camera extends RenderObject {
     this.cullingVolume = new CullingVolume();
     this._viewMatrix = new Matrix4();
     this.projectMatrixDirty = true;
+    this.createShaderData();
   }
   get viewMatrix() {
     this.updateMatrix();
@@ -95,5 +99,22 @@ export default class Camera extends RenderObject {
     planes[5].normalize();
 
     return this.cullingVolume;
+  }
+  private createShaderData() {
+    this.shaderData = new ShaderData("camera", 0, 1, 1);
+    const uniformBuffer = new UniformBuffer();
+    uniformBuffer.setMatrix4("projectionMatrix", () => {
+      return this.projectionMatrix;
+    });
+    uniformBuffer.setMatrix4("viewMatrix", () => {
+      return this.viewMatrix;
+    });
+    uniformBuffer.setMatrix4("inverseViewMatrix", () => {
+      return this.inverseViewMatrix;
+    });
+    uniformBuffer.setFloatVec3("position", () => {
+      return this.position;
+    });
+    this.shaderData.setUniformBuffer("camera", uniformBuffer);
   }
 }

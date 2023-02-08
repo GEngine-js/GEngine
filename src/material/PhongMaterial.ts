@@ -18,6 +18,7 @@ export default class PhongMaterial extends Material {
         materialPhong: true,
       },
     });
+    this.light = true;
     this.specular = new Color(1.0, 1.0, 1.0);
     this.shininess = 30.0;
     this.baseTexture = undefined;

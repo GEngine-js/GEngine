@@ -1,21 +1,17 @@
-import RenderState from "../render/RenderState";
+import {
+  DepthStencil,
+  RenderState,
+  Target,
+  Primitive,
+} from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { ShaderSource } from "../shader/ShaderSource";
-import defaultValue from "../utils/defaultValue";
 import { FrameState } from "../core/FrameState";
-import {
-  BlendConstant,
-  DepthStencil,
-  MultiSample,
-  PrimitiveState,
-  Target,
-  RenderStateProps,
-} from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
-import { CullMode, FrontFace, PrimitiveTopology } from "../core/WebGPUConstant";
+import { CullMode, PrimitiveTopology } from "../core/WebGPUConstant";
 export class Material {
   public shaderData: ShaderData;
 
@@ -35,6 +31,8 @@ export class Material {
 
   dirty: boolean;
 
+  light: boolean;
+
   private _emissive: Color;
 
   private _opacity: number;
@@ -43,7 +41,7 @@ export class Material {
 
   private _diffuse: Color;
 
-  private _renderState: RenderStateProps;
+  private _renderState: RenderState;
 
   private _doubleSided: boolean;
 
@@ -60,18 +58,12 @@ export class Material {
     this.dirty = true;
     this._emissive = new Color(0.0, 0.0, 0);
     this._emissiveIntensity = 1.0;
-    this._renderState = {
-      primitive: {
-        frontFace: FrontFace.CCW,
-        cullMode: CullMode.None,
-        unclippedDepth: false,
-        topology: PrimitiveTopology.TriangleList,
-      },
-    };
     this._doubleSided = true;
+    this.light = false;
+    this.init();
   }
   public set wireframe(value: Boolean) {
-    this._renderState.primitive.topology = value
+    this.renderState.primitive.topology = value
       ? PrimitiveTopology.LineList
       : PrimitiveTopology.TriangleList;
   }
@@ -111,42 +103,6 @@ export class Material {
   public set opacity(v: number) {
     this._opacity = v;
   }
-  get blendConstant() {
-    return this._renderState.blendConstant;
-  }
-  set blendConstant(value) {
-    this._renderState.blendConstant = value;
-  }
-  get targets() {
-    return this._renderState.targets;
-  }
-  set targets(value: Array<Target>) {
-    this._renderState.targets = value;
-  }
-  get multisample() {
-    return this._renderState.multisample;
-  }
-  set multisample(value) {
-    this._renderState.multisample = value;
-  }
-  get primitive() {
-    return this._renderState.primitive;
-  }
-  set primitive(value) {
-    this._renderState.primitive = value;
-  }
-  get stencilReference() {
-    return this._renderState.stencilReference;
-  }
-  set stencilReference(value: number) {
-    this._renderState.stencilReference = value;
-  }
-  get depthStencil() {
-    return this._renderState.depthStencil;
-  }
-  set depthStencil(value: DepthStencil) {
-    this._renderState.depthStencil = value;
-  }
   onBeforeRender() {}
 
   onBeforeCompile() {}
@@ -154,6 +110,16 @@ export class Material {
   update(frameState: FrameState, mesh: Mesh) {}
   protected createShaderData(mesh: Mesh, frameState?: FrameState) {
     this.shaderData = new ShaderData(this.type, 0);
+  }
+  private init() {
+    //默认渲染状态
+    const primitive = new Primitive();
+    const target = new Target();
+    const depthStencil = new DepthStencil();
+    this._renderState = new RenderState();
+    this._renderState.primitive = primitive;
+    this._renderState.targets = [target];
+    this._renderState.depthStencil = depthStencil;
   }
   public destroy() {
     this.label = undefined;

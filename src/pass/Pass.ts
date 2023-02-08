@@ -2,7 +2,7 @@ import RenderTarget from "../render/RenderTarget.js";
 import { Material } from "../material/Material.js";
 import Context from "../render/Context.js";
 import DrawCommand from "../render/DrawCommand.js";
-import { Target } from "../core/WebGPUTypes.js";
+import { Target } from "../render/RenderState";
 import Texture from "../render/Texture.js";
 import RenderQueue from "../core/RenderQueue.js";
 
@@ -11,13 +11,15 @@ class Pass {
   public context: Context;
   public overrideMaterial?: Material;
   public colorTargets?: Array<Target>;
-  private passRenderEncoder: GPURenderPassEncoder | null;
+  public passRenderEncoder: GPURenderPassEncoder | null;
   constructor(context: Context) {
     this.context = context;
   }
-  render(renderQueue: RenderQueue): void{};
-  beforRender(){
-    this.passRenderEncoder=this.renderTarget.beginRenderPassEncoder(this.context);
+  render(renderQueue: RenderQueue): void {}
+  beforRender() {
+    this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(
+      this.context
+    );
   }
   getColorTexture(index: number = 0): Texture {
     return this.renderTarget.getColorTexture(index) as Texture;
@@ -35,8 +37,9 @@ class Pass {
   }
   protected excuteCommand(command: DrawCommand) {
     if (command.renderTarget) {
-      const currentRenderPassEncoder=command.renderTarget.beginRenderPassEncoder(this.context);
-      this.context.render(command,currentRenderPassEncoder);
+      const currentRenderPassEncoder =
+        command.renderTarget.beginRenderPassEncoder(this.context);
+      this.context.render(command, currentRenderPassEncoder);
       command.renderTarget.endRenderPassEncoder();
     } else {
       if (this.colorTargets) command.renderState.targets = this.colorTargets;

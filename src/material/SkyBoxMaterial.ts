@@ -16,11 +16,14 @@ export default class SkyBoxMaterial extends Material {
       defines: {},
     });
     this.images = [];
-    this.depthStencil = {
-      depthWriteEnabled: false,
-      depthCompare: CompareFunction.LessEqual,
-      format: TextureFormat.Depth24Plus,
-    };
+    this.renderState.depthStencil.depthWriteEnabled = false;
+    this.renderState.depthStencil.depthCompare = CompareFunction.LessEqual;
+    // this.renderState.depthStencil
+    // this.depthStencil = {
+    //   depthWriteEnabled: false,
+    //   depthCompare: CompareFunction.LessEqual,
+    //   format: TextureFormat.Depth24Plus,
+    // };
   }
   async loadTexture(urls) {
     const result = await CubeTextureLoader(urls);

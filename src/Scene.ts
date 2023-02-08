@@ -3,9 +3,7 @@ import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState } from "./core/FrameState";
 import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
-import SkyBox from "./mesh/SkyBox";
 import Context from "./render/Context";
-import Texture from "./render/Texture";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 import defaultValue from "./utils/defaultValue";
@@ -13,7 +11,6 @@ import { loadPbrTexture } from "./utils/utils";
 import textureCache from "./core/TextureCache";
 
 export class Scene extends EventDispatcher {
-  lightManger: LightManger;
   primitiveManger: PrimitiveManger;
   camera: PerspectiveCamera;
   context: Context;
@@ -24,7 +21,6 @@ export class Scene extends EventDispatcher {
   frameState: FrameState;
   currentRenderPipeline: IBaseRenderLine;
   viewport: { x: number; y: number; width: number; height: number };
-  skybox: SkyBox;
   private ready: boolean;
   private brdfUrl: string;
   private specularEnvUrls: Array<string>;
@@ -36,7 +32,6 @@ export class Scene extends EventDispatcher {
       options.container instanceof HTMLDivElement
         ? options.container
         : document.getElementById(options.container);
-    this.lightManger = new LightManger();
     this.primitiveManger = new PrimitiveManger();
     this.context = new Context({
       canvas: null,
@@ -50,7 +45,6 @@ export class Scene extends EventDispatcher {
     this.deviceDescriptor = options.deviceDescriptor || {};
     this.presentationContextDescriptor = options.presentationContextDescriptor;
     this.ready = false;
-    this.skybox = defaultValue(options.skybox, undefined);
     this.inited = false;
     //this.init();
   }
@@ -90,7 +84,7 @@ export class Scene extends EventDispatcher {
     }
   }
   addLight(light) {
-    this.lightManger.add(light);
+    this.context.lightManger.add(light);
   }
   setCamera(camera) {
     this.camera = camera;
@@ -119,11 +113,10 @@ export class Scene extends EventDispatcher {
     this.frameState.viewport = this.viewport;
     this.frameState.update(this.camera);
     //更新灯光
-    this.lightManger.update(this.frameState);
-    this.context.systemRenderResource.update(this.frameState, this);
+    this.context.lightManger.update(this.frameState);
     //update primitive and select
     this.primitiveManger.update(this.frameState);
     //selct renderPipeline
-    this.currentRenderPipeline.render(this.frameState);
+    this.currentRenderPipeline.render(this.frameState, this.camera);
   }
 }

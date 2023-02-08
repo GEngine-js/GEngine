@@ -16,7 +16,7 @@ export default class ShaderMaterial extends Material {
       type,
       frag,
       vert,
-      customShader: true,
+      custom: true,
       defines: {},
       render: true,
     });

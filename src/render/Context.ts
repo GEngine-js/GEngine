@@ -6,10 +6,10 @@ import {
 import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
-import RenderState from "./RenderState";
-import SystemRenderResource from "../core/SystemRenderResource";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
 import Pipeline from "./Pipeline";
+import Camera from "../camera/Camera";
+import LightManger from "../core/LightManger";
 
 class Context {
   public canvas: HTMLCanvasElement;
@@ -24,13 +24,13 @@ class Context {
 
   public commandEncoder: GPUCommandEncoder | null;
 
-  public systemRenderResource: SystemRenderResource;
-
   public presentationSize: { width: number; height: number; depth: number };
 
   public presentationFormat: GPUTextureFormat;
 
   public mipmapTools: MipmapGenerator;
+
+  public lightManger: LightManger;
 
   private _viewPort: ViewPort;
 
@@ -48,6 +48,7 @@ class Context {
       context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
     this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
     this.device = undefined;
+    this.lightManger = new LightManger();
   }
 
   public async init(
@@ -92,7 +93,6 @@ class Context {
         height: this.canvas.clientHeight * this.pixelRatio,
       };
       this._scissorTestEnabled = false;
-      this.systemRenderResource = new SystemRenderResource();
     } catch (error) {
       console.error(error);
       return false;
@@ -129,20 +129,26 @@ class Context {
 
   public render(
     command: DrawCommand,
-    passEncoder: GPURenderPassEncoder | GPUComputePassEncoder
+    passEncoder: GPURenderPassEncoder | GPUComputePassEncoder,
+    camera?: Camera
   ): void {
+    const grouplayouts = [];
     if (command.shaderData)
       command.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
     //设置系统
-    this.systemRenderResource.bind(this, passEncoder as GPURenderPassEncoder);
-    if (command.renderState) {
-      command.renderState.viewport = this._viewPort;
-      command.renderState.scissorTestEnabled = this._scissorTestEnabled;
-      RenderState.applyRenderState(
-        passEncoder as GPURenderPassEncoder,
-        command.renderState
-      );
+    if (camera) {
+      camera.shaderData.bind(this, passEncoder as GPURenderPassEncoder);
+      grouplayouts.push(camera.shaderData.groupLayout);
     }
+    if (command.light) {
+      this.lightManger.lightShaderData.bind(
+        this,
+        passEncoder as GPURenderPassEncoder
+      );
+      grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
+    }
+    if (command.renderState)
+      command.renderState.bind(passEncoder as GPURenderPassEncoder);
     if (command.vertexBuffer)
       command.vertexBuffer.bind(
         this.device,
@@ -154,10 +160,11 @@ class Context {
         this.device,
         passEncoder as GPURenderPassEncoder
       );
+
     const pipeline = Pipeline.getRenderPipelineFromCache(
       this.device,
       command,
-      this.systemRenderResource.layouts.concat(command.shaderData.groupLayout)
+      grouplayouts.concat(command.shaderData.groupLayout)
     );
     pipeline.bind(passEncoder);
     if (command.indexBuffer) {

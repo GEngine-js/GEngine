@@ -1,4 +1,3 @@
-import combine from "../utils/combine";
 import defaultValue from "../utils/defaultValue";
 import getVertFrag from "./Shaders";
 export interface GPUShaderModuleObject {
@@ -17,11 +16,11 @@ export class ShaderSource {
   render: boolean;
   type: string;
   private _uid: string;
-  private customShader: boolean;
+  private custom: boolean;
   constructor(options) {
     this.type = options.type;
     this.defines = options.defines;
-    this.customShader = defaultValue(options.customShader, false);
+    this.custom = defaultValue(options.custom, false);
     this.dirty = true;
     if (options.render) {
       this.render = true;
@@ -38,17 +37,12 @@ export class ShaderSource {
     this._uid == JSON.stringify(this.defines);
     return this._uid;
   }
-  update(
-    globalDefines?: object,
-    materialDefines?: object,
-    geometryDefines?: object
-  ) {}
   private updateShaderStr() {
     if (this.render) {
       const source = getVertFrag(this.type, this.defines);
       this.vert = source.vert;
       this.frag = source.frag;
-    } else if (this.customShader) {
+    } else if (this.custom) {
       //TODO
     }
   }
@@ -63,13 +57,17 @@ export class ShaderSource {
       this.updateShaderStr();
       this.dirty = false;
     }
-    if (this.vert) {
-      const vert = device.createShaderModule({
-        code: this.vert,
-      });
-      const frag = device.createShaderModule({
-        code: this.frag,
-      });
+    if (this.render) {
+      const vert = this.vert
+        ? device.createShaderModule({
+            code: this.vert,
+          })
+        : undefined;
+      const frag = this.frag
+        ? device.createShaderModule({
+            code: this.frag,
+          })
+        : undefined;
       return { vert, frag };
     } else {
       const compute = device.createShaderModule({

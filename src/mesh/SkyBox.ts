@@ -18,6 +18,6 @@ export default class SkyBox extends Mesh {
     this.updateMatrix();
     this.geometry.update(frameState);
     this.material.update(frameState, this);
-    frameState.renderQueue.preRender.push(this);
+    frameState.renderQueue.pre.push(this);
   }
 }

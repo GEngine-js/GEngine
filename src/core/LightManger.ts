@@ -5,7 +5,9 @@ import { SpotLight } from "../light/SpotLight";
 import { DirtectData, PointData, SpotData } from "../light/DataHelper";
 import { FrameState } from "./FrameState";
 import Vector3 from "../math/Vector3";
-
+import ShaderData from "../render/ShaderData";
+import { BufferUsage } from "./WebGPUConstant";
+import UniformBuffer from "../render/UniformBuffer";
 export default class LightManger {
   pointLights: PointLight[];
 
@@ -46,6 +48,8 @@ export default class LightManger {
   pointLightsByte: number;
 
   dirtectLightsByte: number;
+
+  lightShaderData: ShaderData;
 
   lightDefines: {
     ambientLight: boolean;
@@ -99,6 +103,11 @@ export default class LightManger {
       this.initBuffer();
     }
     this.updateLightData(frameState);
+    if (this.lightCountDirty) {
+      this.lightCountDirty = false;
+      if (this.lightShaderData) this.lightShaderData.destroy();
+      this.createLightShaderData();
+    }
   }
   private updateLightData(frameState: FrameState) {
     this.updateSpotLight(frameState);
@@ -150,7 +159,7 @@ export default class LightManger {
     const spotLightCountSize = spotLightCount * SpotData.size;
     const dirtectLightCountSize = dirtectLightCount * DirtectData.size;
     let currentBinding = 1;
-
+    this.reset();
     //common
     if (ambientSize > 0) {
       this.commonLightBuffer = new Float32Array(ambientSize + lightCount);
@@ -227,5 +236,60 @@ export default class LightManger {
       this.lightDefines.dirtectLight = true;
       this.lightDefines.dirtectLightBinding = currentBinding;
     }
+  }
+  private createLightShaderData() {
+    this.lightShaderData = new ShaderData("light", 0, 2, 2);
+
+    const commonBuffer = new UniformBuffer(
+      "read-only-storage",
+      BufferUsage.Storage | BufferUsage.CopyDst,
+      this.commonTatalByte,
+      this.commonLightBuffer
+    );
+    this.lightShaderData.setUniformBuffer("commonBuffer", commonBuffer);
+
+    if (this.lightDefines.spotLight) {
+      const spotLightsBuffer = new UniformBuffer(
+        "read-only-storage",
+        BufferUsage.Storage | BufferUsage.CopyDst,
+        this.spotLightsByte,
+        this.spotLightsBuffer,
+        this.lightDefines.spotLightBinding
+      );
+      this.lightShaderData.setUniformBuffer(
+        "spotLightsBuffer",
+        spotLightsBuffer
+      );
+    }
+    if (this.lightDefines.pointLight) {
+      const pointLightsBuffer = new UniformBuffer(
+        "read-only-storage",
+        BufferUsage.Storage | BufferUsage.CopyDst,
+        this.pointLightsByte,
+        this.pointLightsBuffer,
+        this.lightDefines.pointLightBinding
+      );
+      this.lightShaderData.setUniformBuffer(
+        "pointLightsBuffer",
+        pointLightsBuffer
+      );
+    }
+    if (this.lightDefines.dirtectLight) {
+      const dirtectLightsBuffer = new UniformBuffer(
+        "read-only-storage",
+        BufferUsage.Storage | BufferUsage.CopyDst,
+        this.dirtectLightsByte,
+        this.dirtectLightsBuffer,
+        this.lightDefines.dirtectLightBinding
+      );
+      this.lightShaderData.setUniformBuffer(
+        "dirtectLightsBuffer",
+        dirtectLightsBuffer
+      );
+    }
+  }
+  private reset() {}
+  destroy() {
+    this.lightShaderData.destroy();
   }
 }
