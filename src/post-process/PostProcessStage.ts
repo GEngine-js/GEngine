@@ -53,7 +53,7 @@ export default class PostProcessStage {
 		this.renderMesh(context);
 	}
 	protected renderMesh(context: Context) {
-		this.colorTexture.update(context);
+		if (!this.renderTarget) this.createRenderTarget(context);
 		const drawComand = this.fullScreenQuad.getDrawCommand();
 		const currentRenderPassEncoder = this.renderTarget.beginRenderPassEncoder(context);
 		context.render(drawComand, currentRenderPassEncoder);
@@ -100,19 +100,17 @@ export default class PostProcessStage {
 		this.colorTextureSampler = new Sampler();
 	}
 	private createRenderTarget(context: Context) {
+		const presentationSize = context.presentationSize;
+		this.width = presentationSize.width;
+		this.height = presentationSize.height;
 		const colorTexture = new Texture({
-			size: { width: this.width, height: this.height, depth: 1 },
+			size: presentationSize,
 			format: "rgba8unorm",
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
 		colorTexture.update(context);
 		const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, { texture: colorTexture });
-		// const depthAttachment = new Attachment(1.0);
-		this.renderTarget = new RenderTarget(
-			"render",
-			[colorAttachment]
-			// depthAttachment
-		);
+		this.renderTarget = new RenderTarget("render", [colorAttachment]);
 	}
 }
 type postProcessStageOptions = {
