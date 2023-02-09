@@ -530,7 +530,6 @@ class DrawCommand {
 		this.dispatch = options.dispatch;
 		this.shaderSource = options.shaderSource;
 		this.dirty = options.dirty;
-		this.materialType = options.materialType;
 		this.light = options.light;
 	}
 	shallowClone(material) {
@@ -544,7 +543,6 @@ class DrawCommand {
 				renderState: material.renderState,
 				shaderSource: material.shaderSource,
 				type: "render",
-				materialType: material.type,
 				light: material.light
 			});
 		}
@@ -770,9 +768,9 @@ class Pipeline {
 		}
 	}
 	static getRenderPipelineFromCache(device, drawComand, groupLayouts) {
-		const { renderState, shaderSource, materialType } = drawComand;
+		const { renderState, shaderSource } = drawComand;
 		const rsStr = JSON.stringify(renderState);
-		const combineStr = materialType.concat(shaderSource.uid).concat(rsStr);
+		const combineStr = shaderSource.uid.concat(rsStr);
 		const hashId = stringToHash(combineStr);
 		const combineLayouts = groupLayouts.sort((layout1, layout2) => layout1.index - layout2.index);
 		let pipeline = renderPipelines.get(hashId);
@@ -790,8 +788,8 @@ class Pipeline {
 		return pipeline;
 	}
 	static getComputePipelineFromCache(device, drawComand, groupLayouts) {
-		const { shaderSource, materialType } = drawComand;
-		const hashId = stringToHash(materialType.concat(shaderSource.uid));
+		const { shaderSource } = drawComand;
+		const hashId = stringToHash(shaderSource.uid);
 		let pipeline = computePipelines.get(hashId);
 		if (!pipeline) {
 			const { shaderSource } = drawComand;
@@ -5727,9 +5725,13 @@ class Context {
 			passEncoder.drawIndexed(command.count || 0, command.instances || 1, 0, 0, 0);
 		} else if (command.count) {
 			passEncoder.draw(command.count, command.instances || 1, 0, 0);
-		} else if (command.dispatch) {
-			passEncoder.dispatch(...(Array.isArray(command.dispatch) ? command.dispatch : [command.dispatch]));
 		}
+	}
+	compute(command, passEncoder) {
+		const pipeline = Pipeline.getComputePipelineFromCache(this.device, command, [command.shaderData.groupLayout]);
+		pipeline.bind(passEncoder);
+		const { x, y, z } = command.dispatch;
+		passEncoder.dispatchWorkgroups(x, y, z);
 	}
 }
 
@@ -6715,12 +6717,8 @@ class Mesh extends RenderObject {
 			}
 		}
 	}
-	beforeRender() {
-		// console.log('before');
-	}
-	afterRender() {
-		// console.log('after');
-	}
+	beforeRender() {}
+	afterRender() {}
 	getDrawCommand(overrideMaterial) {
 		if (!this.drawCommand || this.material.dirty) {
 			if (this.material.dirty) this.material.dirty = false;
@@ -6733,7 +6731,6 @@ class Mesh extends RenderObject {
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				type: "render",
-				materialType: this.material.type,
 				light: this.material.light
 			});
 		}
@@ -9842,7 +9839,7 @@ class ShaderSource {
 		}
 	}
 	get uid() {
-		this._uid == JSON.stringify(this.defines);
+		this._uid = this.type.concat(JSON.stringify(this.defines));
 		return this._uid;
 	}
 	updateShaderStr() {
@@ -9916,6 +9913,9 @@ class Material {
 	}
 	get renderState() {
 		return this._renderState;
+	}
+	set renderState(value) {
+		this._renderState = value;
 	}
 	get diffuse() {
 		return this._diffuse;
@@ -10428,14 +10428,6 @@ function createSphere(options) {
 	};
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-24 19:41:12
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-30 16:56:45
- * @FilePath: \GEngine\src\geometry\SphereGeometry.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class SphereGeometry extends Geometry {
 	constructor() {
 		super({});
@@ -10889,7 +10881,7 @@ class RenderQueue {
 		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
-		this.compute = [];
+		this.computes = [];
 	}
 	sort() {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
@@ -10909,11 +10901,9 @@ class RenderQueue {
 			mesh.afterRender();
 		});
 	}
-	computeRender(camera, context, passEncoder, replaceMaterial) {
-		this.compute.map((mesh) => {
-			mesh.beforeRender();
-			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
-			mesh.afterRender();
+	computeRender(context, passEncoder) {
+		this.computes.map((compute) => {
+			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
 	preRender(camera, context, passEncoder, replaceMaterial) {
@@ -10932,11 +10922,14 @@ class RenderQueue {
 			context.render(command, passEncoder, camera);
 		}
 	}
+	static excuteCompute(command, context, passEncoder) {
+		context.compute(command, passEncoder);
+	}
 	reset() {
 		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
-		this.compute = [];
+		this.computes = [];
 	}
 	static _compareFromNearToFar(a, b) {
 		return a.priority - b.priority || a.distanceToCamera - b.distanceToCamera;
@@ -11145,6 +11138,7 @@ class Pass {
 	render(renderQueue) {}
 	beforRender() {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
+		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
 	getColorTexture(index = 0) {
 		return this.renderTarget.getColorTexture(index);
@@ -11154,6 +11148,7 @@ class Pass {
 	}
 	afterRender() {
 		this.renderTarget.endRenderPassEncoder();
+		if (this.computeTarget) this.computeTarget.endComputePassEncoder();
 	}
 }
 
@@ -11165,6 +11160,7 @@ class RenderTarget {
 		this.stencilAttachment = stencilAttachment;
 		this.querySet = querySet;
 		this.renderEncoder = undefined;
+		this.computeEncoder = undefined;
 		this._renderPassDescriptor = undefined;
 		this.commandEncoder = undefined;
 		this.context = undefined;
@@ -11187,40 +11183,37 @@ class RenderTarget {
 		}
 	}
 	getRenderPassDescriptor() {
-		if (this.type === "render") {
-			this.depthAttachment?.texture?.update(this.context);
-			return {
-				...(this.colorAttachments && {
-					colorAttachments: this.colorAttachments.map((colorAttachment) => {
-						colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
-						return {
-							view:
-								//暂时这么写
-								colorAttachment.texture.gpuTexture.createView() || undefined,
-							resolveTarget:
-								colorAttachment.resolveTarget != undefined
-									? colorAttachment.resolveTarget.gpuTexture.createView()
-									: undefined,
-							clearValue: colorAttachment.value,
-							loadOp: colorAttachment.op,
-							storeOp: colorAttachment.storeOp
-						};
-					})
-				}),
-				...((this.depthAttachment || this.stencilAttachment) && {
-					depthStencilAttachment: {
-						view: this.depthAttachment?.texture?.gpuTexture?.createView() || undefined,
-						depthLoadOp: this.depthAttachment?.op || "clear",
-						depthClearValue: this.depthAttachment?.value || 1.0,
-						depthStoreOp: this.depthAttachment?.storeOp || "store"
-						// stencilLoadOp: this.stencilAttachment?.op || "clear",
-						// stencilClearValue: this.stencilAttachment?.value || 0,
-						// stencilStoreOp: this.stencilAttachment?.storeOp || "store",
-					}
+		this.depthAttachment?.texture?.update(this.context);
+		return {
+			...(this.colorAttachments && {
+				colorAttachments: this.colorAttachments.map((colorAttachment) => {
+					colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
+					return {
+						view:
+							//暂时这么写
+							colorAttachment.texture.gpuTexture.createView() || undefined,
+						resolveTarget:
+							colorAttachment.resolveTarget != undefined
+								? colorAttachment.resolveTarget.gpuTexture.createView()
+								: undefined,
+						clearValue: colorAttachment.value,
+						loadOp: colorAttachment.op,
+						storeOp: colorAttachment.storeOp
+					};
 				})
-			};
-		}
-		return null;
+			}),
+			...((this.depthAttachment || this.stencilAttachment) && {
+				depthStencilAttachment: {
+					view: this.depthAttachment?.texture?.gpuTexture?.createView() || undefined,
+					depthLoadOp: this.depthAttachment?.op || "clear",
+					depthClearValue: this.depthAttachment?.value || 1.0,
+					depthStoreOp: this.depthAttachment?.storeOp || "store"
+					// stencilLoadOp: this.stencilAttachment?.op || "clear",
+					// stencilClearValue: this.stencilAttachment?.value || 0,
+					// stencilStoreOp: this.stencilAttachment?.storeOp || "store",
+				}
+			})
+		};
 	}
 	beginRenderPassEncoder(context) {
 		if (!this.context) this.context = context;
@@ -11231,6 +11224,19 @@ class RenderTarget {
 	}
 	endRenderPassEncoder() {
 		this.renderEncoder?.end();
+		this.context.device.queue.submit([this.commandEncoder.finish()]);
+		this.commandEncoder = null;
+		this.renderEncoder = null;
+	}
+	beginComputePassEncoder(context) {
+		if (!this.context) this.context = context;
+		const { device } = this.context;
+		this.commandEncoder = device.createCommandEncoder();
+		this.computeEncoder = this.commandEncoder.beginComputePass();
+		return this.computeEncoder;
+	}
+	endComputePassEncoder() {
+		this.computeEncoder?.end();
 		this.context.device.queue.submit([this.commandEncoder.finish()]);
 		this.commandEncoder = null;
 		this.renderEncoder = null;
@@ -11297,6 +11303,68 @@ class BasicPass extends Pass {
 	}
 }
 
+function checkContainFloatType(uniforms) {
+	let result = 0;
+	const uniformsNames = Object.getOwnPropertyNames(uniforms);
+	uniformsNames.map((uniformsName) => {
+		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
+			result += 0;
+		} else {
+			result += 1;
+		}
+	});
+	return result;
+}
+function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
+	switch (uniform.type) {
+		case "vec2":
+			uniformBuffer.setFloatVec2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec3":
+			uniformBuffer.setFloatVec3(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "color":
+			uniformBuffer.setColor(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec4":
+			uniformBuffer.setFloatVec4(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat2":
+			uniformBuffer.setMatrix2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "mat3":
+			uniformBuffer.setMatrix3(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat4":
+			uniformBuffer.setMatrix4(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "texture":
+			shaderData.setTexture(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "sampler":
+			shaderData.setSampler(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		default:
+			throw new Error("not match unifrom type");
+	}
+}
+
 class ShaderMaterial extends Material {
 	constructor(options) {
 		super();
@@ -11318,68 +11386,20 @@ class ShaderMaterial extends Material {
 	}
 	createShaderData(mesh) {
 		super.createShaderData(mesh);
-		//
+		if (checkContainFloatType(this.uniforms)) {
+			this.uniformBuffer = new UniformBuffer();
+			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
+		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
 		uniformsNames.map((uniformsName) => {
-			this.addUniformToShaderData(uniformsName, this.uniforms[uniformsName]);
+			addUniformToShaderData(
+				uniformsName,
+				this.uniforms[uniformsName],
+				this.uniforms,
+				this.shaderData,
+				this.uniformBuffer
+			);
 		});
-		if (this.uniformBuffer) this.shaderData.setUniformBuffer("custom", this.uniformBuffer);
-	}
-	addUniformToShaderData(name, uniform) {
-		switch (uniform.type) {
-			case "vec2":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec2(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "vec3":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec3(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "color":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setColor(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "vec4":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec4(name, () => {
-					return this.uniforms[name].value;
-				});
-			case "mat2":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix2(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "mat3":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix3(name, () => {
-					return this.uniforms[name].value;
-				});
-			case "mat4":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix4(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "texture":
-				this.shaderData.setTexture(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "sampler":
-				this.shaderData.setSampler(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			default:
-				throw new Error("not match unifrom type");
-		}
 	}
 }
 
@@ -11749,11 +11769,9 @@ class CullingVolume {
 	 * @returns {CullingVolume} The culling volume created from the bounding sphere.
 	 */
 	static fromBoundingSphere(boundingSphere, result) {
-		//>>includeStart('debug', pragmas.debug);
 		if (!defined(boundingSphere)) {
 			throw new Error("boundingSphere is required.");
 		}
-		//>>includeEnd('debug');
 		if (!defined(result)) {
 			result = new CullingVolume();
 		}

@@ -60,7 +60,6 @@ export class Mesh extends RenderObject {
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				type: "render",
-				materialType: this.material.type,
 				light: this.material.light
 			});
 		}

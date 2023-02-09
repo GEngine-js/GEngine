@@ -7,107 +7,102 @@ import { RenderState } from "./RenderState";
 import { Material } from "../material/Material";
 
 class DrawCommand {
-  public type?: string;
+	public type?: string;
 
-  public shaderData?: ShaderData;
+	public shaderData?: ShaderData;
 
-  public renderTarget?: RenderTarget;
+	public renderTarget?: RenderTarget;
 
-  public vertexBuffer?: VertextBuffer;
+	public vertexBuffer?: VertextBuffer;
 
-  public indexBuffer?: IndexBuffer;
+	public indexBuffer?: IndexBuffer;
 
-  public renderState?: RenderState;
+	public renderState?: RenderState;
 
-  public queryIndex?: number;
+	public queryIndex?: number;
 
-  public count?: number;
+	public count?: number;
 
-  public instances?: number;
+	public instances?: number;
 
-  public dispatch?: number | [number, number?, number?];
+	public dispatch?: { x?: number; y?: number; z?: number };
 
-  public shaderSource?: ShaderSource;
+	public shaderSource?: ShaderSource;
 
-  public dirty?: boolean;
+	public dirty?: boolean;
 
-  public materialType?: string;
+	public light?: boolean;
 
-  public light?: boolean;
+	public indirectBuffer?: Buffer;
 
-  constructor(options: DrawCommandProps) {
-    this.type = options.type;
+	constructor(options: DrawCommandProps) {
+		this.type = options.type;
 
-    this.shaderData = options.shaderData;
+		this.shaderData = options.shaderData;
 
-    this.renderTarget = options.renderTarget;
+		this.renderTarget = options.renderTarget;
 
-    this.vertexBuffer = options.vertexBuffer;
+		this.vertexBuffer = options.vertexBuffer;
 
-    this.indexBuffer = options.indexBuffer;
+		this.indexBuffer = options.indexBuffer;
 
-    this.renderState = options.renderState;
+		this.renderState = options.renderState;
 
-    this.queryIndex = options.queryIndex;
+		this.queryIndex = options.queryIndex;
 
-    this.count = options.count;
+		this.count = options.count;
 
-    this.instances = options.instances;
+		this.instances = options.instances;
 
-    this.dispatch = options.dispatch;
+		this.dispatch = options.dispatch;
 
-    this.shaderSource = options.shaderSource;
+		this.shaderSource = options.shaderSource;
 
-    this.dirty = options.dirty;
+		this.dirty = options.dirty;
 
-    this.materialType = options.materialType;
-
-    this.light = options.light;
-  }
-  public shallowClone(material?: Material) {
-    if (material) {
-      return new DrawCommand({
-        vertexBuffer: this.vertexBuffer,
-        indexBuffer: this.indexBuffer,
-        shaderData: material.shaderData,
-        instances: this.instances,
-        count: this.count,
-        renderState: material.renderState,
-        shaderSource: material.shaderSource,
-        type: "render",
-        materialType: material.type,
-        light: material.light,
-      });
-    }
-  }
+		this.light = options.light;
+	}
+	public shallowClone(material?: Material) {
+		if (material) {
+			return new DrawCommand({
+				vertexBuffer: this.vertexBuffer,
+				indexBuffer: this.indexBuffer,
+				shaderData: material.shaderData,
+				instances: this.instances,
+				count: this.count,
+				renderState: material.renderState,
+				shaderSource: material.shaderSource,
+				type: "render",
+				light: material.light
+			});
+		}
+	}
 }
 type DrawCommandProps = {
-  type?: string;
+	type?: string;
 
-  shaderData?: ShaderData;
+	shaderData?: ShaderData;
 
-  renderTarget?: RenderTarget;
+	renderTarget?: RenderTarget;
 
-  vertexBuffer?: VertextBuffer;
+	vertexBuffer?: VertextBuffer;
 
-  indexBuffer?: IndexBuffer;
+	indexBuffer?: IndexBuffer;
 
-  renderState?: RenderState;
+	renderState?: RenderState;
 
-  queryIndex?: number;
+	queryIndex?: number;
 
-  count?: number;
+	count?: number;
 
-  instances?: number;
+	instances?: number;
 
-  dispatch?: number | [number, number?, number?];
+	dispatch?: { x?: number; y?: number; z?: number };
 
-  shaderSource?: ShaderSource;
+	shaderSource?: ShaderSource;
 
-  dirty?: boolean;
+	dirty?: boolean;
 
-  materialType?: string;
-
-  light?: boolean;
+	light?: boolean;
 };
 export default DrawCommand;
