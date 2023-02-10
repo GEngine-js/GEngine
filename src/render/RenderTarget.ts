@@ -100,34 +100,14 @@ export default class RenderTarget {
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	resize(width: number, height: number) {
-		const size = {
-			width,
-			height,
-			depth: (<Texture>this.colorAttachments[0]?.texture)?.textureProp?.size.depth || 1
-		};
-		for (let i = 0; i < this.colorAttachments.length; ++i) {
-			if (this.colorAttachments[i].texture) {
-				const resizedTexture = new Texture({
-					...(<Texture>this.colorAttachments[i].texture).textureProp,
-					size
-				});
-				resizedTexture.update(this.context);
-				(<Texture>this.colorAttachments[i].texture).destroy();
-				this.colorAttachments[i].texture = resizedTexture;
-				this.renderPassDescriptor.colorAttachments[i].view = resizedTexture.gpuTexture.createView();
-			}
-		}
-
-		if (this.depthAttachment.texture) {
-			const resizedTexture = new Texture({
-				...(<Texture>this.depthAttachment.texture).textureProp,
-				size
+	public setSize(width: number, height: number, depth?: number) {
+		if (this.colorAttachments) {
+			this.colorAttachments.map((colorAttachment) => {
+				if (colorAttachment.texture) {
+					colorAttachment.texture.setSize(width, height, depth);
+				}
 			});
-			resizedTexture.update(this.context);
-			(<Texture>this.depthAttachment.texture).destroy();
-			this.depthAttachment.texture = resizedTexture;
-			this.renderPassDescriptor.depthStencilAttachment.view = resizedTexture.gpuTexture.createView();
 		}
+		if (this.depthAttachment.texture) this.depthAttachment.texture.setSize(width, height, depth);
 	}
 }

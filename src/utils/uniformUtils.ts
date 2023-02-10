@@ -22,6 +22,11 @@ export function addUniformToShaderData(
 	uniformBuffer?: UniformBuffer
 ) {
 	switch (uniform.type) {
+		case "float":
+			uniformBuffer.setFloat(name, () => {
+				return uniforms[name].value;
+			});
+			break;
 		case "vec2":
 			uniformBuffer.setFloatVec2(name, () => {
 				return uniforms[name].value;

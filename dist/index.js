@@ -2,7 +2,7 @@
 	if (!l || l.getElementById("livereloadscript")) return;
 	r = l.createElement("script");
 	r.async = 1;
-	r.src = "//" + (self.location.host || "localhost").split(":")[0] + ":35731/livereload.js?snipver=1";
+	r.src = "//" + (self.location.host || "localhost").split(":")[0] + ":35729/livereload.js?snipver=1";
 	r.id = "livereloadscript";
 	l.getElementsByTagName("head")[0].appendChild(r);
 })(self.document);
@@ -5632,12 +5632,7 @@ class Context {
 		this.device = undefined;
 		this.lightManger = new LightManger();
 	}
-	async init(
-		requestAdapter = {},
-		deviceDescriptor = {},
-		presentationContextDescriptor = {}
-		// glslangPath: string
-	) {
+	async init(requestAdapter = {}, deviceDescriptor = {}, presentationContextDescriptor = {}) {
 		try {
 			if (!this.context) {
 				throw new Error(`Failed to instantiate "webgpu" context.`);
@@ -5654,13 +5649,12 @@ class Context {
 			};
 			this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 			this.device.addEventListener("uncapturederror", (error) => {
-				console.log(error);
+				console.error(error);
 				//State.error = true;
 			});
 			this.mipmapTools = new MipmapGenerator(this.device);
 			this.context.configure({
 				device: this.device,
-				// format: navigator.gpu.getPreferredCanvasFormat(),
 				format: this.presentationFormat,
 				usage: TextureUsage.RenderAttachment,
 				alphaMode: "opaque",
@@ -5762,9 +5756,11 @@ class Texture {
 		});
 	}
 	update(context) {
+		// todo 仅考虑重建（size改变），后续要考虑data改变
 		if (!this.context) this.context = context;
-		if (!this.gpuTexture) this.gpuTexture = this.createGPUTexture();
 		if (this.dirty) {
+			if (this.gpuTexture) this.gpuTexture.destroy();
+			this.gpuTexture = this.createGPUTexture();
 			this.dirty = false;
 			if (this.textureProp.data) {
 				if (Array.isArray(this.textureProp.data)) {
@@ -5812,6 +5808,12 @@ class Texture {
 			},
 			[width, height, depth]
 		);
+	}
+	setSize(width, height, depth) {
+		this.textureProp.size.width = width;
+		this.textureProp.size.height = height;
+		if (depth) this.textureProp.size.depth = depth;
+		this.dirty = true;
 	}
 	destroy() {
 		this.gpuTexture.destroy();
@@ -9760,14 +9762,75 @@ function pbr_fs(defines) {
    `;
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-18 16:30:53
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-18 18:19:45
- * @FilePath: \GEngine\src\shader\Shaders.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
+function Blur(defines) {
+	return `
+    const KERNEL_RADIUS:u32=${defines.KERNEL_RADIUS}
+    struct FragInput {
+        @location(0) uv: vec2<f32>,
+    };
+    struct BlurUniforms {
+        texSize:vec2<f32>,
+        direction:vec2<f32>,
+    }
+    fn gaussianPdf(x:f32, sigma:f32)->f32 {
+        return 0.39894 * exp( -0.5 * x * x/( sigma * sigma))/sigma;
+    }
+    @group(0) @binding(0)  var<uniform> blurUniforms : BlurUniforms;
+    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @fragment
+    fn main(input:FragInput)-> @location(0) vec4<f32>  {
+        let invSize:vec2<f32> = 1.0 / texSize;
+        let fSigma:f32 = SIGMA;
+        let weightSum:f32 = gaussianPdf(0.0, fSigma);
+        let diffuseSum:vec3<f32> = textureSample(tDiffuse, tSampler, input.uv).rgb * weightSum;
+        for( var i : u32 = 0u;; i < KERNEL_RADIUS; i ++ ) {
+            let x:f32 = i;
+            let w:f32 = gaussianPdf(x, fSigma);
+            let uvOffset:vec2<f32> = direction * invSize * x;
+            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv+ uvOffset).rgb;
+            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv- uvOffset).rgb;
+            diffuseSum += (sample1 + sample2) * w;
+            weightSum += 2.0 * w;
+        }
+      returtn vec4<f32>(diffuseSum/weightSum, 1.0);
+    }
+  `;
+}
+
+function LuminosityHigh(defines) {
+	return `
+    struct LuminosityUniforms{
+        defaultColor:vec3<f32>,
+        defaultOpacity:f32,
+        luminosityThreshold:f32,
+        smoothWidth:f32,
+    }
+    struct FragInput {
+        @location(0) uv: vec2<f32>,
+    };
+    @group(0) @binding(0)  var<uniform> luminosityUniforms : LuminosityUniforms;
+    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @fragment
+    fn main(input:FragInput)-> @location(0) vec4<f32> {
+
+        let texel:vec4<f32> = textureSample(tDiffuse, tSampler, input.uv);
+
+        let luma:vec3<f32> = vec3<f32>( 0.299, 0.587, 0.114 );
+
+        let v:f32 = dot( texel.xyz, luma );
+
+        let outputColor:vec4<f32> = vec4<f32>( defaultColor.rgb, defaultOpacity );
+
+        let alpha:f32 = smoothstep( luminosityUniforms.luminosityThreshold, luminosityUniforms.luminosityThreshold + luminosityUniforms.smoothWidth, v );
+
+       return mix( outputColor, texel, alpha );
+
+    }
+    `;
+}
+
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -9799,6 +9862,14 @@ const shaders = {
 	pbr_mat: {
 		frag: pbr_fs,
 		vert: pbr_vs
+	},
+	blur: {
+		frag: Blur,
+		vert: quadVert
+	},
+	luminosityHigh: {
+		frag: LuminosityHigh,
+		vert: quadVert
 	}
 };
 function resolveIncludes(string) {
@@ -9843,11 +9914,18 @@ class ShaderSource {
 		return this._uid;
 	}
 	updateShaderStr() {
-		if (this.render) {
+		if (this.custom) {
+			if (this.compute) {
+				this.compute = ShaderSource.compileCustomShader(this.compute, this.defines);
+			} else {
+				this.vert = ShaderSource.compileCustomShader(this.vert, this.defines);
+				this.frag = ShaderSource.compileCustomShader(this.frag, this.defines);
+			}
+		} else {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
-		} else if (this.custom);
+		}
 	}
 	setDefines(defines) {
 		this.dirty = true;
@@ -9880,6 +9958,11 @@ class ShaderSource {
 	static replaceMain(source, renamedMain) {
 		renamedMain = `void ${renamedMain}()`;
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
+	}
+	static compileCustomShader(template, defines) {
+		const names = Object.keys(defines);
+		const vals = Object.values(defines);
+		return new Function(...names, `return \`${template}\`;`)(...vals);
 	}
 }
 
@@ -11241,34 +11324,15 @@ class RenderTarget {
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	resize(width, height) {
-		const size = {
-			width,
-			height,
-			depth: this.colorAttachments[0]?.texture?.textureProp?.size.depth || 1
-		};
-		for (let i = 0; i < this.colorAttachments.length; ++i) {
-			if (this.colorAttachments[i].texture) {
-				const resizedTexture = new Texture({
-					...this.colorAttachments[i].texture.textureProp,
-					size
-				});
-				resizedTexture.update(this.context);
-				this.colorAttachments[i].texture.destroy();
-				this.colorAttachments[i].texture = resizedTexture;
-				this.renderPassDescriptor.colorAttachments[i].view = resizedTexture.gpuTexture.createView();
-			}
-		}
-		if (this.depthAttachment.texture) {
-			const resizedTexture = new Texture({
-				...this.depthAttachment.texture.textureProp,
-				size
+	setSize(width, height, depth) {
+		if (this.colorAttachments) {
+			this.colorAttachments.map((colorAttachment) => {
+				if (colorAttachment.texture) {
+					colorAttachment.texture.setSize(width, height, depth);
+				}
 			});
-			resizedTexture.update(this.context);
-			this.depthAttachment.texture.destroy();
-			this.depthAttachment.texture = resizedTexture;
-			this.renderPassDescriptor.depthStencilAttachment.view = resizedTexture.gpuTexture.createView();
 		}
+		if (this.depthAttachment.texture) this.depthAttachment.texture.setSize(width, height, depth);
 	}
 }
 
@@ -11317,6 +11381,11 @@ function checkContainFloatType(uniforms) {
 }
 function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
 	switch (uniform.type) {
+		case "float":
+			uniformBuffer.setFloat(name, () => {
+				return uniforms[name].value;
+			});
+			break;
 		case "vec2":
 			uniformBuffer.setFloatVec2(name, () => {
 				return uniforms[name].value;
@@ -11375,7 +11444,7 @@ class ShaderMaterial extends Material {
 			frag,
 			vert,
 			custom: true,
-			defines: {},
+			defines: defaultValue(options.defines, {}),
 			render: true
 		});
 		this.uniforms = uniforms;
@@ -11439,12 +11508,10 @@ class ResolveFrame {
 			gpuTexture: context.context.getCurrentTexture()
 		};
 		this.material.update(undefined, this.quadMesh);
-		this.quadMesh.beforeRender();
 		const drawComand = this.quadMesh.getDrawCommand();
 		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context);
 		context.render(drawComand, currentRenderPassEncoder);
 		this.canvasRenderTarget.endRenderPassEncoder();
-		this.quadMesh.afterRender();
 	}
 	initRenderTarget(context) {
 		const colorAttachment = new Attachment(

@@ -239,6 +239,7 @@ export type ShaderMaterialParms = {
 	frag: string;
 	vert: string;
 	uniforms: { [uniform: string]: IUniform };
+	defines?: any;
 };
 export interface IUniform<TValue = any> {
 	type: string;

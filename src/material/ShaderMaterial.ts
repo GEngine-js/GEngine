@@ -1,13 +1,14 @@
 import { FrameState } from "../core/FrameState";
-import { IUniform, ShaderMaterialParms } from "../core/WebGPUTypes";
+import { IUniform, ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
+import defaultValue from "../utils/defaultValue";
 import { addUniformToShaderData, checkContainFloatType } from "../utils/uniformUtils";
 import { Material } from "./Material";
 
 export default class ShaderMaterial extends Material {
-	uniforms: { [uniform: string]: IUniform };
+	uniforms: Uniforms;
 	uniformBuffer: UniformBuffer;
 	constructor(options: ShaderMaterialParms) {
 		super();
@@ -18,7 +19,7 @@ export default class ShaderMaterial extends Material {
 			frag,
 			vert,
 			custom: true,
-			defines: {},
+			defines: defaultValue(options.defines, {}),
 			render: true
 		});
 		this.uniforms = uniforms;

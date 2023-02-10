@@ -38,12 +38,17 @@ export class ShaderSource {
 		return this._uid;
 	}
 	private updateShaderStr() {
-		if (this.render) {
+		if (this.custom) {
+			if (this.compute) {
+				this.compute = ShaderSource.compileCustomShader(this.compute, this.defines);
+			} else {
+				this.vert = ShaderSource.compileCustomShader(this.vert, this.defines);
+				this.frag = ShaderSource.compileCustomShader(this.frag, this.defines);
+			}
+		} else {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
-		} else if (this.custom) {
-			//TODO
 		}
 	}
 	public setDefines(defines) {
@@ -77,5 +82,10 @@ export class ShaderSource {
 	static replaceMain(source: string, renamedMain: string) {
 		renamedMain = `void ${renamedMain}()`;
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
+	}
+	static compileCustomShader(template, defines): string {
+		const names = Object.keys(defines);
+		const vals = Object.values(defines);
+		return new Function(...names, `return \`${template}\`;`)(...vals);
 	}
 }
