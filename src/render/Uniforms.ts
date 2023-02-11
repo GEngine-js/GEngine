@@ -13,6 +13,9 @@ import Buffer from "./Buffer";
 import Context from "./Context";
 import defaultValue from "../utils/defaultValue";
 import UniformBuffer from "./UniformBuffer";
+import { SpotLight } from "../light/SpotLight";
+import { PointLight } from "../light/PointLight";
+import { DirtectLight } from "../light/DirtectLight";
 export class Uniform<T> {
 	_value: T;
 	name: string;
@@ -455,5 +458,156 @@ export class UniformLight extends Uniform<Light> {
 	}
 	set() {
 		this.buffer = this.getValue();
+	}
+}
+export class UniformSpotsLight extends Uniform<SpotLight> {
+	static align = 16;
+	lights: Array<SpotLight>;
+	cb: Function;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.binding = binding;
+		this.byteSize = count * 54;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((spotLight) => {
+			this.setSubData(spotLight);
+		});
+	}
+	private setSubData(spotLight: SpotLight) {
+		if (spotLight.positionDirty) {
+			spotLight.positionDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.positionVC.toArray(), 0); //byteOffset=0;
+		}
+		if (spotLight.distanceDirty) {
+			spotLight.distanceDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.distance, 3); //byteOffset=12;
+		}
+		if (spotLight.dirtectDirty) {
+			spotLight.dirtectDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.dirtectVC.toArray(), 4); //byteOffset=16;
+		}
+		if (spotLight.coneCosDirty) {
+			spotLight.coneCosDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.coneCos, 7); //byteOffset=28;
+		}
+		if (spotLight.colorDirty) {
+			spotLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.color.toArray(), 8); //byteOffset=32;
+		}
+		if (spotLight.penumbraCosDirty) {
+			spotLight.penumbraCosDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.penumbraCos, 11); //byteOffset=44;
+		}
+		if (spotLight.decayDirty) {
+			spotLight.decayDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.decay, 12); //byteOffset=48;
+		}
+	}
+}
+export class UniformPointsLight extends Uniform<PointLight> {
+	static align = 16;
+	lights: Array<PointLight>;
+	cb: Function;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.binding = binding;
+		this.byteSize = count * 32;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((pointLight) => {
+			this.setSubData(pointLight);
+		});
+	}
+	private setSubData(pointLight: PointLight) {
+		if (pointLight.positionDirty) {
+			pointLight.positionDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.positionVC.toArray(), 0); //byteOffset=0;
+		}
+		if (pointLight.distanceDirty) {
+			pointLight.distanceDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.distance, 3); //byteOffset=12;
+		}
+		if (pointLight.colorDirty) {
+			pointLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.color.toArray(), 4); //byteOffset=32;
+		}
+		if (pointLight.decayDirty) {
+			pointLight.decayDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.distance, 7); //byteOffset=12;
+		}
+	}
+}
+export class UniformDirtectsLight extends Uniform<DirtectLight> {
+	static align = 16;
+	lights: Array<DirtectLight>;
+	cb: Function;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.binding = binding;
+		this.byteSize = count * 32;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((dirtectLight) => {
+			this.setSubData(dirtectLight);
+		});
+	}
+	private setSubData(dirtectLight: DirtectLight) {
+		if (dirtectLight.dirtectDirty) {
+			dirtectLight.dirtectDirty = false;
+			setDataToTypeArray(this.buffer, dirtectLight.dirtectVC.toArray(), 0); //byteOffset=16;
+		}
+		if (dirtectLight.colorDirty) {
+			dirtectLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, dirtectLight.color.toArray(), 4); //byteOffset=32;
+		}
+	}
+}
+function setDataToTypeArray(buffer, data, offset) {
+	if (Array.isArray(data)) {
+		data.forEach((value, index) => {
+			buffer[index + offset] = value;
+		});
+	} else {
+		buffer[offset] = data;
 	}
 }
