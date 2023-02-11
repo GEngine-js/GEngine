@@ -124,9 +124,10 @@ class Context {
 			camera.shaderData.bind(this, passEncoder);
 			grouplayouts.push(camera.shaderData.groupLayout);
 		}
-		if (command.light) {
+		if (command.light && this.lightManger.lightShaderData) {
 			this.lightManger.lightShaderData.bind(this, passEncoder);
 			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
+			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
 		}
 		if (command.renderState) command.renderState.bind(passEncoder);
 		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);

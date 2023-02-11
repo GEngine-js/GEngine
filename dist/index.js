@@ -865,6 +865,33 @@ function stringToHash(str) {
 }
 
 /**
+ * Returns the first parameter if not undefined, otherwise the second parameter.
+ * Useful for setting a default value for a parameter.
+ *
+ * @function
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
+ *
+ * @example
+ * param = Cesium.defaultValue(param, 'default');
+ */
+function defaultValue(a, b) {
+	if (a !== undefined && a !== null) {
+		return a;
+	}
+	return b;
+}
+/**
+ * A frozen empty object that can be used as the default value for options passed as
+ * an object literal.
+ * @type {Object}
+ * @memberof defaultValue
+ */
+defaultValue.EMPTY_OBJECT = Object.freeze({});
+
+/**
  * @function
  *
  * @param {*} value The object.
@@ -1103,33 +1130,6 @@ MersenneTwister.prototype.random_long = function () {
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
 var mersenneTwister = MersenneTwister;
-
-/**
- * Returns the first parameter if not undefined, otherwise the second parameter.
- * Useful for setting a default value for a parameter.
- *
- * @function
- *
- * @param {*} a
- * @param {*} b
- * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
- *
- * @example
- * param = Cesium.defaultValue(param, 'default');
- */
-function defaultValue(a, b) {
-	if (a !== undefined && a !== null) {
-		return a;
-	}
-	return b;
-}
-/**
- * A frozen empty object that can be used as the default value for options passed as
- * an object literal.
- * @type {Object}
- * @memberof defaultValue
- */
-defaultValue.EMPTY_OBJECT = Object.freeze({});
 
 class GMath {
 	static signNotZero(value) {
@@ -1411,539 +1411,6 @@ GMath.log2 = defaultValue(Math.log2, function log2(number) {
 	return Math.log(number) * Math.LOG2E;
 });
 let randomNumberGenerator = new mersenneTwister();
-
-class Vector3 {
-	constructor(x = 0, y = 0, z = 0) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-	set(x, y, z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-	toArray() {
-		return [this.x, this.y, this.z];
-	}
-	copy(v) {
-		this.x = v.x;
-		this.y = v.y;
-		this.z = v.z;
-		return this;
-	}
-	lerp(end, t) {
-		Vector3.lerp(this, end, t, this);
-		return this;
-	}
-	add(v) {
-		Vector3.add(this, v, this);
-		return this;
-	}
-	addScaledVector(v, s) {
-		this.x += v.x * s;
-		this.y += v.y * s;
-		this.z += v.z * s;
-		return this;
-	}
-	subtract(v) {
-		Vector3.subtract(this, v, this);
-		return this;
-	}
-	applyQuaternion(q) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const qx = q.x,
-			qy = q.y,
-			qz = q.z,
-			qw = q.w;
-		// calculate quat * vector
-		const ix = qw * x + qy * z - qz * y;
-		const iy = qw * y + qz * x - qx * z;
-		const iz = qw * z + qx * y - qy * x;
-		const iw = -qx * x - qy * y - qz * z;
-		// calculate result * inverse quat
-		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-		return this;
-	}
-	setFromMatrixColumn(m, index) {
-		return this.fromArray(m, index * 4);
-	}
-	fromArray(array, offset = 0) {
-		this.x = array[offset];
-		this.y = array[offset + 1];
-		this.z = array[offset + 2];
-		return this;
-	}
-	multiplyByScalar(scale) {
-		Vector3.multiplyByScalar(this, scale, this);
-		return this;
-	}
-	clone() {
-		return Vector3.clone(this, new Vector3());
-	}
-	length() {
-		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-	}
-	applyMatrix4(matrix) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const e = matrix;
-		const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
-		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
-		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
-		return this;
-	}
-	applyMatrix3(matrix) {
-		let x = this.x,
-			y = this.y,
-			z = this.z;
-		this.x = x * matrix[0] + y * matrix[3] + z * matrix[6];
-		this.y = x * matrix[1] + y * matrix[4] + z * matrix[7];
-		this.z = x * matrix[2] + y * matrix[5] + z * matrix[8];
-		return this;
-	}
-	transformDirection(matrix) {
-		const x = this.x,
-			y = this.y,
-			z = this.z;
-		const e = matrix;
-		this.x = e[0] * x + e[4] * y + e[8] * z;
-		this.y = e[1] * x + e[5] * y + e[9] * z;
-		this.z = e[2] * x + e[6] * y + e[10] * z;
-		return this.normalize();
-	}
-	normalize() {
-		Vector3.normalize(this, this);
-		return this;
-	}
-	equals(right) {
-		return Vector3.equals(this, right);
-	}
-	equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
-		return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
-	}
-	toString() {
-		return `(${this.x}, ${this.y}, ${this.z})`;
-	}
-	fromBufferAttribute(attribute, index) {
-		this.x = attribute.getX(index);
-		this.y = attribute.getY(index);
-		this.z = attribute.getZ(index);
-		return this;
-	}
-	static fromVector4(vec4, result) {
-		result.x = vec4.x;
-		result.y = vec4.y;
-		result.z = vec4.z;
-		return result;
-	}
-	static fromSpherical(spherical, result) {
-		if (!defined(result)) {
-			result = new Vector3();
-		}
-		const { phi, radius, theta } = spherical;
-		const sinPhiRadius = Math.sin(phi) * radius;
-		result.x = sinPhiRadius * Math.sin(theta);
-		result.y = Math.cos(phi) * radius;
-		result.z = sinPhiRadius * Math.cos(theta);
-		return result;
-	}
-	static fromElements(x, y, z, result) {
-		if (!defined(result)) {
-			return new Vector3(x, y, z);
-		}
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-	static clone(cartesian, result = new Vector3()) {
-		if (!defined(cartesian)) {
-			return undefined;
-		}
-		if (!defined(result)) {
-			return new Vector3(cartesian.x, cartesian.y, cartesian.z);
-		}
-		result.x = cartesian.x;
-		result.y = cartesian.y;
-		result.z = cartesian.z;
-		return result;
-	}
-	static maximumComponent(cartesian) {
-		return Math.max(cartesian.x, cartesian.y, cartesian.z);
-	}
-	static minimumComponent(cartesian) {
-		return Math.min(cartesian.x, cartesian.y, cartesian.z);
-	}
-	static minimumByComponent(first, second, result) {
-		result.x = Math.min(first.x, second.x);
-		result.y = Math.min(first.y, second.y);
-		result.z = Math.min(first.z, second.z);
-		return result;
-	}
-	static maximumByComponent(first, second, result) {
-		result.x = Math.max(first.x, second.x);
-		result.y = Math.max(first.y, second.y);
-		result.z = Math.max(first.z, second.z);
-		return result;
-	}
-	static clamp(value, min, max, result) {
-		const x = GMath.clamp(value.x, min.x, max.x);
-		const y = GMath.clamp(value.y, min.y, max.y);
-		const z = GMath.clamp(value.z, min.z, max.z);
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-	static magnitudeSquared(cartesian) {
-		return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z;
-	}
-	static magnitude(cartesian) {
-		return Math.sqrt(Vector3.magnitudeSquared(cartesian));
-	}
-	static distance(left, right) {
-		Vector3.subtract(left, right, distanceScratch$2);
-		return Vector3.magnitude(distanceScratch$2);
-	}
-	static distanceSquared(left, right) {
-		Vector3.subtract(left, right, distanceScratch$2);
-		return Vector3.magnitudeSquared(distanceScratch$2);
-	}
-	static normalize(cartesian, result) {
-		const magnitude = Vector3.magnitude(cartesian);
-		result.x = cartesian.x / magnitude;
-		result.y = cartesian.y / magnitude;
-		result.z = cartesian.z / magnitude;
-		if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z)) {
-			throw new Error("normalized result is not a number");
-		}
-		return result;
-	}
-	static dot(left, right) {
-		return left.x * right.x + left.y * right.y + left.z * right.z;
-	}
-	static multiplyComponents(left, right, result) {
-		result.x = left.x * right.x;
-		result.y = left.y * right.y;
-		result.z = left.z * right.z;
-		return result;
-	}
-	static divideComponents(left, right, result) {
-		result.x = left.x / right.x;
-		result.y = left.y / right.y;
-		result.z = left.z / right.z;
-		return result;
-	}
-	static add(left, right, result) {
-		result.x = left.x + right.x;
-		result.y = left.y + right.y;
-		result.z = left.z + right.z;
-		return result;
-	}
-	static subtract(left, right, result) {
-		result.x = left.x - right.x;
-		result.y = left.y - right.y;
-		result.z = left.z - right.z;
-		return result;
-	}
-	static multiplyByScalar(cartesian, scalar, result) {
-		result.x = cartesian.x * scalar;
-		result.y = cartesian.y * scalar;
-		result.z = cartesian.z * scalar;
-		return result;
-	}
-	static divideByScalar(cartesian, scalar, result) {
-		result.x = cartesian.x / scalar;
-		result.y = cartesian.y / scalar;
-		result.z = cartesian.z / scalar;
-		return result;
-	}
-	static negate(cartesian, result) {
-		result.x = -cartesian.x;
-		result.y = -cartesian.y;
-		result.z = -cartesian.z;
-		return result;
-	}
-	static abs(cartesian, result) {
-		result.x = Math.abs(cartesian.x);
-		result.y = Math.abs(cartesian.y);
-		result.z = Math.abs(cartesian.z);
-		return result;
-	}
-	static lerp(start, end, t, result) {
-		Vector3.multiplyByScalar(end, t, lerpScratch$3);
-		result = Vector3.multiplyByScalar(start, 1.0 - t, result);
-		return Vector3.add(lerpScratch$3, result, result);
-	}
-	static angleBetween(left, right) {
-		Vector3.normalize(left, angleBetweenScratch$1);
-		Vector3.normalize(right, angleBetweenScratch2$1);
-		const cosine = Vector3.dot(angleBetweenScratch$1, angleBetweenScratch2$1);
-		const sine = Vector3.magnitude(
-			Vector3.cross(angleBetweenScratch$1, angleBetweenScratch2$1, angleBetweenScratch$1)
-		);
-		return Math.atan2(sine, cosine);
-	}
-	static mostOrthogonalAxis(cartesian, result) {
-		const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch$1);
-		Vector3.abs(f, f);
-		if (f.x <= f.y) {
-			if (f.x <= f.z) {
-				result = Vector3.clone(Vector3.UNIT_X, result);
-			} else {
-				result = Vector3.clone(Vector3.UNIT_Z, result);
-			}
-		} else if (f.y <= f.z) {
-			result = Vector3.clone(Vector3.UNIT_Y, result);
-		} else {
-			result = Vector3.clone(Vector3.UNIT_Z, result);
-		}
-		return result;
-	}
-	static projectVector(a, b, result) {
-		const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
-		return Vector3.multiplyByScalar(b, scalar, result);
-	}
-	static equals(left, right) {
-		return (
-			left === right ||
-			(defined(left) && defined(right) && left.x === right.x && left.y === right.y && left.z === right.z)
-		);
-	}
-	/**
-	 * @private
-	 */
-	static equalsArray(cartesian, array, offset) {
-		return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2];
-	}
-	static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
-		return (
-			left === right ||
-			(defined(left) &&
-				defined(right) &&
-				GMath.equalsEpsilon(left.x, right.x, relativeEpsilon, absoluteEpsilon) &&
-				GMath.equalsEpsilon(left.y, right.y, relativeEpsilon, absoluteEpsilon) &&
-				GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon))
-		);
-	}
-	static cross(left, right, result) {
-		const leftX = left.x;
-		const leftY = left.y;
-		const leftZ = left.z;
-		const rightX = right.x;
-		const rightY = right.y;
-		const rightZ = right.z;
-		const x = leftY * rightZ - leftZ * rightY;
-		const y = leftZ * rightX - leftX * rightZ;
-		const z = leftX * rightY - leftY * rightX;
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		return result;
-	}
-}
-Vector3.ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
-Vector3.ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
-Vector3.UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
-Vector3.UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
-Vector3.UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
-Vector3.midpoint = function (left, right, result) {
-	result.x = (left.x + right.x) * 0.5;
-	result.y = (left.y + right.y) * 0.5;
-	result.z = (left.z + right.z) * 0.5;
-	return result;
-};
-const distanceScratch$2 = new Vector3();
-const lerpScratch$3 = new Vector3();
-const angleBetweenScratch$1 = new Vector3();
-const angleBetweenScratch2$1 = new Vector3();
-const mostOrthogonalAxisScratch$1 = new Vector3();
-
-class Light {
-	constructor(color, intensity) {
-		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
-		this._intensity = intensity;
-		this._position = new Vector3(0, 0, 0);
-		this.positionDirty = true;
-		this.colorDirty = true;
-		this.intensityDirty = true;
-	}
-	get position() {
-		return this._position;
-	}
-	set position(value) {
-		this.positionDirty = true;
-		this._position = value;
-	}
-	get color() {
-		return this._color;
-	}
-	set color(value) {
-		this.colorDirty = true;
-		this._color = value;
-	}
-	set intensity(value) {
-		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
-		this.intensityDirty = true;
-		this._intensity = value;
-	}
-	get intensity() {
-		return this._intensity;
-	}
-	update(camera) {
-		const viewMatrix = camera.viewMatrix;
-		let position = this.position.clone();
-		position = position.applyMatrix4(viewMatrix);
-		this.positionVC = position;
-	}
-}
-
-class AmbientLight extends Light {
-	constructor(color, intensity) {
-		super(color, intensity);
-		this.type = "ambient";
-	}
-}
-//light.color ).multiplyScalar( light.intensity * scaleFactor );
-
-class SpotData {
-	constructor(buffer, byteOffset, spotLight) {
-		this.spotLight = spotLight;
-		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-		this.coneCos = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
-		this.color = new Float32Array(buffer.buffer, byteOffset + 32, 3); //3
-		this.penumbraCos = new Float32Array(buffer.buffer, byteOffset + 44, 1); //1
-		this.decay = new Float32Array(buffer.buffer, byteOffset + 48, 1); //1
-	}
-	update(camera) {
-		const viewMatrix = camera.viewMatrix;
-		if (this.spotLight.colorDirty) {
-			this.spotLight.colorDirty = false;
-			copyData(this.spotLight.color.toArray(), this.color);
-		}
-		if (this.spotLight.positionDirty) {
-			this.spotLight.positionDirty = false;
-			let position = this.spotLight.position.clone();
-			position = position.applyMatrix4(viewMatrix);
-			copyData(position.toArray(), this.position);
-		}
-		if (this.spotLight.dirtectDirty) {
-			this.spotLight.dirtectDirty = false;
-			let dirtect = this.spotLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
-		}
-		if (this.spotLight.distanceDirty) {
-			this.spotLight.distanceDirty = false;
-			this.distance[0] = this.spotLight.distance; //1
-		}
-		if (this.spotLight.coneCosDirty) {
-			this.spotLight.coneCosDirty = false;
-			this.coneCos[0] = this.spotLight.coneCos; //1
-		}
-		if (this.spotLight.penumbraCosDirty) {
-			this.spotLight.penumbraCosDirty = false;
-			this.penumbraCos[0] = this.spotLight.penumbraCos; //1
-		}
-		if (this.spotLight.decayDirty) {
-			this.spotLight.decayDirty = false;
-			this.decay[0] = this.spotLight.decay; //1
-		}
-	}
-	destroy() {
-		this.spotLight = undefined;
-		this.color = undefined;
-		this.position = undefined;
-		this.dirtect = undefined;
-		this.distance = undefined;
-		this.coneCos = undefined;
-		this.penumbraCos = undefined;
-		this.decay = undefined;
-	}
-}
-//array<light> light of byteSize must be k*16
-SpotData.byteSize = 64;
-SpotData.size = 16;
-class PointData {
-	constructor(buffer, byteOffset, pointLight) {
-		this.pointLight = pointLight;
-		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
-		this.color = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-		this.decay = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
-	}
-	update(camera) {
-		const viewMatrix = camera.viewMatrix;
-		if (this.pointLight.colorDirty) {
-			this.pointLight.colorDirty = false;
-			copyData(this.pointLight.color.toArray(), this.color);
-		}
-		if (this.pointLight.positionDirty) {
-			this.pointLight.positionDirty = false;
-			let position = this.pointLight.position.clone();
-			position = position.applyMatrix4(viewMatrix);
-			copyData(position.toArray(), this.position);
-		}
-		if (this.pointLight.decayDirty) {
-			this.pointLight.decayDirty = false;
-			this.decay[0] = this.pointLight.decay;
-		}
-		if (this.pointLight.distanceDirty) {
-			this.pointLight.distanceDirty = false;
-			this.distance[0] = this.pointLight.distance;
-		}
-	}
-	destroy() {
-		this.pointLight = undefined;
-		this.color = undefined;
-		this.position = undefined;
-		this.decay = undefined;
-		this.distance = undefined;
-	}
-}
-PointData.byteSize = 32;
-PointData.size = 8;
-class DirtectData {
-	constructor(buffer, byteOffset, dirtectLight) {
-		this.dirtectLight = dirtectLight;
-		this.color = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
-	}
-	update(camera) {
-		const viewMatrix = camera.viewMatrix;
-		if (this.dirtectLight.colorDirty) {
-			this.dirtectLight.colorDirty = false;
-			copyData(this.dirtectLight.color.toArray(), this.color);
-		}
-		if (this.dirtectLight.dirtectDirty) {
-			this.dirtectLight.dirtectDirty = false;
-			let dirtect = this.dirtectLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
-		}
-	}
-	destroy() {
-		this.dirtectLight = undefined;
-		this.color = undefined;
-		this.dirtect = undefined;
-	}
-}
-DirtectData.byteSize = 32;
-DirtectData.size = 8;
-function copyData(src, dis) {
-	src.forEach((element, index) => {
-		dis[index] = element;
-	});
-}
 
 //#rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
@@ -2313,12 +1780,12 @@ class Vector2 {
 		return Math.sqrt(Vector2.magnitudeSquared(cartesian));
 	}
 	static distance(left, right) {
-		Vector2.subtract(left, right, distanceScratch$1);
-		return Vector2.magnitude(distanceScratch$1);
+		Vector2.subtract(left, right, distanceScratch$2);
+		return Vector2.magnitude(distanceScratch$2);
 	}
 	static distanceSquared(left, right) {
-		Vector2.subtract(left, right, distanceScratch$1);
-		return Vector2.magnitudeSquared(distanceScratch$1);
+		Vector2.subtract(left, right, distanceScratch$2);
+		return Vector2.magnitudeSquared(distanceScratch$2);
 	}
 	static normalize(cartesian, result) {
 		const magnitude = Vector2.magnitude(cartesian);
@@ -2378,17 +1845,17 @@ class Vector2 {
 		return result;
 	}
 	static lerp(start, end, t, result) {
-		Vector2.multiplyByScalar(end, t, lerpScratch$2);
+		Vector2.multiplyByScalar(end, t, lerpScratch$3);
 		result = Vector2.multiplyByScalar(start, 1.0 - t, result);
-		return Vector2.add(lerpScratch$2, result, result);
+		return Vector2.add(lerpScratch$3, result, result);
 	}
 	static angleBetween(left, right) {
-		Vector2.normalize(left, angleBetweenScratch);
-		Vector2.normalize(right, angleBetweenScratch2);
-		return GMath.acosClamped(Vector2.dot(angleBetweenScratch, angleBetweenScratch2));
+		Vector2.normalize(left, angleBetweenScratch$1);
+		Vector2.normalize(right, angleBetweenScratch2$1);
+		return GMath.acosClamped(Vector2.dot(angleBetweenScratch$1, angleBetweenScratch2$1));
 	}
 	static mostOrthogonalAxis(cartesian, result) {
-		const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch);
+		const f = Vector2.normalize(cartesian, mostOrthogonalAxisScratch$1);
 		Vector2.abs(f, f);
 		if (f.x <= f.y) {
 			result = Vector2.clone(Vector2.UNIT_X, result);
@@ -2420,11 +1887,11 @@ Vector2.ZERO = Object.freeze(new Vector2(0.0, 0.0));
 Vector2.ONE = Object.freeze(new Vector2(1.0, 1.0));
 Vector2.UNIT_X = Object.freeze(new Vector2(1.0, 0.0));
 Vector2.UNIT_Y = Object.freeze(new Vector2(0.0, 1.0));
-const distanceScratch$1 = new Vector2();
-const lerpScratch$2 = new Vector2();
-const angleBetweenScratch = new Vector2();
-const angleBetweenScratch2 = new Vector2();
-const mostOrthogonalAxisScratch = new Vector2();
+const distanceScratch$2 = new Vector2();
+const lerpScratch$3 = new Vector2();
+const angleBetweenScratch$1 = new Vector2();
+const angleBetweenScratch2$1 = new Vector2();
+const mostOrthogonalAxisScratch$1 = new Vector2();
 
 /**
  * A 2x2 matrix, indexable as a column-major order array.
@@ -2718,6 +2185,358 @@ const scaleScratch3$2 = new Vector2();
 const scaleScratch4$2 = new Vector2();
 const scratchColumn$2 = new Vector2();
 const scaleScratch5$2 = new Vector2();
+
+class Vector3 {
+	constructor(x = 0, y = 0, z = 0) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	set(x, y, z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	toArray() {
+		return [this.x, this.y, this.z];
+	}
+	copy(v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+	}
+	lerp(end, t) {
+		Vector3.lerp(this, end, t, this);
+		return this;
+	}
+	add(v) {
+		Vector3.add(this, v, this);
+		return this;
+	}
+	addScaledVector(v, s) {
+		this.x += v.x * s;
+		this.y += v.y * s;
+		this.z += v.z * s;
+		return this;
+	}
+	subtract(v) {
+		Vector3.subtract(this, v, this);
+		return this;
+	}
+	applyQuaternion(q) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const qx = q.x,
+			qy = q.y,
+			qz = q.z,
+			qw = q.w;
+		// calculate quat * vector
+		const ix = qw * x + qy * z - qz * y;
+		const iy = qw * y + qz * x - qx * z;
+		const iz = qw * z + qx * y - qy * x;
+		const iw = -qx * x - qy * y - qz * z;
+		// calculate result * inverse quat
+		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+		return this;
+	}
+	setFromMatrixColumn(m, index) {
+		return this.fromArray(m, index * 4);
+	}
+	fromArray(array, offset = 0) {
+		this.x = array[offset];
+		this.y = array[offset + 1];
+		this.z = array[offset + 2];
+		return this;
+	}
+	multiplyByScalar(scale) {
+		Vector3.multiplyByScalar(this, scale, this);
+		return this;
+	}
+	clone() {
+		return Vector3.clone(this, new Vector3());
+	}
+	length() {
+		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+	}
+	applyMatrix4(matrix) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const e = matrix;
+		const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+		this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+		this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+		this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+		return this;
+	}
+	applyMatrix3(matrix) {
+		let x = this.x,
+			y = this.y,
+			z = this.z;
+		this.x = x * matrix[0] + y * matrix[3] + z * matrix[6];
+		this.y = x * matrix[1] + y * matrix[4] + z * matrix[7];
+		this.z = x * matrix[2] + y * matrix[5] + z * matrix[8];
+		return this;
+	}
+	transformDirection(matrix) {
+		const x = this.x,
+			y = this.y,
+			z = this.z;
+		const e = matrix;
+		this.x = e[0] * x + e[4] * y + e[8] * z;
+		this.y = e[1] * x + e[5] * y + e[9] * z;
+		this.z = e[2] * x + e[6] * y + e[10] * z;
+		return this.normalize();
+	}
+	normalize() {
+		Vector3.normalize(this, this);
+		return this;
+	}
+	equals(right) {
+		return Vector3.equals(this, right);
+	}
+	equalsEpsilon(right, relativeEpsilon = 0, absoluteEpsilon = 0) {
+		return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
+	}
+	toString() {
+		return `(${this.x}, ${this.y}, ${this.z})`;
+	}
+	fromBufferAttribute(attribute, index) {
+		this.x = attribute.getX(index);
+		this.y = attribute.getY(index);
+		this.z = attribute.getZ(index);
+		return this;
+	}
+	static fromVector4(vec4, result) {
+		result.x = vec4.x;
+		result.y = vec4.y;
+		result.z = vec4.z;
+		return result;
+	}
+	static fromSpherical(spherical, result) {
+		if (!defined(result)) {
+			result = new Vector3();
+		}
+		const { phi, radius, theta } = spherical;
+		const sinPhiRadius = Math.sin(phi) * radius;
+		result.x = sinPhiRadius * Math.sin(theta);
+		result.y = Math.cos(phi) * radius;
+		result.z = sinPhiRadius * Math.cos(theta);
+		return result;
+	}
+	static fromElements(x, y, z, result) {
+		if (!defined(result)) {
+			return new Vector3(x, y, z);
+		}
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+	static clone(cartesian, result = new Vector3()) {
+		if (!defined(cartesian)) {
+			return undefined;
+		}
+		if (!defined(result)) {
+			return new Vector3(cartesian.x, cartesian.y, cartesian.z);
+		}
+		result.x = cartesian.x;
+		result.y = cartesian.y;
+		result.z = cartesian.z;
+		return result;
+	}
+	static maximumComponent(cartesian) {
+		return Math.max(cartesian.x, cartesian.y, cartesian.z);
+	}
+	static minimumComponent(cartesian) {
+		return Math.min(cartesian.x, cartesian.y, cartesian.z);
+	}
+	static minimumByComponent(first, second, result) {
+		result.x = Math.min(first.x, second.x);
+		result.y = Math.min(first.y, second.y);
+		result.z = Math.min(first.z, second.z);
+		return result;
+	}
+	static maximumByComponent(first, second, result) {
+		result.x = Math.max(first.x, second.x);
+		result.y = Math.max(first.y, second.y);
+		result.z = Math.max(first.z, second.z);
+		return result;
+	}
+	static clamp(value, min, max, result) {
+		const x = GMath.clamp(value.x, min.x, max.x);
+		const y = GMath.clamp(value.y, min.y, max.y);
+		const z = GMath.clamp(value.z, min.z, max.z);
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+	static magnitudeSquared(cartesian) {
+		return cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z;
+	}
+	static magnitude(cartesian) {
+		return Math.sqrt(Vector3.magnitudeSquared(cartesian));
+	}
+	static distance(left, right) {
+		Vector3.subtract(left, right, distanceScratch$1);
+		return Vector3.magnitude(distanceScratch$1);
+	}
+	static distanceSquared(left, right) {
+		Vector3.subtract(left, right, distanceScratch$1);
+		return Vector3.magnitudeSquared(distanceScratch$1);
+	}
+	static normalize(cartesian, result) {
+		const magnitude = Vector3.magnitude(cartesian);
+		result.x = cartesian.x / magnitude;
+		result.y = cartesian.y / magnitude;
+		result.z = cartesian.z / magnitude;
+		if (isNaN(result.x) || isNaN(result.y) || isNaN(result.z)) {
+			throw new Error("normalized result is not a number");
+		}
+		return result;
+	}
+	static dot(left, right) {
+		return left.x * right.x + left.y * right.y + left.z * right.z;
+	}
+	static multiplyComponents(left, right, result) {
+		result.x = left.x * right.x;
+		result.y = left.y * right.y;
+		result.z = left.z * right.z;
+		return result;
+	}
+	static divideComponents(left, right, result) {
+		result.x = left.x / right.x;
+		result.y = left.y / right.y;
+		result.z = left.z / right.z;
+		return result;
+	}
+	static add(left, right, result) {
+		result.x = left.x + right.x;
+		result.y = left.y + right.y;
+		result.z = left.z + right.z;
+		return result;
+	}
+	static subtract(left, right, result) {
+		result.x = left.x - right.x;
+		result.y = left.y - right.y;
+		result.z = left.z - right.z;
+		return result;
+	}
+	static multiplyByScalar(cartesian, scalar, result) {
+		result.x = cartesian.x * scalar;
+		result.y = cartesian.y * scalar;
+		result.z = cartesian.z * scalar;
+		return result;
+	}
+	static divideByScalar(cartesian, scalar, result) {
+		result.x = cartesian.x / scalar;
+		result.y = cartesian.y / scalar;
+		result.z = cartesian.z / scalar;
+		return result;
+	}
+	static negate(cartesian, result) {
+		result.x = -cartesian.x;
+		result.y = -cartesian.y;
+		result.z = -cartesian.z;
+		return result;
+	}
+	static abs(cartesian, result) {
+		result.x = Math.abs(cartesian.x);
+		result.y = Math.abs(cartesian.y);
+		result.z = Math.abs(cartesian.z);
+		return result;
+	}
+	static lerp(start, end, t, result) {
+		Vector3.multiplyByScalar(end, t, lerpScratch$2);
+		result = Vector3.multiplyByScalar(start, 1.0 - t, result);
+		return Vector3.add(lerpScratch$2, result, result);
+	}
+	static angleBetween(left, right) {
+		Vector3.normalize(left, angleBetweenScratch);
+		Vector3.normalize(right, angleBetweenScratch2);
+		const cosine = Vector3.dot(angleBetweenScratch, angleBetweenScratch2);
+		const sine = Vector3.magnitude(Vector3.cross(angleBetweenScratch, angleBetweenScratch2, angleBetweenScratch));
+		return Math.atan2(sine, cosine);
+	}
+	static mostOrthogonalAxis(cartesian, result) {
+		const f = Vector3.normalize(cartesian, mostOrthogonalAxisScratch);
+		Vector3.abs(f, f);
+		if (f.x <= f.y) {
+			if (f.x <= f.z) {
+				result = Vector3.clone(Vector3.UNIT_X, result);
+			} else {
+				result = Vector3.clone(Vector3.UNIT_Z, result);
+			}
+		} else if (f.y <= f.z) {
+			result = Vector3.clone(Vector3.UNIT_Y, result);
+		} else {
+			result = Vector3.clone(Vector3.UNIT_Z, result);
+		}
+		return result;
+	}
+	static projectVector(a, b, result) {
+		const scalar = Vector3.dot(a, b) / Vector3.dot(b, b);
+		return Vector3.multiplyByScalar(b, scalar, result);
+	}
+	static equals(left, right) {
+		return (
+			left === right ||
+			(defined(left) && defined(right) && left.x === right.x && left.y === right.y && left.z === right.z)
+		);
+	}
+	/**
+	 * @private
+	 */
+	static equalsArray(cartesian, array, offset) {
+		return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2];
+	}
+	static equalsEpsilon(left, right, relativeEpsilon = 0, absoluteEpsilon = 0) {
+		return (
+			left === right ||
+			(defined(left) &&
+				defined(right) &&
+				GMath.equalsEpsilon(left.x, right.x, relativeEpsilon, absoluteEpsilon) &&
+				GMath.equalsEpsilon(left.y, right.y, relativeEpsilon, absoluteEpsilon) &&
+				GMath.equalsEpsilon(left.z, right.z, relativeEpsilon, absoluteEpsilon))
+		);
+	}
+	static cross(left, right, result) {
+		const leftX = left.x;
+		const leftY = left.y;
+		const leftZ = left.z;
+		const rightX = right.x;
+		const rightY = right.y;
+		const rightZ = right.z;
+		const x = leftY * rightZ - leftZ * rightY;
+		const y = leftZ * rightX - leftX * rightZ;
+		const z = leftX * rightY - leftY * rightX;
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		return result;
+	}
+}
+Vector3.ZERO = Object.freeze(new Vector3(0.0, 0.0, 0.0));
+Vector3.ONE = Object.freeze(new Vector3(1.0, 1.0, 1.0));
+Vector3.UNIT_X = Object.freeze(new Vector3(1.0, 0.0, 0.0));
+Vector3.UNIT_Y = Object.freeze(new Vector3(0.0, 1.0, 0.0));
+Vector3.UNIT_Z = Object.freeze(new Vector3(0.0, 0.0, 1.0));
+Vector3.midpoint = function (left, right, result) {
+	result.x = (left.x + right.x) * 0.5;
+	result.y = (left.y + right.y) * 0.5;
+	result.z = (left.z + right.z) * 0.5;
+	return result;
+};
+const distanceScratch$1 = new Vector3();
+const lerpScratch$2 = new Vector3();
+const angleBetweenScratch = new Vector3();
+const angleBetweenScratch2 = new Vector3();
+const mostOrthogonalAxisScratch = new Vector3();
 
 /**
  * A 3x3 matrix, indexable as a column-major order array.
@@ -5100,12 +4919,11 @@ class UniformSampler extends Uniform {
 		this.sampler.update(context);
 	}
 }
-class UniformSpotsLight extends Uniform {
+class UniformSpotLights extends Uniform {
 	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
-		this.byteSize = count * 54;
+		this.byteSize = count * 52;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
 		this.visibility = ShaderStage.Fragment;
@@ -5147,12 +4965,11 @@ class UniformSpotsLight extends Uniform {
 		}
 	}
 }
-UniformSpotsLight.align = 16;
-class UniformPointsLight extends Uniform {
+UniformSpotLights.align = 16;
+class UniformPointLights extends Uniform {
 	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
@@ -5163,6 +4980,7 @@ class UniformPointsLight extends Uniform {
 		this.lights.forEach((pointLight) => {
 			this.setSubData(pointLight);
 		});
+		debugger;
 	}
 	setSubData(pointLight) {
 		if (pointLight.positionDirty) {
@@ -5179,16 +4997,15 @@ class UniformPointsLight extends Uniform {
 		}
 		if (pointLight.decayDirty) {
 			pointLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.distance, 7); //byteOffset=12;
+			setDataToTypeArray(this.buffer, pointLight.decay, 7); //byteOffset=12;
 		}
 	}
 }
-UniformPointsLight.align = 16;
-class UniformDirtectsLight extends Uniform {
+UniformPointLights.align = 16;
+class UniformDirtectLights extends Uniform {
 	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
@@ -5211,7 +5028,7 @@ class UniformDirtectsLight extends Uniform {
 		}
 	}
 }
-UniformDirtectsLight.align = 16;
+UniformDirtectLights.align = 16;
 function setDataToTypeArray(buffer, data, offset) {
 	if (Array.isArray(data)) {
 		data.forEach((value, index) => {
@@ -5643,6 +5460,27 @@ class UniformBuffer {
 		this._uniforms.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
+	setSpotLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLights.align);
+		const uniform = new UniformSpotLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setPointLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLights.align);
+		const uniform = new UniformPointLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setDirtectLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
+		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
 	checkUniformOffset(byteSize, Align) {
 		//from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
 		return Math.ceil(byteSize / Align) * Align - byteSize;
@@ -5657,25 +5495,11 @@ class LightManger {
 		this.spotLights = [];
 		this.pointLights = [];
 		this.dirtectLights = [];
-		this.spotDatas = new WeakMap();
-		this.pointDatas = new WeakMap();
-		this.dirtectDatas = new WeakMap();
-		this.ambientLight = new AmbientLight(new Vector3(1, 1, 1), 0.1);
-		this.lightDefines = {
-			ambientLight: false,
-			spotLight: false,
-			pointLight: false,
-			dirtectLight: false,
-			spotLightBinding: 1,
-			pointLightBinding: 2,
-			dirtectLightBinding: 3
-		};
-		this.totalByte = 0;
-		this.lightCountDirty = true;
+		this.ambientLight = undefined;
+		this.lightCountDirty = false;
 	}
 	update(frameState, camera) {
 		this.updateLight(camera);
-		frameState.defines = this.lightDefines;
 	}
 	add(light) {
 		this.lightCountDirty = true;
@@ -5691,9 +5515,6 @@ class LightManger {
 	}
 	remove() {}
 	updateLight(camera) {
-		if (this.lightCountDirty) {
-			this.initBuffer();
-		}
 		this.updateLightData(camera);
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
@@ -5705,150 +5526,71 @@ class LightManger {
 		this.updateSpotLight(camera);
 		this.updatePointLight(camera);
 		this.updateDirtectLight(camera);
-		this.updateAmbientLight(camera);
-		this.updateLightCount();
 	}
 	updateSpotLight(camera) {
 		this.spotLights.forEach((light) => {
-			const lightData = this.spotDatas.get(light);
-			if (lightData) lightData.update(camera);
+			light.update(camera);
 		});
 	}
 	updatePointLight(camera) {
 		this.pointLights.forEach((light) => {
-			const lightData = this.pointDatas.get(light);
-			if (lightData) lightData.update(camera);
+			light.update(camera);
 		});
-	}
-	updateAmbientLight(camera) {
-		if (this.ambientLight) {
-			this.ambient[0] = this.ambientLight.color.x;
-			this.ambient[1] = this.ambientLight.color.y;
-			this.ambient[2] = this.ambientLight.color.z;
-		}
 	}
 	updateDirtectLight(camera) {
 		this.dirtectLights.forEach((light) => {
-			const lightData = this.dirtectDatas.get(light);
-			if (lightData) lightData.update(camera);
+			light.update(camera);
 		});
 	}
-	updateLightCount() {
-		if (this.lightCountDirty) {
-			this.lightCount[0] = this.spotLights.length;
-			this.lightCount[1] = this.pointLights.length;
-			this.lightCount[2] = this.dirtectLights.length;
-			this.lightCount[3] = this.ambient != undefined ? 1 : 0;
-		}
-	}
-	initBuffer() {
-		const ambientSize = this.ambientLight != undefined ? 3 : 0;
-		const lightCount = 4;
-		const pointLightCount = this.pointLights.length;
-		const spotLightCount = this.spotLights.length;
-		const dirtectLightCount = this.dirtectLights.length;
-		const pointLightCountSize = pointLightCount * PointData.size;
-		const spotLightCountSize = spotLightCount * SpotData.size;
-		const dirtectLightCountSize = dirtectLightCount * DirtectData.size;
-		let currentBinding = 1;
-		this.reset();
-		//common
-		if (ambientSize > 0) {
-			this.commonLightBuffer = new Float32Array(ambientSize + lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-			this.ambient = new Float32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 3);
-			this.commonTatalByte += 16;
-			this.lightDefines.ambientLight = true;
-		} else {
-			this.commonLightBuffer = new Float32Array(lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-		}
-		if (spotLightCountSize > 0) {
-			//初始化聚光灯
-			this.spotLightsBuffer = new Float32Array(spotLightCountSize);
-			this.spotLights.forEach((spotLight, i) => {
-				this.spotDatas.set(spotLight, new SpotData(this.spotLightsBuffer, SpotData.byteSize * i, spotLight));
-			});
-			this.spotLightsByte = spotLightCount * SpotData.byteSize;
-			this.lightDefines.spotLight = true;
-			this.lightDefines.spotLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (pointLightCountSize > 0) {
-			//点光源
-			this.pointLightsBuffer = new Float32Array(pointLightCountSize);
-			this.pointLights.forEach((pointLight, i) => {
-				this.pointDatas.set(
-					pointLight,
-					new PointData(this.pointLightsBuffer, PointData.byteSize * i, pointLight)
-				);
-			});
-			this.pointLightsByte = pointLightCount * PointData.byteSize;
-			this.lightDefines.pointLight = true;
-			this.lightDefines.pointLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (dirtectLightCountSize) {
-			//方向光
-			this.dirtectLightsBuffer = new Float32Array(dirtectLightCountSize);
-			this.dirtectLights.forEach((dirtect, i) => {
-				this.dirtectDatas.set(
-					dirtect,
-					new DirtectData(this.dirtectLightsBuffer, DirtectData.byteSize * i, dirtect)
-				);
-			});
-			this.dirtectLightsByte = dirtectLightCount * DirtectData.byteSize;
-			this.lightDefines.dirtectLight = true;
-			this.lightDefines.dirtectLightBinding = currentBinding;
-		}
-	}
+	// private initBuffer() {
+	// 	debugger
+	// }
 	createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
-		const commonBuffer = new UniformBuffer(
-			"read-only-storage",
-			BufferUsage.Storage | BufferUsage.CopyDst,
-			this.commonTatalByte,
-			this.commonLightBuffer
-		);
-		this.lightShaderData.setUniformBuffer("commonBuffer", commonBuffer);
-		if (this.lightDefines.spotLight) {
-			const spotLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.spotLightsByte,
-				this.spotLightsBuffer,
-				this.lightDefines.spotLightBinding
+		this.lightUniformBuffer = new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst);
+		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
+		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
+		this.lightShaderData.setDefine("dirtectLightsCount", this.dirtectLights.length);
+		this.lightShaderData.setDefine("ambientLightCount", this.ambientLight != undefined ? 1 : 0);
+		if (this.ambientLight)
+			this.lightUniformBuffer.setFloatVec3("ambientLight", () => {
+				return this.ambientLight.color;
+			});
+		if (this.spotLights.length) {
+			//初始化聚光灯
+			this.lightUniformBuffer.setSpotLights(
+				"spotLights",
+				() => {
+					return this.spotLights;
+				},
+				this.spotLights.length
 			);
-			this.lightShaderData.setUniformBuffer("spotLightsBuffer", spotLightsBuffer);
 		}
-		if (this.lightDefines.pointLight) {
-			const pointLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.pointLightsByte,
-				this.pointLightsBuffer,
-				this.lightDefines.pointLightBinding
+		if (this.pointLights.length) {
+			//点光源
+			this.lightUniformBuffer.setPointLights(
+				"pointLights",
+				() => {
+					return this.pointLights;
+				},
+				this.pointLights.length
 			);
-			this.lightShaderData.setUniformBuffer("pointLightsBuffer", pointLightsBuffer);
 		}
-		if (this.lightDefines.dirtectLight) {
-			const dirtectLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.dirtectLightsByte,
-				this.dirtectLightsBuffer,
-				this.lightDefines.dirtectLightBinding
+		if (this.dirtectLights.length) {
+			//方向光
+			this.lightUniformBuffer.setDirtectLights(
+				"dirtectLights",
+				() => {
+					return this.dirtectLights;
+				},
+				this.dirtectLights.length
 			);
-			this.lightShaderData.setUniformBuffer("dirtectLightsBuffer", dirtectLightsBuffer);
 		}
+		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
 	}
-	reset() {}
 	destroy() {
 		this.lightShaderData.destroy();
+		this.lightUniformBuffer.destroy();
 	}
 }
 
@@ -5934,9 +5676,11 @@ class Context {
 			camera.shaderData.bind(this, passEncoder);
 			grouplayouts.push(camera.shaderData.groupLayout);
 		}
-		if (command.light) {
+		if (command.light && this.lightManger.lightShaderData) {
+			debugger;
 			this.lightManger.lightShaderData.bind(this, passEncoder);
 			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
+			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
 		}
 		if (command.renderState) command.renderState.bind(passEncoder);
 		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);
@@ -7601,7 +7345,7 @@ function wgslParseDefines(strings, ...values) {
 
 function light(defines) {
 	return wgslParseDefines`   
-    #if ${defines.spotLight}
+    #if ${defines.spotLightsCount > 0}
         struct SpotLight {
             position: vec3<f32>,
             distance: f32,
@@ -7611,8 +7355,6 @@ function light(defines) {
             penumbraCos: f32,
             decay: f32,
         };
-        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLights: array<SpotLight>;
-
         fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector = spotLight.position - geometry.position;
@@ -7639,14 +7381,13 @@ function light(defines) {
         }
     #endif 
 
-    #if ${defines.pointLight}
+    #if ${defines.pointLightsCount > 0}
         struct PointLight {
             position: vec3<f32>,
             distance: f32,
             color: vec3<f32>,
             decay: f32,
         };
-        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLights: array<PointLight>;
         fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector:vec3<f32> = pointLight.position - geometry.position;
@@ -7658,12 +7399,11 @@ function light(defines) {
             return light;
         }
     #endif
-    #if ${defines.dirtectLight}
+    #if ${defines.dirtectLightsCount > 0}
         struct DirtectLight {
-            color: vec3<f32>,
             direction: vec3<f32>,
+            color: vec3<f32>,
         };
-        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLights: array<DirtectLight>;
         fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             light.color = directionalLight.color;
@@ -7672,17 +7412,27 @@ function light(defines) {
             return light;
         }
     #endif
-    #if ${defines.ambientLight}
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
+    #if ${
+		defines.ambientLightCount || defines.spotLightsCount || defines.pointLightsCount || defines.dirtectLightsCount
+	}
+    struct LightUniforms{
+        #if ${defines.ambientLightCount}
             ambient:vec3<f32>,
-        }
-    #else
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
-        }
+        #endif
+        #if ${defines.spotLightsCount}
+            spotLights:array<SpotLight,${defines.spotLightsCount}>,
+        #endif
+        #if ${defines.pointLightsCount}
+            pointLights:array<PointLight,${defines.pointLightsCount}>,
+        #endif
+        #if ${defines.dirtectLightsCount}
+            dirtectLights:array<DirtectLight,${defines.dirtectLightsCount}>,
+        #endif
+        
+    }
+    @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
     #endif
-    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
+   
     #if ${defines.materialPhong}
         fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
     #elif ${defines.materialPbr}
@@ -7691,11 +7441,11 @@ function light(defines) {
 
         var  incidentLight:IncidentLight;
         var reflectedLight:ReflectedLight;
-        #if ${defines.dirtectLight}
+        #if ${defines.dirtectLightsCount > 0}
             //处理方向光
             var dirtectLight:DirtectLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
-                dirtectLight = dirtectLights[i];
+            for (var i : u32 = 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
+                dirtectLight = lightUniforms.dirtectLights[i];
                 incidentLight=getDirtectLightInfo(dirtectLight, geometry);
                 #if ${defines.materialPhong}
                     let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
@@ -7707,11 +7457,11 @@ function light(defines) {
                 reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.pointLight}
+        #if ${defines.pointLightsCount > 0}
             //处理点光源
             var pointLight:PointLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-                pointLight = pointLights[i];
+            for (var i : u32 = 0u; i < ${defines.pointLightsCount};i = i + 1u) {
+                pointLight = lightUniforms.pointLights[i];
                 incidentLight =getPointLightInfo( pointLight, geometry);
                 #if ${defines.materialPhong}
                     let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
@@ -7722,11 +7472,11 @@ function light(defines) {
                 reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.spotLight}
+        #if ${defines.spotLightsCount > 0}
             //处理聚光灯
             var spotLight:SpotLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
-                spotLight = spotLights[i];
+            for (var i : u32 = 0u; i < ${defines.spotLightsCount}; i = i + 1u) {
+                spotLight = lightUniforms.spotLights[i];
                 incidentLight =getSpotLightInfo( spotLight, geometry);
                 #if ${defines.materialPhong}
                     let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
@@ -10157,6 +9907,7 @@ class ShaderSource {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
+			console.log(this.frag);
 		}
 	}
 	setDefines(defines) {
@@ -12315,6 +12066,45 @@ class PerspectiveCamera extends Camera {
 			);
 			this.projectMatrixDirty = false;
 		}
+	}
+}
+
+class Light {
+	constructor(color, intensity) {
+		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
+		this._intensity = intensity;
+		this._position = new Vector3(0, 0, 0);
+		this.positionDirty = true;
+		this.colorDirty = true;
+		this.intensityDirty = true;
+	}
+	get position() {
+		return this._position;
+	}
+	set position(value) {
+		this.positionDirty = true;
+		this._position = value;
+	}
+	get color() {
+		return this._color;
+	}
+	set color(value) {
+		this.colorDirty = true;
+		this._color = value;
+	}
+	set intensity(value) {
+		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
+		this.intensityDirty = true;
+		this._intensity = value;
+	}
+	get intensity() {
+		return this._intensity;
+	}
+	update(camera) {
+		const viewMatrix = camera.viewMatrix;
+		let position = this.position.clone();
+		position = position.applyMatrix4(viewMatrix);
+		this.positionVC = position;
 	}
 }
 

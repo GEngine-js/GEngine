@@ -4,6 +4,7 @@ import Buffer from "./Buffer";
 import Context from "./Context";
 import {
 	UniformColor,
+	UniformDirtectLights,
 	UniformFloat,
 	UniformFloatArray,
 	UniformFloatVec2,
@@ -12,6 +13,8 @@ import {
 	UniformMat2,
 	UniformMat3,
 	UniformMat4,
+	UniformPointLights,
+	UniformSpotLights,
 	UniformVec2Array,
 	UniformVec3Array,
 	UniformVec4Array
@@ -187,6 +190,27 @@ export default class UniformBuffer {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec4Array.align);
 		const uniform = new UniformVec4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setSpotLights(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLights.align);
+		const uniform = new UniformSpotLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setPointLights(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLights.align);
+		const uniform = new UniformPointLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setDirtectLights(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
+		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
 		this._uniforms.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}

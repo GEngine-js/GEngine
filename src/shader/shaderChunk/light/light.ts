@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 export default function light(defines) {
-  return wgslParseDefines`   
-    #if ${defines.spotLight}
+	return wgslParseDefines`   
+    #if ${defines.spotLightsCount > 0}
         struct SpotLight {
             position: vec3<f32>,
             distance: f32,
@@ -11,8 +11,6 @@ export default function light(defines) {
             penumbraCos: f32,
             decay: f32,
         };
-        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLights: array<SpotLight>;
-
         fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector = spotLight.position - geometry.position;
@@ -39,14 +37,13 @@ export default function light(defines) {
         }
     #endif 
 
-    #if ${defines.pointLight}
+    #if ${defines.pointLightsCount > 0}
         struct PointLight {
             position: vec3<f32>,
             distance: f32,
             color: vec3<f32>,
             decay: f32,
         };
-        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLights: array<PointLight>;
         fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             let lVector:vec3<f32> = pointLight.position - geometry.position;
@@ -58,12 +55,11 @@ export default function light(defines) {
             return light;
         }
     #endif
-    #if ${defines.dirtectLight}
+    #if ${defines.dirtectLightsCount > 0}
         struct DirtectLight {
-            color: vec3<f32>,
             direction: vec3<f32>,
+            color: vec3<f32>,
         };
-        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLights: array<DirtectLight>;
         fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
             var light:IncidentLight;
             light.color = directionalLight.color;
@@ -72,17 +68,27 @@ export default function light(defines) {
             return light;
         }
     #endif
-    #if ${defines.ambientLight}
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
+    #if ${
+		defines.ambientLightCount || defines.spotLightsCount || defines.pointLightsCount || defines.dirtectLightsCount
+	}
+    struct LightUniforms{
+        #if ${defines.ambientLightCount}
             ambient:vec3<f32>,
-        }
-    #else
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
-        }
+        #endif
+        #if ${defines.spotLightsCount}
+            spotLights:array<SpotLight,${defines.spotLightsCount}>,
+        #endif
+        #if ${defines.pointLightsCount}
+            pointLights:array<PointLight,${defines.pointLightsCount}>,
+        #endif
+        #if ${defines.dirtectLightsCount}
+            dirtectLights:array<DirtectLight,${defines.dirtectLightsCount}>,
+        #endif
+        
+    }
+    @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
     #endif
-    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
+   
     #if ${defines.materialPhong}
         fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
     #elif ${defines.materialPbr}
@@ -91,11 +97,11 @@ export default function light(defines) {
 
         var  incidentLight:IncidentLight;
         var reflectedLight:ReflectedLight;
-        #if ${defines.dirtectLight}
+        #if ${defines.dirtectLightsCount > 0}
             //处理方向光
             var dirtectLight:DirtectLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
-                dirtectLight = dirtectLights[i];
+            for (var i : u32 = 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
+                dirtectLight = lightUniforms.dirtectLights[i];
                 incidentLight=getDirtectLightInfo(dirtectLight, geometry);
                 #if ${defines.materialPhong}
                     let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
@@ -107,11 +113,11 @@ export default function light(defines) {
                 reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.pointLight}
+        #if ${defines.pointLightsCount > 0}
             //处理点光源
             var pointLight:PointLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-                pointLight = pointLights[i];
+            for (var i : u32 = 0u; i < ${defines.pointLightsCount};i = i + 1u) {
+                pointLight = lightUniforms.pointLights[i];
                 incidentLight =getPointLightInfo( pointLight, geometry);
                 #if ${defines.materialPhong}
                     let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
@@ -122,11 +128,11 @@ export default function light(defines) {
                 reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.spotLight}
+        #if ${defines.spotLightsCount > 0}
             //处理聚光灯
             var spotLight:SpotLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
-                spotLight = spotLights[i];
+            for (var i : u32 = 0u; i < ${defines.spotLightsCount}; i = i + 1u) {
+                spotLight = lightUniforms.spotLights[i];
                 incidentLight =getSpotLightInfo( spotLight, geometry);
                 #if ${defines.materialPhong}
                     let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);

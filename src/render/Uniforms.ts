@@ -460,7 +460,7 @@ export class UniformLight extends Uniform<Light> {
 		this.buffer = this.getValue();
 	}
 }
-export class UniformSpotsLight extends Uniform<SpotLight> {
+export class UniformSpotLights extends Uniform<SpotLight> {
 	static align = 16;
 	lights: Array<SpotLight>;
 	cb: Function;
@@ -475,8 +475,7 @@ export class UniformSpotsLight extends Uniform<SpotLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
-		this.byteSize = count * 54;
+		this.byteSize = count * 52;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
 		this.visibility = ShaderStage.Fragment;
@@ -518,7 +517,7 @@ export class UniformSpotsLight extends Uniform<SpotLight> {
 		}
 	}
 }
-export class UniformPointsLight extends Uniform<PointLight> {
+export class UniformPointLights extends Uniform<PointLight> {
 	static align = 16;
 	lights: Array<PointLight>;
 	cb: Function;
@@ -533,7 +532,6 @@ export class UniformPointsLight extends Uniform<PointLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
@@ -560,11 +558,11 @@ export class UniformPointsLight extends Uniform<PointLight> {
 		}
 		if (pointLight.decayDirty) {
 			pointLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.distance, 7); //byteOffset=12;
+			setDataToTypeArray(this.buffer, pointLight.decay, 7); //byteOffset=12;
 		}
 	}
 }
-export class UniformDirtectsLight extends Uniform<DirtectLight> {
+export class UniformDirtectLights extends Uniform<DirtectLight> {
 	static align = 16;
 	lights: Array<DirtectLight>;
 	cb: Function;
@@ -579,7 +577,6 @@ export class UniformDirtectsLight extends Uniform<DirtectLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.binding = binding;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
