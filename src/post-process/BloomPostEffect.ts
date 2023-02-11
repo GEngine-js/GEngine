@@ -148,16 +148,15 @@ export default class BloomPostEffect extends PostEffect {
                 struct FragInput {
                     @location(0) uv: vec2<f32>,
                 };
-				uniform float bloomStrength;
-				uniform float bloomRadius;
+
 				uniform float bloomFactors[NUM_MIPS];
 				uniform vec3 bloomTintColors[NUM_MIPS];
                 struct BloomUniforms{
                     bloomStrength:f32,
                     bloomRadius:f32,
-
-                }
-                
+                    bloomFactors : array<f32,${NUM_MIPS}>,
+                    bloomTintColors : array<vec3<f32>,${NUM_MIPS}>
+                }  
                 @group(0) @binding(0)  var<uniform> bloomUniforms : BloomUniforms;
 
                 @group(0) @binding(${blurTexture1Binding}) var blurTexture1: texture_2d<f32>;
@@ -173,11 +172,11 @@ export default class BloomPostEffect extends PostEffect {
 				}
                 @fragment
 				fn main(input:FragInput)-> @location(0) vec4<f32>  {
-					return bloomUniforms.bloomStrength * ( lerpBloomFactor(bloomFactors[0]) * vec4(bloomTintColors[0], 1.0) * textureSample(blurTexture1, tSampler, input.uv) +
-						lerpBloomFactor(bloomFactors[1]) * vec4(bloomTintColors[1], 1.0) * textureSample(blurTexture2, tSampler, input.uv) +
-						lerpBloomFactor(bloomFactors[2]) * vec4(bloomTintColors[2], 1.0) * textureSample(blurTexture3, tSampler, input.uv) +
-						lerpBloomFactor(bloomFactors[3]) * vec4(bloomTintColors[3], 1.0) * textureSample(blurTexture4, tSampler, input.uv) +
-						lerpBloomFactor(bloomFactors[4]) * vec4(bloomTintColors[4], 1.0) * textureSample(blurTexture5, tSampler, input.uv) );
+					return bloomUniforms.bloomStrength * ( lerpBloomFactor(bloomUniforms.bloomFactors[0]) * vec4(bloomUniforms.bloomTintColors[0], 1.0) * textureSample(blurTexture1, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[1]) * vec4<f32>(bloomUniforms.bloomTintColors[1], 1.0) * textureSample(blurTexture2, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[2]) * vec4<f32>(bloomUniforms.bloomTintColors[2], 1.0) * textureSample(blurTexture3, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[3]) * vec4<f32>(bloomUniforms.bloomTintColors[3], 1.0) * textureSample(blurTexture4, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[4]) * vec4<f32>(bloomUniforms.bloomTintColors[4], 1.0) * textureSample(blurTexture5, tSampler, input.uv) );
 				}`
 		});
 	}

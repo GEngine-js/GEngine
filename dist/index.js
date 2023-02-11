@@ -4820,7 +4820,6 @@ class UniformFloat extends Uniform {
 		super(uniformName, cb, binding, offset);
 		this.value = undefined;
 		this._value = 0;
-		this.size = 4;
 		this.byteSize = 4;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 1);
 		this.type = "vec1";
@@ -4842,7 +4841,6 @@ class UniformFloatVec2 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector2();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 2);
-		this.size = 8;
 		this.byteSize = 8;
 		this.type = "vec2";
 	}
@@ -4864,7 +4862,6 @@ class UniformFloatVec3 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
-		this.size = 12;
 		this.byteSize = 12;
 		this.type = "vec3";
 	}
@@ -4886,7 +4883,6 @@ class UniformFloatVec4 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
-		this.size = 16;
 		this.byteSize = 16;
 		this.type = "vec4";
 	}
@@ -4908,7 +4904,6 @@ class UniformColor extends Uniform {
 		this.value = undefined;
 		this._value = new Color();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
-		this.size = 12;
 		this.byteSize = 12;
 		this.type = "vec3";
 	}
@@ -4930,7 +4925,6 @@ class UniformMat2 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix2();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
-		this.size = 16;
 		this.byteSize = 16;
 		this.type = "mat2";
 	}
@@ -4952,7 +4946,6 @@ class UniformMat3 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 9);
-		this.size = 48;
 		this.byteSize = 48;
 		this.type = "mat3";
 	}
@@ -4974,7 +4967,6 @@ class UniformMat4 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 16);
-		this.size = 64;
 		this.byteSize = 64;
 		this.type = "mat4";
 	}
@@ -4990,6 +4982,89 @@ class UniformMat4 extends Uniform {
 	}
 }
 UniformMat4.align = 16;
+class UniformFloatArray extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
+		this.byteSize = 4 * count;
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[i] = this.value[i];
+		}
+		return true;
+	}
+}
+UniformFloatArray.align = 4;
+class UniformVec2Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 8;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			j += 2;
+		}
+		return true;
+	}
+}
+UniformVec2Array.align = 8;
+class UniformVec3Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 16;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			this.buffer[j + 2] = this.value[i].z;
+			this.buffer[j + 3] = 0;
+			j += 4;
+		}
+		return true;
+	}
+}
+UniformVec3Array.align = 16;
+class UniformVec4Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 16;
+		debugger;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			this.buffer[j + 2] = this.value[i].z;
+			this.buffer[j + 3] = this.value[i].w;
+			j += 4;
+		}
+		debugger;
+		return true;
+	}
+}
+UniformVec4Array.align = 16;
 class UniformTexture extends Uniform {
 	constructor(uniformName, binding, texture) {
 		super(uniformName);
@@ -5360,56 +5435,88 @@ class UniformBuffer {
 		if (this._uniforms.get(name)) return;
 		const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec2(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
 		const uniform = new UniformFloatVec2(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec3(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
 		const uniform = new UniformFloatVec3(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setColor(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
 		const uniform = new UniformColor(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec4(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
 		const uniform = new UniformFloatVec4(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix2(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
 		const uniform = new UniformMat2(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix3(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
 		const uniform = new UniformMat3(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix4(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
+	}
+	// uniformBuffer.setVec3Array('test',()=>{return [new Vector3(1,0,0),new Vector3(1,0.8,0.5)]},2);
+	// uniformBuffer.setFloatArray('test1',()=>{return [0.5,0.5,1.0]},3);
+	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
+	// uniformBuffer.setVec2Array('test2',()=>{return [new Vector2(0.5,0.6),new Vector2(0.5,0.8,)]},2);
+	setFloatArray(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatArray.align);
+		const uniform = new UniformFloatArray(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec2Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec2Array.align);
+		const uniform = new UniformVec2Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec3Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec3Array.align);
+		const uniform = new UniformVec3Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec4Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec4Array.align);
+		const uniform = new UniformVec4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
 	}
 	checkUniformOffset(byteSize, Align) {
 		//from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
