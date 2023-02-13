@@ -3,7 +3,6 @@ import RenderObject from "../core/RenderObject";
 import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
 import { BaseShadow } from "./shadows/BaseShadow";
-import Camera from "../camera/Camera";
 
 export class Light {
 	private _color: Vector3;
