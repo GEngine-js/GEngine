@@ -18,7 +18,7 @@ class Pass {
 		this.context = context;
 	}
 	render(renderQueue: RenderQueue): void {}
-	beforRender(light?: Light) {
+	beforeRender(light?: Light) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
 		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
