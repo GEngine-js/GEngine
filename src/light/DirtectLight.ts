@@ -24,7 +24,8 @@ export class DirtectLight extends Light {
 		super.update(camera);
 		let dirtect = this.dirtect.clone();
 		const viewMatrix = camera.viewMatrix;
-		this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		// this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		this.dirtectVC = dirtect.normalize();
 	}
 }
 //uniform

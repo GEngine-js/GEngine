@@ -80,7 +80,7 @@
 				const phongMaterial = new PhongMaterial();
 				phongMaterial.baseTexture = baseTexture;
 				phongMaterial.baseSampler = baseSampler;
-				phongMaterial.shininess = 0.0;
+				phongMaterial.shininess = 0.3;
 				const axes = new Axes();
 				axes.scale.set(10, 10, 10);
 				const primitive = new Mesh(geometry, phongMaterial);
@@ -90,7 +90,7 @@
 				camera.lookAt(0, 0, 0);
 
 				// console.log(camera.viewMatrix);
-				const dirtectLight = new DirtectLight(new Vector3(1.0, 1.0, 1.0), 10.0, new Vector3(1, 1, 1));
+				const dirtectLight = new DirtectLight(new Vector3(1.0, 1.0, 1.0), 1.0, new Vector3(0, 1, 0));
 				// spotLight.position=new Vector3(0,16,0);
 
 				const scene = new Scene({ container: "app" });

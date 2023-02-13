@@ -8,16 +8,18 @@ import pbrUtils from "./pbr/pbrUtils";
 import phongFunction from "./phong/phongFunction";
 import phongUtils from "./phong/phongUtils";
 import environment from "./environment/environment";
+import blinn_phong from "./phong/blinn_phong";
 const ShaderChunk = {
-  light: light,
-  brdf: brdf,
-  phongFunction: phongFunction,
-  phongUtils: phongUtils,
-  lightCommon: lightCommon,
-  pbrStruct: pbrStruct,
-  pbrFunction: pbrFunction,
-  pbrTexture: pbrTexture,
-  pbrUtils: pbrUtils,
-  environment: environment,
+	light: light,
+	brdf: brdf,
+	phongFunction: phongFunction,
+	phongUtils: phongUtils,
+	lightCommon: lightCommon,
+	pbrStruct: pbrStruct,
+	pbrFunction: pbrFunction,
+	pbrTexture: pbrTexture,
+	pbrUtils: pbrUtils,
+	environment: environment,
+	blinn_phong: blinn_phong
 };
 export default ShaderChunk;

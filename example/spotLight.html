@@ -52,7 +52,7 @@
 			} from "../dist/index.js";
 
 			const init = async () => {
-				const geometry = new BoxGeometry(10, 10, 10);
+				const geometry = new BoxGeometry(10, 60, 60);
 
 				const img = document.createElement("img");
 				img.src = "./uv.jpg";
@@ -83,14 +83,20 @@
 				camera.lookAt(0, 0, 0);
 
 				// console.log(camera.viewMatrix);
-				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 10, 12, Math.PI / 6);
-				spotLight.position = new Vector3(0, 16, 0);
+				const spotLight = new SpotLight(new Vector3(0.0, 1.0, 0.0), 6, 30, Math.PI / 6);
+				spotLight.position = new Vector3(0, 34, 20);
 
-				const spotLight1 = new SpotLight(new Vector3(1.0, 1.0, 1.0), 10, 30, Math.PI / 6);
-				spotLight1.position = new Vector3(16, 0, 0);
+				const spotLight1 = new SpotLight(new Vector3(1.0, 0.0, 0.0), 6, 30, Math.PI / 6);
+				spotLight1.position = new Vector3(0, 34, 0);
 
-				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 6, 20, 1);
-				pointLight.position = new Vector3(0, 10, 0);
+				const spotLight2 = new SpotLight(new Vector3(0.0, 0.0, 1.0), 6, 30, Math.PI / 6);
+				spotLight2.position = new Vector3(20, 34, 0);
+
+				const pointLight = new PointLight(new Vector3(1.0, 0.6, 1.0), 2, 20, 1);
+				pointLight.position = new Vector3(0, 20, -20);
+
+				const pointLight1 = new PointLight(new Vector3(0.5, 1.0, 0.5), 2, 20, 1);
+				pointLight1.position = new Vector3(-20, 20, 0);
 				const scene = new Scene({ container: "app" });
 				const axes = new Axes();
 				axes.scale.set(10, 10, 10);
@@ -100,9 +106,12 @@
 				//         primitive.rotateX(0.4)
 				scene.add(primitive);
 				scene.setCamera(camera);
-				scene.addLight(pointLight);
-				scene.addLight(spotLight);
 				scene.addLight(spotLight1);
+				scene.addLight(spotLight);
+				scene.addLight(spotLight2);
+
+				scene.addLight(pointLight1);
+				scene.addLight(pointLight);
 				function animate() {
 					// primitive.rotateY(0.01)
 					// primitive.rotateX(0.01)

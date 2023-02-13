@@ -3696,8 +3696,8 @@ class Matrix4 {
 		const y = (2 * near) / (top - bottom);
 		const a = (right + left) / (right - left);
 		const b = (top + bottom) / (top - bottom);
-		const c = -(far + near) / (far - near);
-		const d = (-2 * far * near) / (far - near);
+		const c = -far / (far - near);
+		const d = (-far * near) / (far - near);
 		matrix[0] = x;
 		matrix[4] = 0;
 		matrix[8] = a;
@@ -3723,7 +3723,7 @@ class Matrix4 {
 		const p = 1.0 / (far - near);
 		const x = (right + left) * w;
 		const y = (top + bottom) * h;
-		const z = (far + near) * p;
+		const z = near * p;
 		matrix[0] = 2 * w;
 		matrix[4] = 0;
 		matrix[8] = 0;
@@ -3734,7 +3734,7 @@ class Matrix4 {
 		matrix[13] = -y;
 		matrix[2] = 0;
 		matrix[6] = 0;
-		matrix[10] = -2 * p;
+		matrix[10] = -1 * p;
 		matrix[14] = -z;
 		matrix[3] = 0;
 		matrix[7] = 0;
@@ -4923,45 +4923,47 @@ class UniformSpotLights extends Uniform {
 	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.byteSize = count * 52;
+		this.byteSize = count * 64;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
 		this.lights = this.cb();
-		this.lights.forEach((spotLight) => {
-			this.setSubData(spotLight);
+		this.lights.forEach((spotLight, index) => {
+			this.setSubData(spotLight, index);
 		});
+		debugger;
 	}
-	setSubData(spotLight) {
+	setSubData(spotLight, index) {
+		const offset = index * 16;
 		if (spotLight.positionDirty) {
 			spotLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.positionVC.toArray(), 0); //byteOffset=0;
+			setDataToTypeArray(this.buffer, spotLight.positionVC.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (spotLight.distanceDirty) {
 			spotLight.distanceDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.distance, 3); //byteOffset=12;
+			setDataToTypeArray(this.buffer, spotLight.distance, offset + 3); //byteOffset=12;
 		}
 		if (spotLight.dirtectDirty) {
 			spotLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.dirtectVC.toArray(), 4); //byteOffset=16;
+			setDataToTypeArray(this.buffer, spotLight.dirtectVC.toArray(), offset + 4); //byteOffset=16;
 		}
 		if (spotLight.coneCosDirty) {
 			spotLight.coneCosDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.coneCos, 7); //byteOffset=28;
+			setDataToTypeArray(this.buffer, spotLight.coneCos, offset + 7); //byteOffset=28;
 		}
 		if (spotLight.colorDirty) {
 			spotLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.color.toArray(), 8); //byteOffset=32;
+			setDataToTypeArray(this.buffer, spotLight.color.toArray(), offset + 8); //byteOffset=32;
 		}
 		if (spotLight.penumbraCosDirty) {
 			spotLight.penumbraCosDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.penumbraCos, 11); //byteOffset=44;
+			setDataToTypeArray(this.buffer, spotLight.penumbraCos, offset + 11); //byteOffset=44;
 		}
 		if (spotLight.decayDirty) {
 			spotLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.decay, 12); //byteOffset=48;
+			setDataToTypeArray(this.buffer, spotLight.decay, offset + 12); //byteOffset=48;
 		}
 	}
 }
@@ -4977,27 +4979,28 @@ class UniformPointLights extends Uniform {
 	}
 	set() {
 		this.lights = this.cb();
-		this.lights.forEach((pointLight) => {
-			this.setSubData(pointLight);
+		this.lights.forEach((pointLight, index) => {
+			this.setSubData(pointLight, index);
 		});
 		debugger;
 	}
-	setSubData(pointLight) {
+	setSubData(pointLight, index) {
+		const offset = index * 8;
 		if (pointLight.positionDirty) {
 			pointLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.positionVC.toArray(), 0); //byteOffset=0;
+			setDataToTypeArray(this.buffer, pointLight.positionVC.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (pointLight.distanceDirty) {
 			pointLight.distanceDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.distance, 3); //byteOffset=12;
+			setDataToTypeArray(this.buffer, pointLight.distance, offset + 3); //byteOffset=12;
 		}
 		if (pointLight.colorDirty) {
 			pointLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.color.toArray(), 4); //byteOffset=32;
+			setDataToTypeArray(this.buffer, pointLight.color.toArray(), offset + 4); //byteOffset=32;
 		}
 		if (pointLight.decayDirty) {
 			pointLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.decay, 7); //byteOffset=12;
+			setDataToTypeArray(this.buffer, pointLight.decay, offset + 7); //byteOffset=12;
 		}
 	}
 }
@@ -5013,18 +5016,20 @@ class UniformDirtectLights extends Uniform {
 	}
 	set() {
 		this.lights = this.cb();
-		this.lights.forEach((dirtectLight) => {
-			this.setSubData(dirtectLight);
+		this.lights.forEach((dirtectLight, index) => {
+			this.setSubData(dirtectLight, index);
 		});
+		debugger;
 	}
-	setSubData(dirtectLight) {
+	setSubData(dirtectLight, index) {
+		const offset = index * 8;
 		if (dirtectLight.dirtectDirty) {
 			dirtectLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, dirtectLight.dirtectVC.toArray(), 0); //byteOffset=16;
+			setDataToTypeArray(this.buffer, dirtectLight.dirtectVC.toArray(), offset + 0); //byteOffset=16;
 		}
 		if (dirtectLight.colorDirty) {
 			dirtectLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, dirtectLight.color.toArray(), 4); //byteOffset=32;
+			setDataToTypeArray(this.buffer, dirtectLight.color.toArray(), offset + 4); //byteOffset=32;
 		}
 	}
 }
@@ -5542,9 +5547,6 @@ class LightManger {
 			light.update(camera);
 		});
 	}
-	// private initBuffer() {
-	// 	debugger
-	// }
 	createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
 		this.lightUniformBuffer = new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst);
@@ -5677,7 +5679,6 @@ class Context {
 			grouplayouts.push(camera.shaderData.groupLayout);
 		}
 		if (command.light && this.lightManger.lightShaderData) {
-			debugger;
 			this.lightManger.lightShaderData.bind(this, passEncoder);
 			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
 			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
@@ -6609,7 +6610,7 @@ class RenderObject {
 		this._scale = new Vector3(1, 1, 1);
 		this._quaternion = new Quaternion();
 		this.modelMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
-		this._normalMatrix = Matrix3.clone(Matrix3.IDENTITY, new Matrix3());
+		this._normalMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
 		this.up = new Vector3(0, 1, 0);
 	}
 	get normalMatrix() {
@@ -6625,8 +6626,10 @@ class RenderObject {
 		return this._quaternion;
 	}
 	updateNormalMatrix(camera) {
-		Matrix4.multiply(camera.viewMatrix, this.modelMatrix, _mvMatrix);
-		this._normalMatrix.getNormalMatrix(_mvMatrix);
+		//Matrix4.multiply(camera.viewMatrix, this.this._normalMatrix,this._normalMatrix, this._normalMatrix);
+		Matrix4.inverse(this.modelMatrix, this._normalMatrix);
+		Matrix4.transpose(this._normalMatrix, this._normalMatrix);
+		// this._normalMatrix.getNormalMatrix(this.modelMatrix);
 	}
 	updateMatrix() {
 		this.modelMatrix = Matrix4.fromTranslationQuaternionRotationScale(
@@ -6665,7 +6668,7 @@ const _zAxis = new Vector3(0, 0, 1);
 const _m1 = new Matrix4();
 const _target = new Vector3();
 new Matrix3();
-const _mvMatrix = new Matrix4();
+new Matrix4();
 
 class Mesh extends RenderObject {
 	constructor(geometry, material) {
@@ -7344,7 +7347,10 @@ function wgslParseDefines(strings, ...values) {
 }
 
 function light(defines) {
-	return wgslParseDefines`   
+	return wgslParseDefines`  
+    struct LightColor{
+        color:vec3<f32>,
+    } 
     #if ${defines.spotLightsCount > 0}
         struct SpotLight {
             position: vec3<f32>,
@@ -7355,30 +7361,22 @@ function light(defines) {
             penumbraCos: f32,
             decay: f32,
         };
-        fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            let lVector = spotLight.position - geometry.position;
-    
-            light.direction = normalize(lVector);
-    
-            let angleCos = dot(light.direction, spotLight.direction);
-    
-            let spotAttenuation = getSpotAttenuation(spotLight.coneCos, spotLight.penumbraCos, angleCos);
-    
-            if (spotAttenuation > 0.0) {
-    
-                let lightDistance = length(lVector);
-    
-                light.color = spotLight.color * spotAttenuation;
-                light.color *= getDistanceAttenuation(lightDistance, spotLight.distance, spotLight.decay);
-                light.visible = (length(light.color)>0);
-            } else {
-    
-                light.color = vec3(0.0);
-                light.visible = false;
-            }
-            return light;
-        }
+        fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+                var direction:vec3<f32> = spotLight.position - worldPos;
+                var lightColor:LightColor;
+                let lightDistance:f32 = length(direction);
+                direction = normalize(direction);
+                let angleCos:f32 = dot( direction, -spotLight.direction );
+                let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
+                let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
+                let decayTotal:f32 = decay * spotEffect;
+                let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
+                lightColor.color= spotLight.color * d;
+                let halfDir:vec3<f32> = normalize( V + direction );
+                let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
+                lightColor.color= spotLight.color * s;
+                return lightColor;
+           }
     #endif 
 
     #if ${defines.pointLightsCount > 0}
@@ -7388,28 +7386,36 @@ function light(defines) {
             color: vec3<f32>,
             decay: f32,
         };
-        fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            let lVector:vec3<f32> = pointLight.position - geometry.position;
-            light.direction = normalize(lVector);
-            let lightDistance = length(lVector); 
-            light.color = pointLight.color;
-            light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
-            light.visible =(length(light.color)>0);
-            return light;
-        }
+        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+            var lightColor:LightColor;
+            var direction:vec3<f32> = worldPos - pointLight.position;
+            let dist:f32 = length( direction );
+            direction = normalize(direction);
+            let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
+    
+            let d =  max( dot( N, -direction ), 0.0 ) * decay;
+            lightColor.color += pointLight.color * d;
+    
+            let halfDir:vec3<f32> = normalize( V - direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
+            lightColor.color += pointLight.color * s;
+            return lightColor;
+           }
     #endif
     #if ${defines.dirtectLightsCount > 0}
         struct DirtectLight {
             direction: vec3<f32>,
             color: vec3<f32>,
         };
-        fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            light.color = directionalLight.color;
-            light.direction = directionalLight.direction;
-            light.visible = true;
-            return light;
+        fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+            var lightColor:LightColor;
+            let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+            lightColor.color += directionalLight.color * d;
+    
+            let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
+            lightColor.color += directionalLight.color * s;
+            return lightColor;
         }
     #endif
     #if ${
@@ -7432,62 +7438,69 @@ function light(defines) {
     }
     @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
     #endif
-   
+    // #include <blinn_phong>
     #if ${defines.materialPhong}
-        fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
+    //worldPos:vec3<f32,shininess:f32,N:f32,V:f32
+        //fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
+        fn parseLights(worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32> {
     #elif ${defines.materialPbr}
         fn parseLights(geometry:GeometricContext,material:PhysicalMaterial)->ReflectedLight{
     #endif
 
-        var  incidentLight:IncidentLight;
-        var reflectedLight:ReflectedLight;
-        #if ${defines.dirtectLightsCount > 0}
-            //处理方向光
-            var dirtectLight:DirtectLight;
-            for (var i : u32 = 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
-                dirtectLight = lightUniforms.dirtectLights[i];
-                incidentLight=getDirtectLightInfo(dirtectLight, geometry);
+        // var  incidentLight:IncidentLight;
+        // var reflectedLight:ReflectedLight;
+        var lightColor = vec3<f32>( 0.0, 0.0, 0.0 );
+        #if ${defines.spotLightsCount > 0}
+            //处理聚光灯
+            // var spotLight:SpotLight;
+            for (var k = 0u; k < ${defines.spotLightsCount}; k = k + 1u) {
+                var spotLight:SpotLight = lightUniforms.spotLights[k];
+               // incidentLight =getSpotLightInfo( spotLight, geometry);
                 #if ${defines.materialPhong}
-                    let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                    //let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                    lightColor=lightColor+getSpotLightInfo(spotLight,worldPos,shininess,N,V).color;
                 #elif ${defines.materialPbr}
-                    let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+                    let spReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
                 #endif
-                
-                reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+                // reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
+                // reflectedLight.directSpecular+=spReflectedLight.directSpecular;
             }
         #endif
         #if ${defines.pointLightsCount > 0}
             //处理点光源
             var pointLight:PointLight;
-            for (var i : u32 = 0u; i < ${defines.pointLightsCount};i = i + 1u) {
-                pointLight = lightUniforms.pointLights[i];
-                incidentLight =getPointLightInfo( pointLight, geometry);
+            for (var j= 0u; j < ${defines.pointLightsCount};j = j + 1u) {
+                pointLight = lightUniforms.pointLights[j];
+                // incidentLight =getPointLightInfo( pointLight, geometry);
                 #if ${defines.materialPhong}
-                    let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                lightColor=lightColor+getPointLightInfo(pointLight,worldPos,shininess,N,V).color;
+                    //let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
                 #elif ${defines.materialPbr}
                     let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
                 #endif
-                reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
+                // reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
+                // reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.spotLightsCount > 0}
-            //处理聚光灯
-            var spotLight:SpotLight;
-            for (var i : u32 = 0u; i < ${defines.spotLightsCount}; i = i + 1u) {
-                spotLight = lightUniforms.spotLights[i];
-                incidentLight =getSpotLightInfo( spotLight, geometry);
-                #if ${defines.materialPhong}
-                    let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-                #elif ${defines.materialPbr}
-                    let spReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
-                #endif
-                reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=spReflectedLight.directSpecular;
-            }
-        #endif
-        return reflectedLight;
+        #if ${defines.dirtectLightsCount > 0}
+        //处理方向光
+        var dirtectLight:DirtectLight;
+        for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
+            dirtectLight = lightUniforms.dirtectLights[i];
+            //incidentLight=getDirtectLightInfo(dirtectLight, geometry);
+            #if ${defines.materialPhong}
+                //let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                lightColor=lightColor+getDirtectLightInfo(dirtectLight,shininess,N,V).color;
+            #elif ${defines.materialPbr}
+                let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+            #endif
+            
+            // reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
+            // reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+        }
+    #endif
+        return lightColor;
+        // return reflectedLight;
     }`;
 }
 
@@ -8459,6 +8472,72 @@ function environment(defines) {
    `;
 }
 
+function blinn_phong(defines) {
+	return `
+
+    struct PointLight {
+        position: vec3<f32>,
+        distance: f32,
+        color: vec3<f32>,
+        decay: f32,
+    };
+       fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+        var direction:vec3<f32> = worldPos - pointLight.position;
+        let dist:f32 = length( direction );
+        direction = normalize(direction);
+        let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
+
+        let d =  max( dot( N, -direction ), 0.0 ) * decay;
+        color += pointLight.color * d;
+
+        let halfDir:vec3<f32> = normalize( V - direction );
+        let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
+        color += pointLight.color * s;
+        return color;
+       }
+    //    struct SpotLight {
+    //     position: vec3<f32>,
+    //     distance: f32,
+    //     direction: vec3<f32>,
+    //     coneCos: f32,
+    //     color: vec3<f32>,
+    //     penumbraCos: f32,
+    //     decay: f32,
+    // };
+       fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+            var direction:vec3<f32> = spotLight.position - worldPos;
+            let lightDistance:f32 = length(direction);
+            direction = normalize(direction);
+            let angleCos:f32 = dot( direction, -spotLight.direction );
+            let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
+            let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
+            let decayTotal:f32 = decay * spotEffect;
+            let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
+            color += spotLight.color * d;
+            let halfDir:vec3<f32> = normalize( V + direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
+            color += spotLight.color * s;
+            return color;
+       }
+    struct DirtectLight {
+        direction: vec3<f32>,
+        color: vec3<f32>,
+    };
+      fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+        let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+        color += directionalLight.color * d;
+
+        let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
+        let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
+        color += directionalLight.color * s;
+        return color;
+       }
+    `;
+}
+
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,
@@ -8469,7 +8548,8 @@ const ShaderChunk = {
 	pbrFunction: pbrFunction,
 	pbrTexture: pbrTexture,
 	pbrUtils: pbrUtils,
-	environment: environment
+	environment: environment,
+	blinn_phong: blinn_phong
 };
 
 function phongVert(defines) {
@@ -8487,7 +8567,7 @@ function phongVert(defines) {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,
             opacity:f32,
-            normalMatrix: mat3x3<f32>,
+            normalMatrix: mat4x4<f32>,
             emissive:vec3<f32>,
             specular:vec3<f32>,
             shininess:f32,
@@ -8512,9 +8592,9 @@ function phongVert(defines) {
             var output: VertexOutput;
             output.vUv = input.uv;
             let modelPos=selfUniform.modelMatrix *vec4<f32>(input.position,1.0);
-            output.worldPos = modelPos.xyz;
-            let vNormalView = selfUniform.normalMatrix * input.normal;
-            output.normal = vNormalView;
+            output.worldPos = modelPos.xyz/modelPos.w;
+            let vNormalView = selfUniform.normalMatrix * vec4<f32>(input.normal,0.0);
+            output.normal =  vNormalView.xyz;
             output.view = systemUniform.cameraPosition.xyz - modelPos.xyz;
             let viewPosition=systemUniform.viewMatrix * modelPos;
             output.viewPosition = -viewPosition.xyz;
@@ -8527,14 +8607,15 @@ function phongVert(defines) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-23 10:06:23
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-31 17:08:55
+ * @LastEditTime: 2023-02-12 10:25:04
  * @FilePath: \GEngine\src\shader\material\phongFrag.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 function phongFrag(defines) {
-	return wgslParseDefines`    
+	return wgslParseDefines`  
   struct VertexOutput {
       @builtin(position) position: vec4<f32>,
+      @builtin(front_facing) is_front: bool,
       @location(0) vUv: vec2<f32>,
       @location(1) view: vec3<f32>, // Vector from vertex to camera.
       @location(2) worldPos: vec3<f32>,
@@ -8551,16 +8632,39 @@ function phongFrag(defines) {
       modelMatrix: mat4x4<f32>,
       color: vec3<f32>,
       opacity:f32,
-      normalMatrix: mat3x3<f32>,
+      normalMatrix: mat4x4<f32>,
       emissive:vec3<f32>,
       shininess:f32,
       specular:vec3<f32>,      
    }
+   struct SystemUniform {
+    projectionMatrix: mat4x4<f32>,
+    viewMatrix: mat4x4<f32>,
+    inverseViewMatrix: mat4x4<f32>,
+    cameraPosition: vec3<f32>,
+  }; 
+  fn getNormal(input:VertexOutput)->vec3<f32>
+{
+    // Retrieve the tangent space matrix
+    let pos_dx:vec3<f32> = dpdx(input.worldPos);
+    let pos_dy:vec3<f32> = dpdy(input.worldPos);
+    let tex_dx:vec3<f32> = dpdx(vec3<f32>(input.vUv, 0.0));
+    let tex_dy:vec3<f32> = dpdy(vec3<f32>(input.vUv, 0.0));
+    var t:vec3<f32> = (tex_dy.y * pos_dx - tex_dx.y * pos_dy) / (tex_dx.x * tex_dy.y - tex_dy.x * tex_dx.y);
+    let ng = input.normal;
+    t = normalize(t - ng * dot(ng, t));
+    let b:vec3<f32> = normalize(cross(ng, t));
+    let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
+    var n:vec3<f32> = tbn[2].xyz;
+    return n;
+}
     #if${defines.baseTexture}
       @group(0) @binding(2) var mySampler: sampler;
       @group(0) @binding(1) var myTexture: texture_2d<f32>;
     #endif
     @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
+    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+
     @fragment
     fn main(input:VertexOutput) -> @location(0) vec4<f32> {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
@@ -8581,11 +8685,13 @@ function phongFrag(defines) {
         geometry.position = -input.viewPosition;
         geometry.normal = input.normal;
         geometry.viewDir =normalize(input.viewPosition);
-
-        let reflectedLight:ReflectedLight= parseLights(geometry,material);
-
-        let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
-
+        let faceDirection:f32 =select(-1.0,1.0,input.is_front);
+        let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
+        let  N:vec3<f32> = getNormal(input);
+        //let reflectedLight:ReflectedLight= parseLights(geometry,material);
+        let finnalColor:vec3<f32>=color.xyz+parseLights(input.worldPos,materialUniform.shininess,N,V);
+        //let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
+        //let finnalColor:vec3<f32>=color.xyz+lightDiffuse+lightSpecular;
         return vec4<f32>(finnalColor,color.a);
     }`;
 }
@@ -10675,7 +10781,7 @@ class PhongMaterial extends Material {
 		});
 		uniformBuffer.setColor("diffuse", this);
 		uniformBuffer.setFloat("opacity", this);
-		uniformBuffer.setMatrix3("normalMtrix", () => {
+		uniformBuffer.setMatrix4("normalMtrix", () => {
 			return mesh.normalMatrix;
 		});
 		uniformBuffer.setColor("emissive", this);
@@ -12101,15 +12207,15 @@ class Light {
 		return this._intensity;
 	}
 	update(camera) {
-		const viewMatrix = camera.viewMatrix;
+		camera.viewMatrix;
 		let position = this.position.clone();
-		position = position.applyMatrix4(viewMatrix);
+		// position = position.applyMatrix4(viewMatrix);
 		this.positionVC = position;
 	}
 }
 
 class SpotLight extends Light {
-	constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 1, decay = 1) {
+	constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0.5, decay = 1) {
 		super(color, intensity);
 		this._distance = distance;
 		this._angle = angle;
@@ -12186,8 +12292,9 @@ class SpotLight extends Light {
 	update(camera) {
 		super.update(camera);
 		let dirtect = this.dirtect.clone();
-		const viewMatrix = camera.viewMatrix;
-		this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		camera.viewMatrix;
+		//this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		this.dirtectVC = dirtect;
 	}
 }
 //uniform
@@ -12246,8 +12353,9 @@ class DirtectLight extends Light {
 	update(camera) {
 		super.update(camera);
 		let dirtect = this.dirtect.clone();
-		const viewMatrix = camera.viewMatrix;
-		this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		camera.viewMatrix;
+		// this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		this.dirtectVC = dirtect.normalize();
 	}
 }
 //uniform
