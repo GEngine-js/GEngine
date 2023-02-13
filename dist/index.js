@@ -530,7 +530,6 @@ class DrawCommand {
 		this.dispatch = options.dispatch;
 		this.shaderSource = options.shaderSource;
 		this.dirty = options.dirty;
-		this.materialType = options.materialType;
 		this.light = options.light;
 	}
 	shallowClone(material) {
@@ -544,7 +543,6 @@ class DrawCommand {
 				renderState: material.renderState,
 				shaderSource: material.shaderSource,
 				type: "render",
-				materialType: material.type,
 				light: material.light
 			});
 		}
@@ -720,6 +718,168 @@ class MipmapGenerator {
 			mipTexture.destroy();
 		}
 		return texture;
+	}
+}
+
+const pipelineLayoutCache = new Map();
+class PipelineLayout {
+	constructor(device, label, groupLayouts = [], index) {
+		this.groupLayouts = groupLayouts;
+		this.index = index || 0;
+		this.gpuPipelineLayout = device.createPipelineLayout({
+			label: label,
+			bindGroupLayouts: groupLayouts.map((layout) => {
+				return layout.gpuBindGroupLayout;
+			})
+		});
+	}
+	static getPipelineLayoutFromCache(device, label, groupLayouts) {
+		if (pipelineLayoutCache.has(label)) {
+			return pipelineLayoutCache.get(label);
+		} else {
+			const bindGroupLayout = new PipelineLayout(device, label, groupLayouts);
+			pipelineLayoutCache.set(label, bindGroupLayout);
+			return bindGroupLayout;
+		}
+	}
+}
+
+const renderPipelines = new Map();
+const computePipelines = new Map();
+class Pipeline {
+	constructor(type, device, descriptor) {
+		this.type = type;
+		this.descriptor = descriptor;
+		this.device = device;
+		this.createPipeline();
+	}
+	createPipeline() {
+		if (this.type == "render") {
+			this.gpuPipeline = this.device.createRenderPipeline(this.descriptor);
+		} else {
+			this.gpuPipeline = this.device.createComputePipeline(this.descriptor);
+		}
+	}
+	bind(passEncoder) {
+		if (this.type == "render") {
+			passEncoder.setPipeline(this.gpuPipeline);
+		} else {
+			passEncoder.setPipeline(this.gpuPipeline);
+		}
+	}
+	static getRenderPipelineFromCache(device, drawComand, groupLayouts) {
+		const { renderState, shaderSource } = drawComand;
+		const rsStr = JSON.stringify(renderState);
+		const combineStr = shaderSource.uid.concat(rsStr);
+		const hashId = stringToHash(combineStr);
+		const combineLayouts = groupLayouts.sort((layout1, layout2) => layout1.index - layout2.index);
+		let pipeline = renderPipelines.get(hashId);
+		if (!pipeline) {
+			const descriptor = Pipeline.getPipelineDescriptor(
+				device,
+				drawComand,
+				renderState,
+				combineLayouts,
+				hashId.toString()
+			);
+			pipeline = new Pipeline("render", device, descriptor);
+			renderPipelines.set(hashId, pipeline);
+		}
+		return pipeline;
+	}
+	static getComputePipelineFromCache(device, drawComand, groupLayouts) {
+		const { shaderSource } = drawComand;
+		const hashId = stringToHash(shaderSource.uid);
+		let pipeline = computePipelines.get(hashId);
+		if (!pipeline) {
+			const { shaderSource } = drawComand;
+			pipeline = device.createComputePipeline({
+				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
+					.gpuPipelineLayout,
+				compute: {
+					module: shaderSource.createShaderModule(device),
+					entryPoint: shaderSource.computeMain
+				}
+			});
+			computePipelines.set(hashId, pipeline);
+		}
+		return pipeline;
+	}
+	static getPipelineDescriptor(device, drawComand, renderState, groupLayouts, hashId) {
+		const { vertexBuffer, shaderSource } = drawComand;
+		const { vert, frag } = shaderSource.createShaderModule(device);
+		const pipelineDec = {
+			layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout
+		};
+		if (vert)
+			pipelineDec.vertex = {
+				module: vert,
+				entryPoint: shaderSource.vertEntryPoint,
+				buffers: vertexBuffer.getBufferDes()
+			};
+		if (renderState.primitive) pipelineDec.primitive = renderState.primitive.getGPUPrimitiveDec();
+		if (renderState.depthStencil) pipelineDec.depthStencil = renderState.depthStencil.getGPUDepthStencilDec();
+		if (renderState.multisample) pipelineDec.multisample = renderState.multisample.getMultiSampleDec();
+		if (frag)
+			pipelineDec.fragment = {
+				module: frag,
+				entryPoint: shaderSource.fragEntryPoint,
+				targets: renderState.targets.map((target) => {
+					return target.getGPUTargetDec();
+				})
+			};
+		return pipelineDec;
+		// return {
+		//   //需要改动
+		//   layout: PipelineLayout.getPipelineLayoutFromCache(
+		//     device,
+		//     hashId,
+		//     groupLayouts
+		//   ).gpuPipelineLayout,
+		//   vertex: {
+		//     module: vert,
+		//     entryPoint: shaderSource.vertEntryPoint,
+		//     buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
+		//   },
+		//   primitive: renderState.primitive,
+		//   depthStencil: renderState.depthStencil as GPUDepthStencilState,
+		//   multisample: renderState.multisample,
+		//   fragment: {
+		//     module: frag,
+		//     entryPoint: shaderSource.fragEntryPoint,
+		//     targets: renderState.targets as Iterable<GPUColorTargetState>,
+		//   },
+		// };
+	}
+}
+// Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+function stringToHash(str) {
+	let hash = 0;
+	if (str.length == 0) return hash;
+	for (let i = 0; i < str.length; i++) {
+		const char = str.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash; // Convert to 32bit integer
+	}
+	return hash;
+}
+
+/**
+ * Returns the first parameter if not undefined, otherwise the second parameter.
+ * Useful for setting a default value for a parameter.
+ *
+ * @function
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {*} Returns the first parameter if not undefined, otherwise the second parameter.
+ *
+ * @example
+ * param = Cesium.defaultValue(param, 'default');
+ */
+function defaultValue(a, b) {
+	if (a !== undefined && a !== null) {
+		return a;
 	}
 }
 
@@ -3883,8 +4043,8 @@ class Matrix4 {
 		const y = (2 * near) / (top - bottom);
 		const a = (right + left) / (right - left);
 		const b = (top + bottom) / (top - bottom);
-		const c = -(far + near) / (far - near);
-		const d = (-2 * far * near) / (far - near);
+		const c = -far / (far - near);
+		const d = (-far * near) / (far - near);
 		matrix[0] = x;
 		matrix[4] = 0;
 		matrix[8] = a;
@@ -3910,7 +4070,7 @@ class Matrix4 {
 		const p = 1.0 / (far - near);
 		const x = (right + left) * w;
 		const y = (top + bottom) * h;
-		const z = (far + near) * p;
+		const z = near * p;
 		matrix[0] = 2 * w;
 		matrix[4] = 0;
 		matrix[8] = 0;
@@ -3921,7 +4081,7 @@ class Matrix4 {
 		matrix[13] = -y;
 		matrix[2] = 0;
 		matrix[6] = 0;
-		matrix[10] = -2 * p;
+		matrix[10] = -1 * p;
 		matrix[14] = -z;
 		matrix[3] = 0;
 		matrix[7] = 0;
@@ -4832,7 +4992,6 @@ class UniformFloat extends Uniform {
 		super(uniformName, cb, binding, offset);
 		this.value = undefined;
 		this._value = 0;
-		this.size = 4;
 		this.byteSize = 4;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 1);
 		this.type = "vec1";
@@ -4854,7 +5013,6 @@ class UniformFloatVec2 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector2();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 2);
-		this.size = 8;
 		this.byteSize = 8;
 		this.type = "vec2";
 	}
@@ -4876,7 +5034,6 @@ class UniformFloatVec3 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
-		this.size = 12;
 		this.byteSize = 12;
 		this.type = "vec3";
 	}
@@ -4898,7 +5055,6 @@ class UniformFloatVec4 extends Uniform {
 		this.value = undefined;
 		this._value = new Vector4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
-		this.size = 16;
 		this.byteSize = 16;
 		this.type = "vec4";
 	}
@@ -4920,7 +5076,6 @@ class UniformColor extends Uniform {
 		this.value = undefined;
 		this._value = new Color();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
-		this.size = 12;
 		this.byteSize = 12;
 		this.type = "vec3";
 	}
@@ -4942,7 +5097,6 @@ class UniformMat2 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix2();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
-		this.size = 16;
 		this.byteSize = 16;
 		this.type = "mat2";
 	}
@@ -4964,7 +5118,6 @@ class UniformMat3 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 9);
-		this.size = 48;
 		this.byteSize = 48;
 		this.type = "mat3";
 	}
@@ -4986,7 +5139,6 @@ class UniformMat4 extends Uniform {
 		this.value = undefined;
 		this._value = new Matrix4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 16);
-		this.size = 64;
 		this.byteSize = 64;
 		this.type = "mat4";
 	}
@@ -5002,6 +5154,87 @@ class UniformMat4 extends Uniform {
 	}
 }
 UniformMat4.align = 16;
+class UniformFloatArray extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
+		this.byteSize = 4 * count;
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[i] = this.value[i];
+		}
+		return true;
+	}
+}
+UniformFloatArray.align = 4;
+class UniformVec2Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 8;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			j += 2;
+		}
+		return true;
+	}
+}
+UniformVec2Array.align = 8;
+class UniformVec3Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 16;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			this.buffer[j + 2] = this.value[i].z;
+			this.buffer[j + 3] = 0;
+			j += 4;
+		}
+		return true;
+	}
+}
+UniformVec3Array.align = 16;
+class UniformVec4Array extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 16;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "array";
+	}
+	set() {
+		this.value = this.cb();
+		let j = 0;
+		for (let i = 0; i < this.value.length; i++) {
+			this.buffer[j] = this.value[i].x;
+			this.buffer[j + 1] = this.value[i].y;
+			this.buffer[j + 2] = this.value[i].z;
+			this.buffer[j + 3] = this.value[i].w;
+			j += 4;
+		}
+		return true;
+	}
+}
+UniformVec4Array.align = 16;
 class UniformTexture extends Uniform {
 	constructor(uniformName, binding, texture) {
 		super(uniformName);
@@ -5031,6 +5264,130 @@ class UniformSampler extends Uniform {
 	}
 	bind(context) {
 		this.sampler.update(context);
+	}
+}
+class UniformSpotLights extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.byteSize = count * 64;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((spotLight, index) => {
+			this.setSubData(spotLight, index);
+		});
+		debugger;
+	}
+	setSubData(spotLight, index) {
+		const offset = index * 16;
+		if (spotLight.positionDirty) {
+			spotLight.positionDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.positionVC.toArray(), offset + 0); //byteOffset=0;
+		}
+		if (spotLight.distanceDirty) {
+			spotLight.distanceDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.distance, offset + 3); //byteOffset=12;
+		}
+		if (spotLight.dirtectDirty) {
+			spotLight.dirtectDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.dirtectVC.toArray(), offset + 4); //byteOffset=16;
+		}
+		if (spotLight.coneCosDirty) {
+			spotLight.coneCosDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.coneCos, offset + 7); //byteOffset=28;
+		}
+		if (spotLight.colorDirty) {
+			spotLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.color.toArray(), offset + 8); //byteOffset=32;
+		}
+		if (spotLight.penumbraCosDirty) {
+			spotLight.penumbraCosDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.penumbraCos, offset + 11); //byteOffset=44;
+		}
+		if (spotLight.decayDirty) {
+			spotLight.decayDirty = false;
+			setDataToTypeArray(this.buffer, spotLight.decay, offset + 12); //byteOffset=48;
+		}
+	}
+}
+UniformSpotLights.align = 16;
+class UniformPointLights extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.byteSize = count * 32;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((pointLight, index) => {
+			this.setSubData(pointLight, index);
+		});
+		debugger;
+	}
+	setSubData(pointLight, index) {
+		const offset = index * 8;
+		if (pointLight.positionDirty) {
+			pointLight.positionDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.positionVC.toArray(), offset + 0); //byteOffset=0;
+		}
+		if (pointLight.distanceDirty) {
+			pointLight.distanceDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.distance, offset + 3); //byteOffset=12;
+		}
+		if (pointLight.colorDirty) {
+			pointLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.color.toArray(), offset + 4); //byteOffset=32;
+		}
+		if (pointLight.decayDirty) {
+			pointLight.decayDirty = false;
+			setDataToTypeArray(this.buffer, pointLight.decay, offset + 7); //byteOffset=12;
+		}
+	}
+}
+UniformPointLights.align = 16;
+class UniformDirtectLights extends Uniform {
+	constructor(uniformName, buffer, byteOffset, cb, binding, offset, count) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.byteSize = count * 32;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "spotsLight";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((dirtectLight, index) => {
+			this.setSubData(dirtectLight, index);
+		});
+		debugger;
+	}
+	setSubData(dirtectLight, index) {
+		const offset = index * 8;
+		if (dirtectLight.dirtectDirty) {
+			dirtectLight.dirtectDirty = false;
+			setDataToTypeArray(this.buffer, dirtectLight.dirtectVC.toArray(), offset + 0); //byteOffset=16;
+		}
+		if (dirtectLight.colorDirty) {
+			dirtectLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, dirtectLight.color.toArray(), offset + 4); //byteOffset=32;
+		}
+	}
+}
+UniformDirtectLights.align = 16;
+function setDataToTypeArray(buffer, data, offset) {
+	if (Array.isArray(data)) {
+		data.forEach((value, index) => {
+			buffer[index + offset] = value;
+		});
+	} else {
+		buffer[offset] = data;
 	}
 }
 
@@ -5372,56 +5729,109 @@ class UniformBuffer {
 		if (this._uniforms.get(name)) return;
 		const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec2(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
 		const uniform = new UniformFloatVec2(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec3(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
 		const uniform = new UniformFloatVec3(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setColor(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
 		const uniform = new UniformColor(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec4(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
 		const uniform = new UniformFloatVec4(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix2(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
 		const uniform = new UniformMat2(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix3(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
 		const uniform = new UniformMat3(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix4(name, value, binding) {
 		if (this._uniforms.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
-		this.byteOffset += uniform.size;
+		this.byteOffset += uniform.byteSize;
+	}
+	// uniformBuffer.setVec3Array('test',()=>{return [new Vector3(1,0,0),new Vector3(1,0.8,0.5)]},2);
+	// uniformBuffer.setFloatArray('test1',()=>{return [0.5,0.5,1.0]},3);
+	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
+	// uniformBuffer.setVec2Array('test2',()=>{return [new Vector2(0.5,0.6),new Vector2(0.5,0.8,)]},2);
+	setFloatArray(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatArray.align);
+		const uniform = new UniformFloatArray(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec2Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec2Array.align);
+		const uniform = new UniformVec2Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec3Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec3Array.align);
+		const uniform = new UniformVec3Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setVec4Array(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec4Array.align);
+		const uniform = new UniformVec4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setSpotLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLights.align);
+		const uniform = new UniformSpotLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setPointLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLights.align);
+		const uniform = new UniformPointLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setDirtectLights(name, value, count, binding) {
+		if (this._uniforms.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
+		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniforms.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
 	}
 	checkUniformOffset(byteSize, Align) {
 		//from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
@@ -5437,25 +5847,11 @@ class LightManger {
 		this.spotLights = [];
 		this.pointLights = [];
 		this.dirtectLights = [];
-		this.spotDatas = new WeakMap();
-		this.pointDatas = new WeakMap();
-		this.dirtectDatas = new WeakMap();
-		this.ambientLight = new AmbientLight(new Vector3(1, 1, 1), 0.1);
-		this.lightDefines = {
-			ambientLight: false,
-			spotLight: false,
-			pointLight: false,
-			dirtectLight: false,
-			spotLightBinding: 1,
-			pointLightBinding: 2,
-			dirtectLightBinding: 3
-		};
-		this.totalByte = 0;
-		this.lightCountDirty = true;
+		this.ambientLight = undefined;
+		this.lightCountDirty = false;
 	}
-	update(frameState) {
-		this.updateLight(frameState);
-		frameState.defines = this.lightDefines;
+	update(frameState, camera) {
+		this.updateLight(camera);
 	}
 	add(light) {
 		this.lightCountDirty = true;
@@ -5470,165 +5866,81 @@ class LightManger {
 		}
 	}
 	remove() {}
-	updateLight(frameState) {
-		if (this.lightCountDirty) {
-			this.initBuffer();
-		}
-		this.updateLightData(frameState);
+	updateLight(camera) {
+		this.updateLightData(camera);
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
 			if (this.lightShaderData) this.lightShaderData.destroy();
 			this.createLightShaderData();
 		}
 	}
-	updateLightData(frameState) {
-		this.updateSpotLight(frameState);
-		this.updatePointLight(frameState);
-		this.updateDirtectLight(frameState);
-		this.updateAmbientLight(frameState);
-		this.updateLightCount();
+	updateLightData(camera) {
+		this.updateSpotLight(camera);
+		this.updatePointLight(camera);
+		this.updateDirtectLight(camera);
 	}
-	updateSpotLight(frameState) {
+	updateSpotLight(camera) {
 		this.spotLights.forEach((light) => {
-			const lightData = this.spotDatas.get(light);
-			if (lightData) lightData.update(frameState);
+			light.update(camera);
 		});
 	}
-	updatePointLight(frameState) {
+	updatePointLight(camera) {
 		this.pointLights.forEach((light) => {
-			const lightData = this.pointDatas.get(light);
-			if (lightData) lightData.update(frameState);
+			light.update(camera);
 		});
 	}
-	updateAmbientLight(frameState) {
-		if (this.ambientLight) {
-			this.ambient[0] = this.ambientLight.color.x;
-			this.ambient[1] = this.ambientLight.color.y;
-			this.ambient[2] = this.ambientLight.color.z;
-		}
-	}
-	updateDirtectLight(frameState) {
+	updateDirtectLight(camera) {
 		this.dirtectLights.forEach((light) => {
-			const lightData = this.dirtectDatas.get(light);
-			if (lightData) lightData.update(frameState);
+			light.update(camera);
 		});
-	}
-	updateLightCount() {
-		if (this.lightCountDirty) {
-			this.lightCount[0] = this.spotLights.length;
-			this.lightCount[1] = this.pointLights.length;
-			this.lightCount[2] = this.dirtectLights.length;
-			this.lightCount[3] = this.ambient != undefined ? 1 : 0;
-		}
-	}
-	initBuffer() {
-		const ambientSize = this.ambientLight != undefined ? 3 : 0;
-		const lightCount = 4;
-		const pointLightCount = this.pointLights.length;
-		const spotLightCount = this.spotLights.length;
-		const dirtectLightCount = this.dirtectLights.length;
-		const pointLightCountSize = pointLightCount * PointData.size;
-		const spotLightCountSize = spotLightCount * SpotData.size;
-		const dirtectLightCountSize = dirtectLightCount * DirtectData.size;
-		let currentBinding = 1;
-		this.reset();
-		//common
-		if (ambientSize > 0) {
-			this.commonLightBuffer = new Float32Array(ambientSize + lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-			this.ambient = new Float32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 3);
-			this.commonTatalByte += 16;
-			this.lightDefines.ambientLight = true;
-		} else {
-			this.commonLightBuffer = new Float32Array(lightCount);
-			this.commonTatalByte = 0;
-			this.lightCount = new Uint32Array(this.commonLightBuffer.buffer, this.commonTatalByte, 4);
-			this.commonTatalByte += 16;
-		}
-		if (spotLightCountSize > 0) {
-			//初始化聚光灯
-			this.spotLightsBuffer = new Float32Array(spotLightCountSize);
-			this.spotLights.forEach((spotLight, i) => {
-				this.spotDatas.set(spotLight, new SpotData(this.spotLightsBuffer, SpotData.byteSize * i, spotLight));
-			});
-			this.spotLightsByte = spotLightCount * SpotData.byteSize;
-			this.lightDefines.spotLight = true;
-			this.lightDefines.spotLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (pointLightCountSize > 0) {
-			//点光源
-			this.pointLightsBuffer = new Float32Array(pointLightCountSize);
-			this.pointLights.forEach((pointLight, i) => {
-				this.pointDatas.set(
-					pointLight,
-					new PointData(this.pointLightsBuffer, PointData.byteSize * i, pointLight)
-				);
-			});
-			this.pointLightsByte = pointLightCount * PointData.byteSize;
-			this.lightDefines.pointLight = true;
-			this.lightDefines.pointLightBinding = currentBinding;
-			currentBinding += 1;
-		}
-		if (dirtectLightCountSize) {
-			//方向光
-			this.dirtectLightsBuffer = new Float32Array(dirtectLightCountSize);
-			this.dirtectLights.forEach((dirtect, i) => {
-				this.dirtectDatas.set(
-					dirtect,
-					new DirtectData(this.dirtectLightsBuffer, DirtectData.byteSize * i, dirtect)
-				);
-			});
-			this.dirtectLightsByte = dirtectLightCount * DirtectData.byteSize;
-			this.lightDefines.dirtectLight = true;
-			this.lightDefines.dirtectLightBinding = currentBinding;
-		}
 	}
 	createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
-		const commonBuffer = new UniformBuffer(
-			"read-only-storage",
-			BufferUsage.Storage | BufferUsage.CopyDst,
-			this.commonTatalByte,
-			this.commonLightBuffer
-		);
-		this.lightShaderData.setUniformBuffer("commonBuffer", commonBuffer);
-		if (this.lightDefines.spotLight) {
-			const spotLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.spotLightsByte,
-				this.spotLightsBuffer,
-				this.lightDefines.spotLightBinding
+		this.lightUniformBuffer = new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst);
+		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
+		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
+		this.lightShaderData.setDefine("dirtectLightsCount", this.dirtectLights.length);
+		this.lightShaderData.setDefine("ambientLightCount", this.ambientLight != undefined ? 1 : 0);
+		if (this.ambientLight)
+			this.lightUniformBuffer.setFloatVec3("ambientLight", () => {
+				return this.ambientLight.color;
+			});
+		if (this.spotLights.length) {
+			//初始化聚光灯
+			this.lightUniformBuffer.setSpotLights(
+				"spotLights",
+				() => {
+					return this.spotLights;
+				},
+				this.spotLights.length
 			);
-			this.lightShaderData.setUniformBuffer("spotLightsBuffer", spotLightsBuffer);
 		}
-		if (this.lightDefines.pointLight) {
-			const pointLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.pointLightsByte,
-				this.pointLightsBuffer,
-				this.lightDefines.pointLightBinding
+		if (this.pointLights.length) {
+			//点光源
+			this.lightUniformBuffer.setPointLights(
+				"pointLights",
+				() => {
+					return this.pointLights;
+				},
+				this.pointLights.length
 			);
-			this.lightShaderData.setUniformBuffer("pointLightsBuffer", pointLightsBuffer);
 		}
-		if (this.lightDefines.dirtectLight) {
-			const dirtectLightsBuffer = new UniformBuffer(
-				"read-only-storage",
-				BufferUsage.Storage | BufferUsage.CopyDst,
-				this.dirtectLightsByte,
-				this.dirtectLightsBuffer,
-				this.lightDefines.dirtectLightBinding
+		if (this.dirtectLights.length) {
+			//方向光
+			this.lightUniformBuffer.setDirtectLights(
+				"dirtectLights",
+				() => {
+					return this.dirtectLights;
+				},
+				this.dirtectLights.length
 			);
-			this.lightShaderData.setUniformBuffer("dirtectLightsBuffer", dirtectLightsBuffer);
 		}
+		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
 	}
 	reset() {}
 	destroy() {
 		this.lightShaderData.destroy();
+		this.lightUniformBuffer.destroy();
 	}
 }
 
@@ -5644,12 +5956,7 @@ class Context {
 		this.device = undefined;
 		this.lightManger = new LightManger();
 	}
-	async init(
-		requestAdapter = {},
-		deviceDescriptor = {},
-		presentationContextDescriptor = {}
-		// glslangPath: string
-	) {
+	async init(requestAdapter = {}, deviceDescriptor = {}, presentationContextDescriptor = {}) {
 		try {
 			if (!this.context) {
 				throw new Error(`Failed to instantiate "webgpu" context.`);
@@ -5666,13 +5973,12 @@ class Context {
 			};
 			this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 			this.device.addEventListener("uncapturederror", (error) => {
-				console.log(error);
+				console.error(error);
 				//State.error = true;
 			});
 			this.mipmapTools = new MipmapGenerator(this.device);
 			this.context.configure({
 				device: this.device,
-				// format: navigator.gpu.getPreferredCanvasFormat(),
 				format: this.presentationFormat,
 				usage: TextureUsage.RenderAttachment,
 				alphaMode: "opaque",
@@ -5720,9 +6026,10 @@ class Context {
 			camera.shaderData.bind(this, passEncoder);
 			grouplayouts.push(camera.shaderData.groupLayout);
 		}
-		if (command.light) {
+		if (command.light && this.lightManger.lightShaderData) {
 			this.lightManger.lightShaderData.bind(this, passEncoder);
 			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
+			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
 		}
 		if (command.renderState) command.renderState.bind(passEncoder);
 		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);
@@ -5737,9 +6044,13 @@ class Context {
 			passEncoder.drawIndexed(command.count || 0, command.instances || 1, 0, 0, 0);
 		} else if (command.count) {
 			passEncoder.draw(command.count, command.instances || 1, 0, 0);
-		} else if (command.dispatch) {
-			passEncoder.dispatch(...(Array.isArray(command.dispatch) ? command.dispatch : [command.dispatch]));
 		}
+	}
+	compute(command, passEncoder) {
+		const pipeline = Pipeline.getComputePipelineFromCache(this.device, command, [command.shaderData.groupLayout]);
+		pipeline.bind(passEncoder);
+		const { x, y, z } = command.dispatch;
+		passEncoder.dispatchWorkgroups(x, y, z);
 	}
 }
 
@@ -5770,9 +6081,11 @@ class Texture {
 		});
 	}
 	update(context) {
+		// todo 仅考虑重建（size改变），后续要考虑data改变
 		if (!this.context) this.context = context;
-		if (!this.gpuTexture) this.gpuTexture = this.createGPUTexture();
 		if (this.dirty) {
+			if (this.gpuTexture) this.gpuTexture.destroy();
+			this.gpuTexture = this.createGPUTexture();
 			this.dirty = false;
 			if (this.textureProp.data) {
 				if (Array.isArray(this.textureProp.data)) {
@@ -5820,6 +6133,12 @@ class Texture {
 			},
 			[width, height, depth]
 		);
+	}
+	setSize(width, height, depth) {
+		this.textureProp.size.width = width;
+		this.textureProp.size.height = height;
+		if (depth) this.textureProp.size.depth = depth;
+		this.dirty = true;
 	}
 	destroy() {
 		this.gpuTexture.destroy();
@@ -6639,7 +6958,7 @@ class RenderObject {
 		this._scale = new Vector3(1, 1, 1);
 		this._quaternion = new Quaternion();
 		this.modelMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
-		this._normalMatrix = Matrix3.clone(Matrix3.IDENTITY, new Matrix3());
+		this._normalMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
 		this.up = new Vector3(0, 1, 0);
 	}
 	get normalMatrix() {
@@ -6655,8 +6974,10 @@ class RenderObject {
 		return this._quaternion;
 	}
 	updateNormalMatrix(camera) {
-		Matrix4.multiply(camera.viewMatrix, this.modelMatrix, _mvMatrix);
-		this._normalMatrix.getNormalMatrix(_mvMatrix);
+		//Matrix4.multiply(camera.viewMatrix, this.this._normalMatrix,this._normalMatrix, this._normalMatrix);
+		Matrix4.inverse(this.modelMatrix, this._normalMatrix);
+		Matrix4.transpose(this._normalMatrix, this._normalMatrix);
+		// this._normalMatrix.getNormalMatrix(this.modelMatrix);
 	}
 	updateMatrix() {
 		this.modelMatrix = Matrix4.fromTranslationQuaternionRotationScale(
@@ -6695,7 +7016,7 @@ const _zAxis = new Vector3(0, 0, 1);
 const _m1 = new Matrix4();
 const _target = new Vector3();
 new Matrix3();
-const _mvMatrix = new Matrix4();
+new Matrix4();
 
 class Mesh extends RenderObject {
 	constructor(geometry, material) {
@@ -6704,17 +7025,17 @@ class Mesh extends RenderObject {
 		this.material = material;
 		this.type = "primitive";
 	}
-	update(frameState) {
+	update(frameState, camera) {
 		//update matrix
 		this.updateMatrix();
-		this.updateNormalMatrix(frameState.camera);
+		this.updateNormalMatrix(camera);
 		//create
 		this.geometry.update(frameState);
 		this.material.update(frameState, this);
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
-		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(frameState);
+		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		//视锥剔除
 		if (visibility === Intersect$1.INTERSECTING || visibility === Intersect$1.INSIDE) {
@@ -6725,12 +7046,8 @@ class Mesh extends RenderObject {
 			}
 		}
 	}
-	beforeRender() {
-		// console.log('before');
-	}
-	afterRender() {
-		// console.log('after');
-	}
+	beforeRender() {}
+	afterRender() {}
 	getDrawCommand(overrideMaterial) {
 		if (!this.drawCommand || this.material.dirty) {
 			if (this.material.dirty) this.material.dirty = false;
@@ -6743,7 +7060,6 @@ class Mesh extends RenderObject {
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				type: "render",
-				materialType: this.material.type,
 				light: this.material.light
 			});
 		}
@@ -7049,8 +7365,8 @@ class BoundingSphere {
 		this.center = Matrix4.multiplyByPoint(transform, this.center, this.center);
 		this.radius = Matrix4.getMaximumScale(transform) * this.radius;
 	}
-	distanceToCamera(frameState) {
-		return Math.max(0.0, Vector3.distance(this.center, frameState.camera.position) - this.radius);
+	distanceToCamera(camera) {
+		return Math.max(0.0, Vector3.distance(this.center, camera.position) - this.radius);
 	}
 }
 const fromPointsXMin = new Vector3();
@@ -7066,14 +7382,6 @@ const fromPointsMinBoxPt = new Vector3();
 const fromPointsMaxBoxPt = new Vector3();
 const fromPointsNaiveCenterScratch = new Vector3();
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2023-01-12 10:07:57
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-29 17:45:53
- * @FilePath: \GEngine\src\render\VertextBuffer.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class VertextBuffer {
 	constructor(attributes, index, stepMode) {
 		this.index = index || 0;
@@ -7387,8 +7695,11 @@ function wgslParseDefines(strings, ...values) {
 }
 
 function light(defines) {
-	return wgslParseDefines`   
-    #if ${defines.spotLight}
+	return wgslParseDefines`  
+    struct LightColor{
+        color:vec3<f32>,
+    } 
+    #if ${defines.spotLightsCount > 0}
         struct SpotLight {
             position: vec3<f32>,
             distance: f32,
@@ -7398,133 +7709,146 @@ function light(defines) {
             penumbraCos: f32,
             decay: f32,
         };
-        @group(2) @binding(${defines.spotLightBinding}) var<storage, read> spotLights: array<SpotLight>;
-
-        fn getSpotLightInfo(spotLight: SpotLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            let lVector = spotLight.position - geometry.position;
-    
-            light.direction = normalize(lVector);
-    
-            let angleCos = dot(light.direction, spotLight.direction);
-    
-            let spotAttenuation = getSpotAttenuation(spotLight.coneCos, spotLight.penumbraCos, angleCos);
-    
-            if (spotAttenuation > 0.0) {
-    
-                let lightDistance = length(lVector);
-    
-                light.color = spotLight.color * spotAttenuation;
-                light.color *= getDistanceAttenuation(lightDistance, spotLight.distance, spotLight.decay);
-                light.visible = (length(light.color)>0);
-            } else {
-    
-                light.color = vec3(0.0);
-                light.visible = false;
-            }
-            return light;
-        }
+        fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+                var direction:vec3<f32> = spotLight.position - worldPos;
+                var lightColor:LightColor;
+                let lightDistance:f32 = length(direction);
+                direction = normalize(direction);
+                let angleCos:f32 = dot( direction, -spotLight.direction );
+                let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
+                let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
+                let decayTotal:f32 = decay * spotEffect;
+                let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
+                lightColor.color= spotLight.color * d;
+                let halfDir:vec3<f32> = normalize( V + direction );
+                let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
+                lightColor.color= spotLight.color * s;
+                return lightColor;
+           }
     #endif 
 
-    #if ${defines.pointLight}
+    #if ${defines.pointLightsCount > 0}
         struct PointLight {
             position: vec3<f32>,
             distance: f32,
             color: vec3<f32>,
             decay: f32,
         };
-        @group(2) @binding(${defines.pointLightBinding}) var<storage, read> pointLights: array<PointLight>;
-        fn getPointLightInfo(pointLight: PointLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            let lVector:vec3<f32> = pointLight.position - geometry.position;
-            light.direction = normalize(lVector);
-            let lightDistance = length(lVector); 
-            light.color = pointLight.color;
-            light.color *= getDistanceAttenuation(lightDistance, pointLight.distance, pointLight.decay);
-            light.visible =(length(light.color)>0);
-            return light;
-        }
+        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+            var lightColor:LightColor;
+            var direction:vec3<f32> = worldPos - pointLight.position;
+            let dist:f32 = length( direction );
+            direction = normalize(direction);
+            let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
+    
+            let d =  max( dot( N, -direction ), 0.0 ) * decay;
+            lightColor.color += pointLight.color * d;
+    
+            let halfDir:vec3<f32> = normalize( V - direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
+            lightColor.color += pointLight.color * s;
+            return lightColor;
+           }
     #endif
-    #if ${defines.dirtectLight}
+    #if ${defines.dirtectLightsCount > 0}
         struct DirtectLight {
-            color: vec3<f32>,
             direction: vec3<f32>,
+            color: vec3<f32>,
         };
-        @group(2) @binding(${defines.dirtectLightBinding}) var<storage, read> dirtectLights: array<DirtectLight>;
-        fn getDirtectLightInfo(directionalLight: DirtectLight, geometry: GeometricContext) -> IncidentLight {
-            var light:IncidentLight;
-            light.color = directionalLight.color;
-            light.direction = directionalLight.direction;
-            light.visible = true;
-            return light;
+        fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
+            var lightColor:LightColor;
+            let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+            lightColor.color += directionalLight.color * d;
+    
+            let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
+            lightColor.color += directionalLight.color * s;
+            return lightColor;
         }
     #endif
-    #if ${defines.ambientLight}
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
+    #if ${
+		defines.ambientLightCount || defines.spotLightsCount || defines.pointLightsCount || defines.dirtectLightsCount
+	}
+    struct LightUniforms{
+        #if ${defines.ambientLightCount}
             ambient:vec3<f32>,
-        }
-    #else
-        struct CommonLightBuffer{
-            lightCount:vec4<u32>, 
-        }
+        #endif
+        #if ${defines.spotLightsCount}
+            spotLights:array<SpotLight,${defines.spotLightsCount}>,
+        #endif
+        #if ${defines.pointLightsCount}
+            pointLights:array<PointLight,${defines.pointLightsCount}>,
+        #endif
+        #if ${defines.dirtectLightsCount}
+            dirtectLights:array<DirtectLight,${defines.dirtectLightsCount}>,
+        #endif
+        
+    }
+    @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
     #endif
-    @group(2) @binding(0) var<storage, read> commonLightsParms: CommonLightBuffer;
+    // #include <blinn_phong>
     #if ${defines.materialPhong}
-        fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
+    //worldPos:vec3<f32,shininess:f32,N:f32,V:f32
+        //fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
+        fn parseLights(worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32> {
     #elif ${defines.materialPbr}
         fn parseLights(geometry:GeometricContext,material:PhysicalMaterial)->ReflectedLight{
     #endif
 
-        var  incidentLight:IncidentLight;
-        var reflectedLight:ReflectedLight;
-        #if ${defines.dirtectLight}
-            //处理方向光
-            var dirtectLight:DirtectLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.z; i = i + 1u) {
-                dirtectLight = dirtectLights[i];
-                incidentLight=getDirtectLightInfo(dirtectLight, geometry);
-                #if ${defines.materialPhong}
-                    let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-                #elif ${defines.materialPbr}
-                    let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
-                #endif
-                
-                reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
-            }
-        #endif
-        #if ${defines.pointLight}
-            //处理点光源
-            var pointLight:PointLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.y;i = i + 1u) {
-                pointLight = pointLights[i];
-                incidentLight =getPointLightInfo( pointLight, geometry);
-                #if ${defines.materialPhong}
-                    let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-                #elif ${defines.materialPbr}
-                    let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
-                #endif
-                reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
-            }
-        #endif
-        #if ${defines.spotLight}
+        // var  incidentLight:IncidentLight;
+        // var reflectedLight:ReflectedLight;
+        var lightColor = vec3<f32>( 0.0, 0.0, 0.0 );
+        #if ${defines.spotLightsCount > 0}
             //处理聚光灯
-            var spotLight:SpotLight;
-            for (var i : u32 = 0u; i < commonLightsParms.lightCount.x; i = i + 1u) {
-                spotLight = spotLights[i];
-                incidentLight =getSpotLightInfo( spotLight, geometry);
+            // var spotLight:SpotLight;
+            for (var k = 0u; k < ${defines.spotLightsCount}; k = k + 1u) {
+                var spotLight:SpotLight = lightUniforms.spotLights[k];
+               // incidentLight =getSpotLightInfo( spotLight, geometry);
                 #if ${defines.materialPhong}
-                    let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                    //let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                    lightColor=lightColor+getSpotLightInfo(spotLight,worldPos,shininess,N,V).color;
                 #elif ${defines.materialPbr}
                     let spReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
                 #endif
-                reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
-                reflectedLight.directSpecular+=spReflectedLight.directSpecular;
+                // reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
+                // reflectedLight.directSpecular+=spReflectedLight.directSpecular;
             }
         #endif
-        return reflectedLight;
+        #if ${defines.pointLightsCount > 0}
+            //处理点光源
+            var pointLight:PointLight;
+            for (var j= 0u; j < ${defines.pointLightsCount};j = j + 1u) {
+                pointLight = lightUniforms.pointLights[j];
+                // incidentLight =getPointLightInfo( pointLight, geometry);
+                #if ${defines.materialPhong}
+                lightColor=lightColor+getPointLightInfo(pointLight,worldPos,shininess,N,V).color;
+                    //let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                #elif ${defines.materialPbr}
+                    let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
+                #endif
+                // reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
+                // reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
+            }
+        #endif
+        #if ${defines.dirtectLightsCount > 0}
+        //处理方向光
+        var dirtectLight:DirtectLight;
+        for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
+            dirtectLight = lightUniforms.dirtectLights[i];
+            //incidentLight=getDirtectLightInfo(dirtectLight, geometry);
+            #if ${defines.materialPhong}
+                //let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                lightColor=lightColor+getDirtectLightInfo(dirtectLight,shininess,N,V).color;
+            #elif ${defines.materialPbr}
+                let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+            #endif
+            
+            // reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
+            // reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+        }
+    #endif
+        return lightColor;
+        // return reflectedLight;
     }`;
 }
 
@@ -8496,6 +8820,72 @@ function environment(defines) {
    `;
 }
 
+function blinn_phong(defines) {
+	return `
+
+    struct PointLight {
+        position: vec3<f32>,
+        distance: f32,
+        color: vec3<f32>,
+        decay: f32,
+    };
+       fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+        var direction:vec3<f32> = worldPos - pointLight.position;
+        let dist:f32 = length( direction );
+        direction = normalize(direction);
+        let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
+
+        let d =  max( dot( N, -direction ), 0.0 ) * decay;
+        color += pointLight.color * d;
+
+        let halfDir:vec3<f32> = normalize( V - direction );
+        let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
+        color += pointLight.color * s;
+        return color;
+       }
+    //    struct SpotLight {
+    //     position: vec3<f32>,
+    //     distance: f32,
+    //     direction: vec3<f32>,
+    //     coneCos: f32,
+    //     color: vec3<f32>,
+    //     penumbraCos: f32,
+    //     decay: f32,
+    // };
+       fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+            var direction:vec3<f32> = spotLight.position - worldPos;
+            let lightDistance:f32 = length(direction);
+            direction = normalize(direction);
+            let angleCos:f32 = dot( direction, -spotLight.direction );
+            let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
+            let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
+            let decayTotal:f32 = decay * spotEffect;
+            let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
+            color += spotLight.color * d;
+            let halfDir:vec3<f32> = normalize( V + direction );
+            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
+            color += spotLight.color * s;
+            return color;
+       }
+    struct DirtectLight {
+        direction: vec3<f32>,
+        color: vec3<f32>,
+    };
+      fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+        var color=vec3<f32>(0.0,0.0,0.0);
+        let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+        color += directionalLight.color * d;
+
+        let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
+        let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
+        color += directionalLight.color * s;
+        return color;
+       }
+    `;
+}
+
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,
@@ -8506,7 +8896,8 @@ const ShaderChunk = {
 	pbrFunction: pbrFunction,
 	pbrTexture: pbrTexture,
 	pbrUtils: pbrUtils,
-	environment: environment
+	environment: environment,
+	blinn_phong: blinn_phong
 };
 
 function phongVert(defines) {
@@ -8524,7 +8915,7 @@ function phongVert(defines) {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,
             opacity:f32,
-            normalMatrix: mat3x3<f32>,
+            normalMatrix: mat4x4<f32>,
             emissive:vec3<f32>,
             specular:vec3<f32>,
             shininess:f32,
@@ -8549,9 +8940,9 @@ function phongVert(defines) {
             var output: VertexOutput;
             output.vUv = input.uv;
             let modelPos=selfUniform.modelMatrix *vec4<f32>(input.position,1.0);
-            output.worldPos = modelPos.xyz;
-            let vNormalView = selfUniform.normalMatrix * input.normal;
-            output.normal = vNormalView;
+            output.worldPos = modelPos.xyz/modelPos.w;
+            let vNormalView = selfUniform.normalMatrix * vec4<f32>(input.normal,0.0);
+            output.normal =  vNormalView.xyz;
             output.view = systemUniform.cameraPosition.xyz - modelPos.xyz;
             let viewPosition=systemUniform.viewMatrix * modelPos;
             output.viewPosition = -viewPosition.xyz;
@@ -8564,14 +8955,15 @@ function phongVert(defines) {
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2022-10-23 10:06:23
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-31 17:08:55
+ * @LastEditTime: 2023-02-12 10:25:04
  * @FilePath: \GEngine\src\shader\material\phongFrag.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 function phongFrag(defines) {
-	return wgslParseDefines`    
+	return wgslParseDefines`  
   struct VertexOutput {
       @builtin(position) position: vec4<f32>,
+      @builtin(front_facing) is_front: bool,
       @location(0) vUv: vec2<f32>,
       @location(1) view: vec3<f32>, // Vector from vertex to camera.
       @location(2) worldPos: vec3<f32>,
@@ -8588,16 +8980,39 @@ function phongFrag(defines) {
       modelMatrix: mat4x4<f32>,
       color: vec3<f32>,
       opacity:f32,
-      normalMatrix: mat3x3<f32>,
+      normalMatrix: mat4x4<f32>,
       emissive:vec3<f32>,
       shininess:f32,
       specular:vec3<f32>,      
    }
+   struct SystemUniform {
+    projectionMatrix: mat4x4<f32>,
+    viewMatrix: mat4x4<f32>,
+    inverseViewMatrix: mat4x4<f32>,
+    cameraPosition: vec3<f32>,
+  }; 
+  fn getNormal(input:VertexOutput)->vec3<f32>
+{
+    // Retrieve the tangent space matrix
+    let pos_dx:vec3<f32> = dpdx(input.worldPos);
+    let pos_dy:vec3<f32> = dpdy(input.worldPos);
+    let tex_dx:vec3<f32> = dpdx(vec3<f32>(input.vUv, 0.0));
+    let tex_dy:vec3<f32> = dpdy(vec3<f32>(input.vUv, 0.0));
+    var t:vec3<f32> = (tex_dy.y * pos_dx - tex_dx.y * pos_dy) / (tex_dx.x * tex_dy.y - tex_dy.x * tex_dx.y);
+    let ng = input.normal;
+    t = normalize(t - ng * dot(ng, t));
+    let b:vec3<f32> = normalize(cross(ng, t));
+    let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
+    var n:vec3<f32> = tbn[2].xyz;
+    return n;
+}
     #if${defines.baseTexture}
       @group(0) @binding(2) var mySampler: sampler;
       @group(0) @binding(1) var myTexture: texture_2d<f32>;
     #endif
     @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
+    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+
     @fragment
     fn main(input:VertexOutput) -> @location(0) vec4<f32> {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
@@ -8618,11 +9033,13 @@ function phongFrag(defines) {
         geometry.position = -input.viewPosition;
         geometry.normal = input.normal;
         geometry.viewDir =normalize(input.viewPosition);
-
-        let reflectedLight:ReflectedLight= parseLights(geometry,material);
-
-        let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
-
+        let faceDirection:f32 =select(-1.0,1.0,input.is_front);
+        let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
+        let  N:vec3<f32> = getNormal(input);
+        //let reflectedLight:ReflectedLight= parseLights(geometry,material);
+        let finnalColor:vec3<f32>=color.xyz+parseLights(input.worldPos,materialUniform.shininess,N,V);
+        //let finnalColor=reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular+totalEmissiveRadiance;
+        //let finnalColor:vec3<f32>=color.xyz+lightDiffuse+lightSpecular;
         return vec4<f32>(finnalColor,color.a);
     }`;
 }
@@ -9781,14 +10198,75 @@ function pbr_fs(defines) {
    `;
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-18 16:30:53
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-18 18:19:45
- * @FilePath: \GEngine\src\shader\Shaders.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
+function Blur(defines) {
+	return `
+    const KERNEL_RADIUS:u32=${defines.KERNEL_RADIUS}
+    struct FragInput {
+        @location(0) uv: vec2<f32>,
+    };
+    struct BlurUniforms {
+        texSize:vec2<f32>,
+        direction:vec2<f32>,
+    }
+    fn gaussianPdf(x:f32, sigma:f32)->f32 {
+        return 0.39894 * exp( -0.5 * x * x/( sigma * sigma))/sigma;
+    }
+    @group(0) @binding(0)  var<uniform> blurUniforms : BlurUniforms;
+    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @fragment
+    fn main(input:FragInput)-> @location(0) vec4<f32>  {
+        let invSize:vec2<f32> = 1.0 / texSize;
+        let fSigma:f32 = SIGMA;
+        let weightSum:f32 = gaussianPdf(0.0, fSigma);
+        let diffuseSum:vec3<f32> = textureSample(tDiffuse, tSampler, input.uv).rgb * weightSum;
+        for( var i : u32 = 0u;; i < KERNEL_RADIUS; i ++ ) {
+            let x:f32 = i;
+            let w:f32 = gaussianPdf(x, fSigma);
+            let uvOffset:vec2<f32> = direction * invSize * x;
+            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv+ uvOffset).rgb;
+            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv- uvOffset).rgb;
+            diffuseSum += (sample1 + sample2) * w;
+            weightSum += 2.0 * w;
+        }
+      returtn vec4<f32>(diffuseSum/weightSum, 1.0);
+    }
+  `;
+}
+
+function LuminosityHigh(defines) {
+	return `
+    struct LuminosityUniforms{
+        defaultColor:vec3<f32>,
+        defaultOpacity:f32,
+        luminosityThreshold:f32,
+        smoothWidth:f32,
+    }
+    struct FragInput {
+        @location(0) uv: vec2<f32>,
+    };
+    @group(0) @binding(0)  var<uniform> luminosityUniforms : LuminosityUniforms;
+    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @fragment
+    fn main(input:FragInput)-> @location(0) vec4<f32> {
+
+        let texel:vec4<f32> = textureSample(tDiffuse, tSampler, input.uv);
+
+        let luma:vec3<f32> = vec3<f32>( 0.299, 0.587, 0.114 );
+
+        let v:f32 = dot( texel.xyz, luma );
+
+        let outputColor:vec4<f32> = vec4<f32>( defaultColor.rgb, defaultOpacity );
+
+        let alpha:f32 = smoothstep( luminosityUniforms.luminosityThreshold, luminosityUniforms.luminosityThreshold + luminosityUniforms.smoothWidth, v );
+
+       return mix( outputColor, texel, alpha );
+
+    }
+    `;
+}
+
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -9820,6 +10298,14 @@ const shaders = {
 	pbr_mat: {
 		frag: pbr_fs,
 		vert: pbr_vs
+	},
+	blur: {
+		frag: Blur,
+		vert: quadVert
+	},
+	luminosityHigh: {
+		frag: LuminosityHigh,
+		vert: quadVert
 	}
 };
 function resolveIncludes(string) {
@@ -9860,15 +10346,23 @@ class ShaderSource {
 		}
 	}
 	get uid() {
-		this._uid == JSON.stringify(this.defines);
+		this._uid = this.type.concat(JSON.stringify(this.defines));
 		return this._uid;
 	}
 	updateShaderStr() {
-		if (this.render) {
+		if (this.custom) {
+			if (this.compute) {
+				this.compute = ShaderSource.compileCustomShader(this.compute, this.defines);
+			} else {
+				this.vert = ShaderSource.compileCustomShader(this.vert, this.defines);
+				this.frag = ShaderSource.compileCustomShader(this.frag, this.defines);
+			}
+		} else {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
-		} else if (this.custom);
+			console.log(this.frag);
+		}
 	}
 	setDefines(defines) {
 		this.dirty = true;
@@ -9902,6 +10396,11 @@ class ShaderSource {
 		renamedMain = `void ${renamedMain}()`;
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
 	}
+	static compileCustomShader(template, defines) {
+		const names = Object.keys(defines);
+		const vals = Object.values(defines);
+		return new Function(...names, `return \`${template}\`;`)(...vals);
+	}
 }
 
 class Material {
@@ -9934,6 +10433,9 @@ class Material {
 	}
 	get renderState() {
 		return this._renderState;
+	}
+	set renderState(value) {
+		this._renderState = value;
 	}
 	get diffuse() {
 		return this._diffuse;
@@ -10446,14 +10948,6 @@ function createSphere(options) {
 	};
 }
 
-/*
- * @Author: junwei.gu junwei.gu@jiduauto.com
- * @Date: 2022-10-24 19:41:12
- * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-01-30 16:56:45
- * @FilePath: \GEngine\src\geometry\SphereGeometry.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 class SphereGeometry extends Geometry {
 	constructor() {
 		super({});
@@ -10635,7 +11129,7 @@ class PhongMaterial extends Material {
 		});
 		uniformBuffer.setColor("diffuse", this);
 		uniformBuffer.setFloat("opacity", this);
-		uniformBuffer.setMatrix3("normalMtrix", () => {
+		uniformBuffer.setMatrix4("normalMtrix", () => {
 			return mesh.normalMatrix;
 		});
 		uniformBuffer.setColor("emissive", this);
@@ -10907,7 +11401,7 @@ class RenderQueue {
 		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
-		this.compute = [];
+		this.computes = [];
 	}
 	sort() {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
@@ -10927,11 +11421,9 @@ class RenderQueue {
 			mesh.afterRender();
 		});
 	}
-	computeRender(camera, context, passEncoder, replaceMaterial) {
-		this.compute.map((mesh) => {
-			mesh.beforeRender();
-			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
-			mesh.afterRender();
+	computeRender(context, passEncoder) {
+		this.computes.map((compute) => {
+			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
 	preRender(camera, context, passEncoder, replaceMaterial) {
@@ -10950,11 +11442,14 @@ class RenderQueue {
 			context.render(command, passEncoder, camera);
 		}
 	}
+	static excuteCompute(command, context, passEncoder) {
+		context.compute(command, passEncoder);
+	}
 	reset() {
 		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
-		this.compute = [];
+		this.computes = [];
 	}
 	static _compareFromNearToFar(a, b) {
 		return a.priority - b.priority || a.distanceToCamera - b.distanceToCamera;
@@ -11073,7 +11568,6 @@ class FrameState {
 		this.frameNumber = 0;
 		this._defines = {};
 		this.definesDirty = true;
-		this.environment = undefined;
 	}
 	get defines() {
 		return this._defines;
@@ -11083,9 +11577,8 @@ class FrameState {
 		this._defines = combine(value, this._defines, false);
 	}
 	update(camera) {
-		this.camera = camera;
 		this.renderQueue.reset();
-		this.cullingVolume = this.camera.getCullingVolume();
+		this.cullingVolume = camera.getCullingVolume();
 		this.frameNumber += 1;
 	}
 }
@@ -11107,9 +11600,9 @@ class PrimitiveManger {
 	get length() {
 		return this._list.length;
 	}
-	update(frameState) {
+	update(frameState, camera) {
 		this._list.forEach((primitive) => {
-			primitive.update(frameState);
+			primitive.update(frameState, camera);
 		});
 	}
 	add(instance, index) {
@@ -11165,6 +11658,7 @@ class Pass {
 	render(renderQueue) {}
 	beforeRender() {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
+		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
 	getColorTexture(index = 0) {
 		return this.renderTarget.getColorTexture(index);
@@ -11174,6 +11668,7 @@ class Pass {
 	}
 	afterRender() {
 		this.renderTarget.endRenderPassEncoder();
+		if (this.computeTarget) this.computeTarget.endComputePassEncoder();
 	}
 }
 
@@ -11185,6 +11680,7 @@ class RenderTarget {
 		this.stencilAttachment = stencilAttachment;
 		this.querySet = querySet;
 		this.renderEncoder = undefined;
+		this.computeEncoder = undefined;
 		this._renderPassDescriptor = undefined;
 		this.commandEncoder = undefined;
 		this.context = undefined;
@@ -11207,40 +11703,37 @@ class RenderTarget {
 		}
 	}
 	getRenderPassDescriptor() {
-		if (this.type === "render") {
-			this.depthAttachment?.texture?.update(this.context);
-			return {
-				...(this.colorAttachments && {
-					colorAttachments: this.colorAttachments.map((colorAttachment) => {
-						colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
-						return {
-							view:
-								//暂时这么写
-								colorAttachment.texture.gpuTexture.createView() || undefined,
-							resolveTarget:
-								colorAttachment.resolveTarget != undefined
-									? colorAttachment.resolveTarget.gpuTexture.createView()
-									: undefined,
-							clearValue: colorAttachment.value,
-							loadOp: colorAttachment.op,
-							storeOp: colorAttachment.storeOp
-						};
-					})
-				}),
-				...((this.depthAttachment || this.stencilAttachment) && {
-					depthStencilAttachment: {
-						view: this.depthAttachment?.texture?.gpuTexture?.createView() || undefined,
-						depthLoadOp: this.depthAttachment?.op || "clear",
-						depthClearValue: this.depthAttachment?.value || 1.0,
-						depthStoreOp: this.depthAttachment?.storeOp || "store"
-						// stencilLoadOp: this.stencilAttachment?.op || "clear",
-						// stencilClearValue: this.stencilAttachment?.value || 0,
-						// stencilStoreOp: this.stencilAttachment?.storeOp || "store",
-					}
+		this.depthAttachment?.texture?.update(this.context);
+		return {
+			...(this.colorAttachments && {
+				colorAttachments: this.colorAttachments.map((colorAttachment) => {
+					colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
+					return {
+						view:
+							//暂时这么写
+							colorAttachment.texture.gpuTexture.createView() || undefined,
+						resolveTarget:
+							colorAttachment.resolveTarget != undefined
+								? colorAttachment.resolveTarget.gpuTexture.createView()
+								: undefined,
+						clearValue: colorAttachment.value,
+						loadOp: colorAttachment.op,
+						storeOp: colorAttachment.storeOp
+					};
 				})
-			};
-		}
-		return null;
+			}),
+			...((this.depthAttachment || this.stencilAttachment) && {
+				depthStencilAttachment: {
+					view: this.depthAttachment?.texture?.gpuTexture?.createView() || undefined,
+					depthLoadOp: this.depthAttachment?.op || "clear",
+					depthClearValue: this.depthAttachment?.value || 1.0,
+					depthStoreOp: this.depthAttachment?.storeOp || "store"
+					// stencilLoadOp: this.stencilAttachment?.op || "clear",
+					// stencilClearValue: this.stencilAttachment?.value || 0,
+					// stencilStoreOp: this.stencilAttachment?.storeOp || "store",
+				}
+			})
+		};
 	}
 	beginRenderPassEncoder(context) {
 		if (!this.context) this.context = context;
@@ -11255,34 +11748,28 @@ class RenderTarget {
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	resize(width, height) {
-		const size = {
-			width,
-			height,
-			depth: this.colorAttachments[0]?.texture?.textureProp?.size.depth || 1
-		};
-		for (let i = 0; i < this.colorAttachments.length; ++i) {
-			if (this.colorAttachments[i].texture) {
-				const resizedTexture = new Texture({
-					...this.colorAttachments[i].texture.textureProp,
-					size
-				});
-				resizedTexture.update(this.context);
-				this.colorAttachments[i].texture.destroy();
-				this.colorAttachments[i].texture = resizedTexture;
-				this.renderPassDescriptor.colorAttachments[i].view = resizedTexture.gpuTexture.createView();
-			}
-		}
-		if (this.depthAttachment.texture) {
-			const resizedTexture = new Texture({
-				...this.depthAttachment.texture.textureProp,
-				size
+	beginComputePassEncoder(context) {
+		if (!this.context) this.context = context;
+		const { device } = this.context;
+		this.commandEncoder = device.createCommandEncoder();
+		this.computeEncoder = this.commandEncoder.beginComputePass();
+		return this.computeEncoder;
+	}
+	endComputePassEncoder() {
+		this.computeEncoder?.end();
+		this.context.device.queue.submit([this.commandEncoder.finish()]);
+		this.commandEncoder = null;
+		this.renderEncoder = null;
+	}
+	setSize(width, height, depth) {
+		if (this.colorAttachments) {
+			this.colorAttachments.map((colorAttachment) => {
+				if (colorAttachment.texture) {
+					colorAttachment.texture.setSize(width, height, depth);
+				}
 			});
-			resizedTexture.update(this.context);
-			this.depthAttachment.texture.destroy();
-			this.depthAttachment.texture = resizedTexture;
-			this.renderPassDescriptor.depthStencilAttachment.view = resizedTexture.gpuTexture.createView();
 		}
+		if (this.depthAttachment.texture) this.depthAttachment.texture.setSize(width, height, depth);
 	}
 }
 
@@ -11317,6 +11804,73 @@ class BasicPass extends Pass {
 	}
 }
 
+function checkContainFloatType(uniforms) {
+	let result = 0;
+	const uniformsNames = Object.getOwnPropertyNames(uniforms);
+	uniformsNames.map((uniformsName) => {
+		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
+			result += 0;
+		} else {
+			result += 1;
+		}
+	});
+	return result;
+}
+function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
+	switch (uniform.type) {
+		case "float":
+			uniformBuffer.setFloat(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec2":
+			uniformBuffer.setFloatVec2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec3":
+			uniformBuffer.setFloatVec3(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "color":
+			uniformBuffer.setColor(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec4":
+			uniformBuffer.setFloatVec4(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat2":
+			uniformBuffer.setMatrix2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "mat3":
+			uniformBuffer.setMatrix3(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat4":
+			uniformBuffer.setMatrix4(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "texture":
+			shaderData.setTexture(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "sampler":
+			shaderData.setSampler(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		default:
+			throw new Error("not match unifrom type");
+	}
+}
+
 class ShaderMaterial extends Material {
 	constructor(options) {
 		super();
@@ -11327,7 +11881,7 @@ class ShaderMaterial extends Material {
 			frag,
 			vert,
 			custom: true,
-			defines: {},
+			defines: defaultValue(options.defines, {}),
 			render: true
 		});
 		this.uniforms = uniforms;
@@ -11338,68 +11892,20 @@ class ShaderMaterial extends Material {
 	}
 	createShaderData(mesh) {
 		super.createShaderData(mesh);
-		//
+		if (checkContainFloatType(this.uniforms)) {
+			this.uniformBuffer = new UniformBuffer();
+			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
+		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
 		uniformsNames.map((uniformsName) => {
-			this.addUniformToShaderData(uniformsName, this.uniforms[uniformsName]);
+			addUniformToShaderData(
+				uniformsName,
+				this.uniforms[uniformsName],
+				this.uniforms,
+				this.shaderData,
+				this.uniformBuffer
+			);
 		});
-		if (this.uniformBuffer) this.shaderData.setUniformBuffer("custom", this.uniformBuffer);
-	}
-	addUniformToShaderData(name, uniform) {
-		switch (uniform.type) {
-			case "vec2":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec2(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "vec3":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec3(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "color":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setColor(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "vec4":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setFloatVec4(name, () => {
-					return this.uniforms[name].value;
-				});
-			case "mat2":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix2(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "mat3":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix3(name, () => {
-					return this.uniforms[name].value;
-				});
-			case "mat4":
-				if (this.uniformBuffer) this.uniformBuffer = new UniformBuffer();
-				this.uniformBuffer.setMatrix4(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "texture":
-				this.shaderData.setTexture(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			case "sampler":
-				this.shaderData.setSampler(name, () => {
-					return this.uniforms[name].value;
-				});
-				break;
-			default:
-				throw new Error("not match unifrom type");
-		}
 	}
 }
 
@@ -11439,12 +11945,10 @@ class ResolveFrame {
 			gpuTexture: context.context.getCurrentTexture()
 		};
 		this.material.update(undefined, this.quadMesh);
-		this.quadMesh.beforeRender();
 		const drawComand = this.quadMesh.getDrawCommand();
 		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context);
 		context.render(drawComand, currentRenderPassEncoder);
 		this.canvasRenderTarget.endRenderPassEncoder();
-		this.quadMesh.afterRender();
 	}
 	initRenderTarget(context) {
 		const colorAttachment = new Attachment(
@@ -11498,7 +12002,7 @@ class ForwardRenderLine {
 		this.resolveFrame = new ResolveFrame();
 	}
 	render(frameState, camera) {
-		this.basicPass.beforeRender();
+		this.basicPass.beforRender();
 		this.basicPass.render(frameState.renderQueue, camera);
 		this.basicPass.afterRender();
 		this.resolveFrame.render(frameState.context, this.basicPass.getColorTexture(0));
@@ -11652,9 +12156,9 @@ class Scene extends EventDispatcher {
 		this.frameState.viewport = this.viewport;
 		this.frameState.update(this.camera);
 		//更新灯光
-		this.context.lightManger.update(this.frameState);
+		this.context.lightManger.update(this.frameState, this.camera);
 		//update primitive and select
-		this.primitiveManger.update(this.frameState);
+		this.primitiveManger.update(this.frameState, this.camera);
 		//selct renderPipeline
 		this.currentRenderPipeline.render(this.frameState, this.camera);
 	}
@@ -11795,11 +12299,9 @@ class CullingVolume {
 	 * @returns {CullingVolume} The culling volume created from the bounding sphere.
 	 */
 	static fromBoundingSphere(boundingSphere, result) {
-		//>>includeStart('debug', pragmas.debug);
 		if (!defined(boundingSphere)) {
 			throw new Error("boundingSphere is required.");
 		}
-		//>>includeEnd('debug');
 		if (!defined(result)) {
 			result = new CullingVolume();
 		}
@@ -12047,8 +12549,47 @@ class PerspectiveCamera extends Camera {
 	}
 }
 
+class Light {
+	constructor(color, intensity) {
+		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
+		this._intensity = intensity;
+		this._position = new Vector3(0, 0, 0);
+		this.positionDirty = true;
+		this.colorDirty = true;
+		this.intensityDirty = true;
+	}
+	get position() {
+		return this._position;
+	}
+	set position(value) {
+		this.positionDirty = true;
+		this._position = value;
+	}
+	get color() {
+		return this._color;
+	}
+	set color(value) {
+		this.colorDirty = true;
+		this._color = value;
+	}
+	set intensity(value) {
+		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
+		this.intensityDirty = true;
+		this._intensity = value;
+	}
+	get intensity() {
+		return this._intensity;
+	}
+	update(camera) {
+		camera.viewMatrix;
+		let position = this.position.clone();
+		// position = position.applyMatrix4(viewMatrix);
+		this.positionVC = position;
+	}
+}
+
 class SpotLight extends Light {
-	constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 1, decay = 1) {
+	constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0.5, decay = 1) {
 		super(color, intensity);
 		this._distance = distance;
 		this._angle = angle;
@@ -12121,6 +12662,13 @@ class SpotLight extends Light {
 	updateConeCosOrPenumbraCos() {
 		this._coneCos = Math.cos(this.angle);
 		this._penumbraCos = Math.cos(this.angle * (1 - this.penumbra));
+	}
+	update(camera) {
+		super.update(camera);
+		let dirtect = this.dirtect.clone();
+		camera.viewMatrix;
+		//this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		this.dirtectVC = dirtect;
 	}
 }
 //uniform
@@ -12210,6 +12758,13 @@ class DirtectLight extends Light {
 	}
 	get dirtect() {
 		return Vector3.normalize(this._dirtect, new Vector3());
+	}
+	update(camera) {
+		super.update(camera);
+		let dirtect = this.dirtect.clone();
+		camera.viewMatrix;
+		// this.dirtectVC = dirtect.transformDirection(viewMatrix);
+		this.dirtectVC = dirtect.normalize();
 	}
 }
 //uniform

@@ -1,9 +1,4 @@
-import {
-  DepthStencil,
-  RenderState,
-  Target,
-  Primitive,
-} from "../render/RenderState";
+import { DepthStencil, RenderState, Target, Primitive } from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { ShaderSource } from "../shader/ShaderSource";
@@ -13,119 +8,118 @@ import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
 import { CullMode, PrimitiveTopology } from "../core/WebGPUConstant";
 export class Material {
-  public shaderData: ShaderData;
+	public shaderData: ShaderData;
 
-  color?: Color;
+	color?: Color;
 
-  baseSampler?: Sampler;
+	baseSampler?: Sampler;
 
-  baseTexture?: Texture;
+	baseTexture?: Texture;
 
-  type: string;
+	type: string;
 
-  label: string;
+	label: string;
 
-  shaderSource: ShaderSource;
+	shaderSource: ShaderSource;
 
-  transparent: boolean;
+	transparent: boolean;
 
-  dirty: boolean;
+	dirty: boolean;
 
-  light: boolean;
+	light: boolean;
 
-  private _emissive: Color;
+	private _emissive: Color;
 
-  private _opacity: number;
+	private _opacity: number;
 
-  private _emissiveIntensity: number;
+	private _emissiveIntensity: number;
 
-  private _diffuse: Color;
+	private _diffuse: Color;
 
-  private _renderState: RenderState;
+	private _renderState: RenderState;
 
-  private _doubleSided: boolean;
+	private _doubleSided: boolean;
 
-  constructor() {
-    this.label = undefined;
-    this.type = undefined;
-    this.baseTexture = undefined;
-    this.baseSampler = undefined;
-    this._diffuse = new Color(1.0, 0.0);
-    this._opacity = 1.0;
-    //Buffer
-    this.shaderData = undefined;
-    this.shaderSource = undefined;
-    this.dirty = true;
-    this._emissive = new Color(0.0, 0.0, 0);
-    this._emissiveIntensity = 1.0;
-    this._doubleSided = true;
-    this.light = false;
-    this.init();
-  }
-  public set wireframe(value: Boolean) {
-    this.renderState.primitive.topology = value
-      ? PrimitiveTopology.LineList
-      : PrimitiveTopology.TriangleList;
-  }
-  public get doubleSided() {
-    return this._doubleSided;
-  }
-  public set doubleSided(value: boolean) {
-    this._renderState.primitive.cullMode = value
-      ? CullMode.None
-      : CullMode.Back;
-    this._doubleSided = value;
-  }
-  public get renderState() {
-    return this._renderState;
-  }
-  public get diffuse(): Color {
-    return this._diffuse;
-  }
-  public set diffuse(v: Color) {
-    this._diffuse = v;
-  }
-  public get emissive(): Color {
-    return this._emissive;
-  }
-  public set emissive(v: Color) {
-    this._emissive = v;
-  }
-  public get emissiveIntensity(): number {
-    return this._emissiveIntensity;
-  }
-  public set emissiveIntensity(v: number) {
-    this._emissiveIntensity = v;
-  }
-  public get opacity(): number {
-    return this._opacity;
-  }
-  public set opacity(v: number) {
-    this._opacity = v;
-  }
-  onBeforeRender() {}
+	constructor() {
+		this.label = undefined;
+		this.type = undefined;
+		this.baseTexture = undefined;
+		this.baseSampler = undefined;
+		this._diffuse = new Color(1.0, 0.0);
+		this._opacity = 1.0;
+		//Buffer
+		this.shaderData = undefined;
+		this.shaderSource = undefined;
+		this.dirty = true;
+		this._emissive = new Color(0.0, 0.0, 0);
+		this._emissiveIntensity = 1.0;
+		this._doubleSided = true;
+		this.light = false;
+		this.init();
+	}
+	public set wireframe(value: Boolean) {
+		this.renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
+	}
+	public get doubleSided() {
+		return this._doubleSided;
+	}
+	public set doubleSided(value: boolean) {
+		this._renderState.primitive.cullMode = value ? CullMode.None : CullMode.Back;
+		this._doubleSided = value;
+	}
+	public get renderState() {
+		return this._renderState;
+	}
+	public set renderState(value: RenderState) {
+		this._renderState = value;
+	}
+	public get diffuse(): Color {
+		return this._diffuse;
+	}
+	public set diffuse(v: Color) {
+		this._diffuse = v;
+	}
+	public get emissive(): Color {
+		return this._emissive;
+	}
+	public set emissive(v: Color) {
+		this._emissive = v;
+	}
+	public get emissiveIntensity(): number {
+		return this._emissiveIntensity;
+	}
+	public set emissiveIntensity(v: number) {
+		this._emissiveIntensity = v;
+	}
+	public get opacity(): number {
+		return this._opacity;
+	}
+	public set opacity(v: number) {
+		this._opacity = v;
+	}
+	onBeforeRender() {}
 
-  onBeforeCompile() {}
+	onBeforeCompile() {}
 
-  update(frameState?: FrameState, mesh?: Mesh) {}
-  protected createShaderData(mesh: Mesh, frameState?: FrameState) {
-    this.shaderData = new ShaderData(this.type, 0);
-  }
-  private init() {
-    //默认渲染状态
-    const primitive = new Primitive();
-    const target = new Target();
-    const depthStencil = new DepthStencil();
-    this._renderState = new RenderState();
-    this._renderState.primitive = primitive;
-    this._renderState.targets = [target];
-    this._renderState.depthStencil = depthStencil;
-  }
-  public destroy() {
-    this.label = undefined;
-    this.type = undefined;
-    this.baseTexture = undefined;
-    this.baseSampler = undefined;
-    this.color = undefined;
-  }
+	update(frameState?: FrameState, mesh?: Mesh) {}
+	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
+		this.shaderData = new ShaderData(this.type, 0);
+	}
+	private init() {
+		//默认渲染状态
+		const primitive = new Primitive();
+		const target = new Target();
+		const depthStencil = new DepthStencil();
+		this._renderState = new RenderState();
+		this._renderState.primitive = primitive;
+		this._renderState.targets = [target];
+		this._renderState.depthStencil = depthStencil;
+	}
+	public destroy() {
+		this.label = undefined;
+		this.type = undefined;
+		this.baseTexture = undefined;
+		this.baseSampler = undefined;
+		this.color = undefined;
+	}
 }

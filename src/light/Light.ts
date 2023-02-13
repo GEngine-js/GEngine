@@ -1,3 +1,4 @@
+import Camera from "../camera/Camera";
 import RenderObject from "../core/RenderObject";
 import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
@@ -15,6 +16,7 @@ export class Light {
 	positionDirty: boolean;
 	public _shadowCollection: Map<Camera, BaseShadow>;
 
+	public positionVC: Vector3;
 	constructor(color: Vector3, intensity: number) {
 		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
 		this._intensity = intensity;
@@ -57,5 +59,11 @@ export class Light {
 
 	public getAllShadow(): Map<Camera, BaseShadow> {
 		return this._shadowCollection;
+	}
+	update(camera: Camera) {
+		const viewMatrix = camera.viewMatrix;
+		let position = this.position.clone();
+		// position = position.applyMatrix4(viewMatrix);
+		this.positionVC = position;
 	}
 }

@@ -8,16 +8,19 @@ import { Light } from "../light/Light.js";
 
 class Pass {
 	public renderTarget: RenderTarget;
+	public computeTarget: RenderTarget;
 	public context: Context;
 	public overrideMaterial?: Material;
 	public colorTargets?: Array<Target>;
 	public passRenderEncoder: GPURenderPassEncoder | null;
+	public passComputeEncoder: GPUComputePassEncoder;
 	constructor(context: Context) {
 		this.context = context;
 	}
 	render(renderQueue: RenderQueue): void {}
-	beforeRender(light?: Light) {
+	beforRender(light?: Light) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
+		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
 	getColorTexture(index: number = 0): Texture {
 		return this.renderTarget.getColorTexture(index) as Texture;
@@ -27,6 +30,7 @@ class Pass {
 	}
 	afterRender() {
 		this.renderTarget.endRenderPassEncoder();
+		if (this.computeTarget) this.computeTarget.endComputePassEncoder();
 	}
 }
 
