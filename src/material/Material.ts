@@ -45,7 +45,7 @@ export class Material {
 		this.type = undefined;
 		this.baseTexture = undefined;
 		this.baseSampler = undefined;
-		this._diffuse = new Color(1.0, 0.0);
+		this._diffuse = new Color(0.0, 0.0, 0.0);
 		this._opacity = 1.0;
 		//Buffer
 		this.shaderData = undefined;

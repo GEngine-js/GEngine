@@ -10,9 +10,13 @@ import Intersect from "./Intersect";
 export default class BoundingSphere {
 	radius: number;
 	center: Vector3;
+	originRadius: number;
+	originCenter: Vector3;
 	constructor(center: Vector3 = new Vector3(0, 0, 0), radius = 0) {
 		this.center = center;
 		this.radius = radius;
+		this.originCenter = this.center.clone();
+		this.originRadius = radius;
 	}
 	/**
 	 * @param {Vector3[]} [positions] An array of points that the bounding sphere will enclose.  Each point must have <code>x</code>, <code>y</code>, and <code>z</code> properties.
@@ -347,8 +351,8 @@ export default class BoundingSphere {
 		return Intersect.INSIDE;
 	}
 	update(transform: Matrix4) {
-		this.center = Matrix4.multiplyByPoint(transform, this.center, this.center);
-		this.radius = Matrix4.getMaximumScale(transform) * this.radius;
+		Matrix4.multiplyByPoint(transform, this.originCenter, this.center);
+		this.radius = Matrix4.getMaximumScale(transform) * this.originRadius;
 	}
 	distanceToCamera(camera: Camera) {
 		return Math.max(0.0, Vector3.distance(this.center, camera.position) - this.radius);

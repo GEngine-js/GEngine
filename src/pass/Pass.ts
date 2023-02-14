@@ -4,6 +4,8 @@ import Context from "../render/Context.js";
 import { Target } from "../render/RenderState";
 import Texture from "../render/Texture.js";
 import RenderQueue from "../core/RenderQueue.js";
+import { Light } from "../light/Light.js";
+import { FrameState } from "../core/FrameState.js";
 
 class Pass {
 	public renderTarget: RenderTarget;
@@ -16,8 +18,8 @@ class Pass {
 	constructor(context: Context) {
 		this.context = context;
 	}
-	render(renderQueue: RenderQueue): void {}
-	beforRender() {
+	render(frameState: FrameState): void {}
+	beforeRender() {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
 		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}

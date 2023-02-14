@@ -66,7 +66,7 @@ export default function phongFrag(defines) {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         var color:vec4<f32>;
         #if${defines.baseTexture}
-            color=textureSample(myTexture, mySampler, input.vUv)*vec4<f32>(materialUniform.color,materialUniform.opacity);
+            color= vec4<f32>(textureSample(myTexture, mySampler, input.vUv).rgb+materialUniform.color,materialUniform.opacity);
         #else
             color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     
