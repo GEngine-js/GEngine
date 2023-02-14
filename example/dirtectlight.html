@@ -50,7 +50,7 @@
 				PhongMaterial,
 				Vector3,
 				Color,
-				DirtectLight,
+				DirectionalLight,
 				Axes
 			} from "../dist/index.js";
 
@@ -90,14 +90,14 @@
 				camera.lookAt(0, 0, 0);
 
 				// console.log(camera.viewMatrix);
-				const dirtectLight = new DirtectLight(new Vector3(1.0, 1.0, 1.0), 1.0, new Vector3(0, 1, 0));
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0, new Vector3(0, 1, 0));
 				// spotLight.position=new Vector3(0,16,0);
 
 				const scene = new Scene({ container: "app" });
 				scene.add(primitive);
 				scene.add(axes);
 				scene.setCamera(camera);
-				scene.addLight(dirtectLight);
+				scene.addLight(directionalLight);
 				primitive.rotateY(0.01);
 				primitive.rotateZ(1.8);
 				function animate() {

@@ -12,7 +12,7 @@ export default class RenderTarget {
 	private computeEncoder: GPUComputePassEncoder;
 	constructor(
 		public type: PassType,
-		public colorAttachments?: Attachment[],
+		public colorAttachments: Attachment[],
 		public depthAttachment?: Attachment,
 		public stencilAttachment?: Attachment,
 		public querySet?: QuerySet
