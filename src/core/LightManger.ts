@@ -7,6 +7,7 @@ import ShaderData from "../render/ShaderData";
 import { BufferUsage } from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
+import { Light } from "../light/Light";
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
 	pointLights: PointLight[];
@@ -116,6 +117,16 @@ export default class LightManger {
 		}
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
 	}
+
+	public getAllLights(): Array<Light> {
+		const result = [];
+		this.spotLights = [];
+		this.pointLights = [];
+		this.dirtectLights = [];
+
+		return result.concat(this.spotLights, this.pointLights, this.dirtectLights);
+	}
+
 	destroy() {
 		this.lightShaderData.destroy();
 		this.lightUniformBuffer.destroy();

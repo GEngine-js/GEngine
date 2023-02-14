@@ -9,23 +9,29 @@ import Texture from "../render/Texture";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
 import { BaseShadow } from "../light/shadows/BaseShadow";
+import { FrameState } from "../core/FrameState";
 
 export class ShadowPass extends Pass {
 	constructor(context: Context) {
 		super(context);
 		this.init(context);
 	}
-	render(renderQueue: RenderQueue, camera?: Camera) {
+
+	render(frameState: FrameState, camera?: Camera) {
+		const { renderQueue, context } = frameState;
+		const lights = context.lightManger.getAllLights();
+		if (lights.length === 0) return;
+
+		for (let i = 0; i < lights.length; i++) {
+			const light = lights[i];
+			const shadow = light.shadow;
+			this.setRenderTarget(shadow);
+		}
+
 		renderQueue.sort();
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
 		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
 		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
-	}
-	beforeRender(light: Light) {
-		const shadow = light.shadow;
-		this.setRenderTarget(shadow);
-
-		super.beforeRender();
 	}
 
 	private setRenderTarget(shadow: BaseShadow) {
