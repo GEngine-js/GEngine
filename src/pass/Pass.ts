@@ -4,6 +4,7 @@ import Context from "../render/Context.js";
 import { Target } from "../render/RenderState";
 import Texture from "../render/Texture.js";
 import RenderQueue from "../core/RenderQueue.js";
+import { Light } from "../light/Light.js";
 
 class Pass {
 	public renderTarget: RenderTarget;
@@ -17,7 +18,7 @@ class Pass {
 		this.context = context;
 	}
 	render(renderQueue: RenderQueue): void {}
-	beforRender() {
+	beforeRender(light?: Light) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
 		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
