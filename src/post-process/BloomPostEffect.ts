@@ -3,6 +3,7 @@ import { Uniforms } from "../core/WebGPUTypes";
 import ShaderMaterial from "../material/ShaderMaterial";
 import Color from "../math/Color";
 import Vector2 from "../math/Vector2";
+import Vector3 from "../math/Vector3";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
@@ -11,6 +12,8 @@ import getVertFrag from "../shader/Shaders";
 import PostEffect from "./PostEffect";
 
 export default class BloomPostEffect extends PostEffect {
+	static BlurDirectionX = new Vector2(1.0, 0.0);
+	static BlurDirectionY = new Vector2(0.0, 1.0);
 	strength: number;
 	radius: number;
 	threshold: number;
@@ -22,6 +25,9 @@ export default class BloomPostEffect extends PostEffect {
 	highPassUniforms: Uniforms;
 	compositeMaterial: ShaderMaterial;
 	separableBlurMaterials: ShaderMaterial[];
+	blendUniforms: Uniforms;
+	blendMaterial: ShaderMaterial;
+	blendTarget: RenderTarget;
 
 	constructor(options: BloomPostEffectProps) {
 		super(options.width, options.height);
@@ -31,7 +37,41 @@ export default class BloomPostEffect extends PostEffect {
 		this.init();
 	}
 	setSize(width: number, height: number, depth?: number): void {}
-	render(context: Context, colorTexture: Texture): void {}
+	render(context: Context, colorTexture: Texture): void {
+		// 1. Extract Bright Areas
+		this.currentRenderTarget = this.renderTargetBright;
+		this.highPassUniforms.tDiffuse.value = colorTexture;
+		this.fullScreenQuad.material = this.materialHighPassFilter;
+		this.renderMesh(context);
+		// 2. Blur All the mips progressively
+		let inputRenderTarget = this.renderTargetBright;
+		for (let i = 0; i < this.nMips; i++) {
+			this.fullScreenQuad.material = this.separableBlurMaterials[i];
+
+			this.separableBlurMaterials[i].uniforms.tDiffuse.value = inputRenderTarget.getColorTexture();
+			this.separableBlurMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionX;
+			this.currentRenderTarget = this.renderTargetsHorizontal[i];
+
+			this.renderMesh(context);
+
+			this.separableBlurMaterials[i].uniforms.tDiffuse.value = this.renderTargetsHorizontal[i].getColorTexture();
+			this.separableBlurMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionY;
+			this.currentRenderTarget = this.renderTargetsVertical[i];
+
+			this.renderMesh(context);
+
+			inputRenderTarget = this.renderTargetsVertical[i];
+		}
+		// Composite All the mips
+		this.fullScreenQuad.material = this.compositeMaterial;
+		this.currentRenderTarget = this.renderTargetsHorizontal[0];
+		this.renderMesh(context);
+		//blend
+		this.blendUniforms.tDiffuse1.value = colorTexture;
+		this.fullScreenQuad.material = this.blendMaterial;
+		this.currentRenderTarget = this.blendTarget;
+		this.renderMesh(context);
+	}
 	private init() {
 		this.renderTargetsHorizontal = [];
 		this.renderTargetsVertical = [];
@@ -53,14 +93,12 @@ export default class BloomPostEffect extends PostEffect {
 			tDiffuse: { type: "texture", value: null },
 			tSampler: {
 				type: "sampler",
-				value: () => {
-					return this.defaultSampler;
-				}
+				value: this.defaultSampler
 			},
 			luminosityThreshol: { type: "float", value: this.threshold },
 			smoothWidth: { type: "float", value: 0.01 },
-			defaultColor: { type: "color", value: new Color(0, 0, 0) },
-			defaultOpacity: { type: "float", value: 0.0 }
+			defaultColor: { type: "color", value: new Color(0.0, 0, 0) },
+			defaultOpacity: { type: "float", value: 1.0 }
 		};
 		const shader = getVertFrag("luminosityHigh", {});
 		this.materialHighPassFilter = new ShaderMaterial({
@@ -70,16 +108,16 @@ export default class BloomPostEffect extends PostEffect {
 			frag: shader.frag
 		});
 		// Gaussian Blur Materials
-
+		this.materialHighPassFilter.renderState = this.renderState;
 		this.separableBlurMaterials = [];
 		const kernelSizeArray = [3, 5, 7, 9, 11];
 		resx = Math.round(this.width / 2);
 		resy = Math.round(this.height / 2);
 
 		for (let i = 0; i < this.nMips; i++) {
-			this.separableBlurMaterials.push(this.getSeperableBlurMaterial(kernelSizeArray[i], "BlurMaterial"));
+			this.separableBlurMaterials.push(this.getSeperableBlurMaterial(kernelSizeArray[i], "BlurMaterial" + i));
 
-			this.separableBlurMaterials[i].uniforms["texSize"].value = new Vector2(resx, resy);
+			// this.separableBlurMaterials[i].uniforms.texSize.value = new Vector2(resx, resy);
 
 			resx = Math.round(resx / 2);
 
@@ -87,21 +125,32 @@ export default class BloomPostEffect extends PostEffect {
 		}
 		// Composite material
 		this.compositeMaterial = this.getCompositeMaterial(this.nMips, "compositeMaterial");
-		this.compositeMaterial.uniforms["blurTexture1"].value = this.renderTargetsVertical[0].getColorTexture();
-		this.compositeMaterial.uniforms["blurTexture2"].value = this.renderTargetsVertical[1].getColorTexture();
-		this.compositeMaterial.uniforms["blurTexture3"].value = this.renderTargetsVertical[2].getColorTexture();
-		this.compositeMaterial.uniforms["blurTexture4"].value = this.renderTargetsVertical[3].getColorTexture();
-		this.compositeMaterial.uniforms["blurTexture5"].value = this.renderTargetsVertical[4].getColorTexture();
-		this.compositeMaterial.uniforms["bloomStrength"].value = this.strength;
-		this.compositeMaterial.uniforms["bloomRadius"].value = 0.1;
+		this.compositeMaterial.renderState = this.renderState;
+		this.blendUniforms = {
+			tDiffuse: { type: "texture", value: this.renderTargetsHorizontal[0].getColorTexture() },
+			tDiffuse1: { type: "texture", value: null },
+			tSampler: {
+				type: "sampler",
+				value: this.defaultSampler
+			}
+		};
+		const blendShader = getVertFrag("blend", {});
+		this.blendMaterial = new ShaderMaterial({
+			type: "postBlend",
+			uniforms: this.blendUniforms,
+			vert: blendShader.vert,
+			frag: blendShader.frag
+		});
+		this.blendMaterial.renderState = this.renderState;
+		this.blendTarget = new RenderTarget("render", [this.createColorAttachment(this.width, this.height)]);
 	}
 	private createColorAttachment(width: number, height: number): Attachment {
 		const colorTexture = new Texture({
 			size: { width, height, depth: 1 },
-			format: TextureFormat.RGBA8Unorm,
+			format: TextureFormat.BGRA8Unorm,
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
-		const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, { texture: colorTexture });
+		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		return colorAttachment;
 	}
 	private getCompositeMaterial(nMips: number, type): ShaderMaterial {
@@ -109,22 +158,28 @@ export default class BloomPostEffect extends PostEffect {
 		return new ShaderMaterial({
 			type,
 			uniforms: {
-				blurTexture1: { type: "texture", value: null },
-				blurTexture2: { type: "texture", value: null },
-				blurTexture3: { type: "texture", value: null },
-				blurTexture4: { type: "texture", value: null },
-				blurTexture5: { type: "texture", value: null },
+				blurTexture1: { type: "texture", value: this.renderTargetsVertical[0].getColorTexture() },
+				blurTexture2: { type: "texture", value: this.renderTargetsVertical[1].getColorTexture() },
+				blurTexture3: { type: "texture", value: this.renderTargetsVertical[2].getColorTexture() },
+				blurTexture4: { type: "texture", value: this.renderTargetsVertical[3].getColorTexture() },
+				blurTexture5: { type: "texture", value: this.renderTargetsVertical[4].getColorTexture() },
 				tSampler: {
 					type: "sampler",
-					value: () => {
-						return this.defaultSampler;
-					}
+					value: this.defaultSampler
 				},
-				bloomStrength: { type: "float", value: 1.0 },
-
-				// bloomFactors: {type:'texture', value: null },
-				// bloomTintColors: {type:'color', value: null },
-				bloomRadius: { type: "float", value: 0.0 }
+				bloomStrength: { type: "float", value: this.strength },
+				bloomRadius: { type: "float", value: this.radius },
+				bloomFactors: { type: "float-array", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
+				bloomTintColors: {
+					type: "vec3-array",
+					value: [
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1)
+					]
+				}
 			},
 
 			vert: `
@@ -148,23 +203,20 @@ export default class BloomPostEffect extends PostEffect {
                 struct FragInput {
                     @location(0) uv: vec2<f32>,
                 };
-
-				uniform float bloomFactors[NUM_MIPS];
-				uniform vec3 bloomTintColors[NUM_MIPS];
                 struct BloomUniforms{
                     bloomStrength:f32,
                     bloomRadius:f32,
-                    bloomFactors : array<f32,${NUM_MIPS}>,
-                    bloomTintColors : array<vec3<f32>,${NUM_MIPS}>
+                    bloomFactors : array<f32,5>,
+                    bloomTintColors : array<vec3<f32>,5>
                 }  
-                @group(0) @binding(0)  var<uniform> bloomUniforms : BloomUniforms;
+                @group(0) @binding(0)  var<storage, read> bloomUniforms : BloomUniforms;
 
-                @group(0) @binding(${blurTexture1Binding}) var blurTexture1: texture_2d<f32>;
-                @group(0) @binding(${blurTexture2Binding}) var blurTexture2: texture_2d<f32>;
-                @group(0) @binding(${blurTexture3Binding}) var blurTexture3: texture_2d<f32>;
-                @group(0) @binding(${blurTexture4Binding}) var blurTexture4: texture_2d<f32>;
-                @group(0) @binding(${blurTexture5Binding}) var blurTexture5: texture_2d<f32>;
-                @group(0) @binding(${tSamplerBinding}) var tSampler: sampler;
+                @group(0) @binding({{blurTexture1Binding}}) var blurTexture1: texture_2d<f32>;
+                @group(0) @binding({{blurTexture2Binding}}) var blurTexture2: texture_2d<f32>;
+                @group(0) @binding({{blurTexture3Binding}}) var blurTexture3: texture_2d<f32>;
+                @group(0) @binding({{blurTexture4Binding}}) var blurTexture4: texture_2d<f32>;
+                @group(0) @binding({{blurTexture5Binding}}) var blurTexture5: texture_2d<f32>;
+                @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
 
 				fn lerpBloomFactor(factor:f32)->f32 {
 					let mirrorFactor:f32 = 1.2 - factor;
@@ -181,21 +233,19 @@ export default class BloomPostEffect extends PostEffect {
 		});
 	}
 	private getSeperableBlurMaterial(kernelRadius, type) {
-		const shader = getVertFrag("Blur", {
+		const shader = getVertFrag("blur", {
 			KERNEL_RADIUS: kernelRadius,
 			SIGMA: kernelRadius
 		});
-		return new ShaderMaterial({
+		const mat = new ShaderMaterial({
 			type,
 			uniforms: {
-				colorTexture: { type: "texture", value: null },
-				texSize: { type: "vec2", value: new Vector2(0.5, 0.5) },
-				direction: { type: "vec2", value: new Vector2(0.5, 0.5) },
+				tDiffuse: { type: "texture", value: null },
+				// texSize: { type: "vec2", value: new Vector2(0.5, 0.5) },
+				direction: { type: "vec2", value: new Vector2(0.0, 0.0) },
 				tSampler: {
 					type: "sampler",
-					value: () => {
-						return this.defaultSampler;
-					}
+					value: this.defaultSampler
 				}
 			},
 
@@ -203,6 +253,8 @@ export default class BloomPostEffect extends PostEffect {
 
 			frag: shader.frag
 		});
+		mat.renderState = this.renderState;
+		return mat;
 	}
 }
 

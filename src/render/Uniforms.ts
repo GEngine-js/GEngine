@@ -304,7 +304,7 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
 		this.byteSize = 4 * count;
-		this.type = "array";
+		this.type = "float-array";
 	}
 	set(): boolean {
 		this.value = this.cb();
@@ -330,7 +330,7 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 8;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec2-array";
 	}
 	set(): boolean {
 		this.value = this.cb();
@@ -359,7 +359,7 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec3-array";
 	}
 	set(): boolean {
 		this.value = this.cb();
@@ -390,7 +390,7 @@ export class UniformVec4Array extends Uniform<Array<Vector4>> {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec4-array";
 	}
 	set(): boolean {
 		this.value = this.cb();
@@ -411,17 +411,19 @@ export class UniformTexture extends Uniform<Texture> {
 	public visibility: ShaderStage;
 	public name: string;
 	public texture: Texture;
+	private _texture: Function | Texture;
 	constructor(uniformName: string, binding: number, texture: Function | Texture) {
 		super(uniformName);
 		this.binding = binding;
 		this.type = "texture";
 		this.visibility = ShaderStage.Fragment;
-		this.texture = texture instanceof Function ? texture() : texture;
+		this._texture = texture;
 	}
 	get layoutType() {
 		return this.texture.layoutType;
 	}
 	bind(context: Context) {
+		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
 		this.texture.update(context);
 	}
 }
@@ -431,18 +433,20 @@ export class UniformSampler extends Uniform<Sampler> {
 	public visibility: ShaderStage;
 	public name: string;
 	public sampler: Texture;
+	private _sampler: Function | Sampler;
 	constructor(uniformName: string, binding: number, sampler: Function | Sampler) {
 		super(uniformName);
 		this.name = uniformName;
 		this.binding = binding;
 		this.type = "sampler";
 		this.visibility = ShaderStage.Fragment;
-		this.sampler = sampler instanceof Function ? sampler() : sampler;
+		this._sampler = sampler;
 	}
 	get layoutType() {
 		return this.sampler.layoutType;
 	}
 	bind(context: Context) {
+		this.sampler = this._sampler instanceof Function ? this._sampler() : this._sampler;
 		this.sampler.update(context);
 	}
 }
@@ -535,7 +539,7 @@ export class UniformPointLights extends Uniform<PointLight> {
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "spotsLight";
+		this.type = "pointsLight";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
@@ -581,7 +585,7 @@ export class UniformDirtectLights extends Uniform<DirtectLight> {
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "spotsLight";
+		this.type = "dirtectLights";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {

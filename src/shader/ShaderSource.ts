@@ -84,8 +84,12 @@ export class ShaderSource {
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
 	}
 	static compileCustomShader(template, defines): string {
-		const names = Object.keys(defines);
-		const vals = Object.values(defines);
-		return new Function(...names, `return \`${template}\`;`)(...vals);
+		const reg = /\{\{(\w+)\}\}/;
+		if (reg.test(template)) {
+			const name = reg.exec(template)[1];
+			template = template.replace(reg, defines[name]);
+			return ShaderSource.compileCustomShader(template, defines);
+		}
+		return template;
 	}
 }

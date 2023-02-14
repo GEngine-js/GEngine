@@ -1,3 +1,4 @@
+import { TextureFormat } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import { Mesh } from "../mesh/Mesh";
 import { Float32Attribute } from "../render/Attribute";
@@ -30,13 +31,15 @@ export default class PostEffect {
 	setSize(width: number, height: number, depth?: number) {}
 	render(context: Context, colorTexture: Texture) {}
 	protected renderMesh(context: Context) {
+		this.fullScreenQuad.material.dirty = true;
+		this.fullScreenQuad.material.update();
 		const drawComand = this.fullScreenQuad.getDrawCommand();
 		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPassEncoder(context);
 		context.render(drawComand, currentRenderPassEncoder);
 		this.currentRenderTarget.endRenderPassEncoder();
 	}
 	private initDefaultParms() {
-		const geometry = new Geometry();
+		const geometry = new Geometry({});
 		geometry.setAttribute(
 			new Float32Attribute("position", [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0], 2)
 		);
@@ -44,6 +47,7 @@ export default class PostEffect {
 		//rs
 		const primitive = new Primitive();
 		const target = new Target();
+		// target.format=TextureFormat.RGBA8Unorm
 		const renderState = new RenderState();
 		renderState.primitive = primitive;
 		renderState.targets = [target];

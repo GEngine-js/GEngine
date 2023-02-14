@@ -10,6 +10,7 @@ export default class RenderTarget {
 	private renderEncoder: GPURenderPassEncoder;
 	private commandEncoder: GPUCommandEncoder | null;
 	private computeEncoder: GPUComputePassEncoder;
+	texture: any;
 	constructor(
 		public type: PassType,
 		public colorAttachments?: Attachment[],

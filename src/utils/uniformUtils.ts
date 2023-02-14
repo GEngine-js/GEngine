@@ -1,18 +1,30 @@
 import { IUniform, Uniforms } from "../core/WebGPUTypes";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
-
+const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
 export function checkContainFloatType(uniforms) {
 	let result = 0;
+	let hasArraytype = false;
 	const uniformsNames = Object.getOwnPropertyNames(uniforms);
 	uniformsNames.map((uniformsName) => {
 		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
 			result += 0;
 		} else {
-			result += 1;
+			if (
+				uniformArrayNames.find((name) => {
+					return name === uniforms[uniformsName].type;
+				})
+			) {
+				hasArraytype = true;
+			} else {
+				result += 1;
+			}
 		}
 	});
-	return result;
+	return {
+		hasFloat: result,
+		hasArraytype
+	};
 }
 export function addUniformToShaderData(
 	name: string,
@@ -59,6 +71,42 @@ export function addUniformToShaderData(
 			uniformBuffer.setMatrix4(name, () => {
 				return uniforms[name].value;
 			});
+			break;
+		case "float-array":
+			uniformBuffer.setFloatArray(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec2-array":
+			uniformBuffer.setVec2Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec3-array":
+			uniformBuffer.setVec3Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec4-array":
+			uniformBuffer.setVec4Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
 			break;
 		case "texture":
 			shaderData.setTexture(name, () => {

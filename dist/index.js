@@ -4813,7 +4813,7 @@ class UniformFloatArray extends Uniform {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
 		this.byteSize = 4 * count;
-		this.type = "array";
+		this.type = "float-array";
 	}
 	set() {
 		this.value = this.cb();
@@ -4830,7 +4830,7 @@ class UniformVec2Array extends Uniform {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 8;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec2-array";
 	}
 	set() {
 		this.value = this.cb();
@@ -4850,7 +4850,7 @@ class UniformVec3Array extends Uniform {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec3-array";
 	}
 	set() {
 		this.value = this.cb();
@@ -4872,7 +4872,7 @@ class UniformVec4Array extends Uniform {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "array";
+		this.type = "vec4-array";
 	}
 	set() {
 		this.value = this.cb();
@@ -4894,12 +4894,13 @@ class UniformTexture extends Uniform {
 		this.binding = binding;
 		this.type = "texture";
 		this.visibility = ShaderStage.Fragment;
-		this.texture = texture instanceof Function ? texture() : texture;
+		this._texture = texture;
 	}
 	get layoutType() {
 		return this.texture.layoutType;
 	}
 	bind(context) {
+		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
 		this.texture.update(context);
 	}
 }
@@ -4910,12 +4911,13 @@ class UniformSampler extends Uniform {
 		this.binding = binding;
 		this.type = "sampler";
 		this.visibility = ShaderStage.Fragment;
-		this.sampler = sampler instanceof Function ? sampler() : sampler;
+		this._sampler = sampler;
 	}
 	get layoutType() {
 		return this.sampler.layoutType;
 	}
 	bind(context) {
+		this.sampler = this._sampler instanceof Function ? this._sampler() : this._sampler;
 		this.sampler.update(context);
 	}
 }
@@ -4933,7 +4935,6 @@ class UniformSpotLights extends Uniform {
 		this.lights.forEach((spotLight, index) => {
 			this.setSubData(spotLight, index);
 		});
-		debugger;
 	}
 	setSubData(spotLight, index) {
 		const offset = index * 16;
@@ -4974,7 +4975,7 @@ class UniformPointLights extends Uniform {
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "spotsLight";
+		this.type = "pointsLight";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
@@ -4982,7 +4983,6 @@ class UniformPointLights extends Uniform {
 		this.lights.forEach((pointLight, index) => {
 			this.setSubData(pointLight, index);
 		});
-		debugger;
 	}
 	setSubData(pointLight, index) {
 		const offset = index * 8;
@@ -5011,7 +5011,7 @@ class UniformDirtectLights extends Uniform {
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		this.type = "spotsLight";
+		this.type = "dirtectLights";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
@@ -5019,7 +5019,6 @@ class UniformDirtectLights extends Uniform {
 		this.lights.forEach((dirtectLight, index) => {
 			this.setSubData(dirtectLight, index);
 		});
-		debugger;
 	}
 	setSubData(dirtectLight, index) {
 		const offset = index * 8;
@@ -5105,6 +5104,9 @@ class BindGroupLayout {
 			return bindGroupLayout;
 		}
 	}
+	static removeBindGroupLayoutFromCache(bindGroupLayout) {
+		layoutCache.delete(bindGroupLayout);
+	}
 }
 
 const bindGroupCache = new Map();
@@ -5132,6 +5134,9 @@ class BindGroup {
 			bindGroupCache.set(options.label, bindGroup);
 			return bindGroup;
 		}
+	}
+	static removeBindGroupFromCache(bindGroup) {
+		bindGroupCache.delete(bindGroup);
 	}
 }
 
@@ -5190,8 +5195,15 @@ class ShaderData {
 	}
 	destroy() {
 		this._uniforms.forEach((uniform) => {
-			uniform.destroy();
+			if (uniform.destroy) uniform?.destroy();
 		});
+		this.label = undefined;
+		this.textureBinding = 1;
+		this.defineDirty = true;
+		this.defines = {};
+		this._uniforms.clear();
+		BindGroupLayout.removeBindGroupLayoutFromCache(this.groupLayout);
+		BindGroup.removeBindGroupFromCache(this.bindGroup);
 	}
 	getBindGroupAndLayout(device, label, index) {
 		const layoutEntities = this.createBindGroupLayoutEntry();
@@ -8474,13 +8486,6 @@ function environment(defines) {
 
 function blinn_phong(defines) {
 	return `
-
-    struct PointLight {
-        position: vec3<f32>,
-        distance: f32,
-        color: vec3<f32>,
-        decay: f32,
-    };
        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
         var color=vec3<f32>(0.0,0.0,0.0);
         var direction:vec3<f32> = worldPos - pointLight.position;
@@ -8496,15 +8501,6 @@ function blinn_phong(defines) {
         color += pointLight.color * s;
         return color;
        }
-    //    struct SpotLight {
-    //     position: vec3<f32>,
-    //     distance: f32,
-    //     direction: vec3<f32>,
-    //     coneCos: f32,
-    //     color: vec3<f32>,
-    //     penumbraCos: f32,
-    //     decay: f32,
-    // };
        fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
         var color=vec3<f32>(0.0,0.0,0.0);
             var direction:vec3<f32> = spotLight.position - worldPos;
@@ -9852,36 +9848,35 @@ function pbr_fs(defines) {
 
 function Blur(defines) {
 	return `
-    const KERNEL_RADIUS:u32=${defines.KERNEL_RADIUS}
     struct FragInput {
         @location(0) uv: vec2<f32>,
-    };
+    }
     struct BlurUniforms {
-        texSize:vec2<f32>,
         direction:vec2<f32>,
     }
     fn gaussianPdf(x:f32, sigma:f32)->f32 {
         return 0.39894 * exp( -0.5 * x * x/( sigma * sigma))/sigma;
     }
     @group(0) @binding(0)  var<uniform> blurUniforms : BlurUniforms;
-    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
-    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @group(0) @binding({{tDiffuseBinding}}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
     @fragment
-    fn main(input:FragInput)-> @location(0) vec4<f32>  {
-        let invSize:vec2<f32> = 1.0 / texSize;
-        let fSigma:f32 = SIGMA;
-        let weightSum:f32 = gaussianPdf(0.0, fSigma);
-        let diffuseSum:vec3<f32> = textureSample(tDiffuse, tSampler, input.uv).rgb * weightSum;
-        for( var i : u32 = 0u;; i < KERNEL_RADIUS; i ++ ) {
-            let x:f32 = i;
+    fn main(input:FragInput) -> @location(0) vec4<f32> {
+        let invSize:vec2<f32> = vec2<f32>(1.0,1.0) / vec2<f32>(textureDimensions(tDiffuse));
+        let fSigma:f32 =f32(${defines.SIGMA});
+        var weightSum:f32 = gaussianPdf(0.0, fSigma);
+        var diffuseSum:vec3<f32> = textureSample(tDiffuse, tSampler, input.uv).rgb * weightSum;
+        let uvOffset:vec2<f32> = blurUniforms.direction * invSize;
+        for( var i : u32 = 1; i < ${defines.KERNEL_RADIUS};i = i + 1 ) {
+            let x:f32 = f32(i);
             let w:f32 = gaussianPdf(x, fSigma);
-            let uvOffset:vec2<f32> = direction * invSize * x;
-            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv+ uvOffset).rgb;
-            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv- uvOffset).rgb;
-            diffuseSum += (sample1 + sample2) * w;
+            let sample1:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv+ uvOffset*x).rgb;
+            let sample2:vec3<f32>=textureSample(tDiffuse, tSampler, input.uv- uvOffset*x).rgb;
+            diffuseSum += (sample2+sample2)* w;
             weightSum += 2.0 * w;
         }
-      returtn vec4<f32>(diffuseSum/weightSum, 1.0);
+        diffuseSum/=weightSum;
+      return vec4<f32>(diffuseSum,1.0);
     }
   `;
 }
@@ -9889,33 +9884,49 @@ function Blur(defines) {
 function LuminosityHigh(defines) {
 	return `
     struct LuminosityUniforms{
-        defaultColor:vec3<f32>,
-        defaultOpacity:f32,
         luminosityThreshold:f32,
         smoothWidth:f32,
+        defaultColor:vec3<f32>,
+        defaultOpacity:f32,
     }
     struct FragInput {
         @location(0) uv: vec2<f32>,
     };
     @group(0) @binding(0)  var<uniform> luminosityUniforms : LuminosityUniforms;
-    @group(0) @binding(${defines.tDiffuseBinding}) var tDiffuse: texture_2d<f32>;
-    @group(0) @binding(${defines.tSamplerBinding}) var tSampler: sampler;
+    @group(0) @binding({{tDiffuseBinding}}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
     @fragment
     fn main(input:FragInput)-> @location(0) vec4<f32> {
 
         let texel:vec4<f32> = textureSample(tDiffuse, tSampler, input.uv);
 
-        let luma:vec3<f32> = vec3<f32>( 0.299, 0.587, 0.114 );
+        let luma:vec3<f32> = vec3<f32>( 0.299,0.587,0.114 );
 
         let v:f32 = dot( texel.xyz, luma );
 
-        let outputColor:vec4<f32> = vec4<f32>( defaultColor.rgb, defaultOpacity );
+        let outputColor:vec4<f32> = vec4<f32>( luminosityUniforms.defaultColor.rgb, luminosityUniforms.defaultOpacity );
 
         let alpha:f32 = smoothstep( luminosityUniforms.luminosityThreshold, luminosityUniforms.luminosityThreshold + luminosityUniforms.smoothWidth, v );
 
        return mix( outputColor, texel, alpha );
-
     }
+    `;
+}
+
+function blendFrag(defines) {
+	return `
+    struct FragInput {
+        @location(0) uv: vec2<f32>,
+    };
+    @group(0) @binding({{tDiffuseBinding}}) var tDiffuse: texture_2d<f32>;
+    @group(0) @binding({{tDiffuse1Binding}}) var tDiffuse1: texture_2d<f32>;
+    @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
+    @fragment
+    fn main(input:FragInput) -> @location(0) vec4<f32> {
+        let baseColor:vec4<f32> = textureSample(tDiffuse, tSampler, input.uv);
+        let baseColor1:vec4<f32> = textureSample(tDiffuse1, tSampler, input.uv);
+      return baseColor+baseColor1;
+    }   
     `;
 }
 
@@ -9957,6 +9968,10 @@ const shaders = {
 	},
 	luminosityHigh: {
 		frag: LuminosityHigh,
+		vert: quadVert
+	},
+	blend: {
+		frag: blendFrag,
 		vert: quadVert
 	}
 };
@@ -10013,7 +10028,6 @@ class ShaderSource {
 			const source = getVertFrag(this.type, this.defines);
 			this.vert = source.vert;
 			this.frag = source.frag;
-			console.log(this.frag);
 		}
 	}
 	setDefines(defines) {
@@ -10049,9 +10063,13 @@ class ShaderSource {
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
 	}
 	static compileCustomShader(template, defines) {
-		const names = Object.keys(defines);
-		const vals = Object.values(defines);
-		return new Function(...names, `return \`${template}\`;`)(...vals);
+		const reg = /\{\{(\w+)\}\}/;
+		if (reg.test(template)) {
+			const name = reg.exec(template)[1];
+			template = template.replace(reg, defines[name]);
+			return ShaderSource.compileCustomShader(template, defines);
+		}
+		return template;
 	}
 }
 
@@ -11450,23 +11468,36 @@ class BasicPass extends Pass {
 			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment
 		});
-		const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, { texture: colorTexture });
+		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 		this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
 	}
 }
 
+const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
 function checkContainFloatType(uniforms) {
 	let result = 0;
+	let hasArraytype = false;
 	const uniformsNames = Object.getOwnPropertyNames(uniforms);
 	uniformsNames.map((uniformsName) => {
 		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
 			result += 0;
 		} else {
-			result += 1;
+			if (
+				uniformArrayNames.find((name) => {
+					return name === uniforms[uniformsName].type;
+				})
+			) {
+				hasArraytype = true;
+			} else {
+				result += 1;
+			}
 		}
 	});
-	return result;
+	return {
+		hasFloat: result,
+		hasArraytype
+	};
 }
 function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
 	switch (uniform.type) {
@@ -11508,6 +11539,42 @@ function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuff
 				return uniforms[name].value;
 			});
 			break;
+		case "float-array":
+			uniformBuffer.setFloatArray(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec2-array":
+			uniformBuffer.setVec2Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec3-array":
+			uniformBuffer.setVec3Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec4-array":
+			uniformBuffer.setVec4Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
 		case "texture":
 			shaderData.setTexture(name, () => {
 				return uniforms[name].value;
@@ -11519,6 +11586,7 @@ function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuff
 			});
 			break;
 		default:
+			debugger;
 			throw new Error("not match unifrom type");
 	}
 }
@@ -11526,17 +11594,17 @@ function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuff
 class ShaderMaterial extends Material {
 	constructor(options) {
 		super();
-		const { type, frag, vert, uniforms } = options;
+		const { type, frag, vert, defines } = options;
 		this.type = type;
 		this.shaderSource = new ShaderSource({
 			type,
 			frag,
 			vert,
 			custom: true,
-			defines: defaultValue(options.defines, {}),
+			defines: defaultValue(defines, {}),
 			render: true
 		});
-		this.uniforms = uniforms;
+		this.uniforms = options.uniforms;
 		this.uniformBuffer = undefined;
 	}
 	update(frameState, mesh) {
@@ -11544,8 +11612,11 @@ class ShaderMaterial extends Material {
 	}
 	createShaderData(mesh) {
 		super.createShaderData(mesh);
-		if (checkContainFloatType(this.uniforms)) {
-			this.uniformBuffer = new UniformBuffer();
+		let result = checkContainFloatType(this.uniforms);
+		if (result.hasFloat) {
+			this.uniformBuffer = result.hasArraytype
+				? new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
+				: new UniformBuffer();
 			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
 		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
@@ -11621,17 +11692,279 @@ class ResolveFrame {
 	}
 }
 
+class PostEffect {
+	constructor(width, height) {
+		this.width = width;
+		this.height = height;
+		this.initDefaultParms();
+	}
+	setSize(width, height, depth) {}
+	render(context, colorTexture) {}
+	renderMesh(context) {
+		this.fullScreenQuad.material.dirty = true;
+		this.fullScreenQuad.material.update();
+		const drawComand = this.fullScreenQuad.getDrawCommand();
+		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPassEncoder(context);
+		context.render(drawComand, currentRenderPassEncoder);
+		this.currentRenderTarget.endRenderPassEncoder();
+	}
+	initDefaultParms() {
+		const geometry = new Geometry({});
+		geometry.setAttribute(
+			new Float32Attribute("position", [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0], 2)
+		);
+		geometry.count = 6;
+		//rs
+		const primitive = new Primitive();
+		const target = new Target();
+		// target.format=TextureFormat.RGBA8Unorm
+		const renderState = new RenderState();
+		renderState.primitive = primitive;
+		renderState.targets = [target];
+		this.renderState = renderState;
+		this.fullScreenQuad = new Mesh(geometry);
+		this.defaultSampler = new Sampler();
+	}
+}
+
+class BloomPostEffect extends PostEffect {
+	constructor(options) {
+		super(options.width, options.height);
+		this.strength = options.strength;
+		this.radius = options.radius;
+		this.threshold = options.threshold;
+		this.init();
+	}
+	setSize(width, height, depth) {}
+	render(context, colorTexture) {
+		debugger;
+		// 1. Extract Bright Areas
+		this.currentRenderTarget = this.renderTargetBright;
+		this.highPassUniforms.tDiffuse.value = colorTexture;
+		this.fullScreenQuad.material = this.materialHighPassFilter;
+		this.renderMesh(context);
+		// 2. Blur All the mips progressively
+		let inputRenderTarget = this.renderTargetBright;
+		debugger;
+		for (let i = 0; i < this.nMips; i++) {
+			this.fullScreenQuad.material = this.separableBlurMaterials[i];
+			this.separableBlurMaterials[i].uniforms.tDiffuse.value = inputRenderTarget.getColorTexture();
+			this.separableBlurMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionX;
+			this.currentRenderTarget = this.renderTargetsHorizontal[i];
+			this.renderMesh(context);
+			this.separableBlurMaterials[i].uniforms.tDiffuse.value = this.renderTargetsHorizontal[i].getColorTexture();
+			this.separableBlurMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionY;
+			this.currentRenderTarget = this.renderTargetsVertical[i];
+			this.renderMesh(context);
+			inputRenderTarget = this.renderTargetsVertical[i];
+		}
+		// Composite All the mips
+		this.fullScreenQuad.material = this.compositeMaterial;
+		this.currentRenderTarget = this.renderTargetsHorizontal[0];
+		this.renderMesh(context);
+		//blend
+		this.blendUniforms.tDiffuse1.value = colorTexture;
+		this.fullScreenQuad.material = this.blendMaterial;
+		this.currentRenderTarget = this.blendTarget;
+		this.renderMesh(context);
+	}
+	init() {
+		this.renderTargetsHorizontal = [];
+		this.renderTargetsVertical = [];
+		this.nMips = 5;
+		let resx = Math.round(this.width / 2);
+		let resy = Math.round(this.height / 2);
+		this.renderTargetBright = new RenderTarget("render", [this.createColorAttachment(resx, resy)]);
+		for (let i = 0; i < this.nMips; i++) {
+			const renderTargetHorizonal = new RenderTarget("render", [this.createColorAttachment(resx, resy)]);
+			this.renderTargetsHorizontal.push(renderTargetHorizonal);
+			const renderTargetVertical = new RenderTarget("render", [this.createColorAttachment(resx, resy)]);
+			this.renderTargetsVertical.push(renderTargetVertical);
+			resx = Math.round(resx / 2);
+			resy = Math.round(resy / 2);
+		} // luminosity high pass material
+		this.highPassUniforms = {
+			tDiffuse: { type: "texture", value: null },
+			tSampler: {
+				type: "sampler",
+				value: this.defaultSampler
+			},
+			luminosityThreshol: { type: "float", value: this.threshold },
+			smoothWidth: { type: "float", value: 0.01 },
+			defaultColor: { type: "color", value: new Color(0.0, 0, 0) },
+			defaultOpacity: { type: "float", value: 1.0 }
+		};
+		const shader = getVertFrag("luminosityHigh", {});
+		this.materialHighPassFilter = new ShaderMaterial({
+			type: "bloom",
+			uniforms: this.highPassUniforms,
+			vert: shader.vert,
+			frag: shader.frag
+		});
+		// Gaussian Blur Materials
+		this.materialHighPassFilter.renderState = this.renderState;
+		this.separableBlurMaterials = [];
+		const kernelSizeArray = [3, 5, 7, 9, 11];
+		resx = Math.round(this.width / 2);
+		resy = Math.round(this.height / 2);
+		for (let i = 0; i < this.nMips; i++) {
+			this.separableBlurMaterials.push(this.getSeperableBlurMaterial(kernelSizeArray[i], "BlurMaterial" + i));
+			// this.separableBlurMaterials[i].uniforms.texSize.value = new Vector2(resx, resy);
+			resx = Math.round(resx / 2);
+			resy = Math.round(resy / 2);
+		}
+		// Composite material
+		this.compositeMaterial = this.getCompositeMaterial(this.nMips, "compositeMaterial");
+		this.compositeMaterial.renderState = this.renderState;
+		this.blendUniforms = {
+			tDiffuse: { type: "texture", value: this.renderTargetsHorizontal[0].getColorTexture() },
+			tDiffuse1: { type: "texture", value: null },
+			tSampler: {
+				type: "sampler",
+				value: this.defaultSampler
+			}
+		};
+		const blendShader = getVertFrag("blend", {});
+		this.blendMaterial = new ShaderMaterial({
+			type: "postBlend",
+			uniforms: this.blendUniforms,
+			vert: blendShader.vert,
+			frag: blendShader.frag
+		});
+		this.blendMaterial.renderState = this.renderState;
+		this.blendTarget = new RenderTarget("render", [this.createColorAttachment(this.width, this.height)]);
+	}
+	createColorAttachment(width, height) {
+		const colorTexture = new Texture({
+			size: { width, height, depth: 1 },
+			format: TextureFormat.BGRA8Unorm,
+			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+		});
+		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
+		return colorAttachment;
+	}
+	getCompositeMaterial(nMips, type) {
+		//@ts-nocheck
+		return new ShaderMaterial({
+			type,
+			uniforms: {
+				blurTexture1: { type: "texture", value: this.renderTargetsVertical[0].getColorTexture() },
+				blurTexture2: { type: "texture", value: this.renderTargetsVertical[1].getColorTexture() },
+				blurTexture3: { type: "texture", value: this.renderTargetsVertical[2].getColorTexture() },
+				blurTexture4: { type: "texture", value: this.renderTargetsVertical[3].getColorTexture() },
+				blurTexture5: { type: "texture", value: this.renderTargetsVertical[4].getColorTexture() },
+				tSampler: {
+					type: "sampler",
+					value: this.defaultSampler
+				},
+				bloomStrength: { type: "float", value: this.strength },
+				bloomRadius: { type: "float", value: this.radius },
+				bloomFactors: { type: "float-array", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
+				bloomTintColors: {
+					type: "vec3-array",
+					value: [
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1),
+						new Vector3(1, 1, 1)
+					]
+				}
+			},
+			vert: `
+              struct VertexInput {
+                    @location(0) position: vec2<f32>,       
+               }
+               struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                };
+               @vertex
+               fn main(input: VertexInput) -> VertexOutput {
+                var output:VertexOutput;
+                output.uv = input.position * 0.5 + 0.5;
+                output.position = vec4<f32>(input.position, 0.0, 1.0);;
+                return output;
+               }
+                `,
+			frag: `
+                struct FragInput {
+                    @location(0) uv: vec2<f32>,
+                };
+                struct BloomUniforms{
+                    bloomStrength:f32,
+                    bloomRadius:f32,
+                    bloomFactors : array<f32,5>,
+                    bloomTintColors : array<vec3<f32>,5>
+                }  
+                @group(0) @binding(0)  var<storage, read> bloomUniforms : BloomUniforms;
+
+                @group(0) @binding({{blurTexture1Binding}}) var blurTexture1: texture_2d<f32>;
+                @group(0) @binding({{blurTexture2Binding}}) var blurTexture2: texture_2d<f32>;
+                @group(0) @binding({{blurTexture3Binding}}) var blurTexture3: texture_2d<f32>;
+                @group(0) @binding({{blurTexture4Binding}}) var blurTexture4: texture_2d<f32>;
+                @group(0) @binding({{blurTexture5Binding}}) var blurTexture5: texture_2d<f32>;
+                @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
+
+				fn lerpBloomFactor(factor:f32)->f32 {
+					let mirrorFactor:f32 = 1.2 - factor;
+					return mix(factor, mirrorFactor, bloomUniforms.bloomRadius);
+				}
+                @fragment
+				fn main(input:FragInput)-> @location(0) vec4<f32>  {
+					return bloomUniforms.bloomStrength * ( lerpBloomFactor(bloomUniforms.bloomFactors[0]) * vec4(bloomUniforms.bloomTintColors[0], 1.0) * textureSample(blurTexture1, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[1]) * vec4<f32>(bloomUniforms.bloomTintColors[1], 1.0) * textureSample(blurTexture2, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[2]) * vec4<f32>(bloomUniforms.bloomTintColors[2], 1.0) * textureSample(blurTexture3, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[3]) * vec4<f32>(bloomUniforms.bloomTintColors[3], 1.0) * textureSample(blurTexture4, tSampler, input.uv) +
+						lerpBloomFactor(bloomUniforms.bloomFactors[4]) * vec4<f32>(bloomUniforms.bloomTintColors[4], 1.0) * textureSample(blurTexture5, tSampler, input.uv) );
+				}`
+		});
+	}
+	getSeperableBlurMaterial(kernelRadius, type) {
+		const shader = getVertFrag("blur", {
+			KERNEL_RADIUS: kernelRadius,
+			SIGMA: kernelRadius
+		});
+		const mat = new ShaderMaterial({
+			type,
+			uniforms: {
+				tDiffuse: { type: "texture", value: null },
+				// texSize: { type: "vec2", value: new Vector2(0.5, 0.5) },
+				direction: { type: "vec2", value: new Vector2(0.0, 0.0) },
+				tSampler: {
+					type: "sampler",
+					value: this.defaultSampler
+				}
+			},
+			vert: shader.vert,
+			frag: shader.frag
+		});
+		mat.renderState = this.renderState;
+		return mat;
+	}
+}
+BloomPostEffect.BlurDirectionX = new Vector2(1.0, 0.0);
+BloomPostEffect.BlurDirectionY = new Vector2(0.0, 1.0);
+
 class ForwardRenderLine {
 	constructor(context) {
 		this.context = context;
 		this.basicPass = new BasicPass(context);
+		this.bloomEffect = new BloomPostEffect({
+			width: context.presentationSize.width,
+			height: context.presentationSize.height,
+			strength: 0.8,
+			radius: 1.0,
+			threshold: 0.5
+		});
 		this.resolveFrame = new ResolveFrame();
 	}
 	render(frameState, camera) {
 		this.basicPass.beforRender();
 		this.basicPass.render(frameState.renderQueue, camera);
 		this.basicPass.afterRender();
-		this.resolveFrame.render(frameState.context, this.basicPass.getColorTexture(0));
+		this.bloomEffect.render(this.context, this.basicPass.getColorTexture());
+		this.resolveFrame.render(frameState.context, this.bloomEffect.currentRenderTarget.getColorTexture(0));
 	}
 	destroy() {
 		this.basicPass = undefined;

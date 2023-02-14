@@ -1,4 +1,5 @@
 import { FrameState } from "../core/FrameState";
+import { BufferUsage } from "../core/WebGPUConstant";
 import { IUniform, ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
@@ -12,17 +13,17 @@ export default class ShaderMaterial extends Material {
 	uniformBuffer: UniformBuffer;
 	constructor(options: ShaderMaterialParms) {
 		super();
-		const { type, frag, vert, uniforms } = options;
+		const { type, frag, vert, defines } = options;
 		this.type = type;
 		this.shaderSource = new ShaderSource({
 			type,
 			frag,
 			vert,
 			custom: true,
-			defines: defaultValue(options.defines, {}),
+			defines: defaultValue(defines, {}),
 			render: true
 		});
-		this.uniforms = uniforms;
+		this.uniforms = options.uniforms;
 		this.uniformBuffer = undefined;
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
@@ -30,8 +31,11 @@ export default class ShaderMaterial extends Material {
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);
-		if (checkContainFloatType(this.uniforms)) {
-			this.uniformBuffer = new UniformBuffer();
+		let result = checkContainFloatType(this.uniforms);
+		if (result.hasFloat) {
+			this.uniformBuffer = result.hasArraytype
+				? new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
+				: new UniformBuffer();
 			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
 		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);

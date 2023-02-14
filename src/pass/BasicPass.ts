@@ -9,40 +9,33 @@ import Texture from "../render/Texture";
 import Camera from "../camera/Camera";
 
 export class BasicPass extends Pass {
-  skyboxDrawComand: DrawCommand;
-  constructor(context: Context) {
-    super(context);
-    this.init(context);
-  }
-  render(renderQueue: RenderQueue, camera?: Camera) {
-    renderQueue.sort();
-    renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-    renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
-    renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
-  }
-  private init(context: Context) {
-    this.createRenderTarget(context);
-  }
-  private createRenderTarget(context: Context) {
-    const colorTexture = new Texture({
-      size: this.context.presentationSize,
-      format: this.context.presentationFormat,
-      usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
-    });
-    const depthTexture = new Texture({
-      size: this.context.presentationSize,
-      format: TextureFormat.Depth24Plus,
-      usage: TextureUsage.RenderAttachment,
-    });
-    const colorAttachment = new Attachment(
-      { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-      { texture: colorTexture }
-    );
-    const depthAttachment = new Attachment(1.0, { texture: depthTexture });
-    this.renderTarget = new RenderTarget(
-      "render",
-      [colorAttachment],
-      depthAttachment
-    );
-  }
+	skyboxDrawComand: DrawCommand;
+	constructor(context: Context) {
+		super(context);
+		this.init(context);
+	}
+	render(renderQueue: RenderQueue, camera?: Camera) {
+		renderQueue.sort();
+		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+	}
+	private init(context: Context) {
+		this.createRenderTarget(context);
+	}
+	private createRenderTarget(context: Context) {
+		const colorTexture = new Texture({
+			size: this.context.presentationSize,
+			format: this.context.presentationFormat,
+			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+		});
+		const depthTexture = new Texture({
+			size: this.context.presentationSize,
+			format: TextureFormat.Depth24Plus,
+			usage: TextureUsage.RenderAttachment
+		});
+		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
+		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
+		this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
+	}
 }

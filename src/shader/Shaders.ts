@@ -13,6 +13,7 @@ import pbr_vs from "./material/pbr_vs";
 import pbr_fs from "./material/pbr_fs";
 import Blur from "./postProcess/bloom/Blur";
 import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
+import blendFrag from "./postProcess/blend/blendFrag";
 
 function reduceComma(shader) {
 	//对所有的include处理
@@ -52,6 +53,10 @@ const shaders = {
 	},
 	luminosityHigh: {
 		frag: LuminosityHigh,
+		vert: quadVert
+	},
+	blend: {
+		frag: blendFrag,
 		vert: quadVert
 	}
 };
