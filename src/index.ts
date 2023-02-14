@@ -19,6 +19,7 @@ export { default as SkyBox } from "./mesh/SkyBox";
 export { default as SphereGeometry } from "./geometry/SphereGeometry";
 export { default as BoxGeometry } from "./geometry/BoxGeometry";
 export { default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
+export { default as PlaneGeometry } from "./geometry/PlaneGeometry";
 //Material
 export { default as PhongMaterial } from "./material/PhongMaterial";
 export { default as PbrMat } from "./material/PbrMat";
@@ -47,26 +48,26 @@ export { default as OrbitControl } from "./control/OrbitControl";
 
 //webgpucontant
 export {
-  FilterMode,
-  CompareFunction,
-  AddressMode,
-  TextureSampleType,
-  PrimitiveTopology,
-  BlendFactor,
-  BlendOperation,
-  StencilOperation,
-  TextureFormat,
-  TextureAspect,
-  TextureViewDimension,
-  TextureUsage,
-  TextureDimension,
-  BufferUsage,
-  ShaderStage,
-  StorageTextureAccess,
-  FrontFace,
-  CullMode,
-  ColorWriteFlags,
-  IndexFormat,
-  VertexFormat,
-  InputStepMode,
+	FilterMode,
+	CompareFunction,
+	AddressMode,
+	TextureSampleType,
+	PrimitiveTopology,
+	BlendFactor,
+	BlendOperation,
+	StencilOperation,
+	TextureFormat,
+	TextureAspect,
+	TextureViewDimension,
+	TextureUsage,
+	TextureDimension,
+	BufferUsage,
+	ShaderStage,
+	StorageTextureAccess,
+	FrontFace,
+	CullMode,
+	ColorWriteFlags,
+	IndexFormat,
+	VertexFormat,
+	InputStepMode
 } from "./core/WebGPUConstant";

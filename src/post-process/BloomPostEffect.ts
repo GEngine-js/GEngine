@@ -30,14 +30,17 @@ export default class BloomPostEffect extends PostEffect {
 	blendTarget: RenderTarget;
 
 	constructor(options: BloomPostEffectProps) {
-		super(options.width, options.height);
+		super(options.width, options.height, "bloom");
 		this.strength = options.strength;
 		this.radius = options.radius;
 		this.threshold = options.threshold;
 		this.init();
 	}
 	setSize(width: number, height: number, depth?: number): void {}
-	render(context: Context, colorTexture: Texture): void {
+	destroy() {
+		//this.renderTargetBright
+	}
+	render(context: Context, colorTexture: Texture): Texture {
 		// 1. Extract Bright Areas
 		this.currentRenderTarget = this.renderTargetBright;
 		this.highPassUniforms.tDiffuse.value = colorTexture;
@@ -67,10 +70,11 @@ export default class BloomPostEffect extends PostEffect {
 		this.currentRenderTarget = this.renderTargetsHorizontal[0];
 		this.renderMesh(context);
 		//blend
-		this.blendUniforms.tDiffuse1.value = colorTexture;
+		this.blendUniforms.baseColorTexture.value = colorTexture;
 		this.fullScreenQuad.material = this.blendMaterial;
 		this.currentRenderTarget = this.blendTarget;
 		this.renderMesh(context);
+		return this.currentRenderTarget.getColorTexture();
 	}
 	private init() {
 		this.renderTargetsHorizontal = [];
@@ -128,7 +132,7 @@ export default class BloomPostEffect extends PostEffect {
 		this.compositeMaterial.renderState = this.renderState;
 		this.blendUniforms = {
 			tDiffuse: { type: "texture", value: this.renderTargetsHorizontal[0].getColorTexture() },
-			tDiffuse1: { type: "texture", value: null },
+			baseColorTexture: { type: "texture", value: null },
 			tSampler: {
 				type: "sampler",
 				value: this.defaultSampler
@@ -241,7 +245,6 @@ export default class BloomPostEffect extends PostEffect {
 			type,
 			uniforms: {
 				tDiffuse: { type: "texture", value: null },
-				// texSize: { type: "vec2", value: new Vector2(0.5, 0.5) },
 				direction: { type: "vec2", value: new Vector2(0.0, 0.0) },
 				tSampler: {
 					type: "sampler",

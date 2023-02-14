@@ -23,13 +23,22 @@ export default class PostEffect {
 
 	renderState: RenderState;
 
-	constructor(width: number, height: number) {
+	id: string;
+
+	priority: number;
+
+	constructor(width: number, height: number, id: string) {
 		this.width = width;
 		this.height = height;
 		this.initDefaultParms();
+		this.id = id;
+		this.priority = 0;
 	}
 	setSize(width: number, height: number, depth?: number) {}
-	render(context: Context, colorTexture: Texture) {}
+	render(context: Context, colorTexture: Texture): Texture {
+		return null;
+	}
+	destroy() {}
 	protected renderMesh(context: Context) {
 		this.fullScreenQuad.material.dirty = true;
 		this.fullScreenQuad.material.update();
