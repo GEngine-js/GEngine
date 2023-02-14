@@ -35,7 +35,7 @@ export { default as Color } from "./math/Color";
 //light
 export { SpotLight } from "./light/SpotLight";
 export { PointLight } from "./light/PointLight";
-export { DirtectLight } from "./light/DirtectLight";
+export { DirectionalLight } from "./light/DirectionalLight";
 
 //loader
 export { default as CubeTextureLoader } from "./loader/CubeTextureLoader";
@@ -47,26 +47,26 @@ export { default as OrbitControl } from "./control/OrbitControl";
 
 //webgpucontant
 export {
-  FilterMode,
-  CompareFunction,
-  AddressMode,
-  TextureSampleType,
-  PrimitiveTopology,
-  BlendFactor,
-  BlendOperation,
-  StencilOperation,
-  TextureFormat,
-  TextureAspect,
-  TextureViewDimension,
-  TextureUsage,
-  TextureDimension,
-  BufferUsage,
-  ShaderStage,
-  StorageTextureAccess,
-  FrontFace,
-  CullMode,
-  ColorWriteFlags,
-  IndexFormat,
-  VertexFormat,
-  InputStepMode,
+	FilterMode,
+	CompareFunction,
+	AddressMode,
+	TextureSampleType,
+	PrimitiveTopology,
+	BlendFactor,
+	BlendOperation,
+	StencilOperation,
+	TextureFormat,
+	TextureAspect,
+	TextureViewDimension,
+	TextureUsage,
+	TextureDimension,
+	BufferUsage,
+	ShaderStage,
+	StorageTextureAccess,
+	FrontFace,
+	CullMode,
+	ColorWriteFlags,
+	IndexFormat,
+	VertexFormat,
+	InputStepMode
 } from "./core/WebGPUConstant";

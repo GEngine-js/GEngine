@@ -31,11 +31,11 @@ export default function blinn_phong(defines) {
             color += spotLight.color * s;
             return color;
        }
-    struct DirtectLight {
+    struct DirectionalLight {
         direction: vec3<f32>,
         color: vec3<f32>,
     };
-      fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
+      fn getDirtectLightInfo(directionalLight:DirectionalLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
         var color=vec3<f32>(0.0,0.0,0.0);
         let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
         color += directionalLight.color * d;

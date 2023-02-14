@@ -15,7 +15,7 @@ import defaultValue from "../utils/defaultValue";
 import UniformBuffer from "./UniformBuffer";
 import { SpotLight } from "../light/SpotLight";
 import { PointLight } from "../light/PointLight";
-import { DirtectLight } from "../light/DirtectLight";
+import { DirectionalLight } from "../light/DirectionalLight";
 export class Uniform<T> {
 	_value: T;
 	name: string;
@@ -564,9 +564,9 @@ export class UniformPointLights extends Uniform<PointLight> {
 		}
 	}
 }
-export class UniformDirtectLights extends Uniform<DirtectLight> {
+export class UniformDirtectLights extends Uniform<DirectionalLight> {
 	static align = 16;
-	lights: Array<DirtectLight>;
+	lights: Array<DirectionalLight>;
 	cb: Function;
 	constructor(
 		uniformName: string,
@@ -586,19 +586,19 @@ export class UniformDirtectLights extends Uniform<DirtectLight> {
 	}
 	set() {
 		this.lights = this.cb();
-		this.lights.forEach((dirtectLight, index) => {
-			this.setSubData(dirtectLight, index);
+		this.lights.forEach((directionalLight, index) => {
+			this.setSubData(directionalLight, index);
 		});
 	}
-	private setSubData(dirtectLight: DirtectLight, index: number) {
+	private setSubData(directionalLight: DirectionalLight, index: number) {
 		const offset = index * 8;
-		if (dirtectLight.dirtectDirty) {
-			dirtectLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, dirtectLight.dirtectVC.toArray(), offset + 0); //byteOffset=16;
+		if (directionalLight.dirtectDirty) {
+			directionalLight.dirtectDirty = false;
+			setDataToTypeArray(this.buffer, directionalLight.dirtectVC.toArray(), offset + 0); //byteOffset=16;
 		}
-		if (dirtectLight.colorDirty) {
-			dirtectLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, dirtectLight.color.toArray(), offset + 4); //byteOffset=32;
+		if (directionalLight.colorDirty) {
+			directionalLight.colorDirty = false;
+			setDataToTypeArray(this.buffer, directionalLight.color.toArray(), offset + 4); //byteOffset=32;
 		}
 	}
 }
