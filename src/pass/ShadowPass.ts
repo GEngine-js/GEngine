@@ -22,10 +22,9 @@ export class ShadowPass extends Pass {
 		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
 	}
 	beforeRender(light: Light) {
-		const shadows = light.getAllShadow();
-		for (const [camera, shadow] of shadows) {
-			this.setRenderTarget(shadow);
-		}
+		const shadow = light.shadow;
+		this.setRenderTarget(shadow);
+
 		super.beforeRender();
 	}
 

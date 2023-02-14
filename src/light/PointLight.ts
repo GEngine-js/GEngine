@@ -21,7 +21,7 @@ export class PointLight extends Light {
 		this.distanceDirty = true;
 		this.decayDirty = true;
 		this.type = "point";
-		if (openShadow) new PointLightShadow(this);
+		if (openShadow) this.shadow = new PointLightShadow();
 	}
 	set distance(value) {
 		this.distanceDirty = true;

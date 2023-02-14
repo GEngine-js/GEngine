@@ -13,9 +13,9 @@ export class Light {
 	intensityDirty: boolean;
 	private _position: Vector3;
 	positionDirty: boolean;
-	public _shadowCollection: Map<Camera, BaseShadow>;
-
+	public _shadow: BaseShadow;
 	public positionVC: Vector3;
+
 	constructor(color: Vector3, intensity: number) {
 		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
 		this._intensity = intensity;
@@ -23,42 +23,45 @@ export class Light {
 		this.positionDirty = true;
 		this.colorDirty = true;
 		this.intensityDirty = true;
-		this._shadowCollection = new Map();
+		this._shadow = null;
 	}
+
 	get position() {
 		return this._position;
 	}
+
 	set position(value) {
 		this.positionDirty = true;
 		this._position = value;
 	}
+
 	get color() {
 		return this._color;
 	}
+
 	set color(value) {
 		this.colorDirty = true;
 		this._color = value;
 	}
+
 	set intensity(value) {
 		this.color = Vector3.multiplyByScalar(this.color, value, new Vector3());
 		this.intensityDirty = true;
 		this._intensity = value;
 	}
+
 	get intensity() {
 		return this._intensity;
 	}
 
-	public getShadowByCamera(camera: Camera): BaseShadow {
-		if (this._shadowCollection.size === 0) {
-			return null;
-		}
-
-		return this._shadowCollection.get(camera) ?? null;
+	get shadow() {
+		return this._shadow;
 	}
 
-	public getAllShadow(): Map<Camera, BaseShadow> {
-		return this._shadowCollection;
+	set shadow(value) {
+		this._shadow = value;
 	}
+
 	update(camera: Camera) {
 		const viewMatrix = camera.viewMatrix;
 		let position = this.position.clone();

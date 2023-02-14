@@ -5,13 +5,11 @@ import Texture from "../../render/Texture";
 
 export class BaseShadow {
 	protected _shadowMapSize: number;
-	protected _light: Light;
 	protected _camera: Camera;
 	protected _shadowMap: Texture;
 
-	constructor(light: Light, shadowMapSize: number, camera: Camera) {
+	constructor(shadowMapSize: number, camera: Camera) {
 		this._shadowMapSize = shadowMapSize;
-		this._light = light;
 		this._camera = camera;
 
 		this._init();

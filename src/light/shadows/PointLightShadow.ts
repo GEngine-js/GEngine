@@ -3,10 +3,10 @@ import { BaseShadow } from "./BaseShadow";
 import PerspectiveCamera from "../../camera/PerspectiveCamera";
 
 export class PointLightShadow extends BaseShadow {
-	constructor(light: Light) {
+	public type: string;
+	constructor() {
 		const camera = new PerspectiveCamera(90, 1, 0.5, 500);
-		super(light, 1024, camera);
-
-		this._light._shadowCollection.set(camera, this);
+		super(1024, camera);
+		this.type = "pointLightShadow";
 	}
 }
