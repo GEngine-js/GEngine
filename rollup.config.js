@@ -1,5 +1,4 @@
 import path from "path";
-import livereload from "rollup-plugin-livereload";
 import serve from "rollup-plugin-serve";
 import { terser } from "rollup-plugin-terser";
 import ts from "rollup-plugin-typescript2";
@@ -19,11 +18,14 @@ export default {
 		format: "es",
 		name: "index"
 	},
-
+	watch: production
+		? false
+		: {
+				exclude: "node_modules/**"
+		  },
 	plugins: [
 		ts(),
 		commonjs(),
-		livereload(),
 		production ? terser() : null,
 		production ? null : sourcemaps()
 		// serve({
