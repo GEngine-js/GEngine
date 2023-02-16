@@ -6,6 +6,7 @@ import Sampler from "./Sampler";
 
 export default class Texture {
 	[x: string]: any;
+	private _textureView: GPUTextureView;
 	public gpuTexture?: GPUTexture;
 	public mipLevelCount?: number;
 	public sampler?: Sampler;
@@ -32,10 +33,12 @@ export default class Texture {
 			multisampled: sampleCount && sampleCount > 1 ? true : false
 		};
 	}
-	get texureView() {
-		return this.gpuTexture.createView({
-			dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
-		});
+	get textureView() {
+		if (!this._textureView)
+			this._textureView = this.gpuTexture.createView({
+				dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
+			});
+		return this._textureView;
 	}
 	update(context: Context) {
 		// todo 仅考虑重建（size改变），后续要考虑data改变

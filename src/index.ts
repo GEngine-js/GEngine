@@ -26,6 +26,9 @@ export { default as PbrMat } from "./material/PbrMat";
 
 export { Scene } from "./Scene";
 
+//post-process
+export { default as BloomPostEffect } from "./post-process/BloomPostEffect";
+
 //camera
 export { default as PerspectiveCamera } from "./camera/PerspectiveCamera";
 

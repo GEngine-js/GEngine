@@ -50,10 +50,10 @@ export default class RenderTarget {
 					return {
 						view:
 							//暂时这么写
-							colorAttachment.texture.gpuTexture.createView() || undefined,
+							colorAttachment.texture.textureView || undefined,
 						resolveTarget:
 							colorAttachment.resolveTarget != undefined
-								? colorAttachment.resolveTarget.gpuTexture.createView()
+								? colorAttachment.resolveTarget.textureView
 								: undefined,
 						clearValue: colorAttachment.value,
 						loadOp: colorAttachment.op,
@@ -63,7 +63,7 @@ export default class RenderTarget {
 			}),
 			...((this.depthAttachment || this.stencilAttachment) && {
 				depthStencilAttachment: {
-					view: this.depthAttachment?.texture?.gpuTexture?.createView() || undefined,
+					view: this.depthAttachment?.texture?.textureView || undefined,
 					depthLoadOp: this.depthAttachment?.op || "clear",
 					depthClearValue: this.depthAttachment?.value || 1.0,
 					depthStoreOp: this.depthAttachment?.storeOp || "store"
@@ -110,5 +110,15 @@ export default class RenderTarget {
 			});
 		}
 		if (this.depthAttachment.texture) this.depthAttachment.texture.setSize(width, height, depth);
+	}
+	destroy() {
+		if (this.colorAttachments) {
+			this.colorAttachments.map((colorAttachment) => {
+				if (colorAttachment.texture) {
+					colorAttachment.texture.destroy();
+				}
+			});
+		}
+		if (this.depthAttachment.texture) this.depthAttachment.texture.destroy();
 	}
 }

@@ -74,6 +74,7 @@ export class Scene extends EventDispatcher {
 			this.primitiveManger.add(instance);
 		}
 	}
+	addPostEffect() {}
 	addLight(light) {
 		this.context.lightManger.add(light);
 	}

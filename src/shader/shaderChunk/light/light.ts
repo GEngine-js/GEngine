@@ -2,8 +2,22 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 export default function light(defines) {
 	return wgslParseDefines`  
     struct LightColor{
-        color:vec3<f32>,
+        diffuse:vec3<f32>,
+        specular:vec3<f32>
     } 
+    struct IncidentLight {
+        color: vec3<f32>,
+        direction: vec3<f32>,
+        visible: bool,
+    };
+    struct Geometry {
+        position: vec3<f32>,
+        normal: vec3<f32>,
+        viewDir: vec3<f32>,
+        #if ${defines.USE_CLEARCOAT}
+            vec3 clearcoatNormal;
+        #endif
+    };
     #if ${defines.spotLightsCount > 0}
         struct SpotLight {
             position: vec3<f32>,
@@ -24,12 +38,27 @@ export default function light(defines) {
                 let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
                 let decayTotal:f32 = decay * spotEffect;
                 let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
-                lightColor.color= spotLight.color * d;
+                lightColor.diffuse= spotLight.color * d;
                 let halfDir:vec3<f32> = normalize( V + direction );
                 let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
-                lightColor.color= spotLight.color * s;
+                lightColor.specular= spotLight.color * s;
                 return lightColor;
-           }
+        }
+        fn getSpotLightIncidentLight(spotLight:SpotLight, geometry:Geometry)->IncidentLight {
+            var incidentLight:IncidentLight;
+            let lVector:vec3<f32> = spotLight.position - geometry.position;
+            incidentLight.direction = normalize( lVector );
+    
+            let lightDistance:f32 = length( lVector );
+            let angleCos:f32 = dot( incidentLight.direction, -spotLight.direction );
+    
+            let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.angleCos, angleCos );
+            let decayEffect:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
+    
+            incidentLight.color=spotLight.color*spotEffect * decayEffect; 
+            return  incidentLight;
+        }
+
     #endif 
 
     #if ${defines.pointLightsCount > 0}
@@ -47,13 +76,20 @@ export default function light(defines) {
             let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
     
             let d =  max( dot( N, -direction ), 0.0 ) * decay;
-            lightColor.color += pointLight.color * d;
+            lightColor.diffuse += pointLight.color * d;
     
             let halfDir:vec3<f32> = normalize( V - direction );
             let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
-            lightColor.color += pointLight.color * s;
+            lightColor.specular += pointLight.color * s;
             return lightColor;
-           }
+        }
+        fn getPointLightIncidentLight(pointLight:PointLight, geometry:Geometry)->IncidentLight {
+            var incidentLight:IncidentLight;
+            let lVector:vec3<f32> = pointLight.position - geometry.position;
+            incidentLight.direction= normalize( lVector );
+            let lightDistance:f32 = length( lVector );
+            incidentLight.color=pointLight.color*clamp(1.0 - pow(lightDistance/pointLight.distance, 4.0), 0.0, 1.0);
+        }
     #endif
     #if ${defines.dirtectLightsCount > 0}
         struct DirtectLight {
@@ -63,12 +99,18 @@ export default function light(defines) {
         fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor{
             var lightColor:LightColor;
             let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
-            lightColor.color += directionalLight.color * d;
+            lightColor.diffuse += directionalLight.color * d;
     
             let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
             let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
-            lightColor.color += directionalLight.color * s;
+            lightColor.specular += directionalLight.color * s;
             return lightColor;
+        }
+        fn getDirectionalDirectLightIncidentLight(directionalLight:DirtectLight,geometry:Geometry)->IncidentLight {
+            var incidentLight:IncidentLight;
+            incidentLight.color = directionalLight.color;
+            incidentLight.direction = -directionalLight.direction;
+            return incidentLight;         
         }
     #endif
     #if ${
@@ -95,28 +137,23 @@ export default function light(defines) {
     #if ${defines.materialPhong}
     //worldPos:vec3<f32,shininess:f32,N:f32,V:f32
         //fn parseLights(geometry:GeometricContext,material:BlinnPhongMaterial)->ReflectedLight{
-        fn parseLights(worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32> {
+        fn parseLights(worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->LightColor {
     #elif ${defines.materialPbr}
         fn parseLights(geometry:GeometricContext,material:PhysicalMaterial)->ReflectedLight{
     #endif
-
-        // var  incidentLight:IncidentLight;
-        // var reflectedLight:ReflectedLight;
-        var lightColor = vec3<f32>( 0.0, 0.0, 0.0 );
+        var lightColor:LightColor;
+        var tempLightColor:LightColor;
         #if ${defines.spotLightsCount > 0}
             //处理聚光灯
-            // var spotLight:SpotLight;
             for (var k = 0u; k < ${defines.spotLightsCount}; k = k + 1u) {
                 var spotLight:SpotLight = lightUniforms.spotLights[k];
-               // incidentLight =getSpotLightInfo( spotLight, geometry);
                 #if ${defines.materialPhong}
-                    //let spReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-                    lightColor=lightColor+getSpotLightInfo(spotLight,worldPos,shininess,N,V).color;
+                    tempLightColor=getSpotLightInfo(spotLight,worldPos,shininess,N,V);
                 #elif ${defines.materialPbr}
-                    let spReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+                    //let spReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
                 #endif
-                // reflectedLight.directDiffuse+=spReflectedLight.directDiffuse;
-                // reflectedLight.directSpecular+=spReflectedLight.directSpecular;
+                lightColor.diffuse+=tempLightColor.diffuse;
+                lightColor.specular+=tempLightColor.specular;
             }
         #endif
         #if ${defines.pointLightsCount > 0}
@@ -124,15 +161,13 @@ export default function light(defines) {
             var pointLight:PointLight;
             for (var j= 0u; j < ${defines.pointLightsCount};j = j + 1u) {
                 pointLight = lightUniforms.pointLights[j];
-                // incidentLight =getPointLightInfo( pointLight, geometry);
                 #if ${defines.materialPhong}
-                lightColor=lightColor+getPointLightInfo(pointLight,worldPos,shininess,N,V).color;
-                    //let poiReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
+                tempLightColor=getPointLightInfo(pointLight,worldPos,shininess,N,V);
                 #elif ${defines.materialPbr}
-                    let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
+                    //let poiReflectedLight=RE_Direct_Physical(incidentLight, geometry, material);
                 #endif
-                // reflectedLight.directDiffuse+=poiReflectedLight.directDiffuse;
-                // reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
+                lightColor.diffuse+=tempLightColor.diffuse;
+                lightColor.specular+=tempLightColor.specular;
             }
         #endif
         #if ${defines.dirtectLightsCount > 0}
@@ -140,19 +175,15 @@ export default function light(defines) {
         var dirtectLight:DirtectLight;
         for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
             dirtectLight = lightUniforms.dirtectLights[i];
-            //incidentLight=getDirtectLightInfo(dirtectLight, geometry);
             #if ${defines.materialPhong}
-                //let dirReflectedLight= RE_Direct_BlinnPhong(incidentLight, geometry, material);
-                lightColor=lightColor+getDirtectLightInfo(dirtectLight,shininess,N,V).color;
+                tempLightColor=getDirtectLightInfo(dirtectLight,shininess,N,V);
             #elif ${defines.materialPbr}
-                let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
+                //let dirReflectedLight=RE_Direct_Physical(incidentLight, geometry, material)
             #endif
-            
-            // reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
-            // reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+            lightColor.diffuse+=tempLightColor.diffuse;
+            lightColor.specular+=tempLightColor.specular;
         }
     #endif
         return lightColor;
-        // return reflectedLight;
     }`;
 }

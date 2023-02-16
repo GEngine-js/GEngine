@@ -25,6 +25,7 @@ export default class BloomPostEffect extends PostEffect {
 	highPassUniforms: Uniforms;
 	compositeMaterial: ShaderMaterial;
 	separableBlurMaterials: ShaderMaterial[];
+	separableBlurYMaterials: ShaderMaterial[];
 	blendUniforms: Uniforms;
 	blendMaterial: ShaderMaterial;
 	blendTarget: RenderTarget;
@@ -38,7 +39,7 @@ export default class BloomPostEffect extends PostEffect {
 	}
 	setSize(width: number, height: number, depth?: number): void {}
 	destroy() {
-		//this.renderTargetBright
+		this.renderTargetBright.destroy();
 	}
 	render(context: Context, colorTexture: Texture): Texture {
 		// 1. Extract Bright Areas
@@ -56,9 +57,9 @@ export default class BloomPostEffect extends PostEffect {
 			this.currentRenderTarget = this.renderTargetsHorizontal[i];
 
 			this.renderMesh(context);
-
-			this.separableBlurMaterials[i].uniforms.tDiffuse.value = this.renderTargetsHorizontal[i].getColorTexture();
-			this.separableBlurMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionY;
+			this.fullScreenQuad.material = this.separableBlurYMaterials[i];
+			this.separableBlurYMaterials[i].uniforms.tDiffuse.value = this.renderTargetsHorizontal[i].getColorTexture();
+			this.separableBlurYMaterials[i].uniforms.direction.value = BloomPostEffect.BlurDirectionY;
 			this.currentRenderTarget = this.renderTargetsVertical[i];
 
 			this.renderMesh(context);
@@ -92,7 +93,8 @@ export default class BloomPostEffect extends PostEffect {
 			this.renderTargetsVertical.push(renderTargetVertical);
 			resx = Math.round(resx / 2);
 			resy = Math.round(resy / 2);
-		} // luminosity high pass material
+		}
+		// luminosity high pass material
 		this.highPassUniforms = {
 			tDiffuse: { type: "texture", value: null },
 			tSampler: {
@@ -114,15 +116,14 @@ export default class BloomPostEffect extends PostEffect {
 		// Gaussian Blur Materials
 		this.materialHighPassFilter.renderState = this.renderState;
 		this.separableBlurMaterials = [];
+		this.separableBlurYMaterials = [];
 		const kernelSizeArray = [3, 5, 7, 9, 11];
 		resx = Math.round(this.width / 2);
 		resy = Math.round(this.height / 2);
 
 		for (let i = 0; i < this.nMips; i++) {
 			this.separableBlurMaterials.push(this.getSeperableBlurMaterial(kernelSizeArray[i], "BlurMaterial" + i));
-
-			// this.separableBlurMaterials[i].uniforms.texSize.value = new Vector2(resx, resy);
-
+			this.separableBlurYMaterials.push(this.getSeperableBlurMaterial(kernelSizeArray[i], "BlurMaterialY" + i));
 			resx = Math.round(resx / 2);
 
 			resy = Math.round(resy / 2);

@@ -194,7 +194,7 @@ export default class ShaderData {
 		} else if (uniform.type === "texture") {
 			groupEntity = new BindGroupEntity({
 				binding: uniform.binding,
-				resource: uniform.texture.texureView
+				resource: uniform.texture.textureView
 			});
 		} else if (uniform.type === "sampler") {
 			groupEntity = new BindGroupEntity({

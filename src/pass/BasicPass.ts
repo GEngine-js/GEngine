@@ -37,7 +37,7 @@ export class BasicPass extends Pass {
 			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment
 		});
-		const colorAttachment = new Attachment({ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, { texture: colorTexture });
+		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 		this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
 	}

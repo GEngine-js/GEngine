@@ -1,6 +1,6 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbr_fs(defines) {
-  return wgslParseDefines`
+	return wgslParseDefines`
         // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
         struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
@@ -177,7 +177,6 @@ export default function pbr_fs(defines) {
         #else
             let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
         #endif
-        //let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             let f0:vec3<f32> = vec3<f32>(0.04);
             var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
             diffuseColor *= 1.0 - metallic;
@@ -242,7 +241,7 @@ export default function pbr_fs(defines) {
             var color = NdotL * (diffuseContrib + specContrib);    // assume light color vec3(1, 1, 1)
 
             // Calculate lighting contribution from image based lighting source (IBL)
-        // USE_IBL
+            // USE_IBL
             color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
 
 

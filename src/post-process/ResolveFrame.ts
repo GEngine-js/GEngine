@@ -47,8 +47,8 @@ export default class ResolveFrame {
 		this.material.uniforms.texture.value = colorTexture;
 
 		this.canvasRenderTarget.colorAttachments[0].texture = {
-			gpuTexture: context.context.getCurrentTexture()
-		} as Texture;
+			textureView: context.context.getCurrentTexture().createView()
+		} as unknown as Texture;
 		this.material.update(undefined, this.quadMesh);
 
 		const drawComand = this.quadMesh.getDrawCommand();
@@ -61,11 +61,11 @@ export default class ResolveFrame {
 	}
 	private initRenderTarget(context: Context) {
 		const colorAttachment = new Attachment(
-			{ r: 0.14, g: 0.14, b: 0.14, a: 1 },
+			{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
 			{
 				texture: {
-					gpuTexture: context.context.getCurrentTexture()
-				} as Texture
+					textureView: undefined
+				} as unknown as Texture
 			}
 		);
 		const depthTexture = new Texture({

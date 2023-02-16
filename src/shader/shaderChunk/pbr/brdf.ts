@@ -1,5 +1,27 @@
+import { wgslParseDefines } from "../../WgslPreprocessor";
 export default function brdf(defines) {
-  return `
+	return wgslParseDefines`
+        #if ${defines.USE_SHEEN}
+                fn D_Charlie( roughness:f32,dotNH:f32 )->f32 {
+                    let alpha:f32 = pow2( roughness );
+                    let invAlpha:f32 = 1.0 / alpha;
+                    let cos2h:f32 = dotNH * dotNH;
+                    let sin2h:f32 = max( 1.0 - cos2h, 0.0078125 );
+                    return ( 2.0 + invAlpha ) * pow( sin2h, invAlpha * 0.5 ) / ( 2.0 * PI );
+                }
+                fn V_Neubelt( dotNV:f32, dotNL:f32 )->f32 {
+                    return saturate( 1.0 / ( 4.0 * ( dotNL + dotNV - dotNL * dotNV ) ) );
+                }
+                fn BRDF_Sheen(lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>,sheenColor:vec3<f32>,sheenRoughness:f32 )->vec3<f32> {
+                    let halfDir:vec3<f32> = normalize( lightDir + viewDir );
+                    let dotNL:f32 = saturate( dot( normal, lightDir ) );
+                    let dotNV:f32 = saturate( dot( normal, viewDir ) );
+                    let dotNH:f32 = saturate( dot( normal, halfDir ) );
+                    let D:f32 = D_Charlie( sheenRoughness, dotNH );
+                    let V:f32 = V_Neubelt( dotNV, dotNL );
+                    return sheenColor * ( D * V );
+                }
+        #endif
         fn BRDF_Lambert(diffuseColor:vec3<f32>)->vec3<f32> {
 
             return RECIPROCAL_PI * diffuseColor;
@@ -65,6 +87,26 @@ export default function brdf(defines) {
             return F * ( V * D );
 
         }
-
+        fn direct_Physical( directLight:IncidentLight, geometry:Geometry,material:PhysicalMaterial)->ReflectedLight {
+            var reflectedLight:ReflectedLight;
+            let dotNL:f32 = saturate(dot( geometry.normal,geometry.viewDir));
+            let irradiance:vec3<f32> = dotNL * directLight.color;
+            #if ${defines.USE_CLEARCOAT}
+                let dotNLcc:f32 = saturate( dot( geometry.clearcoatNormal, geometry.viewDir) );
+                let ccIrradiance:vec3<f32> = dotNLcc * directLight.color;
+                clearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
+            #endif
+            #if ${defines.USE_SHEEN}
+                sheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, geometry.normal, material.sheenColor, material.sheenRoughness );
+            #endif
+     
+            #if ${defines.USE_IRIDESCENCE}
+                reflectedLight.directSpecular = irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );
+            #else
+                reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
+            #endif
+            reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
+            return reflectedLight;
+        }
   `;
 }
