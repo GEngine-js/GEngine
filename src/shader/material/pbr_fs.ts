@@ -2,6 +2,9 @@ import { wgslParseDefines } from "../WgslPreprocessor";
 export default function pbr_fs(defines) {
 	return wgslParseDefines`
         // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
+        #include <pbrUtils>
+        #include <light>
+        #include <brdf>
         struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,
@@ -17,6 +20,12 @@ export default function pbr_fs(defines) {
                 occlusionStrength:f32,
             #endif
          }
+         struct SystemUniform {
+            projectionMatrix: mat4x4<f32>,
+            viewMatrix: mat4x4<f32>,
+            inverseViewMatrix: mat4x4<f32>,
+            cameraPosition: vec3<f32>,
+        }; 
         struct VertInput {
             @location(0) worldPos:vec3<f32>,
             @location(1) normal:vec3<f32>,
@@ -37,9 +46,47 @@ export default function pbr_fs(defines) {
             diffuseColor:vec3<f32>,            // color contribution from diffuse lighting
             specularColor:vec3<f32>,           // color contribution from specular lighting
         };
+        struct PhysicalMaterial {
+            diffuseColor:vec3<f32>,
+            roughness:f32,
+            specularColor:vec3<f32>,
+            specularF90:f32,
+           #if ${defines.USE_CLEARCOAT}
+               clearcoat:f32,
+               clearcoatRoughness:f32,
+               clearcoatF0:vec3<f32>,
+               clearcoatF90:f32,
+           #endif
+
+           #if ${defines.USE_IRIDESCENCE}
+               iridescence:f32,
+               iridescenceIOR:f32,
+               iridescenceThickness:f32,
+               iridescenceFresnel:vec3<f32>,
+               iridescenceF0:vec3<f32>,
+           #endif
+
+           #if ${defines.USE_SHEEN}
+               sheenColor:vec3<f32>,
+               sheenRoughness:f32,
+           #endif
+
+           #if ${defines.IOR}
+                ior:f32,
+           #endif
+
+           #if ${defines.USE_TRANSMISSION}
+               transmission:f32,
+               transmissionAlpha:f32,
+               thickness:f32,
+               attenuationDistance:f32,
+               attenuationColor:vec3<f32>,
+           #endif
+       };
         const M_PI:f32 = 3.141592653589793;
         const c_MinRoughness:f32 = 0.04;
         @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
+        @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
         // IBL
         @group(0) @binding(${defines.diffuseEnvTextureBinding}) var diffuseEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvSampler: texture_cube<f32>;
@@ -200,7 +247,7 @@ export default function pbr_fs(defines) {
 
             //let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);                             // normal at surface point
             // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-            let v:vec3<f32> = normalize(-input.worldPos);                       // Vector from surface point to camera
+            let v:vec3<f32> =normalize(systemUniform.cameraPosition - input.worldPos);                       // Vector from surface point to camera
             // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
             let l:vec3<f32> =normalize(vec3( 1.0, 1.0, 1.0 )); 
                       // Vector from surface point to light
@@ -221,7 +268,6 @@ export default function pbr_fs(defines) {
             pbrInputs.LdotH=LdotH;
             pbrInputs.VdotH=VdotH;
             pbrInputs.perceptualRoughness=perceptualRoughness;
-            pbrInputs.perceptualRoughness=perceptualRoughness;
             pbrInputs.metalness=metallic;
             pbrInputs.reflectance0=specularEnvironmentR0;
             pbrInputs.reflectance90=specularEnvironmentR90;
@@ -229,6 +275,16 @@ export default function pbr_fs(defines) {
             pbrInputs.diffuseColor=diffuseColor;
             pbrInputs.specularColor=specularColor;
 
+            var material:PhysicalMaterial;
+            material.diffuseColor=diffuseColor*( 1.0 - metallic );
+            material.roughness=perceptualRoughness;
+            material.specularColor=specularColor;
+            material.specularF90=reflectance90;
+
+            var geometry:Geometry;
+            geometry.normal=n;
+            geometry.viewDir=normalize(systemUniform.cameraPosition - input.worldPos);
+            geometry.position=input.worldPos;
             // Calculate the shading terms for the microfacet specular shading model
             let F:vec3<f32> = specularReflection(pbrInputs);
             let G:f32 = geometricOcclusion(pbrInputs);
@@ -238,11 +294,12 @@ export default function pbr_fs(defines) {
             let diffuseContrib:vec3<f32> = (1.0 - F) * diffuse(pbrInputs);
             let specContrib:vec3<f32> = max(vec3<f32>(0.0), F * G * D / (4.0 * NdotL * NdotV));
             // vec3 color = NdotL * u_LightColor * (diffuseContrib + specContrib);
-            var color = NdotL * (diffuseContrib + specContrib);    // assume light color vec3(1, 1, 1)
-
+            //var color = NdotL * (diffuseContrib + specContrib);    // assume light color vec3(1, 1, 1)
+            var reflectedLight=parseLights(geometry,material);
+            var color=reflectedLight.directDiffuse+reflectedLight.directSpecular;
             // Calculate lighting contribution from image based lighting source (IBL)
             // USE_IBL
-            color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
+           color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
 
 
         // Apply optional PBR terms for additional (optional) shading

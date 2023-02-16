@@ -11,7 +11,7 @@ export default function phongFrag(defines) {
       @location(4) normal: vec3<f32>,
       @location(5) viewPosition: vec3<f32>,
     };
-    #include <lightCommon>
+    // #include <lightCommon>
     #include <light>
     #include <getNormal>
     struct MaterialUniform {
@@ -49,8 +49,12 @@ export default function phongFrag(defines) {
         let faceDirection:f32 =select(-1.0,1.0,input.is_front);
         let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
         let  N:vec3<f32> = getNormal(input)*faceDirection;
-        let lightColor:LightColor=parseLights(input.worldPos,materialUniform.shininess,N,V);
-        var finnalColor:vec3<f32>=color.xyz+lightColor.diffuse+lightColor.specular;
+        var geometry:Geometry;
+        geometry.normal=N;
+        geometry.viewDir=V;
+        geometry.position=input.worldPos;
+        let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess);
+        var finnalColor:vec3<f32>=color.xyz+lightColor.directDiffuse+lightColor.directSpecular;
         return vec4<f32>(finnalColor,color.a);
     }`;
 }

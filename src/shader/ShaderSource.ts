@@ -47,6 +47,7 @@ export class ShaderSource {
 			}
 		} else {
 			const source = getVertFrag(this.type, this.defines);
+
 			this.vert = source.vert;
 			this.frag = source.frag;
 		}

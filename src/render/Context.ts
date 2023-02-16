@@ -129,7 +129,7 @@ class Context {
 			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
 			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
 		}
-		if (command.renderState) command.renderState.bind(passEncoder);
+		if (command.renderState) command.renderState.bind(passEncoder, this);
 		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);
 
 		if (command.indexBuffer) command.indexBuffer.bind(this.device, passEncoder);

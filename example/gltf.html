@@ -1,128 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gltf</title>
-    <!-- <link rel="stylesheet" href="./index.scss" /> -->
-    <style>
-      * {
-        box-sizing: border-box;
-      }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>gltf</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
 
-      html {
-        background: #692a84;
-        background: linear-gradient(316deg, #0e0f2a, #060913);
-      }
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+			}
 
-      body {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        overflow: hidden;
-        height: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				height: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
 
-      #app {
-        height: 100%;
-        width: 100%;
-      }
-    </style>
-  </head>
+			#app {
+				height: 100%;
+				width: 100%;
+			}
+		</style>
+	</head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      import {
-        BoxGeometry,
-        Mesh,
-        PerspectiveCamera,
-        Scene,
-        PhongMaterial,
-        Vector3,
-        Color,
-        SpotLight,
-        PointLight,
-        Texture,
-        Sampler,
-        TorusKnotGeometry,
-        SkyBox,
-        CubeTextureLoader,
-        SphereGeometry,
-        PbrMat,
-        loadGLTF,
-        OrbitControl,
-      } from "../dist/index.js";
+	<body>
+		<div id="app"></div>
+		<script type="module">
+			import {
+				BoxGeometry,
+				Mesh,
+				PerspectiveCamera,
+				Scene,
+				PhongMaterial,
+				Vector3,
+				Color,
+				SpotLight,
+				PointLight,
+				Texture,
+				Sampler,
+				TorusKnotGeometry,
+				SkyBox,
+				CubeTextureLoader,
+				SphereGeometry,
+				PbrMat,
+				loadGLTF,
+				OrbitControl
+			} from "../dist/index.js";
 
-      const init = async () => {
-        const scene = new Scene({
-          container: "app",
-          brdfUrl: "./textures/brdfLUT.png",
-          specularEnvUrls: [
-            `./textures/environment/px.jpg`,
-            `./textures/environment/nx.jpg`,
-            `./textures/environment/py.jpg`,
-            `./textures/environment/ny.jpg`,
-            `./textures/environment/pz.jpg`,
-            `./textures/environment/nz.jpg`,
-          ],
-          diffuseEnvUrls: [
-            `./textures/environment/diffuse/bakedDiffuse_01.jpg`,
-            `./textures/environment/diffuse/bakedDiffuse_02.jpg`,
-            `./textures/environment/diffuse/bakedDiffuse_03.jpg`,
-            `./textures/environment/diffuse/bakedDiffuse_04.jpg`,
-            `./textures/environment/diffuse/bakedDiffuse_05.jpg`,
-            `./textures/environment/diffuse/bakedDiffuse_06.jpg`,
-          ],
-        });
-        const gltf = await loadGLTF(
-          "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
-        );
-        const primitive = gltf.meshes[0][0];
-        primitive.scale.set(2.2, 2.2, 2.2);
-        primitive.rotateX(Math.PI / 2);
-        const camera = new PerspectiveCamera(
-          60,
-          window.innerWidth / window.innerHeight,
-          0.01,
-          100
-        );
-        camera.position.set(4, 0, 4);
-        camera.lookAt(0, 0, 0);
-        const control = new OrbitControl(
-          camera,
-          document.getElementById("app")
-        );
-        const pointLight = new PointLight(
-          new Vector3(1.0, 1.0, 1.0),
-          10,
-          65,
-          1
-        );
-        pointLight.position = new Vector3(0, 25, 0);
-        const urls = [
-          `./textures/environment/px.jpg`,
-          `./textures/environment/nx.jpg`,
-          `./textures/environment/py.jpg`,
-          `./textures/environment/ny.jpg`,
-          `./textures/environment/pz.jpg`,
-          `./textures/environment/nz.jpg`,
-        ];
-        const skybox = new SkyBox(urls);
-        scene.add(primitive);
-        scene.add(skybox);
-        scene.setCamera(camera);
-        scene.addLight(pointLight);
-        function animate() {
-          // primitive.rotateZ(0.01)
-          requestAnimationFrame(animate);
-          control.update();
-          scene.render();
-        }
-        animate();
-      };
-      init();
-    </script>
-  </body>
+			const init = async () => {
+				const scene = new Scene({
+					container: "app",
+					brdfUrl: "./textures/brdfLUT.png",
+					specularEnvUrls: [
+						`./textures/environment/px.jpg`,
+						`./textures/environment/nx.jpg`,
+						`./textures/environment/py.jpg`,
+						`./textures/environment/ny.jpg`,
+						`./textures/environment/pz.jpg`,
+						`./textures/environment/nz.jpg`
+					],
+					diffuseEnvUrls: [
+						`./textures/environment/diffuse/bakedDiffuse_01.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_02.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_03.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_04.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_05.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
+					]
+				});
+				const gltf = await loadGLTF(
+					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
+				);
+				const primitive = gltf.meshes[0][0];
+				primitive.scale.set(2.2, 2.2, 2.2);
+				primitive.rotateX(Math.PI / 2);
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
+				camera.position.set(4, 0, 4);
+				camera.lookAt(0, 0, 0);
+				const control = new OrbitControl(camera, document.getElementById("app"));
+				const pointLight = new PointLight(new Vector3(1.0, 0.0, 0.0), 0.3, 41, 1);
+				pointLight.position = new Vector3(0, 40);
+				const urls = [
+					`./textures/environment/px.jpg`,
+					`./textures/environment/nx.jpg`,
+					`./textures/environment/py.jpg`,
+					`./textures/environment/ny.jpg`,
+					`./textures/environment/pz.jpg`,
+					`./textures/environment/nz.jpg`
+				];
+				const skybox = new SkyBox(urls);
+				scene.add(primitive);
+				scene.add(skybox);
+				scene.setCamera(camera);
+				scene.addLight(pointLight);
+				function animate() {
+					// primitive.rotateZ(0.01)
+					requestAnimationFrame(animate);
+					control.update();
+					scene.render();
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
 </html>
