@@ -39,7 +39,7 @@ export class SpotLight extends Light {
 		this.dirtectDirty = true;
 		this._target = value;
 	}
-	get dirtect() {
+	get directional() {
 		const result = new Vector3();
 		Vector3.subtract(this.position, this._target, result);
 		return Vector3.normalize(result, new Vector3());
@@ -94,10 +94,10 @@ export class SpotLight extends Light {
 	}
 	update(camera: Camera): void {
 		super.update(camera);
-		let dirtect = this.dirtect.clone();
+		let directional = this.directional.clone();
 		const viewMatrix = camera.viewMatrix;
-		//this.dirtectVC = dirtect.transformDirection(viewMatrix);
-		this.dirtectVC = dirtect;
+		//this.dirtectVC = directional.transformDirection(viewMatrix);
+		this.dirtectVC = directional;
 	}
 }
 //uniform

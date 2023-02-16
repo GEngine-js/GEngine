@@ -31,12 +31,12 @@ export class ShadowPass extends Pass {
 			const shadow = light.shadow;
 			this.setRenderTarget(shadow);
 			super.beforeRender();
-		}
 
-		renderQueue.sort();
-		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+			renderQueue.sort();
+			renderQueue.preRender(camera, this.context, this.passRenderEncoder);
+			renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
+			renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+		}
 	}
 
 	afterRender(): void {
@@ -53,6 +53,6 @@ export class ShadowPass extends Pass {
 		this.createRenderTarget(context);
 	}
 	private createRenderTarget(context: Context) {
-		this.renderTarget = new RenderTarget("render");
+		this.renderTarget = new RenderTarget("render", []);
 	}
 }

@@ -95,7 +95,7 @@ export default function light(defines) {
         }
     #endif
     #if ${defines.dirtectLightsCount > 0}
-        struct DirtectLight {
+        struct DirectionalLight {
             direction: vec3<f32>,
             color: vec3<f32>,
         };
@@ -130,7 +130,7 @@ export default function light(defines) {
             pointLights:array<PointLight,${defines.pointLightsCount}>,
         #endif
         #if ${defines.dirtectLightsCount}
-            dirtectLights:array<DirtectLight,${defines.dirtectLightsCount}>,
+            dirtectLights:array<DirectionalLight,${defines.dirtectLightsCount}>,
         #endif
         
     }
@@ -174,7 +174,7 @@ export default function light(defines) {
         #endif
         #if ${defines.dirtectLightsCount > 0}
         //处理方向光
-        var dirtectLight:DirtectLight;
+        var directionalLight:DirectionalLight;
         for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
             dirtectLight = lightUniforms.dirtectLights[i];
             #if ${defines.materialPhong}

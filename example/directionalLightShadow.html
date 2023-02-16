@@ -44,7 +44,7 @@
 				Vector3,
 				Color,
 				SpotLight,
-				PointLight,
+				DirectionalLight,
 				Texture,
 				Sampler,
 				TorusKnotGeometry,
@@ -119,14 +119,17 @@
 				camera.position.set(25, 25, 25);
 				camera.lookAt(0, 0, 0);
 
-				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 0.3, 65, 1);
-				pointLight.position = new Vector3(0, 25, 0);
+				const directionalLight = new DirectionalLight(
+					new Vector3(1.0, 0.0, 0.0),
+					0.2,
+					new Vector3(1.0, -1, 1.0)
+				);
 				const skybox = new SkyBox(environmentUrls);
 				scene.add(primitive);
 				scene.add(ground);
 				scene.add(skybox);
 				scene.setCamera(camera);
-				scene.addLight(pointLight);
+				scene.addLight(directionalLight);
 				const control = new OrbitControl(camera, document.getElementById("app"));
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;

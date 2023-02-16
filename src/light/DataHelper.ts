@@ -1,6 +1,6 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
-import { DirtectLight } from "./DirtectLight";
+import { DirectionalLight } from "./DirectionalLight";
 import { PointLight } from "./PointLight";
 import { SpotLight } from "./SpotLight";
 
@@ -9,7 +9,7 @@ export class SpotData {
 	penumbraCos: Float32Array;
 	coneCos: Float32Array;
 	distance: Float32Array;
-	dirtect: Float32Array;
+	directional: Float32Array;
 	position: Float32Array;
 	color: Float32Array;
 	//array<light> light of byteSize must be k*16
@@ -20,7 +20,7 @@ export class SpotData {
 		this.spotLight = spotLight;
 		this.position = new Float32Array(buffer.buffer, byteOffset, 3); //3
 		this.distance = new Float32Array(buffer.buffer, byteOffset + 12, 1); //1
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
+		this.directional = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
 		this.coneCos = new Float32Array(buffer.buffer, byteOffset + 28, 1); //1
 		this.color = new Float32Array(buffer.buffer, byteOffset + 32, 3); //3
 		this.penumbraCos = new Float32Array(buffer.buffer, byteOffset + 44, 1); //1
@@ -40,9 +40,9 @@ export class SpotData {
 		}
 		if (this.spotLight.dirtectDirty) {
 			this.spotLight.dirtectDirty = false;
-			let dirtect = this.spotLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
+			let directional = this.spotLight.directional.clone();
+			directional = directional.transformDirection(viewMatrix);
+			copyData(directional.toArray(), this.directional);
 		}
 		if (this.spotLight.distanceDirty) {
 			this.spotLight.distanceDirty = false;
@@ -65,7 +65,7 @@ export class SpotData {
 		this.spotLight = undefined;
 		this.color = undefined;
 		this.position = undefined;
-		this.dirtect = undefined;
+		this.directional = undefined;
 		this.distance = undefined;
 		this.coneCos = undefined;
 		this.penumbraCos = undefined;
@@ -117,33 +117,33 @@ export class PointData {
 	}
 }
 export class DirtectData {
-	dirtect: Float32Array;
+	directional: Float32Array;
 	color: Float32Array;
-	dirtectLight: DirtectLight;
+	directionalLight: DirectionalLight;
 	static byteSize = 32;
 	static size = 8;
-	constructor(buffer: Float32Array, byteOffset: number, dirtectLight: DirtectLight) {
-		this.dirtectLight = dirtectLight;
+	constructor(buffer: Float32Array, byteOffset: number, directionalLight: DirectionalLight) {
+		this.directionalLight = directionalLight;
 		this.color = new Float32Array(buffer.buffer, byteOffset, 3); //3
-		this.dirtect = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
+		this.directional = new Float32Array(buffer.buffer, byteOffset + 16, 3); //3
 	}
 	update(camera: Camera) {
 		const viewMatrix = camera.viewMatrix;
-		if (this.dirtectLight.colorDirty) {
-			this.dirtectLight.colorDirty = false;
-			copyData(this.dirtectLight.color.toArray(), this.color);
+		if (this.directionalLight.colorDirty) {
+			this.directionalLight.colorDirty = false;
+			copyData(this.directionalLight.color.toArray(), this.color);
 		}
-		if (this.dirtectLight.dirtectDirty) {
-			this.dirtectLight.dirtectDirty = false;
-			let dirtect = this.dirtectLight.dirtect.clone();
-			dirtect = dirtect.transformDirection(viewMatrix);
-			copyData(dirtect.toArray(), this.dirtect);
+		if (this.directionalLight.dirtectDirty) {
+			this.directionalLight.dirtectDirty = false;
+			let directional = this.directionalLight.directional.clone();
+			directional = directional.transformDirection(viewMatrix);
+			copyData(directional.toArray(), this.directional);
 		}
 	}
 	destroy() {
-		this.dirtectLight = undefined;
+		this.directionalLight = undefined;
 		this.color = undefined;
-		this.dirtect = undefined;
+		this.directional = undefined;
 	}
 }
 function copyData(src: Array<number>, dis: Float32Array | Uint32Array) {

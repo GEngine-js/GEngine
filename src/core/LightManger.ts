@@ -1,5 +1,5 @@
 import { AmbientLight } from "../light/AmbientLight";
-import { DirtectLight } from "../light/DirtectLight";
+import { DirectionalLight } from "../light/DirectionalLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
 import { FrameState } from "./FrameState";
@@ -14,7 +14,7 @@ export default class LightManger {
 
 	spotLights: SpotLight[];
 
-	dirtectLights: DirtectLight[];
+	dirtectLights: DirectionalLight[];
 
 	ambientLight: AmbientLight;
 
@@ -36,7 +36,7 @@ export default class LightManger {
 		this.lightCountDirty = true;
 		if (light.type == "ambient") {
 			this.ambientLight = light;
-		} else if (light.type == "dirtect") {
+		} else if (light.type == "directional") {
 			this.dirtectLights.push(light);
 		} else if (light.type == "point") {
 			this.pointLights.push(light);
@@ -120,10 +120,6 @@ export default class LightManger {
 
 	public getAllLights(): Array<Light> {
 		const result = [];
-		this.spotLights = [];
-		this.pointLights = [];
-		this.dirtectLights = [];
-
 		return result.concat(this.spotLights, this.pointLights, this.dirtectLights);
 	}
 

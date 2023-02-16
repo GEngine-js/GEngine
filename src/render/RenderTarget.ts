@@ -13,7 +13,7 @@ export default class RenderTarget {
 	texture: any;
 	constructor(
 		public type: PassType,
-		public colorAttachments?: Attachment[],
+		public colorAttachments: Attachment[],
 		public depthAttachment?: Attachment,
 		public stencilAttachment?: Attachment,
 		public querySet?: QuerySet

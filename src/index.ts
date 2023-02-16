@@ -39,7 +39,7 @@ export { default as Color } from "./math/Color";
 //light
 export { SpotLight } from "./light/SpotLight";
 export { PointLight } from "./light/PointLight";
-export { DirtectLight } from "./light/DirtectLight";
+export { DirectionalLight } from "./light/DirectionalLight";
 
 //loader
 export { default as CubeTextureLoader } from "./loader/CubeTextureLoader";
