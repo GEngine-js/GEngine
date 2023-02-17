@@ -10,8 +10,11 @@ import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
 import { BaseShadow } from "../light/shadows/BaseShadow";
 import { FrameState } from "../core/FrameState";
+import ShaderMaterial from "../material/ShaderMaterial";
+import getVertFrag from "../shader/Shaders";
 
 export class ShadowPass extends Pass {
+	public shadowMaterial: ShaderMaterial;
 	constructor(context: Context) {
 		super(context);
 		this.init(context);
@@ -33,15 +36,15 @@ export class ShadowPass extends Pass {
 			super.beforeRender();
 
 			renderQueue.sort();
-			renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-			renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
-			renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
+			renderQueue.transparentRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
+			renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
 		}
 	}
 
-	afterRender(): void {
-		return;
-	}
+	// afterRender(): void {
+	// 	return;
+	// }
 
 	private setRenderTarget(shadow: BaseShadow) {
 		const shadowMapTexture = shadow.getShadowMapTexture();
@@ -51,8 +54,20 @@ export class ShadowPass extends Pass {
 
 	private init(context: Context) {
 		this.createRenderTarget(context);
+		this.createShadowMaterial();
 	}
 	private createRenderTarget(context: Context) {
 		this.renderTarget = new RenderTarget("render", []);
+	}
+
+	private createShadowMaterial() {
+		const colorShader = getVertFrag("color");
+		this.shadowMaterial = new ShaderMaterial({
+			type: "shadowMaterial",
+			uniforms: {},
+			vert: colorShader.vert,
+			frag: undefined
+		});
+		this.shadowMaterial.light = true;
 	}
 }

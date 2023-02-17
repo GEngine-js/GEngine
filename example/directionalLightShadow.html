@@ -100,7 +100,13 @@
 						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
 					]
 				});
+				const directionalLight = new DirectionalLight(
+					new Vector3(1.0, 0.0, 0.0),
+					0.2,
+					new Vector3(1.0, -1, 1.0)
+				);
 				const pbr = new PbrMat();
+				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
 				pbr.baseSampler = baseSampler;
 				pbr.aoTexture = aoTexture;
@@ -123,11 +129,6 @@
 				camera.position.set(25, 25, 25);
 				camera.lookAt(0, 0, 0);
 
-				const directionalLight = new DirectionalLight(
-					new Vector3(1.0, 0.0, 0.0),
-					0.2,
-					new Vector3(1.0, -1, 1.0)
-				);
 				const skybox = new SkyBox(environmentUrls);
 				scene.add(primitive);
 				scene.add(ground);
