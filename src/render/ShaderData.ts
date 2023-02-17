@@ -69,6 +69,13 @@ export default class ShaderData {
 			}
 		}
 	}
+	replaceUniformBufferValue(name: string, value: Function | number | Object) {
+		this._uniforms.forEach((uniform) => {
+			if (uniform?.isUniformBuffer) {
+				uniform.replaceUniformValue(name, value);
+			}
+		});
+	}
 	bind(context: Context, passEncoder: GPURenderPassEncoder) {
 		this.uploadUniform(context);
 		const { groupLayout, bindGroup } = this.createBindGroupAndLayout(

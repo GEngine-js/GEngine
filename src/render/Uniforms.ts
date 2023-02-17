@@ -47,7 +47,7 @@ export class Uniform<T> {
 		const cbType = typeof this.cb;
 		switch (cbType) {
 			case "object":
-				result = this.cb[this.name];
+				result = this.cb[this.name] || this.cb;
 				break;
 			case "function":
 				//@ts-ignore

@@ -40,12 +40,7 @@ export default class RenderObject {
 		// this._normalMatrix.getNormalMatrix(this.modelMatrix);
 	}
 	updateMatrix() {
-		this.modelMatrix = Matrix4.fromTranslationQuaternionRotationScale(
-			this.position,
-			this.quaternion,
-			this.scale,
-			this.modelMatrix
-		);
+		Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
 	}
 	lookAt(x, y, z) {
 		_target.set(x, y, z);

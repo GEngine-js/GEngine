@@ -118,7 +118,10 @@ class Context {
 
 	public render(command: DrawCommand, passEncoder: GPURenderPassEncoder, camera?: Camera): void {
 		const grouplayouts = [];
-		if (command.shaderData) command.shaderData.bind(this, passEncoder);
+		if (command.shaderData) {
+			if (command.modelMatrix) command.shaderData.replaceUniformBufferValue("modelMatrix", command.modelMatrix);
+			command.shaderData.bind(this, passEncoder);
+		}
 		//设置系统
 		if (camera) {
 			camera.shaderData.bind(this, passEncoder);

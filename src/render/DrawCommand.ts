@@ -5,6 +5,7 @@ import VertextBuffer from "./VertextBuffer";
 import IndexBuffer from "./IndexBuffer";
 import { RenderState } from "./RenderState";
 import { Material } from "../material/Material";
+import Matrix4 from "../math/Matrix4";
 
 class DrawCommand {
 	public type?: string;
@@ -35,6 +36,8 @@ class DrawCommand {
 
 	public indirectBuffer?: Buffer;
 
+	public modelMatrix?: Matrix4;
+
 	constructor(options: DrawCommandProps) {
 		this.type = options.type;
 
@@ -61,6 +64,8 @@ class DrawCommand {
 		this.dirty = options.dirty;
 
 		this.light = options.light;
+
+		this.modelMatrix = options.modelMatrix;
 	}
 	public shallowClone(material?: Material) {
 		if (material) {
@@ -73,7 +78,8 @@ class DrawCommand {
 				renderState: material.renderState,
 				shaderSource: material.shaderSource,
 				type: "render",
-				light: material.light
+				light: material.light,
+				modelMatrix: this.modelMatrix
 			});
 		}
 	}
@@ -104,5 +110,7 @@ type DrawCommandProps = {
 	dirty?: boolean;
 
 	light?: boolean;
+
+	modelMatrix?: Matrix4;
 };
 export default DrawCommand;

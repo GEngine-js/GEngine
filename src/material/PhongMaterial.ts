@@ -31,7 +31,7 @@ export default class PhongMaterial extends Material {
 		super.createShaderData(mesh);
 		const uniformBuffer = new UniformBuffer();
 		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return mesh.modelMatrix;
+			return null;
 		});
 		uniformBuffer.setColor("color", this);
 		uniformBuffer.setFloat("opacity", this);

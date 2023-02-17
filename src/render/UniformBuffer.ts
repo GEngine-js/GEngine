@@ -33,6 +33,7 @@ export default class UniformBuffer {
 	buffer: Buffer;
 	dataBuffer: Float32Array;
 	offset: number;
+	isUniformBuffer: boolean;
 	constructor(type?: string, usage?: BufferUsage, size?: number, dataBuffer?: Float32Array, binding?: number) {
 		this.type = defaultValue(type, "uniform");
 		(this.hasDynamicOffset = false), (this.minBindingSize = 0);
@@ -45,6 +46,7 @@ export default class UniformBuffer {
 		this.offset = 0;
 		this.dataBuffer = defaultValue(dataBuffer, new Float32Array(defaultValue(this._bufferSize, 400)));
 		this.byteOffset = 0;
+		this.isUniformBuffer = true;
 	}
 	get layoutType() {
 		return {
@@ -160,6 +162,11 @@ export default class UniformBuffer {
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
 		this._uniforms.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
+	}
+	replaceUniformValue(name: string, value: Function | number | Object) {
+		const uniform = this._uniforms.get(name);
+		if (!uniform) console.error("not find uniform");
+		uniform.cb = value;
 	}
 	// uniformBuffer.setVec3Array('test',()=>{return [new Vector3(1,0,0),new Vector3(1,0.8,0.5)]},2);
 	// uniformBuffer.setFloatArray('test1',()=>{return [0.5,0.5,1.0]},3);

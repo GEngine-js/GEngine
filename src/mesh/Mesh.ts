@@ -31,7 +31,6 @@ export class Mesh extends RenderObject {
 		this.material.update(frameState, this);
 
 		// update boundingSphere
-
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
 		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
@@ -60,7 +59,8 @@ export class Mesh extends RenderObject {
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				type: "render",
-				light: this.material.light
+				light: this.material.light,
+				modelMatrix: this.modelMatrix
 			});
 		}
 		this.material.shaderSource.setDefines(Object.assign(this.material.shaderData.defines, this.geometry.defines));
