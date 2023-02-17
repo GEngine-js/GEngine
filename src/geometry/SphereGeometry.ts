@@ -7,13 +7,15 @@ export default class SphereGeometry extends Geometry {
 	uvs: number[];
 	positions: number[];
 	indices: number[];
-	constructor() {
+	radius: number;
+	constructor(radius: number) {
 		super({});
 		this.type = "sphere";
+		this.radius = radius;
 		this.init();
 	}
 	private init() {
-		const { positions, normals, uvs, indices } = createSphere({});
+		const { positions, normals, uvs, indices } = createSphere({ radius: this.radius });
 		this.positions = positions;
 		this.normals = normals;
 		this.uvs = uvs;

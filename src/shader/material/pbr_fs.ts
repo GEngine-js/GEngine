@@ -247,12 +247,11 @@ export default function pbr_fs(defines) {
 
             //let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);                             // normal at surface point
             // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-            let v:vec3<f32> =normalize(systemUniform.cameraPosition - input.worldPos);                       // Vector from surface point to camera
-            // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
+            let v:vec3<f32> =-normalize(systemUniform.cameraPosition - input.worldPos);                       // Vector from surface point to camera
             let l:vec3<f32> =normalize(vec3<f32>(0.0,0.0, 1.0 )); 
                       // Vector from surface point to light
             let h:vec3<f32> = normalize(l+v);                          // Half vector between both l and v
-            var reflection:vec3<f32> = normalize(reflect(v, n));
+            var reflection:vec3<f32> = normalize(reflect(-v, n));
             // reflection.x = -reflection.x;
             let NdotL:f32 = clamp(dot(n, l), 0.001, 1.0);
             let NdotV:f32 = abs(dot(n, v)) + 0.001;

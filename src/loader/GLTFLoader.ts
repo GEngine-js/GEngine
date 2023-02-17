@@ -342,8 +342,8 @@ function generateMesh(options, images) {
 		addressModeU: "repeat",
 		addressModeV: "repeat"
 	});
-	mat.roughness = 0.3;
-	mat.metalness = 1.0;
+	mat.roughness = 0.3333;
+	mat.metalness = 0.8333;
 	const mesh = new Mesh(geo, mat);
 	return mesh;
 }

@@ -49,12 +49,13 @@
 				Texture,
 				Axes,
 				PlaneGeometry,
+				SphereGeometry,
 				OrbitControl
 			} from "../dist/index.js";
 
 			const init = async () => {
-				const geometry = new PlaneGeometry(100, 100);
-
+				// const geometry = new PlaneGeometry(100, 100);
+				const geometry = new SphereGeometry(10);
 				const img = document.createElement("img");
 				img.src = "./uv.jpg";
 				await img.decode();
@@ -74,10 +75,10 @@
 					sampler: baseSampler
 				});
 				const phongMaterial = new PhongMaterial();
-				phongMaterial.color = new Color(0.5, 0.5, 0.5);
+				phongMaterial.color = new Color(1.0, 0.0, 0.0);
 				// phongMaterial.baseTexture = baseTexture;
 				// phongMaterial.baseSampler = baseSampler;
-				// phongMaterial.shininess = 10;
+				phongMaterial.shininess = 16;
 				const primitive = new Mesh(geometry, phongMaterial);
 				primitive.rotateX(-Math.PI / 2);
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
@@ -85,8 +86,8 @@
 				camera.lookAt(0, 0, 0);
 
 				// console.log(camera.viewMatrix);
-				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 100, 10, 1);
-				spotLight.position = new Vector3(0, 90, 0);
+				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 15, 6, 1);
+				spotLight.position = new Vector3(0, 20, 0);
 
 				const spotLight1 = new SpotLight(new Vector3(1.0, 0.0, 0.0), 1, 40, 10, 1);
 				spotLight1.position = new Vector3(0, 10, 0);
@@ -94,8 +95,8 @@
 				const spotLight2 = new SpotLight(new Vector3(0.0, 0.0, 1.0), 1, 40, 60, 60);
 				spotLight2.position = new Vector3(20, 34, 0);
 
-				const pointLight = new PointLight(new Vector3(1.0, 0.6, 1.0), 2, 30, 1);
-				pointLight.position = new Vector3(0, 20, -20);
+				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1, 20, 1);
+				pointLight.position = new Vector3(0, 20, 0);
 
 				const pointLight1 = new PointLight(new Vector3(0.5, 1.0, 0.5), 2, 30, 1);
 				pointLight1.position = new Vector3(-20, 20, 0);
@@ -108,11 +109,11 @@
 				//         primitive.rotateX(0.4)
 				scene.add(primitive);
 				scene.setCamera(camera);
-				scene.addLight(spotLight);
-				// scene.addLight(spotLight);
+				//scene.addLight(spotLight);
+				//scene.addLight(spotLight);
 				// scene.addLight(spotLight2);
 
-				scene.addLight(pointLight1);
+				// scene.addLight(pointLight1);
 				scene.addLight(pointLight);
 				function animate() {
 					// primitive.rotateY(0.01)

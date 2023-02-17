@@ -61,20 +61,20 @@
 					container: "app",
 					brdfUrl: "./textures/brdfLUT.png",
 					specularEnvUrls: [
-						`./textures/cubemap/px.png`,
-						`./textures/cubemap/nx.png`,
-						`./textures/cubemap/py.png`,
-						`./textures/cubemap/ny.png`,
-						`./textures/cubemap/pz.png`,
-						`./textures/cubemap/nz.png`
+						`./textures/environment/px.jpg`,
+						`./textures/environment/nx.jpg`,
+						`./textures/environment/py.jpg`,
+						`./textures/environment/ny.jpg`,
+						`./textures/environment/pz.jpg`,
+						`./textures/environment/nz.jpg`
 					],
 					diffuseEnvUrls: [
-						`./textures/papermill/diffuse/px.jpg`,
-						`./textures/papermill/diffuse/nx.jpg`,
-						`./textures/papermill/diffuse/py.jpg`,
-						`./textures/papermill/diffuse/ny.jpg`,
-						`./textures/papermill/diffuse/pz.jpg`,
-						`./textures/papermill/diffuse/nz.jpg`
+						`./textures/environment/diffuse/bakedDiffuse_01.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_02.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_03.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_04.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_05.jpg`,
+						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
 					]
 				});
 				const gltf = await loadGLTF(
@@ -85,11 +85,11 @@
 				const primitive2 = gltf.meshes[2][0];
 				const primitive3 = gltf.meshes[3][0];
 				const primitive4 = gltf.meshes[4][0];
-				primitive.rotateX(-Math.PI / 2);
-				primitive1.rotateX(-Math.PI / 2);
-				primitive2.rotateX(-Math.PI / 2);
-				primitive3.rotateX(-Math.PI / 2);
-				primitive4.rotateX(-Math.PI / 2);
+				primitive.rotateZ(Math.PI / 2);
+				primitive1.rotateZ(Math.PI / 2);
+				primitive2.rotateZ(Math.PI / 2);
+				primitive3.rotateZ(Math.PI / 2);
+				primitive4.rotateZ(Math.PI / 2);
 				scene.add(primitive);
 				scene.add(primitive1);
 				scene.add(primitive2);
@@ -103,18 +103,18 @@
 				camera.position.set(4, 0, 4);
 				camera.lookAt(0, 0, 0);
 				const control = new OrbitControl(camera, document.getElementById("app"));
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0, new Vector3(1, 1, 1));
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2, new Vector3(1, 1, 1));
 				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 30, 1);
 				pointLight.position = new Vector3(10, 10, 10);
 				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 6.0, 100, 60, 1);
 				spotLight.position = new Vector3(0, 10, 0);
 				const urls = [
-					`./textures/cubemap/px.png`,
-					`./textures/cubemap/nx.png`,
-					`./textures/cubemap/py.png`,
-					`./textures/cubemap/ny.png`,
-					`./textures/cubemap/pz.png`,
-					`./textures/cubemap/nz.png`
+					`./textures/environment/px.jpg`,
+					`./textures/environment/nx.jpg`,
+					`./textures/environment/py.jpg`,
+					`./textures/environment/ny.jpg`,
+					`./textures/environment/pz.jpg`,
+					`./textures/environment/nz.jpg`
 				];
 				const skybox = new SkyBox(urls);
 
