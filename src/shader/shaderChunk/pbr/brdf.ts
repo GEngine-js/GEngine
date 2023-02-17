@@ -37,7 +37,8 @@ export default function brdf(defines) {
             // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
             let fresnel = exp2( ( - 5.55473 * dotVH - 6.98316 ) * dotVH );
 
-            return f0 * ( 1.0 - fresnel ) + ( f90 * fresnel );
+           // return f0 * ( 1.0 - fresnel ) + ( f90 * fresnel );
+           return ( 1.0 - f0 ) * fresnel + f0;
 
         } // validated
 
@@ -76,7 +77,7 @@ export default function brdf(defines) {
             let dotNL:f32 = saturate( dot( normal, lightDir ) );
             let dotNV:f32 = saturate( dot( normal, viewDir ) );
             let dotNH:f32 = saturate( dot( normal, halfDir ) );
-            let dotVH:f32 = saturate( dot( viewDir, halfDir ) );
+            let dotVH:f32 = saturate( dot( lightDir, halfDir ) );
 
             let F = F_Schlick( f0, f90, dotVH );
 
@@ -90,21 +91,8 @@ export default function brdf(defines) {
         fn direct_Physical( directLight:IncidentLight, geometry:Geometry,material:PhysicalMaterial)->ReflectedLight {
             var reflectedLight:ReflectedLight;
             let dotNL:f32 = saturate(dot( geometry.normal,geometry.viewDir));
-            let irradiance:vec3<f32> = dotNL * directLight.color;
-            #if ${defines.USE_CLEARCOAT}
-                let dotNLcc:f32 = saturate( dot( geometry.clearcoatNormal, geometry.viewDir) );
-                let ccIrradiance:vec3<f32> = dotNLcc * directLight.color;
-                clearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
-            #endif
-            #if ${defines.USE_SHEEN}
-                sheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, geometry.normal, material.sheenColor, material.sheenRoughness );
-            #endif
-     
-            #if ${defines.USE_IRIDESCENCE}
-                reflectedLight.directSpecular = irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );
-            #else
-                reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
-            #endif
+            let irradiance:vec3<f32> = dotNL * directLight.color*3.1415926;
+            reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
             reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
             return reflectedLight;
         }

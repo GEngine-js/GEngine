@@ -106,7 +106,6 @@ export default class PbrMat extends Material {
 		if (this.baseTexture) {
 			this.shaderData.setDefine("USE_TEXTURE", true);
 			this.shaderData.setTexture("baseTexture", this.baseTexture);
-			this.shaderData.setSampler("baseSampler", this.baseSampler);
 		}
 		if (this.metalnessRoughnessTexture) {
 			this.shaderData.setDefine("USE_METALNESSTEXTURE", true);
@@ -135,6 +134,7 @@ export default class PbrMat extends Material {
 		if (this.brdfTexture) {
 			this.shaderData.setTexture("brdfTexture", this.brdfTexture);
 		}
+		this.shaderData.setSampler("baseSampler", this.baseSampler);
 	}
 	destroy() {}
 }

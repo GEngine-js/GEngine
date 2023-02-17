@@ -2,7 +2,7 @@
  * @Author: junwei.gu junwei.gu@jiduauto.com
  * @Date: 2023-01-18 10:53:08
  * @LastEditors: junwei.gu junwei.gu@jiduauto.com
- * @LastEditTime: 2023-02-16 14:17:30
+ * @LastEditTime: 2023-02-16 17:59:01
  * @FilePath: \GEngine\src\shader\material\pbr_vs.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -13,7 +13,7 @@ export default function pbr_vs(defines) {
         modelMatrix: mat4x4<f32>,
         color: vec3<f32>,
         opacity:f32,
-        normalMatrix: mat3x3<f32>,
+        normalMatrix: mat4x4<f32>,
         emissive:vec3<f32>,
         metallic:f32,
         roughness:f32,
@@ -85,11 +85,12 @@ export default function pbr_vs(defines) {
             let pos:vec4<f32> = systemUniform.viewMatrix *materialUniform.modelMatrix*skinMatrix * vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix*materialUniform.modelMatrix * skinMatrix * vec4<f32>(input.position,1.0);
         #else
-            output.normal = normalize((materialUniform.normalMatrix * input.normal).xyz);
+            let vNormalView = materialUniform.normalMatrix * vec4<f32>(input.normal,0.0);
+            output.normal =  vNormalView.xyz;
             let pos:vec4<f32>=systemUniform.viewMatrix *materialUniform.modelMatrix*vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix *materialUniform.modelMatrix* vec4<f32>(input.position, 1.0);
         #endif      
-        //output.worldPos = pos.xyz/pos.w; 
+        // output.worldPos = pos.xyz/pos.w; 
         let modelPos=materialUniform.modelMatrix *vec4<f32>(input.position,1.0);
         output.worldPos = modelPos.xyz/modelPos.w;
         return output;   

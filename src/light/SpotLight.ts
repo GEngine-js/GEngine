@@ -18,11 +18,11 @@ export class SpotLight extends Light {
 	public dirtectVC: Vector3;
 	dirtectDirty: boolean;
 	private _target: Vector3;
-	constructor(color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0.5, decay = 1) {
+	constructor(color, intensity, distance = 0, angle = 60, penumbra = 60, decay = 1) {
 		super(color, intensity);
 		this._distance = distance;
-		this._angle = angle;
-		this._penumbra = penumbra;
+		this._angle = (angle / 180) * Math.PI;
+		this._penumbra = (penumbra / 180) * Math.PI;
 		this._decay = decay;
 		this.type = "spot";
 		this._target = new Vector3(0, 0, 0);
@@ -49,7 +49,7 @@ export class SpotLight extends Light {
 	}
 	set angle(value) {
 		this.angleDirty = true;
-		this._angle = value;
+		this._angle = (value / 180) * Math.PI;
 		this.updateConeCosOrPenumbraCos();
 	}
 	get penumbra() {
@@ -57,7 +57,7 @@ export class SpotLight extends Light {
 	}
 	set penumbra(value) {
 		this.penumbraDirty = true;
-		this._penumbra = value;
+		this._penumbra = (value / 180) * Math.PI;
 		this.updateConeCosOrPenumbraCos();
 	}
 	set distance(value) {
@@ -90,7 +90,7 @@ export class SpotLight extends Light {
 	}
 	private updateConeCosOrPenumbraCos() {
 		this._coneCos = Math.cos(this.angle);
-		this._penumbraCos = Math.cos(this.angle * (1 - this.penumbra));
+		this._penumbraCos = Math.cos(this.angle + this.penumbra);
 	}
 	update(camera: Camera): void {
 		super.update(camera);

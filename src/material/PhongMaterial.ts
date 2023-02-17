@@ -33,7 +33,7 @@ export default class PhongMaterial extends Material {
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return mesh.modelMatrix;
 		});
-		uniformBuffer.setColor("diffuse", this);
+		uniformBuffer.setColor("color", this);
 		uniformBuffer.setFloat("opacity", this);
 		uniformBuffer.setMatrix4("normalMtrix", () => {
 			return mesh.normalMatrix;

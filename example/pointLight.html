@@ -101,8 +101,8 @@
 				pbr.baseSampler = baseSampler;
 				pbr.aoTexture = aoTexture;
 				pbr.normalTexture = normalTexture;
-				pbr.roughness = 1.0;
-				pbr.metalness = 0.0;
+				pbr.roughness = 0.0;
+				pbr.metalness = 1.0;
 				const primitive = new Mesh(geometry, pbr);
 				primitive.position.set(0, 5, 0);
 
@@ -119,8 +119,8 @@
 				camera.position.set(25, 25, 25);
 				camera.lookAt(0, 0, 0);
 
-				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 0.3, 65, 1);
-				pointLight.position = new Vector3(0, 25, 0);
+				const pointLight = new PointLight(new Vector3(1.0, 0.0, 0.0), 0.3, 65, 1);
+				pointLight.position = new Vector3(0, 35, 0);
 				const skybox = new SkyBox(environmentUrls);
 				scene.add(primitive);
 				scene.add(ground);

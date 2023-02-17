@@ -35,7 +35,7 @@ export default function light(defines) {
                 var lightColor:ReflectedLight;
                 let lightDistance:f32 = length(direction);
                 direction = normalize(direction);
-                let angleCos:f32 = dot( direction, -spotLight.direction );
+                let angleCos:f32 = dot( direction, spotLight.direction );
                 let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
                 let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
                 let decayTotal:f32 = decay * spotEffect;
@@ -52,7 +52,7 @@ export default function light(defines) {
             incidentLight.direction = normalize( lVector );
     
             let lightDistance:f32 = length( lVector );
-            let angleCos:f32 = dot( incidentLight.direction, -spotLight.direction );
+            let angleCos:f32 = dot( incidentLight.direction, spotLight.direction );
     
             let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
             let decayEffect:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, 4.0), 0.0, 1.0);
@@ -87,9 +87,10 @@ export default function light(defines) {
         }
         fn getPointLightIncidentLight(pointLight:PointLight, geometry:Geometry)->IncidentLight {
             var incidentLight:IncidentLight;
-            let lVector:vec3<f32> = pointLight.position - geometry.position;
+            let lVector:vec3<f32> = pointLight.position-geometry.position;
             incidentLight.direction= normalize( lVector );
             let lightDistance:f32 = length( lVector );
+            // let weight:f32=1.0 - pow(lightDistance/pointLight.distance, 4.0);
             incidentLight.color=pointLight.color*clamp(1.0 - pow(lightDistance/pointLight.distance, 4.0), 0.0, 1.0);
             return incidentLight;
         }
@@ -99,9 +100,9 @@ export default function light(defines) {
             direction: vec3<f32>,
             color: vec3<f32>,
         };
-        fn getDirtectLightInfo(directionalLight:DirtectLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
+        fn getDirtectLightInfo(directionalLight:DirectionalLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
             var lightColor:ReflectedLight;
-            let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+            let d:f32 = max(dot(N, directionalLight.direction), 0.0);
             lightColor.directDiffuse += directionalLight.color * d;
     
             let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
@@ -109,10 +110,10 @@ export default function light(defines) {
             lightColor.directSpecular += directionalLight.color * s;
             return lightColor;
         }
-        fn getDirectionalDirectLightIncidentLight(directionalLight:DirtectLight,geometry:Geometry)->IncidentLight {
+        fn getDirectionalDirectLightIncidentLight(directionalLight:DirectionalLight,geometry:Geometry)->IncidentLight {
             var incidentLight:IncidentLight;
             incidentLight.color = directionalLight.color;
-            incidentLight.direction = -directionalLight.direction;
+            incidentLight.direction = normalize(directionalLight.direction);
             return incidentLight;         
         }
     #endif
@@ -176,11 +177,11 @@ export default function light(defines) {
         //处理方向光
         var directionalLight:DirectionalLight;
         for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
-            dirtectLight = lightUniforms.dirtectLights[i];
+            directionalLight = lightUniforms.dirtectLights[i];
             #if ${defines.materialPhong}
-                let dirReflectedLight=getDirtectLightInfo(dirtectLight,shininess,geometry.normal,geometry.viewDir);
+                let dirReflectedLight=getDirtectLightInfo(directionalLight,shininess,geometry.normal,geometry.viewDir);
             #elif ${defines.materialPbr}
-                let incidentLight=getDirectionalDirectLightIncidentLight(dirtectLight,geometry);
+                let incidentLight=getDirectionalDirectLightIncidentLight(directionalLight,geometry);
                 let dirReflectedLight=direct_Physical(incidentLight, geometry, material);
             #endif
             reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;

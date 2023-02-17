@@ -90,10 +90,10 @@ export default function pbr_fs(defines) {
         // IBL
         @group(0) @binding(${defines.diffuseEnvTextureBinding}) var diffuseEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvSampler: texture_cube<f32>;
+        @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         @group(0) @binding(${defines.brdfTextureBinding}) var brdfLUT: texture_2d<f32>;
         #if ${defines.USE_TEXTURE}
            @group(0) @binding(${defines.baseTextureBinding}) var baseColorTexture: texture_2d<f32>;
-           @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
         #endif
         // normal map
         #if ${defines.USE_NORMALTEXTURE}
@@ -249,12 +249,11 @@ export default function pbr_fs(defines) {
             // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
             let v:vec3<f32> =normalize(systemUniform.cameraPosition - input.worldPos);                       // Vector from surface point to camera
             // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
-            let l:vec3<f32> =normalize(vec3( 1.0, 1.0, 1.0 )); 
+            let l:vec3<f32> =normalize(vec3<f32>(0.0,0.0, 1.0 )); 
                       // Vector from surface point to light
-            // vec3 l = vec3( 0.0, 0.0, 1.0 );             // Vector from surface point to light
             let h:vec3<f32> = normalize(l+v);                          // Half vector between both l and v
-            let reflection:vec3<f32> = -normalize(reflect(v, n));
-
+            var reflection:vec3<f32> = normalize(reflect(v, n));
+            // reflection.x = -reflection.x;
             let NdotL:f32 = clamp(dot(n, l), 0.001, 1.0);
             let NdotV:f32 = abs(dot(n, v)) + 0.001;
             let NdotH:f32 = clamp(dot(n, h), 0.0, 1.0);
@@ -299,7 +298,7 @@ export default function pbr_fs(defines) {
             var color=reflectedLight.directDiffuse+reflectedLight.directSpecular;
             // Calculate lighting contribution from image based lighting source (IBL)
             // USE_IBL
-           color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
+        color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
 
 
         // Apply optional PBR terms for additional (optional) shading
