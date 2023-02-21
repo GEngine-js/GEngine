@@ -78,15 +78,17 @@ export default class ShaderData {
 	}
 	bind(context: Context, passEncoder: GPURenderPassEncoder) {
 		this.uploadUniform(context);
-		const { groupLayout, bindGroup } = this.createBindGroupAndLayout(
-			context.device,
-			this.label,
-			this.layoutIndex,
-			this.groupIndex
-		);
-		bindGroup.bind(passEncoder);
-		this.bindGroup = bindGroup;
-		this.groupLayout = groupLayout;
+		if (!this.bindGroup || !this.groupLayout) {
+			const { groupLayout, bindGroup } = this.createBindGroupAndLayout(
+				context.device,
+				this.label,
+				this.layoutIndex,
+				this.groupIndex
+			);
+			this.bindGroup = bindGroup;
+			this.groupLayout = groupLayout;
+		}
+		this.bindGroup.bind(passEncoder);
 	}
 	destroy() {
 		this._uniforms.forEach((uniform) => {
@@ -122,7 +124,7 @@ export default class ShaderData {
 			layoutIndex || 0
 		);
 		const groupEntities = this.createBindGroupEntity();
-		const bindGroup = BindGroup.getBindGroupFromCache({
+		const bindGroup = new BindGroup({
 			label: label,
 			entires: groupEntities,
 			device: device,

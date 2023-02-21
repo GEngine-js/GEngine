@@ -91,8 +91,10 @@ export class Scene extends EventDispatcher {
 		if (!this.inited) {
 			this.inited = true;
 			await this.init();
+			this.update();
+		} else {
+			this.update();
 		}
-		this.update();
 	}
 	private update() {
 		if (!this.ready) return;
