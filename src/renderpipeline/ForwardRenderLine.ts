@@ -34,7 +34,7 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 		this.basicPass.render(frameState, camera);
 		this.basicPass.afterRender();
 		// @ts-ignore
-		this.postEffectCollection.render(frameState.context, this.shadowPass.getDepthTexture());
+		this.postEffectCollection.render(frameState.context, this.basicPass.getColorTexture());
 	}
 	destroy() {
 		this.basicPass = undefined;
