@@ -23,7 +23,7 @@ export default class UniformBuffer {
 	public type: string;
 	public hasDynamicOffset: boolean;
 	public minBindingSize: number;
-	private _uniforms: any;
+	private _uniformStruct: any;
 	private _bufferSize: number;
 	byteOffset: number;
 	uniformDirty: boolean;
@@ -40,7 +40,7 @@ export default class UniformBuffer {
 		this.binding = defaultValue(binding, 0);
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
 		this.usage = defaultValue(usage, BufferUsage.Uniform | BufferUsage.CopyDst);
-		this._uniforms = new Map();
+		this._uniformStruct = new Map();
 		this.uniformDirty = true;
 		this._bufferSize = size;
 		this.offset = 0;
@@ -63,7 +63,7 @@ export default class UniformBuffer {
 		return Math.ceil(this.byteOffset / 16) * 16;
 	}
 	bind(context: Context) {
-		this._uniforms.forEach((uniform) => {
+		this._uniformStruct.forEach((uniform) => {
 			const result = uniform.set();
 			if (result != undefined && this.uniformDirty == false) this.uniformDirty = result;
 		});
@@ -75,7 +75,7 @@ export default class UniformBuffer {
 	}
 	public getUniformBufferStruct() {
 		let uniformStruct = `struct MaterialUniform {\n `;
-		this._uniforms.forEach((uniform) => {
+		this._uniformStruct.forEach((uniform) => {
 			uniformStruct += this.createUniformString(uniform);
 		});
 		uniformStruct += `}\n`;
@@ -109,62 +109,62 @@ export default class UniformBuffer {
 		return result;
 	}
 	setFloat(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec2(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
 		const uniform = new UniformFloatVec2(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec3(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
 		const uniform = new UniformFloatVec3(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setColor(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
 		const uniform = new UniformColor(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec4(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
 		const uniform = new UniformFloatVec4(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix2(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
 		const uniform = new UniformMat2(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix3(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
 		const uniform = new UniformMat3(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix4(name: string, value: Function | number | Object, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	replaceUniformValue(name: string, value: Function | number | Object) {
-		const uniform = this._uniforms.get(name);
+		const uniform = this._uniformStruct.get(name);
 		if (!uniform) console.error("not find uniform");
 		uniform.cb = value;
 	}
@@ -173,52 +173,52 @@ export default class UniformBuffer {
 	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
 	// uniformBuffer.setVec2Array('test2',()=>{return [new Vector2(0.5,0.6),new Vector2(0.5,0.8,)]},2);
 	setFloatArray(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatArray.align);
 		const uniform = new UniformFloatArray(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec2Array(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec2Array.align);
 		const uniform = new UniformVec2Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec3Array(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec3Array.align);
 		const uniform = new UniformVec3Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec4Array(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec4Array.align);
 		const uniform = new UniformVec4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setSpotLights(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLights.align);
 		const uniform = new UniformSpotLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setPointLights(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLights.align);
 		const uniform = new UniformPointLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setDirtectLights(name: string, value: Function, count: number, binding?: number) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
 		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	private checkUniformOffset(byteSize: number, Align: number): number {

@@ -420,7 +420,7 @@ export class UniformTexture extends Uniform<Texture> {
 		this._texture = texture;
 	}
 	get layoutType() {
-		return this.texture.layoutType;
+		return this.texture?.layoutType || "not yet bind";
 	}
 	bind(context: Context) {
 		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
@@ -432,7 +432,7 @@ export class UniformSampler extends Uniform<Sampler> {
 	public type: string;
 	public visibility: ShaderStage;
 	public name: string;
-	public sampler: Texture;
+	public sampler: Sampler;
 	private _sampler: Function | Sampler;
 	constructor(uniformName: string, binding: number, sampler: Function | Sampler) {
 		super(uniformName);
@@ -443,7 +443,7 @@ export class UniformSampler extends Uniform<Sampler> {
 		this._sampler = sampler;
 	}
 	get layoutType() {
-		return this.sampler.layoutType;
+		return this.sampler?.layoutType || "not yet bind";
 	}
 	bind(context: Context) {
 		this.sampler = this._sampler instanceof Function ? this._sampler() : this._sampler;

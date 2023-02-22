@@ -38,7 +38,8 @@ export class BaseShadow {
 				height: this._shadowMapSize,
 				depth: 1
 			},
-			format: TextureFormat.Depth32Float,
+			sampleType: "depth",
+			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
 	}

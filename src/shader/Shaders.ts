@@ -8,6 +8,7 @@ import pbrVert from "./material/pbrVert";
 import skyBoxFrag from "./material/skyBoxFrag";
 import skyBoxVert from "./material/skyBoxVert";
 import quadFrag from "./material/quadFrag";
+import shadowTestFrag from "./material/shadowTestFrag";
 import quadVert from "./material/quadVert";
 import pbr_vs from "./material/pbr_vs";
 import pbr_fs from "./material/pbr_fs";

@@ -12,6 +12,8 @@ import { BaseShadow } from "../light/shadows/BaseShadow";
 import { FrameState } from "../core/FrameState";
 import ShaderMaterial from "../material/ShaderMaterial";
 import getVertFrag from "../shader/Shaders";
+import ShaderData from "../render/ShaderData";
+import UniformBuffer from "../render/UniformBuffer";
 
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
@@ -69,5 +71,12 @@ export class ShadowPass extends Pass {
 			frag: undefined
 		});
 		this.shadowMaterial.light = true;
+		this.shadowMaterial.shaderData = new ShaderData(this.shadowMaterial.type, 0);
+		const uniformBuffer = new UniformBuffer();
+		uniformBuffer.setMatrix4("modelMatrix", () => {
+			return null;
+		});
+
+		this.shadowMaterial.shaderData.setUniformBuffer("shadowUniformStruct", uniformBuffer);
 	}
 }

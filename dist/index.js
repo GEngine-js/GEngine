@@ -4868,7 +4868,7 @@ class UniformTexture extends Uniform {
 		this._texture = texture;
 	}
 	get layoutType() {
-		return this.texture.layoutType;
+		return this.texture?.layoutType || "not yet bind";
 	}
 	bind(context) {
 		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
@@ -4885,7 +4885,7 @@ class UniformSampler extends Uniform {
 		this._sampler = sampler;
 	}
 	get layoutType() {
-		return this.sampler.layoutType;
+		return this.sampler?.layoutType || "not yet bind";
 	}
 	bind(context) {
 		this.sampler = this._sampler instanceof Function ? this._sampler() : this._sampler;
@@ -5303,7 +5303,7 @@ class UniformBuffer {
 		this.binding = defaultValue(binding, 0);
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
 		this.usage = defaultValue(usage, BufferUsage.Uniform | BufferUsage.CopyDst);
-		this._uniforms = new Map();
+		this._uniformStruct = new Map();
 		this.uniformDirty = true;
 		this._bufferSize = size;
 		this.offset = 0;
@@ -5326,7 +5326,7 @@ class UniformBuffer {
 		return Math.ceil(this.byteOffset / 16) * 16;
 	}
 	bind(context) {
-		this._uniforms.forEach((uniform) => {
+		this._uniformStruct.forEach((uniform) => {
 			const result = uniform.set();
 			if (result != undefined && this.uniformDirty == false) this.uniformDirty = result;
 		});
@@ -5338,7 +5338,7 @@ class UniformBuffer {
 	}
 	getUniformBufferStruct() {
 		let uniformStruct = `struct MaterialUniform {\n `;
-		this._uniforms.forEach((uniform) => {
+		this._uniformStruct.forEach((uniform) => {
 			uniformStruct += this.createUniformString(uniform);
 		});
 		uniformStruct += `}\n`;
@@ -5372,62 +5372,62 @@ class UniformBuffer {
 		return result;
 	}
 	setFloat(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec2(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec2.align);
 		const uniform = new UniformFloatVec2(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec3(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec3.align);
 		const uniform = new UniformFloatVec3(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setColor(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformColor.align);
 		const uniform = new UniformColor(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setFloatVec4(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatVec4.align);
 		const uniform = new UniformFloatVec4(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix2(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat2.align);
 		const uniform = new UniformMat2(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix3(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat3.align);
 		const uniform = new UniformMat3(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setMatrix4(name, value, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	replaceUniformValue(name, value) {
-		const uniform = this._uniforms.get(name);
+		const uniform = this._uniformStruct.get(name);
 		if (!uniform) console.error("not find uniform");
 		uniform.cb = value;
 	}
@@ -5436,52 +5436,52 @@ class UniformBuffer {
 	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
 	// uniformBuffer.setVec2Array('test2',()=>{return [new Vector2(0.5,0.6),new Vector2(0.5,0.8,)]},2);
 	setFloatArray(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformFloatArray.align);
 		const uniform = new UniformFloatArray(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec2Array(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec2Array.align);
 		const uniform = new UniformVec2Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec3Array(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec3Array.align);
 		const uniform = new UniformVec3Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setVec4Array(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformVec4Array.align);
 		const uniform = new UniformVec4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setSpotLights(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLights.align);
 		const uniform = new UniformSpotLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setPointLights(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLights.align);
 		const uniform = new UniformPointLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	setDirtectLights(name, value, count, binding) {
-		if (this._uniforms.get(name)) return;
+		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
 		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
-		this._uniforms.set(name, uniform);
+		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
 	checkUniformOffset(byteSize, Align) {
@@ -5827,12 +5827,13 @@ class Sampler {
 			addressModeU: "clamp-to-edge",
 			addressModeV: "clamp-to-edge"
 			// addressModeW: "clamp-to-edge",
+		},
+		layoutType = {
+			type: "filtering"
 		}
 	) {
 		this.descriptor = descriptor;
-		this.layoutType = {
-			type: "filtering"
-		};
+		this.layoutType = layoutType;
 	}
 	update(context) {
 		if (!this.gpuSampler) this.gpuSampler = context.device.createSampler(this.descriptor);
@@ -11735,45 +11736,6 @@ class BasicPass extends Pass {
 	}
 }
 
-class ShadowPass extends Pass {
-	constructor(context) {
-		super(context);
-		this.init(context);
-	}
-	beforeRender() {
-		return;
-	}
-	render(frameState, camera) {
-		const { renderQueue, context } = frameState;
-		const lights = context.lightManger.getAllLights();
-		if (lights.length === 0) return;
-		for (let i = 0; i < lights.length; i++) {
-			const light = lights[i];
-			const shadow = light.shadow;
-			this.setRenderTarget(shadow);
-			super.beforeRender();
-			renderQueue.sort();
-			renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-			renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
-			renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
-		}
-	}
-	afterRender() {
-		return;
-	}
-	setRenderTarget(shadow) {
-		const shadowMapTexture = shadow.getShadowMapTexture();
-		const depthAttachment = new Attachment(1.0, { texture: shadowMapTexture });
-		this.renderTarget.depthAttachment = depthAttachment;
-	}
-	init(context) {
-		this.createRenderTarget(context);
-	}
-	createRenderTarget(context) {
-		this.renderTarget = new RenderTarget("render", []);
-	}
-}
-
 const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
 function checkContainFloatType(uniforms) {
 	let result = 0;
@@ -11931,6 +11893,62 @@ class ShaderMaterial extends Material {
 	}
 }
 
+class ShadowPass extends Pass {
+	constructor(context) {
+		super(context);
+		this.init(context);
+	}
+	beforeRender() {
+		return;
+	}
+	render(frameState, camera) {
+		const { renderQueue, context } = frameState;
+		const lights = context.lightManger.getAllLights();
+		if (lights.length === 0) return;
+		for (let i = 0; i < lights.length; i++) {
+			const light = lights[i];
+			const shadow = light.shadow;
+			this.setRenderTarget(shadow);
+			super.beforeRender();
+			renderQueue.sort();
+			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
+			renderQueue.transparentRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
+			renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
+		}
+	}
+	// afterRender(): void {
+	// 	return;
+	// }
+	setRenderTarget(shadow) {
+		const shadowMapTexture = shadow.getShadowMapTexture();
+		const depthAttachment = new Attachment(1.0, { texture: shadowMapTexture });
+		this.renderTarget.depthAttachment = depthAttachment;
+	}
+	init(context) {
+		this.createRenderTarget(context);
+		this.createShadowMaterial();
+	}
+	createRenderTarget(context) {
+		this.renderTarget = new RenderTarget("render", []);
+	}
+	createShadowMaterial() {
+		const colorShader = getVertFrag("color");
+		this.shadowMaterial = new ShaderMaterial({
+			type: "shadowMaterial",
+			uniforms: {},
+			vert: colorShader.vert,
+			frag: undefined
+		});
+		this.shadowMaterial.light = true;
+		this.shadowMaterial.shaderData = new ShaderData(this.shadowMaterial.type, 0);
+		const uniformBuffer = new UniformBuffer();
+		uniformBuffer.setMatrix4("modelMatrix", () => {
+			return null;
+		});
+		this.shadowMaterial.shaderData.setUniformBuffer("shadowUniformStruct", uniformBuffer);
+	}
+}
+
 class ResolveFrame {
 	constructor() {
 		this.geometry = new Geometry({});
@@ -12041,7 +12059,8 @@ class ForwardRenderLine {
 		this.basicPass.beforeRender();
 		this.basicPass.render(frameState, camera);
 		this.basicPass.afterRender();
-		this.postEffectCollection.render(frameState.context, this.basicPass.getColorTexture(0));
+		// @ts-ignore
+		this.postEffectCollection.render(frameState.context, this.shadowPass.getDepthTexture());
 	}
 	destroy() {
 		this.basicPass = undefined;
@@ -12995,6 +13014,9 @@ class BaseShadow {
 		this._camera = camera;
 		this._init();
 	}
+	get camera() {
+		return this._camera;
+	}
 	getShadowMapTexture() {
 		return this._shadowMap;
 	}
@@ -13011,7 +13033,8 @@ class BaseShadow {
 				height: this._shadowMapSize,
 				depth: 1
 			},
-			format: TextureFormat.Depth32Float,
+			sampleType: "depth",
+			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
 	}
