@@ -31,26 +31,10 @@ export default function pbr_fs(defines) {
             @location(1) normal:vec3<f32>,
             @location(2) uv:vec2<f32>
         }    
-        struct PBRInfo
-        {
-            NdotL:f32,                 // cos angle between normal and light direction
-            NdotV:f32,                  // cos angle between normal and view direction
-            NdotH:f32,                  // cos angle between normal and half vector
-            LdotH:f32,                  // cos angle between light direction and half vector
-            VdotH:f32,                  // cos angle between view direction and half vector
-            perceptualRoughness:f32,    // roughness value, as authored by the model creator (input to shader)
-            metalness:f32,              // metallic value at the surface
-            reflectance0:vec3<f32>,           // full reflectance color (normal incidence angle)
-            reflectance90:vec3<f32>,           // reflectance color at grazing angle
-            alphaRoughness:f32,         // roughness mapped to a more linear change in the roughness (proposed by [2])
-            diffuseColor:vec3<f32>,            // color contribution from diffuse lighting
-            specularColor:vec3<f32>,           // color contribution from specular lighting
-        };
         struct PhysicalMaterial {
             diffuseColor:vec3<f32>,
             roughness:f32,
             specularColor:vec3<f32>,
-            specularF90:f32,
            #if ${defines.USE_CLEARCOAT}
                clearcoat:f32,
                clearcoatRoughness:f32,
@@ -88,10 +72,8 @@ export default function pbr_fs(defines) {
         @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
         @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
         // IBL
-        @group(0) @binding(${defines.diffuseEnvTextureBinding}) var diffuseEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvSampler: texture_cube<f32>;
         @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
-        @group(0) @binding(${defines.brdfTextureBinding}) var brdfLUT: texture_2d<f32>;
         #if ${defines.USE_TEXTURE}
            @group(0) @binding(${defines.baseTextureBinding}) var baseColorTexture: texture_2d<f32>;
         #endif
@@ -113,7 +95,7 @@ export default function pbr_fs(defines) {
         #if ${defines.USE_AOTEXTURE}
              @group(0) @binding(${defines.aoTextureBinding}) var aoTexture: texture_2d<f32>;
         #endif
-
+        
         // Find the normal for this fragment, pulling either from a predefined normal map
         // or from the interpolated mesh normal and tangent attributes.
         fn getNormal(input:VertInput
@@ -141,63 +123,7 @@ export default function pbr_fs(defines) {
             #endif
             return n;
         }
-
-        fn getIBLContribution( pbrInputs:PBRInfo, n:vec3<f32>, reflection:vec3<f32>,brdfLUT:texture_2d<f32>,specularEnvSampler:texture_cube<f32>,diffuseEnvSampler:texture_cube<f32>,defaultSampler:sampler)->vec3<f32>
-        {
-            let mipCount:f32 = 10.0; // resolution of 256x256
-            let lod:f32 = (pbrInputs.perceptualRoughness * mipCount);
-            // retrieve a scale and bias to F0. See [1], Figure 3
-            let brdf:vec3<f32> = textureSample(brdfLUT, defaultSampler,vec2<f32>(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
-            let diffuseLight:vec3<f32> = textureSample(diffuseEnvSampler,defaultSampler, n).rgb;
-            let specularLight:vec3<f32> = textureSampleLevel(specularEnvSampler,defaultSampler, reflection, lod).rgb;
-            let diffuse:vec3<f32> = diffuseLight * pbrInputs.diffuseColor;
-            let specular:vec3<f32> = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
-
-            return diffuse + specular;
-        }
-
-        // Basic Lambertian diffuse
-        // Implementation from Lambert's Photometria https://archive.org/details/lambertsphotome00lambgoog
-        // See also [1], Equation 1
-        fn diffuse(pbrInputs:PBRInfo)->vec3<f32>
-        {
-            return pbrInputs.diffuseColor / M_PI;
-        }
-
-
-        // The following equation models the Fresnel reflectance term of the spec equation (aka F())
-        // Implementation of fresnel from [4], Equation 15
-        fn specularReflection(pbrInputs:PBRInfo)->vec3<f32>
-        {
-            return pbrInputs.reflectance0 + (pbrInputs.reflectance90 - pbrInputs.reflectance0) * pow(clamp(1.0 - pbrInputs.VdotH, 0.0, 1.0), 5.0);
-        }
-
-
-        // This calculates the specular geometric attenuation (aka G()),
-        // where rougher material will reflect less light back to the viewer.
-        // This implementation is based on [1] Equation 4, and we adopt their modifications to
-        // alphaRoughness as input as originally proposed in [2].
-        fn geometricOcclusion( pbrInputs:PBRInfo)->f32
-        {
-            let NdotL:f32 = pbrInputs.NdotL;
-            let NdotV:f32 = pbrInputs.NdotV;
-            let r:f32 = pbrInputs.alphaRoughness;
-
-            let attenuationL:f32 = 2.0 * NdotL / (NdotL + sqrt(r * r + (1.0 - r * r) * (NdotL * NdotL)));
-            let attenuationV :f32= 2.0 * NdotV / (NdotV + sqrt(r * r + (1.0 - r * r) * (NdotV * NdotV)));
-            return attenuationL * attenuationV;
-        }
-
-
-        // The following equation(s) model the distribution of microfacet normals across the area being drawn (aka D())
-        // Implementation from "Average Irregularity Representation of a Roughened Surface for Ray Reflection" by T. S. Trowbridge, and K. P. Reitz
-        // Follows the distribution function recommended in the SIGGRAPH 2013 course notes from EPIC Games [1], Equation 3.
-        fn microfacetDistribution( pbrInputs:PBRInfo)->f32
-        {
-            let roughnessSq:f32 = pbrInputs.alphaRoughness * pbrInputs.alphaRoughness;
-            let f:f32 = (pbrInputs.NdotH * roughnessSq - pbrInputs.NdotH) * pbrInputs.NdotH + 1.0;
-            return roughnessSq / (M_PI * f * f);
-        }
+        #include <ibl>
         @fragment
         fn main(input:VertInput) -> @location(0) vec4<f32> 
         {
@@ -219,87 +145,38 @@ export default function pbr_fs(defines) {
 
 
             // The albedo may be defined from a base texture or a flat color
-        #if ${defines.USE_TEXTURE}
-            let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) ;
-        #else
-            let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
-        #endif
-            let f0:vec3<f32> = vec3<f32>(0.04);
-            var diffuseColor:vec3<f32> = baseColor.rgb * (vec3<f32>(1.0) - f0);
-            diffuseColor *= 1.0 - metallic;
-            let specularColor:vec3<f32> = mix(f0, baseColor.rgb, metallic);
+            #if ${defines.USE_TEXTURE}
+                let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) ;
+            #else
+                let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
+            #endif
 
-            // Compute reflectance.
-            let reflectance:f32 = max(max(specularColor.r, specularColor.g), specularColor.b);
+            #if ${defines.USE_NORMALTEXTURE}
+            let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);  
+            #else
+            let n:vec3<f32> = getNormal(input);
+            #endif
 
-
-            // For typical incident reflectance range (between 4% to 100%) set the grazing reflectance to 100% for typical fresnel effect.
-            // For very low reflectance range on highly diffuse objects (below 4%), incrementally reduce grazing reflecance to 0%.
-            let reflectance90:f32 = clamp(reflectance * 25.0, 0.0, 1.0);
-            let specularEnvironmentR0:vec3<f32> = specularColor.rgb;
-            let specularEnvironmentR90:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0) * reflectance90;
-     
-                #if ${defines.USE_NORMALTEXTURE}
-                let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);  
-                #else
-                let n:vec3<f32> = getNormal(input);
-                #endif
-
-            //let n:vec3<f32> = getNormal(input,normalTexture,defaultSampler);                             // normal at surface point
-            // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-            let v:vec3<f32> =-normalize(systemUniform.cameraPosition - input.worldPos);                       // Vector from surface point to camera
-            let l:vec3<f32> =normalize(vec3<f32>(0.0,0.0, 1.0 )); 
-                      // Vector from surface point to light
-            let h:vec3<f32> = normalize(l+v);                          // Half vector between both l and v
-            var reflection:vec3<f32> = normalize(reflect(-v, n));
-            // reflection.x = -reflection.x;
-            let NdotL:f32 = clamp(dot(n, l), 0.001, 1.0);
-            let NdotV:f32 = abs(dot(n, v)) + 0.001;
-            let NdotH:f32 = clamp(dot(n, h), 0.0, 1.0);
-            let LdotH:f32 = clamp(dot(l, h), 0.0, 1.0);
-            let VdotH:f32 = clamp(dot(v, h), 0.0, 1.0);
-
-            var pbrInputs:PBRInfo;
-            pbrInputs.NdotL=NdotL;
-            pbrInputs.NdotV=NdotV;
-            pbrInputs.NdotH=NdotH;
-            pbrInputs.LdotH=LdotH;
-            pbrInputs.VdotH=VdotH;
-            pbrInputs.perceptualRoughness=perceptualRoughness;
-            pbrInputs.metalness=metallic;
-            pbrInputs.reflectance0=specularEnvironmentR0;
-            pbrInputs.reflectance90=specularEnvironmentR90;
-            pbrInputs.alphaRoughness=alphaRoughness;
-            pbrInputs.diffuseColor=diffuseColor;
-            pbrInputs.specularColor=specularColor;
 
             var material:PhysicalMaterial;
-            material.diffuseColor=diffuseColor*( 1.0 - metallic );
+            material.diffuseColor=baseColor.rgb*( 1.0 - metallic );
             material.roughness=perceptualRoughness;
-            material.specularColor=specularColor;
-            material.specularF90=reflectance90;
+            material.specularColor=mix( vec3<f32>( 0.04), baseColor.rgb, metallic );;
+            // material.specularF90=reflectance90;
 
             var geometry:Geometry;
             geometry.normal=n;
             geometry.viewDir=normalize(systemUniform.cameraPosition - input.worldPos);
             geometry.position=input.worldPos;
-            // Calculate the shading terms for the microfacet specular shading model
-            let F:vec3<f32> = specularReflection(pbrInputs);
-            let G:f32 = geometricOcclusion(pbrInputs);
-            let D:f32 = microfacetDistribution(pbrInputs);
+            geometry.dotNV = saturate(dot(geometry.normal, geometry.viewDir) );
 
-            // Calculation of analytical lighting contribution
-            let diffuseContrib:vec3<f32> = (1.0 - F) * diffuse(pbrInputs);
-            let specContrib:vec3<f32> = max(vec3<f32>(0.0), F * G * D / (4.0 * NdotL * NdotV));
-            // vec3 color = NdotL * u_LightColor * (diffuseContrib + specContrib);
-            //var color = NdotL * (diffuseContrib + specContrib);    // assume light color vec3(1, 1, 1)
             var reflectedLight=parseLights(geometry,material);
             var color=reflectedLight.directDiffuse+reflectedLight.directSpecular;
-            // Calculate lighting contribution from image based lighting source (IBL)
             // USE_IBL
-        color += getIBLContribution(pbrInputs, n, reflection,brdfLUT,specularEnvSampler,diffuseEnvSampler,defaultSampler);
-
-
+            var reflectedLightDiffuse=indirectDiffuse_Physical(geometry,material);
+            var reflectedLightSpecular=indirectSpecular_Physical(geometry,material);
+            color+=reflectedLightDiffuse.indirectDiffuse;
+            color+=reflectedLightSpecular.indirectSpecular;
         // Apply optional PBR terms for additional (optional) shading
         #if ${defines.USE_AOTEXTURE}
             let ao:f32 = textureSample(aoTexture,defaultSampler, input.uv).r;

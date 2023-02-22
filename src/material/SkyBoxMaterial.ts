@@ -5,8 +5,9 @@ import { FrameState } from "../core/FrameState";
 import { CompareFunction, TextureFormat } from "../core/WebGPUConstant";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 import UniformBuffer from "../render/UniformBuffer";
+import textureCache from "../core/TextureCache";
 export default class SkyBoxMaterial extends Material {
-	images: any[];
+	loadFish: Boolean;
 	constructor() {
 		super();
 		this.type = "skybox";
@@ -15,7 +16,7 @@ export default class SkyBoxMaterial extends Material {
 			render: true,
 			defines: {}
 		});
-		this.images = [];
+		this.loadFish = false;
 		this.renderState.depthStencil.depthWriteEnabled = false;
 		this.renderState.depthStencil.depthCompare = CompareFunction.LessEqual;
 		// this.renderState.depthStencil
@@ -27,10 +28,13 @@ export default class SkyBoxMaterial extends Material {
 	}
 	async loadTexture(urls) {
 		const result = await CubeTextureLoader(urls);
+		this.loadFish = true;
+		textureCache.addTexture("specular", result.texture);
 		this.baseTexture = result.texture;
 		this.baseSampler = result.sampler;
 	}
 	update(frameState: FrameState, mesh: Mesh) {
+		if (!this.loadFish) return;
 		if (!this.shaderData) {
 			this.createShaderData(mesh);
 		}

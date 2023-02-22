@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 
 export default function pbrFunction(defines) {
-  return wgslParseDefines`
+	return wgslParseDefines`
 
     #if ${defines.DITHERING}
         fn dithering(color:vec3<f32> )->vec3<f32> {
@@ -127,14 +127,13 @@ export default function pbrFunction(defines) {
         let DG:f32 = exp( a * dotNV + b ) + select(0.1 * ( roughness - 0.25 ),0.0,roughness < 0.25);
         return saturate( DG * RECIPROCAL_PI );
     }
-    fn DFGApprox( normal:vec3<f32>, viewDir:vec3<f32>,roughness:f32 )->vec2<f32> {
-        let dotNV:f32 = saturate( dot( normal, viewDir ) );
+    fn DFGApprox( specularColor:vec3<f32>, roughness:f32,dotNV:f32 )->vec3<f32> {
         const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
         let c1:vec4<f32> = vec4<f32>( 1, 0.0425, 1.04, - 0.04 );
         let r:vec4<f32> = roughness * c0 + c1;
         let a004:f32 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
         let fab:vec2<f32> = vec2<f32>( - 1.04, 1.04 ) * a004 + r.zw;
-        return fab;
+        return specularColor * fab.x + fab.y;
     }
     fn EnvironmentBRDF( normal:vec3<f32>,viewDir:vec3<f32>,specularColor:vec3<f32>, specularF90:f32,roughness:f32 )->vec3<f32> {
         let fab:vec2<f32> = DFGApprox( normal, viewDir, roughness );
@@ -211,10 +210,7 @@ export default function pbrFunction(defines) {
     #endif
 
     //! defined ( USE_TANGENT ) && ( defined ( TANGENTSPACE_NORMALTEXTURE ) || defined ( USE_CLEARCOAT_NORMALTEXTURE ) )
-    #if ${
-      (!defines.USE_TANGENT && defines.TANGENTSPACE_NORMALTEXTURE) ||
-      defines.USE_CLEARCOAT_NORMALTEXTURE
-    }
+    #if ${(!defines.USE_TANGENT && defines.TANGENTSPACE_NORMALTEXTURE) || defines.USE_CLEARCOAT_NORMALTEXTURE}
     fn perturbNormal2Arb( eye_pos:vec3<f32>, surf_norm:vec3<f32>, textureN:vec3<f32>, faceDirection:f32 )->vec3<f32> {
         let q0:vec3<f32> = dpdx( eye_pos.xyz );
         let q1:vec3<f32> = dpdy( eye_pos.xyz );

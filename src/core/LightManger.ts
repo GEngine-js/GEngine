@@ -82,8 +82,8 @@ export default class LightManger {
 		this.lightShaderData.setDefine("dirtectLightsCount", this.dirtectLights.length);
 		this.lightShaderData.setDefine("ambientLightCount", this.ambientLight != undefined ? 1 : 0);
 		if (this.ambientLight)
-			this.lightUniformBuffer.setFloatVec3("ambientLight", () => {
-				return this.ambientLight.color;
+			this.lightUniformBuffer.setFloatVec4("ambientLight", () => {
+				return this.ambientLight.ColorAndIntensity;
 			});
 		if (this.spotLights.length) {
 			//初始化聚光灯

@@ -16,6 +16,7 @@ export default function light(defines) {
         position: vec3<f32>,
         normal: vec3<f32>,
         viewDir: vec3<f32>,
+        dotNV:f32,
         #if ${defines.USE_CLEARCOAT}
             vec3 clearcoatNormal;
         #endif

@@ -28,16 +28,14 @@ export default function brdf(defines) {
 
         } // validated
 
-        fn F_Schlick( f0:vec3<f32>, f90:f32, dotVH:f32 )->vec3<f32> {
+        fn F_Schlick( f0:vec3<f32>, dotVH:f32 )->vec3<f32> {
 
             // Original approximation by Christophe Schlick '94
             // float fresnel = pow( 1.0 - dotVH, 5.0 );
 
             // Optimized variant (presented by Epic at SIGGRAPH '13)
             // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
-            let fresnel = exp2( ( - 5.55473 * dotVH - 6.98316 ) * dotVH );
-
-           // return f0 * ( 1.0 - fresnel ) + ( f90 * fresnel );
+           let fresnel = exp2( ( - 5.55473 * dotVH - 6.98316 ) * dotVH );
            return ( 1.0 - f0 ) * fresnel + f0;
 
         } // validated
@@ -68,7 +66,7 @@ export default function brdf(defines) {
             return RECIPROCAL_PI * a2 / pow2( denom );
 
         }
-        fn BRDF_GGX( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, f0:vec3<f32>, f90:f32, roughness:f32 )->vec3<f32> {
+        fn BRDF_GGX( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, f0:vec3<f32>,  roughness:f32 )->vec3<f32> {
 
             let alpha:f32 = pow2( roughness ); // UE4's roughness
 
@@ -79,7 +77,7 @@ export default function brdf(defines) {
             let dotNH:f32 = saturate( dot( normal, halfDir ) );
             let dotVH:f32 = saturate( dot( lightDir, halfDir ) );
 
-            let F = F_Schlick( f0, f90, dotVH );
+            let F = F_Schlick( f0,  dotVH );
 
             let V = V_GGX_SmithCorrelated( alpha, dotNL, dotNV );
 
@@ -92,7 +90,7 @@ export default function brdf(defines) {
             var reflectedLight:ReflectedLight;
             let dotNL:f32 = saturate(dot( geometry.normal,geometry.viewDir));
             let irradiance:vec3<f32> = dotNL * directLight.color*3.1415926;
-            reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
+            reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.roughness );
             reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
             return reflectedLight;
         }

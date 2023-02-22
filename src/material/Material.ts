@@ -28,6 +28,8 @@ export class Material {
 
 	light: boolean;
 
+	ready: boolean;
+
 	private _emissive: Color;
 
 	private _opacity: number;
@@ -55,6 +57,7 @@ export class Material {
 		this._emissiveIntensity = 1.0;
 		this._doubleSided = true;
 		this.light = false;
+		this.ready = false;
 		this.init();
 	}
 	public set wireframe(value: Boolean) {
@@ -104,6 +107,7 @@ export class Material {
 	update(frameState?: FrameState, mesh?: Mesh) {}
 	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
 		this.shaderData = new ShaderData(this.type, 0);
+		this.ready = true;
 	}
 	private init() {
 		//默认渲染状态

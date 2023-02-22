@@ -21,6 +21,7 @@ export default class RenderQueue {
 	}
 	opaqueRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
 		this.opaque.map((mesh) => {
+			if (!mesh.ready) return;
 			mesh.beforeRender();
 			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
 			mesh.afterRender();
@@ -33,6 +34,7 @@ export default class RenderQueue {
 		replaceMaterial?: Material
 	) {
 		this.transparent.map((mesh) => {
+			if (!mesh.ready) return;
 			mesh.beforeRender();
 			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
 			mesh.afterRender();
@@ -45,6 +47,7 @@ export default class RenderQueue {
 	}
 	preRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
 		this.pre.map((mesh) => {
+			if (!mesh.ready) return;
 			mesh.beforeRender();
 			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
 			mesh.afterRender();

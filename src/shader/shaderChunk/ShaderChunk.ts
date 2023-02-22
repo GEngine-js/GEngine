@@ -10,6 +10,7 @@ import phongUtils from "./phong/phongUtils";
 import environment from "./environment/environment";
 import blinn_phong from "./phong/blinn_phong";
 import getNormal from "./normal/getNormal";
+import ibl from "./pbr/ibl";
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,
@@ -22,6 +23,7 @@ const ShaderChunk = {
 	pbrUtils: pbrUtils,
 	environment: environment,
 	blinn_phong: blinn_phong,
-	getNormal: getNormal
+	getNormal: getNormal,
+	ibl: ibl
 };
 export default ShaderChunk;

@@ -20,6 +20,9 @@ export class Mesh extends RenderObject {
 		this.material = material;
 		this.type = "primitive";
 	}
+	get ready() {
+		return this.material.ready;
+	}
 	update(frameState: FrameState, camera?: Camera) {
 		//update matrix
 		this.updateMatrix();

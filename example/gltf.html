@@ -62,43 +62,27 @@
 
 			const init = async () => {
 				const scene = new Scene({
-					container: "app",
-					brdfUrl: "./textures/brdfLUT.png",
-					specularEnvUrls: [
-						`./textures/environment/px.jpg`,
-						`./textures/environment/nx.jpg`,
-						`./textures/environment/py.jpg`,
-						`./textures/environment/ny.jpg`,
-						`./textures/environment/pz.jpg`,
-						`./textures/environment/nz.jpg`
-					],
-					diffuseEnvUrls: [
-						`./textures/environment/diffuse/bakedDiffuse_01.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_02.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_03.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_04.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_05.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
-					]
+					container: "app"
 				});
 				const gltf = await loadGLTF(
-					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
+					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
 				const primitive = gltf.meshes[0][0];
-				const primitive1 = gltf.meshes[1][0];
-				const primitive2 = gltf.meshes[2][0];
-				const primitive3 = gltf.meshes[3][0];
-				const primitive4 = gltf.meshes[4][0];
-				primitive.rotateZ(Math.PI / 2);
-				primitive1.rotateZ(Math.PI / 2);
-				primitive2.rotateZ(Math.PI / 2);
-				primitive3.rotateZ(Math.PI / 2);
-				primitive4.rotateZ(Math.PI / 2);
+				// const primitive1 = gltf.meshes[1][0];
+				// const primitive2 = gltf.meshes[2][0];
+				// const primitive3 = gltf.meshes[3][0];
+				// const primitive4 = gltf.meshes[4][0];
+				// primitive.rotateZ(Math.PI / 2);
+				// primitive1.rotateZ(Math.PI / 2);
+				// primitive2.rotateZ(Math.PI / 2);
+				// primitive3.rotateZ(Math.PI / 2);
+				// primitive4.rotateZ(Math.PI / 2);
 				scene.add(primitive);
-				scene.add(primitive1);
-				scene.add(primitive2);
-				scene.add(primitive3);
-				scene.add(primitive4);
+				// scene.add(primitive1);
+				// scene.add(primitive2);
+				// scene.add(primitive3);
+				// scene.add(primitive4);
 				debugger;
 				// primitive.scale.set(2.2, 2.2, 2.2);
 				// primitive.rotateX(Math.PI / 2);

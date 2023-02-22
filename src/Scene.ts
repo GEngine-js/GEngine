@@ -65,7 +65,6 @@ export class Scene extends EventDispatcher {
 			);
 			textureCache.addTexture("brdf", brdfTexture);
 			textureCache.addTexture("diffuse", diffuseTexture);
-			textureCache.addTexture("specular", specularTexture);
 		}
 		this.ready = true;
 	}

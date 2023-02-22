@@ -47,10 +47,5 @@ export default function lightCommon(defines) {
     fn inverseTransformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
         return normalize( ( vec4<f32>( dir, 0.0 ) * matrix ).xyz );
     }
-    fn getLightProbeIrradiance( lightProbe:array<vec3<f32>,9>, normal:vec3<f32>,viewMatrix:mat4x4<f32> )->vec3<f32> {
-        let worldNormal:vec3<f32> = inverseTransformDirection( normal,viewMatrix );
-        let irradiance:vec3<f32> = shGetIrradianceAt( worldNormal, lightProbe );
-        return irradiance;
-    }
  `;
 }

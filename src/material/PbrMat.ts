@@ -81,6 +81,7 @@ export default class PbrMat extends Material {
 		});
 	}
 	update(frameState: FrameState, mesh: Mesh) {
+		if (!textureCache.getTexture("specular")) return;
 		if (!this.shaderData) {
 			this.createShaderData(mesh, frameState);
 		}
@@ -100,8 +101,6 @@ export default class PbrMat extends Material {
 		uniformBuffer.setFloat("metalness", this);
 		uniformBuffer.setFloat("roughness", this);
 		this.shaderData.setUniformBuffer("pbr", uniformBuffer);
-		this.brdfTexture = textureCache.getTexture("brdf");
-		this.diffuseEnvTexture = textureCache.getTexture("diffuse");
 		this.specularEnvTexture = textureCache.getTexture("specular");
 		if (this.baseTexture) {
 			this.shaderData.setDefine("USE_TEXTURE", true);
@@ -127,12 +126,6 @@ export default class PbrMat extends Material {
 		}
 		if (this.specularEnvTexture) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
-		}
-		if (this.diffuseEnvTexture) {
-			this.shaderData.setTexture("diffuseEnvTexture", this.diffuseEnvTexture);
-		}
-		if (this.brdfTexture) {
-			this.shaderData.setTexture("brdfTexture", this.brdfTexture);
 		}
 		this.shaderData.setSampler("baseSampler", this.baseSampler);
 	}
