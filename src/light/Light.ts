@@ -63,9 +63,7 @@ export class Light {
 	}
 
 	update(camera: Camera) {
-		const viewMatrix = camera.viewMatrix;
 		let position = this.position.clone();
-		// position = position.applyMatrix4(viewMatrix);
 		this.positionVC = position;
 	}
 }

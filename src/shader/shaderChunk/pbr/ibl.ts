@@ -3,7 +3,7 @@ export default function ibl(defines) {
 	return wgslParseDefines`
   fn getLightProbeRadiance( viewDir:vec3<f32>,normal:vec3<f32>, roughness:f32 )->vec3<f32>{
     var reflectVec:vec3<f32> = reflect( -viewDir, normal );
-   // reflectVec.x = -reflectVec.x; // TextureCube is left-hand,so x need inverse
+    reflectVec.x = -reflectVec.x; // TextureCube is left-hand,so x need inverse
     let mipCount:f32 = 10.0; // resolution of 256x256
     let lod:f32 = roughness * mipCount;
     let specularLight:vec3<f32> = textureSampleLevel(specularEnvSampler,defaultSampler, reflectVec, lod).rgb;

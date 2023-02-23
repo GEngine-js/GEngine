@@ -165,7 +165,7 @@ export default function pbr_fs(defines) {
             // material.specularF90=reflectance90;
 
             var geometry:Geometry;
-            geometry.normal=n;
+            geometry.normal=input.normal;
             geometry.viewDir=normalize(systemUniform.cameraPosition - input.worldPos);
             geometry.position=input.worldPos;
             geometry.dotNV = saturate(dot(geometry.normal, geometry.viewDir) );

@@ -3,10 +3,10 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta
+		<!-- <meta
 			http-equiv="origin-trial"
 			content="AgCqLeZDrlcoBR+S3p8SekllqqN81ek8KciDtqMY8FFuHadgBC7fB0EoiYocrgNqd6IE7rFfqHAv1my2hc0jDQEAAABJeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjU1MDAiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjkxNzExOTk5fQ=="
-		/>
+		/> -->
 		<title>gltf</title>
 		<!-- <link rel="stylesheet" href="./index.scss" /> -->
 		<style>
@@ -65,24 +65,24 @@
 					container: "app"
 				});
 				const gltf = await loadGLTF(
-					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
+					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
 				const primitive = gltf.meshes[0][0];
-				// const primitive1 = gltf.meshes[1][0];
-				// const primitive2 = gltf.meshes[2][0];
-				// const primitive3 = gltf.meshes[3][0];
-				// const primitive4 = gltf.meshes[4][0];
-				// primitive.rotateZ(Math.PI / 2);
-				// primitive1.rotateZ(Math.PI / 2);
-				// primitive2.rotateZ(Math.PI / 2);
-				// primitive3.rotateZ(Math.PI / 2);
-				// primitive4.rotateZ(Math.PI / 2);
+				const primitive1 = gltf.meshes[1][0];
+				const primitive2 = gltf.meshes[2][0];
+				const primitive3 = gltf.meshes[3][0];
+				const primitive4 = gltf.meshes[4][0];
+				primitive.rotateZ(Math.PI / 2);
+				primitive1.rotateZ(Math.PI / 2);
+				primitive2.rotateZ(Math.PI / 2);
+				primitive3.rotateZ(Math.PI / 2);
+				primitive4.rotateZ(Math.PI / 2);
 				scene.add(primitive);
-				// scene.add(primitive1);
-				// scene.add(primitive2);
-				// scene.add(primitive3);
-				// scene.add(primitive4);
+				scene.add(primitive1);
+				scene.add(primitive2);
+				scene.add(primitive3);
+				scene.add(primitive4);
 				debugger;
 				// primitive.scale.set(2.2, 2.2, 2.2);
 				// primitive.rotateX(Math.PI / 2);
