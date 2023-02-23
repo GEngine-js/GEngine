@@ -19,6 +19,10 @@ export class BaseShadow {
 		return this._camera;
 	}
 
+	get shadowMapSize() {
+		return this._shadowMapSize;
+	}
+
 	public getShadowMapTexture() {
 		return this._shadowMap;
 	}
