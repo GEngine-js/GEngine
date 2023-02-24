@@ -113,27 +113,6 @@ export default class Pipeline {
 				})
 			};
 		return pipelineDec;
-		// return {
-		//   //需要改动
-		//   layout: PipelineLayout.getPipelineLayoutFromCache(
-		//     device,
-		//     hashId,
-		//     groupLayouts
-		//   ).gpuPipelineLayout,
-		//   vertex: {
-		//     module: vert,
-		//     entryPoint: shaderSource.vertEntryPoint,
-		//     buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>,
-		//   },
-		//   primitive: renderState.primitive,
-		//   depthStencil: renderState.depthStencil as GPUDepthStencilState,
-		//   multisample: renderState.multisample,
-		//   fragment: {
-		//     module: frag,
-		//     entryPoint: shaderSource.fragEntryPoint,
-		//     targets: renderState.targets as Iterable<GPUColorTargetState>,
-		//   },
-		// };
 	}
 }
 // Borrowed from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
