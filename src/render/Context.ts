@@ -35,13 +35,19 @@ class Context {
 	private _scissorTestEnabled: boolean;
 
 	constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
+		if (!container.clientWidth || !container.clientHeight) throw new Error("container width or height illegality");
 		this.canvas = canvas || document.createElement("canvas");
-		this.canvas.style.display = "block";
-		this.canvas.width = window.innerWidth;
-		this.canvas.height = window.innerHeight;
+		// this.canvas.style.display = "block";
+		this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
+		const width = container.clientWidth * this.pixelRatio;
+		const height = container.clientHeight * this.pixelRatio;
+		this.canvas.width = width;
+		this.canvas.height = height;
+		this.canvas.style.width = container.clientWidth + "px";
+		this.canvas.style.height = container.clientHeight + "px";
 		container.appendChild(this.canvas);
 		this.context = context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
-		this.pixelRatio = pixelRatio || window.devicePixelRatio || 1;
+
 		this.device = undefined;
 		this.lightManger = new LightManger();
 	}
