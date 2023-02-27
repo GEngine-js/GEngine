@@ -177,12 +177,6 @@ export function generateTangents(
 	return tangents;
 }
 
-export function getTextures(material: any) {
-	const { baseColorTexture, metallicRoughnessTexture } = material.pbrMetallicRoughness;
-	const { normalTexture, occlusionTexture, emissiveTexture } = material;
-	return [baseColorTexture, metallicRoughnessTexture, normalTexture, occlusionTexture, emissiveTexture];
-}
-
 function lerp(a: number, b: number, x: number) {
 	if (x < a) {
 		return 0;

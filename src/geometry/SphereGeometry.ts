@@ -3,10 +3,6 @@ import { createSphere } from "../utils/GeometryUtils";
 import Geometry from "./Geometry";
 
 export default class SphereGeometry extends Geometry {
-	normals: number[];
-	uvs: number[];
-	positions: number[];
-	indices: number[];
 	radius: number;
 	constructor(radius: number) {
 		super({});

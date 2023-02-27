@@ -4,15 +4,7 @@ import { Mesh } from "../mesh/Mesh";
 import { Float32Attribute } from "../render/Attribute";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import {
-	generateNormals,
-	getTextures,
-	gltfEnum,
-	newTypedArray,
-	toIndices,
-	TypedArray,
-	generateTangents
-} from "../utils/gltfUtils";
+import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -101,25 +93,36 @@ export class GLTF {
 	private parseTextures() {
 		this.textures = this.json.textures
 			? (this.json.textures as Array<any>).map((texture) => {
-					texture.sampler =
-						texture.sampler !== undefined ? this.samplers[texture.sampler] : this.getSampler({});
-					return texture;
+					return {
+						sampler: texture.sampler !== undefined ? this.samplers[texture.sampler] : this.getSampler({}),
+						texture: this.createTexture(texture.source)
+					};
 			  })
 			: [];
 	}
 	private parseMaterials() {
 		this.materials = this.json.materials
 			? (this.json.materials as Array<any>).map((material) => {
-					if (!material.pbrMetallicRoughness) {
-						material.pbrMetallicRoughness = {};
-					}
-					getTextures(material).forEach((texture) => {
-						if (texture) {
-							texture.source = this.textures[texture.index].source;
-							texture.sampler = this.textures[texture.index].sampler;
-						}
+					const mat = new PbrMat();
+					if (material.normalTexture) mat.normalTexture = this.textures[material.normalTexture.index].texture;
+					if (material.occlusionTexture)
+						mat.aoTexture = this.textures[material.occlusionTexture.index].texture;
+					if (material.emissiveTexture)
+						mat.emissiveTexture = this.textures[material.emissiveTexture.index].texture;
+					if (material.pbrMetallicRoughness?.baseColorTexture)
+						mat.baseTexture = this.textures[material.pbrMetallicRoughness?.baseColorTexture.index].texture;
+					if (material.pbrMetallicRoughness?.metallicRoughnessTexture)
+						mat.metalnessRoughnessTexture =
+							this.textures[material.pbrMetallicRoughness?.metallicRoughnessTexture.index].texture;
+					mat.baseSampler = new Sampler({
+						magFilter: "linear",
+						minFilter: "linear",
+						addressModeU: "repeat",
+						addressModeV: "repeat"
 					});
-					return material;
+					mat.roughness = 0.0;
+					mat.metalness = 1.0;
+					return mat;
 			  })
 			: [];
 	}
@@ -175,63 +178,9 @@ export class GLTF {
 					primitive.material !== undefined
 						? this.materials[primitive.material]
 						: { pbrMetallicRoughness: {} };
-				let indices = null;
-				let vertexCount;
-				if (primitive.indices !== undefined) {
-					indices = toIndices(this.accessors[primitive.indices]);
-					vertexCount = this.json.accessors[primitive.indices].count;
-				} else {
-					vertexCount = this.json.accessors[primitive.attributes.POSITION].count;
-				}
-
-				const positions = this.accessors[primitive.attributes.POSITION];
-				const { max, min } = this.json.accessors[primitive.attributes.POSITION];
-				const boundingBox = { max, min };
-
-				let normals;
-				if (primitive.attributes.NORMAL !== undefined) {
-					normals = this.accessors[primitive.attributes.NORMAL];
-				} else {
-					normals = generateNormals(indices, positions);
-				}
-
-				let uvs = null;
-				if (primitive.attributes.TEXCOORD_0 !== undefined) {
-					uvs = this.accessors[primitive.attributes.TEXCOORD_0];
-				}
-				let uv1s = null;
-				if (primitive.attributes.TEXCOORD_1 !== undefined) {
-					uv1s = this.accessors[primitive.attributes.TEXCOORD_1];
-				}
-
-				let tangents = null;
-				if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
-					tangents = this.accessors[primitive.attributes.TANGENT];
-				} else if (material.normalTexture) {
-					//tangents = generateTangents(indices, positions, normals, uvs!);
-				}
-
-				let colors = null;
-				if (primitive.attributes.COLOR_0 !== undefined) {
-					colors = this.accessors[primitive.attributes.COLOR_0];
-				}
-				this.meshes.push(
-					this.generateMesh(
-						{
-							vertexCount,
-							indices,
-							positions,
-							normals,
-							uvs,
-							uv1s,
-							tangents,
-							colors,
-							material,
-							boundingBox
-						},
-						this.images
-					)
-				);
+				const geo = this.createGeometry(primitive, material);
+				const mesh = new Mesh(geo, material);
+				this.meshes.push(mesh);
 			})
 		);
 	}
@@ -268,11 +217,46 @@ export class GLTF {
 		}
 		return array;
 	}
-	private generateMesh(options, images) {
-		const { vertexCount, indices, positions, normals, uvs, uv1s, tangents, colors, material, boundingBox } =
-			options;
-		const { emissiveFactor, emissiveTexture, name, normalTexture, occlusionTexture, pbrMetallicRoughness } =
-			material;
+	private createGeometry(primitive, material) {
+		let indices = null;
+		let vertexCount;
+		if (primitive.indices !== undefined) {
+			indices = toIndices(this.accessors[primitive.indices]);
+			vertexCount = this.json.accessors[primitive.indices].count;
+		} else {
+			vertexCount = this.json.accessors[primitive.attributes.POSITION].count;
+		}
+		const positions = this.accessors[primitive.attributes.POSITION];
+		const { max, min } = this.json.accessors[primitive.attributes.POSITION];
+		const boundingBox = { max, min };
+
+		let normals;
+		if (primitive.attributes.NORMAL !== undefined) {
+			normals = this.accessors[primitive.attributes.NORMAL];
+		} else {
+			normals = generateNormals(indices, positions);
+		}
+
+		let uvs = null;
+		if (primitive.attributes.TEXCOORD_0 !== undefined) {
+			uvs = this.accessors[primitive.attributes.TEXCOORD_0];
+		}
+		let uv1s = null;
+		if (primitive.attributes.TEXCOORD_1 !== undefined) {
+			uv1s = this.accessors[primitive.attributes.TEXCOORD_1];
+		}
+
+		let tangents = null;
+		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
+			tangents = this.accessors[primitive.attributes.TANGENT];
+		} else if (material.normalTexture) {
+			//tangents = generateTangents(indices, positions, normals, uvs!);
+		}
+
+		let colors = null;
+		if (primitive.attributes.COLOR_0 !== undefined) {
+			colors = this.accessors[primitive.attributes.COLOR_0];
+		}
 		const geo = new Geometry({});
 		if (indices) geo.setIndice(Array.from(indices));
 		if (positions) geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
@@ -280,35 +264,17 @@ export class GLTF {
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
 		geo.computeBoundingSphere(Array.from(positions));
 		geo.count = vertexCount;
-		const mat = new PbrMat();
-		if (normalTexture) mat.normalTexture = this.generateTexture(normalTexture, images);
-		if (occlusionTexture) mat.aoTexture = this.generateTexture(occlusionTexture, images);
-		if (emissiveTexture) mat.emissiveTexture = this.generateTexture(emissiveTexture, images);
-		if (pbrMetallicRoughness?.baseColorTexture)
-			mat.baseTexture = this.generateTexture(pbrMetallicRoughness.baseColorTexture, images);
-		if (pbrMetallicRoughness?.metallicRoughnessTexture)
-			mat.metalnessRoughnessTexture = this.generateTexture(pbrMetallicRoughness.metallicRoughnessTexture, images);
-		mat.baseSampler = new Sampler({
-			magFilter: "linear",
-			minFilter: "linear",
-			addressModeU: "repeat",
-			addressModeV: "repeat"
-		});
-		mat.roughness = 0.0;
-		mat.metalness = 1.0;
-		const mesh = new Mesh(geo, mat);
-		return mesh;
+		return geo;
 	}
-	private generateTexture(texture, images) {
-		const { sampler, index } = texture;
+	private createTexture(source: number) {
 		return new Texture({
 			size: {
-				width: images[index].width,
-				height: images[index].height,
+				width: this.images[source].width,
+				height: this.images[source].height,
 				depth: 1
 			},
 			data: {
-				source: images[index]
+				source: this.images[source]
 			},
 			format: "rgba8unorm",
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
@@ -385,7 +351,6 @@ async function loadGLTFObject(json: any, url: string, glbOffset = 0, bin?: Array
 	await Promise.all([loadExternalImages, loadInternalImages]);
 	return new GLTF(json, buffers, images, glbOffset);
 }
-
 export async function loadGLTF(url: string) {
 	const ext = url.split(".").pop();
 	if (ext === "gltf") {

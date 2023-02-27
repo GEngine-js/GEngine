@@ -73,7 +73,6 @@
 				gltf.meshes.forEach((mesh) => {
 					scene.add(mesh);
 				});
-				const primitive = gltf.meshes[0][0];
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
 				camera.position.set(4, 0, 4);
 				camera.lookAt(0, 0, 0);

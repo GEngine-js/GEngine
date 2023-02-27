@@ -1,10 +1,6 @@
 import Geometry from "./Geometry";
 import { Float32Attribute } from "../render/Attribute";
 export default class PlaneGeometry extends Geometry {
-	normal: number[];
-	uv: number[];
-	position: number[];
-	indices: number[];
 	constructor(public width: number = 10, public height: number = 10) {
 		super({});
 		this.type = "planeGeometry";
@@ -13,14 +9,14 @@ export default class PlaneGeometry extends Geometry {
 	private init() {
 		//generate pos uv normal so on
 		const { indices, normals, uvs, vertices } = this.createGrid(this.width, this.height);
-		this.position = vertices;
-		this.normal = normals;
-		this.uv = uvs;
+		this.positions = vertices;
+		this.normals = normals;
+		this.uvs = uvs;
 		this.indices = indices;
-		this.computeBoundingSphere(this.position);
-		this.setAttribute(new Float32Attribute("position", this.position, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normal, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uv, 2));
+		this.computeBoundingSphere(this.positions);
+		this.setAttribute(new Float32Attribute("position", this.positions, 3));
+		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
+		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
 		this.setIndice(indices);
 		this.count = this.indices.length;
 		// this.count = 36;
