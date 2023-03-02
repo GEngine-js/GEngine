@@ -12,15 +12,19 @@ export class Light {
 	colorDirty: boolean;
 	intensityDirty: boolean;
 	private _position: Vector3;
+	private _target: Vector3;
 	positionDirty: boolean;
 	public _shadow: BaseShadow;
 	public positionVC: Vector3;
+	public targetDirty: boolean;
 
 	constructor(color: Vector3, intensity: number) {
 		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
 		this._intensity = intensity;
-		this._position = new Vector3(0, 0, 0);
+		this._position = new Vector3(0, 1, 0);
+		this._target = new Vector3();
 		this.positionDirty = true;
+		this.targetDirty = true;
 		this.colorDirty = true;
 		this.intensityDirty = true;
 		this._shadow = null;
@@ -33,6 +37,15 @@ export class Light {
 	set position(value) {
 		this.positionDirty = true;
 		this._position = value;
+	}
+
+	get target() {
+		return this._target;
+	}
+
+	set target(value) {
+		this.targetDirty = true;
+		this._target = value;
 	}
 
 	get color() {

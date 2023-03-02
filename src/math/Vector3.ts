@@ -135,6 +135,17 @@ class Vector3 {
 		this.z = e[2] * x + e[6] * y + e[10] * z;
 		return this.normalize();
 	}
+
+	setFromMatrixPosition(matrix: Matrix4) {
+		const e = matrix;
+
+		this.x = e[12];
+		this.y = e[13];
+		this.z = e[14];
+
+		return this;
+	}
+
 	normalize(): Vector3 {
 		Vector3.normalize(this, this);
 		return this;

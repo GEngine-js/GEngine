@@ -17,6 +17,8 @@
 			html {
 				background: #692a84;
 				background: linear-gradient(316deg, #0e0f2a, #060913);
+				height: 100%;
+				height: 100%;
 			}
 
 			body {
@@ -100,11 +102,8 @@
 						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
 					]
 				});
-				const directionalLight = new DirectionalLight(
-					new Vector3(1.0, 0.0, 0.0),
-					0.2,
-					new Vector3(1.0, -1, 1.0)
-				);
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 0.0, 0.0), 0.2);
+				directionalLight.position.set(-1, 1, -1);
 				const pbr = new PbrMat();
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
@@ -114,7 +113,7 @@
 				pbr.roughness = 1.0;
 				pbr.metalness = 0.0;
 				const primitive = new Mesh(geometry, pbr);
-				primitive.position.set(0, 20, 0);
+				primitive.position.set(-1, 1, -1);
 
 				const groundGeometry = new BoxGeometry(1, 100, 100);
 				const groundMaterial = new PhongMaterial();
