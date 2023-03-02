@@ -57,7 +57,7 @@
 				SkyBox,
 				CubeTextureLoader,
 				SphereGeometry,
-				PbrMat,
+				PbrMaterial,
 				loadTexture,
 				OrbitControl
 			} from "../dist/index.js";
@@ -104,7 +104,7 @@
 				});
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 0.0, 0.0), 0.2);
 				directionalLight.position.set(-1, 1, -1);
-				const pbr = new PbrMat();
+				const pbr = new PbrMaterial();
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
 				pbr.baseSampler = baseSampler;

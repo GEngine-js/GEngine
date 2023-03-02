@@ -40,20 +40,27 @@ export default class Geometry {
 		this.attributes = new Attributes();
 		this.vertBuffer = new VertextBuffer(this.attributes, 0);
 		this._defines = {};
+		this.normals = [];
+		this.uvs = [];
+		this.positions = [];
+		this.indices = [];
+		this.tangents = [];
 	}
 	getAttribute(name: string) {
 		return this.attributes.getAttribute(name);
 	}
 	setAttribute(attribute: Attribute) {
+		if (this[attribute.name] != undefined) this[attribute.name] = attribute.value;
 		this.attributes.setAttribute(attribute);
 	}
-	setIndice(indice: Array<number>) {
+	setIndice(indices: Array<number>) {
+		this.indices = indices;
 		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer();
-		this.indexBuffer.setIndices(indice);
+		this.indexBuffer.setIndices(indices);
 	}
 	update(frameState: FrameState) {}
 	computeBoundingSphere(positions) {
-		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), 3);
+		this.boundingSphere = BoundingSphere.fromVertices(this.positions, new Vector3(0, 0, 0), 3);
 	}
 	/**
 	 * Calculate mesh tangent.

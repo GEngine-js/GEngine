@@ -55,7 +55,7 @@
 				SkyBox,
 				CubeTextureLoader,
 				SphereGeometry,
-				PbrMat,
+				PbrMaterial,
 				loadTexture,
 				OrbitControl
 			} from "../dist/index.js";
@@ -100,7 +100,7 @@
 						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
 					]
 				});
-				const pbr = new PbrMat();
+				const pbr = new PbrMaterial();
 				pbr.baseTexture = baseTexture;
 				pbr.baseSampler = baseSampler;
 				pbr.aoTexture = aoTexture;

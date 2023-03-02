@@ -2,9 +2,15 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 export function getNormal(defines) {
 	return wgslParseDefines`
       fn getNormal(input:VertInput)->vec3<f32>{
-        var n:vec3<f32> = textureSample(normalTexture,defaultSampler, input.uv).rgb;
-        let tbn:mat3x3<f32> =getTBN(input);
-        n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, 1.0)));
+        var normal:vec3<f32>;
+        #if ${defines.HAS_NORMAL}
+            normal= input.normal;
+        #else
+          let pos_dx = dpdx(input.worldPos);
+          let pos_dy = dpdy(input.worldPos);
+          normal = normalize( cross(pos_dx, pos_dy) );
+        #endif
+        return normal*(f32(input.frontFacing) * 2.0 - 1.0);
       }
     `;
 }

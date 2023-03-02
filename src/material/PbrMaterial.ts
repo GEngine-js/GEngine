@@ -8,7 +8,7 @@ import { CullMode } from "../core/WebGPUConstant";
 import textureCache from "../core/TextureCache";
 import UniformBuffer from "../render/UniformBuffer";
 
-export default class PbrMat extends Material {
+export default class PbrMaterial extends Material {
 	public diffuseEnvTexture: Texture;
 
 	public specularEnvTexture: Texture;

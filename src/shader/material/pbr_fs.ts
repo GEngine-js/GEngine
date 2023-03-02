@@ -99,6 +99,8 @@ export default function pbr_fs(defines) {
         #if ${defines.USE_NORMALTEXTURE}
             #include <getTBN>
             #include <getNormalByNormalTexture>
+        #else
+            #include <getNormal>
         #endif
         #include <ibl>
         fn packNormalToRGB( normal:vec3<f32> )->vec3<f32> {

@@ -35,9 +35,9 @@ export default class TorusKnotGeometry extends Geometry {
 		const { device } = frameState.context;
 	}
 	private init() {
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
+		this.setAttribute(new Float32Attribute("positions", this.positions, 3));
+		this.setAttribute(new Float32Attribute("normals", this.normals, 3));
+		this.setAttribute(new Float32Attribute("uvs", this.uvs, 2));
 		this.setIndice(this.indices);
 		this.count = this.indices.length;
 	}

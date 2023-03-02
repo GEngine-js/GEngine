@@ -9,9 +9,9 @@ import phongFunction from "./phong/phongFunction";
 import phongUtils from "./phong/phongUtils";
 import environment from "./environment/environment";
 import blinn_phong from "./phong/blinn_phong";
-import getNormal from "./normal/getNormal";
+// import getNormal from "./normal/getNormal";
 import ibl from "./pbr/ibl";
-import { getNormalByNormalTexture, getTBN } from "./normal/getNormalBackUp";
+import { getNormalByNormalTexture, getTBN, getNormal } from "./normal/getNormalBackUp";
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,

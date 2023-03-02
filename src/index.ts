@@ -22,7 +22,7 @@ export { default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 export { default as PlaneGeometry } from "./geometry/PlaneGeometry";
 //Material
 export { default as PhongMaterial } from "./material/PhongMaterial";
-export { default as PbrMat } from "./material/PbrMat";
+export { default as PbrMaterial } from "./material/PbrMaterial";
 
 export { Scene } from "./Scene";
 
