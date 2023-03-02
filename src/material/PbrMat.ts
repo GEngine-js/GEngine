@@ -94,7 +94,7 @@ export default class PbrMat extends Material {
 		});
 		uniformBuffer.setColor("diffuse", this);
 		uniformBuffer.setFloat("opacity", this);
-		uniformBuffer.setMatrix3("normalMtrix", () => {
+		uniformBuffer.setMatrix4("normalMtrix", () => {
 			return mesh.normalMatrix;
 		});
 		uniformBuffer.setColor("emissive", this);

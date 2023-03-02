@@ -11,6 +11,7 @@ import environment from "./environment/environment";
 import blinn_phong from "./phong/blinn_phong";
 import getNormal from "./normal/getNormal";
 import ibl from "./pbr/ibl";
+import { getNormalByNormalTexture, getTBN } from "./normal/getNormalBackUp";
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,
@@ -24,6 +25,8 @@ const ShaderChunk = {
 	environment: environment,
 	blinn_phong: blinn_phong,
 	getNormal: getNormal,
+	getTBN: getTBN,
+	getNormalByNormalTexture: getNormalByNormalTexture,
 	ibl: ibl
 };
 export default ShaderChunk;

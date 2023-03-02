@@ -127,7 +127,6 @@ export default class Geometry {
 
 			tangent = tangents[i2];
 			tangent.set(tangent.x + t.x, tangent.y + t.y, tangent.z + t.z, 1.0);
-
 			biTangents[i0].add(b);
 			biTangents[i1].add(b);
 			biTangents[i2].add(b);
@@ -144,7 +143,8 @@ export default class Geometry {
 			const w = Vector3.dot(temp, n) > 0.0 ? 1 : -1;
 			Vector3.multiplyByScalar(n, Vector3.dot(t, n), temp);
 			Vector3.subtract(t, temp, t);
-			t.normalize();
+			Vector3.normalize(t, t);
+			// t.normalize();
 			tangent.set(t.x, t.y, t.z, w);
 			this.tangents.push(t.x, t.y, t.z, w);
 		}

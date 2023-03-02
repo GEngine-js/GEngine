@@ -8,6 +8,7 @@ import { BufferUsage } from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
+import Vector3 from "../math/Vector3";
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
 	pointLights: PointLight[];
@@ -26,7 +27,7 @@ export default class LightManger {
 		this.spotLights = [];
 		this.pointLights = [];
 		this.dirtectLights = [];
-		this.ambientLight = undefined;
+		this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 		this.lightCountDirty = false;
 	}
 	update(frameState: FrameState, camera: Camera) {
@@ -80,7 +81,7 @@ export default class LightManger {
 		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
 		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
 		this.lightShaderData.setDefine("dirtectLightsCount", this.dirtectLights.length);
-		this.lightShaderData.setDefine("ambientLightCount", this.ambientLight != undefined ? 1 : 0);
+		this.lightShaderData.setDefine("ambientLightCount", 1);
 		if (this.ambientLight)
 			this.lightUniformBuffer.setFloatVec4("ambientLight", () => {
 				return this.ambientLight.ColorAndIntensity;

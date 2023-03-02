@@ -123,7 +123,7 @@ export default function light(defines) {
 	}
     struct LightUniforms{
         #if ${defines.ambientLightCount}
-            ambient:vec3<f32>,
+            ambient:vec4<f32>,
         #endif
         #if ${defines.spotLightsCount}
             spotLights:array<SpotLight,${defines.spotLightsCount}>,

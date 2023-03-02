@@ -24,19 +24,19 @@ export default function ibl(defines) {
     irradiance+=lightProbe[8] * (normal.x * normal.x - normal.y * normal.y);
 
     return max(irradiance, vec3<f32>(0.0,0.0,0.0));
-}
-fn DFGApprox( specularColor:vec3<f32>, roughness:f32,dotNV:f32 )->vec3<f32> {
-  const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
-  let c1:vec4<f32> = vec4<f32>( 1, 0.0425, 1.04, - 0.04 );
-  let r:vec4<f32> = roughness * c0 + c1;
-  let a004:f32 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
-  let fab:vec2<f32> = vec2<f32>( - 1.04, 1.04 ) * a004 + r.zw;
-  return specularColor * fab.x + fab.y;
-}
+  }
+  fn DFGApprox( specularColor:vec3<f32>, roughness:f32,dotNV:f32 )->vec3<f32> {
+    const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
+    let c1:vec4<f32> = vec4<f32>( 1, 0.0425, 1.04, - 0.04 );
+    let r:vec4<f32> = roughness * c0 + c1;
+    let a004:f32 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;
+    let fab:vec2<f32> = vec2<f32>( - 1.04, 1.04 ) * a004 + r.zw;
+    return specularColor * fab.x + fab.y;
+  }
   //间接光照
   fn indirectDiffuse_Physical(geometry:Geometry, material:PhysicalMaterial )->ReflectedLight {
       var reflectedLight:ReflectedLight;
-      var irradiance:vec3<f32> = vec3<f32>(1.0,1.0,1.0);
+      var irradiance:vec3<f32> = lightUniforms.ambient.xyz*lightUniforms.ambient.w;
       irradiance *= PI;
       reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
       return reflectedLight;
