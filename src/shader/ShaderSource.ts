@@ -72,6 +72,7 @@ export class ShaderSource {
 						code: this.frag
 				  })
 				: undefined;
+
 			return { vert, frag };
 		} else {
 			const compute = device.createShaderModule({

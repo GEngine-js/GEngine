@@ -6,7 +6,7 @@ export default function ibl(defines) {
     reflectVec.x = -reflectVec.x; // TextureCube is left-hand,so x need inverse
     let mipCount:f32 = 10.0; // resolution of 256x256
     let lod:f32 = roughness * mipCount;
-    let specularLight:vec3<f32> = textureSampleLevel(specularEnvSampler,defaultSampler, reflectVec, lod).rgb;
+    let specularLight:vec3<f32> = textureSampleLevel(specularEnvTexture,specularEnvSampler, reflectVec, lod).rgb;
     return specularLight;
   }
   fn getLightProbeIrradiance( lightProbe:array<vec3<f32>,9>, normal:vec3<f32>)->vec3<f32> {

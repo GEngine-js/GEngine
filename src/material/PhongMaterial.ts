@@ -4,9 +4,14 @@ import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
 import Color from "../math/Color";
 import UniformBuffer from "../render/UniformBuffer";
+import Texture from "../render/Texture";
+import Sampler from "../render/Sampler";
+import textureCache from "../core/TextureCache";
 export default class PhongMaterial extends Material {
-	specular: Color;
-	shininess: number;
+	public specular: Color;
+	public shininess: number;
+	public normalTexture: Texture;
+	public normalSampler: Sampler;
 	constructor() {
 		super();
 		this.type = "phong";
@@ -43,10 +48,15 @@ export default class PhongMaterial extends Material {
 		uniformBuffer.setColor("specular", this);
 		this.shaderData.setUniformBuffer("phong", uniformBuffer);
 		if (this.baseTexture) {
-			this.shaderData.setDefine("baseTexture", true);
-			this.shaderData.setTexture("baseTexture", this.baseTexture);
+			this.shaderData.setDefine("USE_COLORTEXTURE", true);
+			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
+			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}
-		if (this.baseSampler) this.shaderData.setSampler("sampler", this.baseSampler);
+		if (this.normalTexture) {
+			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
+			this.shaderData.setTexture("normalTexture", this.normalTexture);
+			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
+		}
 	}
 	destroy() {}
 }

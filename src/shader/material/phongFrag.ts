@@ -12,7 +12,6 @@ export default function phongFrag(defines) {
       @location(5) viewPosition: vec3<f32>,
     };
     #include <light>
-    #include <getNormal>
     struct MaterialUniform {
       modelMatrix: mat4x4<f32>,
       color: vec3<f32>,
@@ -29,19 +28,28 @@ export default function phongFrag(defines) {
       cameraPosition: vec3<f32>,
   }; 
 
-    #if${defines.baseTexture}
-      @group(0) @binding(2) var mySampler: sampler;
-      @group(0) @binding(1) var myTexture: texture_2d<f32>;
+    #if${defines.USE_COLORTEXTURE}
+      @group(0) @binding(${defines.baseColorSamplerBinding}) var baseColorSampler: sampler;
+      @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
+    #endif
+    #if ${defines.USE_NORMALTEXTURE}
+      @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
+      @group(0) @binding(${defines.normalSamplerBinding}) var normalSampler: sampler;
     #endif
     @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
     @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
-
+    #if ${defines.USE_NORMALTEXTURE}
+      #include <getTBN>
+      #include <getNormalByNormalTexture>
+    #else
+        #include <getNormal>
+    #endif
     @fragment
     fn main(input:VertInput) -> @location(0) vec4<f32> {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         var color:vec4<f32>;
         #if${defines.baseTexture}
-            color= vec4<f32>(textureSample(myTexture, mySampler, input.uv).rgb+materialUniform.color,materialUniform.opacity);
+            color= vec4<f32>(textureSample(baseColorTexture, baseColorSampler, input.uv).rgb+materialUniform.color,materialUniform.opacity);
         #else
             color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     

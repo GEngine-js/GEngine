@@ -7,21 +7,28 @@ import { ShaderSource } from "../shader/ShaderSource";
 import { CullMode } from "../core/WebGPUConstant";
 import textureCache from "../core/TextureCache";
 import UniformBuffer from "../render/UniformBuffer";
+import Sampler from "../render/Sampler";
 
 export default class PbrMaterial extends Material {
-	public diffuseEnvTexture: Texture;
-
 	public specularEnvTexture: Texture;
 
-	public brdfTexture: Texture;
+	public specularEnvSampler: Sampler;
 
 	public normalTexture: Texture;
 
+	public normalSampler: Sampler;
+
 	public aoTexture: Texture;
+
+	public aoSampler: Sampler;
 
 	public emissiveTexture: Texture;
 
+	public emissiveSampler: Sampler;
+
 	public metalnessRoughnessTexture: Texture;
+
+	public metalnessRoughnessSampler: Sampler;
 
 	private _roughness: number;
 
@@ -104,30 +111,38 @@ export default class PbrMaterial extends Material {
 		this.specularEnvTexture = textureCache.getTexture("specular");
 		if (this.baseTexture) {
 			this.shaderData.setDefine("USE_TEXTURE", true);
-			this.shaderData.setTexture("baseTexture", this.baseTexture);
+			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
+			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}
 		if (this.metalnessRoughnessTexture) {
 			this.shaderData.setDefine("USE_METALNESSTEXTURE", true);
 			this.shaderData.setTexture("metalnessRoughnessTexture", this.metalnessRoughnessTexture);
+			this.shaderData.setSampler(
+				"metalnessRoughnessSampler",
+				this.metalnessRoughnessSampler || textureCache.defaultSampler
+			);
 		}
 		if (this.normalTexture) {
 			uniformBuffer.setFloatVec2("normalScale", this);
 			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
 			this.shaderData.setTexture("normalTexture", this.normalTexture);
+			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
 		}
 		if (this.aoTexture) {
 			this.shaderData.setDefine("USE_AOTEXTURE", true);
 			this.shaderData.setTexture("aoTexture", this.aoTexture);
+			this.shaderData.setSampler("aoSampler", this.aoSampler || textureCache.defaultSampler);
 			uniformBuffer.setFloat("aoTextureIntensity", this);
 		}
 		if (this.emissiveTexture) {
 			this.shaderData.setDefine("USE_EMISSIVETEXTURE", true);
 			this.shaderData.setTexture("emissiveTexture", this.emissiveTexture);
+			this.shaderData.setSampler("emissiveSampler", this.emissiveSampler || textureCache.defaultSampler);
 		}
 		if (this.specularEnvTexture) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
+			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
 		}
-		this.shaderData.setSampler("baseSampler", this.baseSampler);
 	}
 	destroy() {}
 }

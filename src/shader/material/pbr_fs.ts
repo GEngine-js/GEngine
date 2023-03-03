@@ -73,28 +73,32 @@ export default function pbr_fs(defines) {
         @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
         @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
         // IBL
-        @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvSampler: texture_cube<f32>;
-        @group(0) @binding(${defines.baseSamplerBinding}) var defaultSampler: sampler;
+        @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvTexture: texture_cube<f32>;
+        @group(0) @binding(${defines.specularEnvSamplerBinding}) var specularEnvSampler: sampler;
         #if ${defines.USE_TEXTURE}
-           @group(0) @binding(${defines.baseTextureBinding}) var baseColorTexture: texture_2d<f32>;
+           @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
+           @group(0) @binding(${defines.baseColorSamplerBinding}) var baseColorSampler: sampler;
         #endif
         // normal map
         #if ${defines.USE_NORMALTEXTURE}
           @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
+          @group(0) @binding(${defines.normalSamplerBinding}) var normalSampler: sampler;
         #endif
-
         // emmisve map
         #if ${defines.USE_EMISSIVETEXTURE}
-            @group(0) @binding(${defines.emissiveTextureBinding}) var u_emissiveTexture: texture_2d<f32>;
+            @group(0) @binding(${defines.emissiveTextureBinding}) var emissiveTexture: texture_2d<f32>;
+            @group(0) @binding(${defines.emissiveSamplerBinding}) var emissiveSampler: sampler;
         #endif
 
         // metal roughness
         #if ${defines.USE_METALNESSTEXTURE}
              @group(0) @binding(${defines.metalnessRoughnessTextureBinding}) var metalnessRoughnessTexture: texture_2d<f32>;
+             @group(0) @binding(${defines.metalnessRoughnessSamplerBinding}) var metalnessRoughnessSampler: sampler;
         #endif
         // occlusion texture
         #if ${defines.USE_AOTEXTURE}
              @group(0) @binding(${defines.aoTextureBinding}) var aoTexture: texture_2d<f32>;
+             @group(0) @binding(${defines.aoSamplerBinding}) var aoSampler: sampler;
         #endif
         #if ${defines.USE_NORMALTEXTURE}
             #include <getTBN>
@@ -110,22 +114,18 @@ export default function pbr_fs(defines) {
             var metallic:f32 = materialUniform.metallic;
 
         #if ${defines.USE_METALNESSTEXTURE}
-            // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
-            // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,defaultSampler, input.uv);
+            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,metalnessRoughnessSampler, input.uv);
             perceptualRoughness = mrSample.g * perceptualRoughness;
             metallic = mrSample.b * metallic;
         #endif
             perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
             metallic = clamp(metallic, 0.0, 1.0);
-            // Roughness is authored as perceptual roughness; as is convention,
-            // convert to material roughness by squaring the perceptual roughness [2].
             let alphaRoughness:f32 = perceptualRoughness * perceptualRoughness;
 
 
             // The albedo may be defined from a base texture or a flat color
             #if ${defines.USE_TEXTURE}
-                let baseColor:vec4<f32> = textureSample(baseColorTexture,defaultSampler, input.uv) ;
+                let baseColor:vec4<f32> = textureSample(baseColorTexture,baseColorSampler, input.uv) ;
             #else
                 let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);
             #endif
@@ -155,12 +155,12 @@ export default function pbr_fs(defines) {
             color+=reflectedLightSpecular.indirectSpecular;
         // Apply optional PBR terms for additional (optional) shading
         #if ${defines.USE_AOTEXTURE}
-            let ao:f32 = textureSample(aoTexture,defaultSampler, input.uv).r;
+            let ao:f32 = textureSample(aoTexture,aoSampler, input.uv).r;
             color = mix(color, color * ao, materialUniform.occlusionStrength);
         #endif
 
         #if ${defines.USE_EMISSIVETEXTURE}
-            let emissive:vec3<f32> = textureSample(u_emissiveTexture, defaultSampler,input.uv).rgb ;
+            let emissive:vec3<f32> = textureSample(emissiveTexture, emissiveSampler,input.uv).rgb ;
             color += emissive;
         #endif
        return vec4<f32>(color, baseColor.a);
