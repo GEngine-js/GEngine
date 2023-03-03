@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 
 export default function pbrFrag(defines) {
-  return wgslParseDefines`
+	return wgslParseDefines`
     #include <lightCommon>
     #include <light>
     #include <brdf>
@@ -113,7 +113,7 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
         #if ${defines.FLAT_SHADED}
             let fdx:vec3<f32> = dpdx( input.vViewPosition );
             let fdy:vec3<f32> = dpdy( input.vViewPosition );
-            let normal:vec3<f32> = normalize( cross( fdx, fdy ) );
+            let normal:vec3<f32> = normalize( cross( fdy, fdx ) );
         #else
             let normal:vec3<f32> = normalize( input.vNormal );
             #if ${defines.DOUBLE_SIDED}
@@ -126,10 +126,7 @@ fn main(input:VertexOutput)-> @location(0) vec4<f32> {
                     tangent = tangent * faceDirection;
                     bitangent = bitangent * faceDirection;
                 #endif
-                #if ${
-                  defines.TANGENTSPACE_NORMALTEXTURE ||
-                  defines.USE_CLEARCOAT_NORMALTEXTURE
-                }
+                #if ${defines.TANGENTSPACE_NORMALTEXTURE || defines.USE_CLEARCOAT_NORMALTEXTURE}
                     let vTBN:mat3x3<f32> = mat3x3<f32>( tangent, bitangent, normal );
                 #endif
             #endif
