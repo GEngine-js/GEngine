@@ -56,7 +56,7 @@ export default function phongFrag(defines) {
         let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
         let  N:vec3<f32> = getNormal(input);
         var geometry:Geometry;
-        geometry.normal=input.normal;
+        geometry.normal=N;
         geometry.viewDir=V;
         geometry.position=input.worldPos;
         let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess);

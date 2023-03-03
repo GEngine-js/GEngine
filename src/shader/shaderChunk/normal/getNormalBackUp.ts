@@ -8,7 +8,7 @@ export function getNormal(defines) {
         #else
           let pos_dx = dpdx(input.worldPos);
           let pos_dy = dpdy(input.worldPos);
-          normal = normalize( cross(pos_dx, pos_dy) );
+          normal = normalize( cross(pos_dy, pos_dx) );
         #endif
         return normal*(f32(input.frontFacing) * 2.0 - 1.0);
       }
