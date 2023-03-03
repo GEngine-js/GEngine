@@ -3,7 +3,7 @@ export default function phongFrag(defines) {
 	return wgslParseDefines`  
   struct VertInput {
       @builtin(position) position: vec4<f32>,
-      @builtin(front_facing) is_front: bool,
+      @builtin(front_facing) frontFacing: bool,
       @location(0) uv: vec2<f32>,
       @location(1) view: vec3<f32>, // Vector from vertex to camera.
       @location(2) worldPos: vec3<f32>,
@@ -11,7 +11,6 @@ export default function phongFrag(defines) {
       @location(4) normal: vec3<f32>,
       @location(5) viewPosition: vec3<f32>,
     };
-    // #include <lightCommon>
     #include <light>
     #include <getNormal>
     struct MaterialUniform {
@@ -46,9 +45,8 @@ export default function phongFrag(defines) {
         #else
             color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     
-        let faceDirection:f32 =select(-1.0,1.0,input.is_front);
         let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
-        let  N:vec3<f32> = getNormal(input)*faceDirection;
+        let  N:vec3<f32> = getNormal(input);
         var geometry:Geometry;
         geometry.normal=N;
         geometry.viewDir=V;

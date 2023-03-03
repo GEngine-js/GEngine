@@ -67,18 +67,18 @@
 					container: "app"
 				});
 				const gltf = await loadGLTF(
-					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF/Avocado.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF/WaterBottle.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
+					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
 				gltf.meshes.forEach((mesh) => {
 					scene.add(mesh);
 				});
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
-				camera.position.set(4, 0, 4);
+				camera.position.set(1, 0, 1);
 				camera.lookAt(0, 0, 0);
 				const control = new OrbitControl(camera, document.getElementById("app"));
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2, new Vector3(1, 1, 1));
@@ -100,7 +100,6 @@
 				scene.setCamera(camera);
 				scene.addLight(directionalLight);
 				function animate() {
-					// primitive.rotateZ(0.01)
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();

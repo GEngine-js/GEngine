@@ -90,17 +90,7 @@
 					`./textures/environment/nz.jpg`
 				];
 				const scene = new Scene({
-					container: "app",
-					brdfUrl: "./textures/brdfLUT.png",
-					specularEnvUrls: environmentUrls,
-					diffuseEnvUrls: [
-						`./textures/environment/diffuse/bakedDiffuse_01.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_02.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_03.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_04.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_05.jpg`,
-						`./textures/environment/diffuse/bakedDiffuse_06.jpg`
-					]
+					container: "app"
 				});
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 0.0, 0.0), 0.2);
 				directionalLight.position.set(-1, 1, -1);

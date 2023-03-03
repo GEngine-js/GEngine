@@ -103,9 +103,6 @@ export default function pbr_fs(defines) {
             #include <getNormal>
         #endif
         #include <ibl>
-        fn packNormalToRGB( normal:vec3<f32> )->vec3<f32> {
-            return normalize( normal ) * 0.5 + 0.5;
-        }
         @fragment
         fn main(input:VertInput) -> @location(0) vec4<f32> 
         {
@@ -138,13 +135,10 @@ export default function pbr_fs(defines) {
             #else
             let n:vec3<f32> = getNormal(input);
             #endif
-
-
             var material:PhysicalMaterial;
             material.diffuseColor=baseColor.rgb*( 1.0 - metallic );
             material.roughness=perceptualRoughness;
             material.specularColor=mix( vec3<f32>( 0.04), baseColor.rgb, metallic );;
-            // material.specularF90=reflectance90;
 
             var geometry:Geometry;
             geometry.normal=n;
