@@ -54,7 +54,11 @@ export default function phongFrag(defines) {
             color=vec4<f32>(materialUniform.color,materialUniform.opacity);
         #endif     
         let  V:vec3<f32> =  normalize( systemUniform.cameraPosition - input.worldPos);
-        let  N:vec3<f32> = getNormal(input);
+        #if ${defines.USE_NORMALTEXTURE}
+            let N:vec3<f32> = getNormalByNormalTexture(input);  
+        #else
+            let N:vec3<f32> = getNormal(input);
+        #endif
         var geometry:Geometry;
         geometry.normal=N;
         geometry.viewDir=V;

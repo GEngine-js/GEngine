@@ -131,15 +131,14 @@ export default function pbr_fs(defines) {
             #endif
 
             #if ${defines.USE_NORMALTEXTURE}
-            let n:vec3<f32> = getNormalByNormalTexture(input);  
+                let n:vec3<f32> = getNormalByNormalTexture(input);  
             #else
-            let n:vec3<f32> = getNormal(input);
+                let n:vec3<f32> = getNormal(input);
             #endif
             var material:PhysicalMaterial;
             material.diffuseColor=baseColor.rgb*( 1.0 - metallic );
             material.roughness=perceptualRoughness;
-            material.specularColor=mix( vec3<f32>( 0.04), baseColor.rgb, metallic );;
-
+            material.specularColor=mix( vec3<f32>( 0.04), baseColor.rgb, metallic );
             var geometry:Geometry;
             geometry.normal=n;
             geometry.viewDir=normalize(systemUniform.cameraPosition - input.worldPos);

@@ -54,6 +54,7 @@
 				Texture,
 				Sampler,
 				TorusKnotGeometry,
+				PlaneGeometry,
 				SkyBox,
 				CubeTextureLoader,
 				SphereGeometry,
@@ -78,9 +79,9 @@
 					addressModeV: "repeat",
 					addressModeW: "repeat"
 				});
-				const baseTexture = await loadTexture("./brick_diffuse.jpg");
+				const baseTexture = await loadTexture("./textures/normal/floorsDiffuse.jpg");
 				const aoTexture = await loadTexture("./textures/AmbientOcclusionMap.png");
-				const normalTexture = await loadTexture("./textures/NormalMap.png");
+				const normalTexture = await loadTexture("./textures/normal/floorsNormal.jpg");
 				const environmentUrls = [
 					`./textures/environment/px.jpg`,
 					`./textures/environment/nx.jpg`,
@@ -102,24 +103,23 @@
 				const primitive = new Mesh(geometry, pbr);
 				primitive.position.set(0, 5, 0);
 
-				const groundGeometry = new BoxGeometry(1, 100, 100);
 				const groundMaterial = new PhongMaterial();
 				// groundMaterial.baseTexture = baseTexture;
-				// groundMaterial.baseSampler = baseSampler;
-				groundMaterial.color = new Color(0.78, 0.85, 0.86);
-				const ground = new Mesh(groundGeometry, groundMaterial);
+				groundMaterial.normalTexture = normalTexture;
+				groundMaterial.color = new Color(1.0, 0.0, 0.0);
+				const ground = new Mesh(geometry, groundMaterial);
 
 				// primitive.scale.set(3,3,3)
-				// primitive.rotateY(Math.PI/3)
+				ground.rotateX(Math.PI / 2);
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
 				camera.position.set(25, 25, 25);
 				camera.lookAt(0, 0, 0);
 
-				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 36, 1);
+				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 0.8, 40, 1.0);
 				pointLight.position = new Vector3(0, 35, 0);
 				const skybox = new SkyBox(environmentUrls);
-				//scene.add(primitive);
-				scene.add(ground);
+				scene.add(primitive);
+				//scene.add(ground);
 				scene.add(skybox);
 				scene.setCamera(camera);
 				scene.addLight(pointLight);

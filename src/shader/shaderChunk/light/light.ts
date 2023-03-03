@@ -79,11 +79,11 @@ export default function light(defines) {
             let decay = clamp(1.0 - pow(dist / pointLight.distance, 4.0), 0.0, 1.0);
     
             let d =  max( dot( N, -direction ), 0.0 ) * decay;
-            lightColor.directDiffuse += pointLight.color * d;
+            lightColor.directDiffuse = pointLight.color * d;
     
             let halfDir:vec3<f32> = normalize( V - direction );
             let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
-            lightColor.directSpecular += pointLight.color * s;
+            lightColor.directSpecular = pointLight.color * s;
             return lightColor;
         }
         fn getPointLightIncidentLight(pointLight:PointLight, geometry:Geometry)->IncidentLight {
@@ -103,7 +103,7 @@ export default function light(defines) {
         };
         fn getDirtectLightInfo(directionalLight:DirectionalLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
             var lightColor:ReflectedLight;
-            let d:f32 = max(dot(N, directionalLight.direction), 0.0);
+            let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
             lightColor.directDiffuse += directionalLight.color * d;
     
             let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
