@@ -32,8 +32,9 @@ export class DirectionalLight extends Light {
 	update(camera: Camera): void {
 		if (!this.dirtectDirty) return;
 		super.update(camera);
+		this.shadow.update(this);
 
-		let directional = this.directional.clone();
+		const directional = this.directional.clone();
 		const viewMatrix = camera.viewMatrix;
 		// this.dirtectVC = directional.transformDirection(viewMatrix);
 		this.dirtectVC = directional;

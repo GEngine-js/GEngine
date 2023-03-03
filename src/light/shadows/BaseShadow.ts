@@ -47,4 +47,6 @@ export class BaseShadow {
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
 	}
+
+	public update(light: Light) {}
 }

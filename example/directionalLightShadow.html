@@ -45,6 +45,7 @@
 				BoxGeometry,
 				Mesh,
 				PerspectiveCamera,
+				OrthographicCamera,
 				Scene,
 				PhongMaterial,
 				Vector3,
@@ -93,7 +94,7 @@
 					container: "app"
 				});
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 0.0, 0.0), 0.2);
-				directionalLight.position.set(-1, 1, -1);
+				directionalLight.position.set(-8, 8, -8);
 				const pbr = new PbrMaterial();
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
@@ -112,16 +113,25 @@
 				// primitive.scale.set(3,3,3)
 				// primitive.rotateY(Math.PI/3)
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
-				camera.position.set(25, 25, 25);
+				const orthographicCamera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
+				orthographicCamera.position.set(-8, 8, -8);
+				orthographicCamera.lookAt(0, 0, 0);
+
+				camera.position.set(-8, 8, -8);
 				camera.lookAt(0, 0, 0);
 
 				const skybox = new SkyBox(environmentUrls);
 				scene.add(primitive);
 				scene.add(ground);
 				scene.add(skybox);
-				scene.setCamera(camera);
 				scene.addLight(directionalLight);
+
+				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
+
+				// scene.setCamera(orthographicCamera);
+				// const control = new OrbitControl(orthographicCamera, document.getElementById("app"));
+
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;
 				function animate() {

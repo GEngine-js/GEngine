@@ -31,6 +31,7 @@ export { default as BloomPostEffect } from "./post-process/BloomPostEffect";
 
 //camera
 export { default as PerspectiveCamera } from "./camera/PerspectiveCamera";
+export { default as OrthographicCamera } from "./camera/OrthographicCamera";
 
 //math
 export { default as Vector3 } from "./math/Vector3";
