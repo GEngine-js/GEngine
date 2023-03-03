@@ -17,6 +17,8 @@
 			html {
 				background: #692a84;
 				background: linear-gradient(316deg, #0e0f2a, #060913);
+				height: 100%;
+				width: 100%;
 			}
 
 			body {
@@ -90,7 +92,8 @@
 				camera.lookAt(0, 0, 0);
 
 				// console.log(camera.viewMatrix);
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.5, new Vector3(1, 1, 1));
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.5);
+				directionalLight.position.set(1, 1, 1);
 				// spotLight.position=new Vector3(0,16,0);
 
 				const scene = new Scene({ container: "app" });

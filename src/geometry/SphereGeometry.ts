@@ -7,6 +7,9 @@ export default class SphereGeometry extends Geometry {
 	constructor(radius: number) {
 		super({});
 		this.type = "sphere";
+		this.defines = {
+			HAS_NORMAL: true
+		};
 		this.radius = radius;
 		this.init();
 	}

@@ -4,6 +4,9 @@ export default class PlaneGeometry extends Geometry {
 	constructor(public width: number = 10, public height: number = 10) {
 		super({});
 		this.type = "planeGeometry";
+		this.defines = {
+			HAS_NORMAL: true
+		};
 		this.init();
 	}
 	private init() {

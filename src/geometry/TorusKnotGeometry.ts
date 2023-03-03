@@ -17,6 +17,9 @@ export default class TorusKnotGeometry extends Geometry {
 		q: number = 3
 	) {
 		super({});
+		this.defines = {
+			HAS_NORMAL: true
+		};
 		this.radius = radius;
 		this.tube = tube;
 		this.tubularSegments = tubularSegments;

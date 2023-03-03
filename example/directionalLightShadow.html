@@ -60,7 +60,8 @@
 				SphereGeometry,
 				PbrMaterial,
 				loadTexture,
-				OrbitControl
+				OrbitControl,
+				PlaneGeometry
 			} from "../dist/index.js";
 
 			const init = async () => {
@@ -99,19 +100,20 @@
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
 				pbr.aoTexture = aoTexture;
-				pbr.normalTexture = normalTexture;
+				//pbr.normalTexture = normalTexture;
 				pbr.roughness = 1.0;
 				pbr.metalness = 0.0;
 				const primitive = new Mesh(geometry, pbr);
 				primitive.position.set(-1, 1, -1);
 
-				const groundGeometry = new BoxGeometry(1, 100, 100);
+				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new PhongMaterial();
 				groundMaterial.color = new Color(0.78, 0.85, 0.86);
+				groundMaterial.shininess = 16.0;
 				const ground = new Mesh(groundGeometry, groundMaterial);
 
 				// primitive.scale.set(3,3,3)
-				// primitive.rotateY(Math.PI/3)
+				ground.rotateX(Math.PI / 2);
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
 				const orthographicCamera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
 				orthographicCamera.position.set(-8, 8, -8);

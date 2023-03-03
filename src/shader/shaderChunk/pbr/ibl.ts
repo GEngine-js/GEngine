@@ -45,7 +45,6 @@ export default function ibl(defines) {
   fn indirectSpecular_Physical(geometry:Geometry, material:PhysicalMaterial)->ReflectedLight {
       var reflectedLight:ReflectedLight;
       // IBL specular
-      //let radiance:vec3<f32> = getLightProbeRadiance(geometry.viewDir, geometry.normal, material.roughness,  u_envMapLight.specularIntensity);
       let radiance:vec3<f32> = getLightProbeRadiance(geometry.viewDir, geometry.normal, material.roughness);
       let radianceAttenuation:f32 = 1.0;
       reflectedLight.indirectSpecular += radianceAttenuation * radiance * DFGApprox(material.specularColor, material.roughness, geometry.dotNV );
