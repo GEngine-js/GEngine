@@ -120,7 +120,7 @@ export class GLTF {
 						addressModeU: "repeat",
 						addressModeV: "repeat"
 					});
-					mat.roughness = 0.33;
+					mat.roughness = 0.0;
 					mat.metalness = 1.0;
 					return mat;
 			  })
