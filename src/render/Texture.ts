@@ -42,29 +42,17 @@ export default class Texture {
 		return this._textureView;
 	}
 	update(context: Context) {
-		// todo 仅考虑重建（size改变），后续要考虑data改变
 		if (!this.context) this.context = context;
 		if (this.dirty) {
-			if (this.gpuTexture) this.gpuTexture.destroy();
-			this.gpuTexture = this.createGPUTexture();
+			this.checkNeedCreateTexture();
 			this.dirty = false;
 			if (this.textureProp.data) {
-				if (this.textureProp.dataIsTexture) {
-					if (Array.isArray(this.textureProp.data)) {
-						this.textureProp.data.forEach((textureData) => {
-							this.setData(textureData);
-						});
-					} else {
-						this.setData(this.textureProp.data);
-					}
+				if (Array.isArray(this.textureProp.data)) {
+					this.textureProp.data.forEach((imageData) => {
+						this.setData(imageData);
+					});
 				} else {
-					if (Array.isArray(this.textureProp.data)) {
-						this.textureProp.data.forEach((imageData) => {
-							this.setData(imageData);
-						});
-					} else {
-						this.setData(this.textureProp.data);
-					}
+					this.setData(this.textureProp.data);
 				}
 			}
 			if (this.textureProp.needMipMap) {
@@ -145,5 +133,14 @@ export default class Texture {
 			mipLevelCount: this.textureProp.mipLevelCount || 1,
 			sampleCount: this.textureProp.sampleCount || 1
 		});
+	}
+	private checkNeedCreateTexture() {
+		const { width, height, depth } = this.textureProp.size;
+		if (this.gpuTexture && (width != this.gpuTexture.width || height != this.gpuTexture.height)) {
+			this.gpuTexture.destroy();
+			this.gpuTexture = this.createGPUTexture();
+		} else {
+			this.gpuTexture = this.createGPUTexture();
+		}
 	}
 }
