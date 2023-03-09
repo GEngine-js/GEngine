@@ -41,7 +41,9 @@ export class Uniform<T> {
 			this.buffer[i] = array[i];
 		}
 	}
-	set() {}
+	set() {
+		return undefined;
+	}
 	getValue() {
 		let result;
 		const cbType = typeof this.cb;

@@ -115,6 +115,8 @@ export default class LightManger {
 				},
 				this.dirtectLights.length
 			);
+			// this.shaderData.setTexture("baseTexture", this.baseTexture);
+			// this.shaderData.setSampler("baseSampler", this.baseSampler);
 		}
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
 	}

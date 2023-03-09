@@ -34,6 +34,7 @@ export class ShadowPass extends Pass {
 		for (let i = 0; i < lights.length; i++) {
 			const light = lights[i];
 			const shadow = light.shadow;
+			if (!shadow) continue;
 			this.setRenderTarget(shadow);
 			super.beforeRender();
 

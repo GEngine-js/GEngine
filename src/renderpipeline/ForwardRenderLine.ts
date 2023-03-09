@@ -26,9 +26,9 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 		// this.postEffectCollection.add(bloom)
 	}
 	render(frameState: FrameState, camera?: Camera) {
-		// this.shadowPass.beforeRender();
-		// this.shadowPass.render(frameState, camera);
-		// this.shadowPass.afterRender();
+		this.shadowPass.beforeRender();
+		this.shadowPass.render(frameState, camera);
+		this.shadowPass.afterRender();
 
 		this.basicPass.beforeRender();
 		this.basicPass.render(frameState, camera);

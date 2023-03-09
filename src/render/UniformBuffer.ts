@@ -3,6 +3,7 @@ import defaultValue from "../utils/defaultValue";
 import Buffer from "./Buffer";
 import Context from "./Context";
 import {
+	Uniform,
 	UniformColor,
 	UniformDirtectLights,
 	UniformFloat,
@@ -23,7 +24,7 @@ export default class UniformBuffer {
 	public type: string;
 	public hasDynamicOffset: boolean;
 	public minBindingSize: number;
-	private _uniformStruct: any;
+	private _uniformStruct: Map<string, Uniform<any>>;
 	private _bufferSize: number;
 	byteOffset: number;
 	uniformDirty: boolean;
