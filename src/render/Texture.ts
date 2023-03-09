@@ -136,8 +136,8 @@ export default class Texture {
 	}
 	private checkNeedCreateTexture() {
 		const { width, height, depth } = this.textureProp.size;
-		if (this.gpuTexture && (width != this.gpuTexture.width || height != this.gpuTexture.height)) {
-			this.gpuTexture.destroy();
+		if (this.gpuTexture) {
+			if (width != this.gpuTexture.width || height != this.gpuTexture.height) this.gpuTexture.destroy();
 			this.gpuTexture = this.createGPUTexture();
 		} else {
 			this.gpuTexture = this.createGPUTexture();
