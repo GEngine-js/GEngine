@@ -1,20 +1,7 @@
-/**
- * @function
- *
- * @param {*} value The object.
- * @returns {Boolean} Returns true if the object is defined, returns false otherwise.
- *
- * @example
- * if (Cesium.defined(positions)) {
- *      doSomething();
- * } else {
- *      doSomethingElse();
- * }
- */
 export default function defined(value) {
-  return value !== undefined && value !== null;
+	return value !== undefined && value !== null;
 }
 
 function returnTrue() {
-  return true;
+	return true;
 }
