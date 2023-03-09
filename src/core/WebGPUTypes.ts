@@ -107,7 +107,7 @@ export type BindGroupCacheOptions = {
 	index?: number;
 };
 export type ImageData = {
-	source: ImageBitmap | HTMLCanvasElement;
+	source: ImageBitmap | HTMLCanvasElement | Texture;
 	width?: number;
 	height?: number;
 	depth?: number;
@@ -143,6 +143,8 @@ export type WebGPUTextureProps = {
 	sampleType?: string;
 
 	needMipMap?: boolean;
+
+	dataIsTexture?: boolean;
 };
 export type extent3DDict = {
 	width: number;

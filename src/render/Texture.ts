@@ -17,7 +17,8 @@ export default class Texture {
 		this.textureProp = Object.assign(
 			{
 				format: TextureFormat.RGBA8Unorm,
-				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+				dataIsTexture: false
 			},
 			textureProp
 		);
@@ -48,12 +49,22 @@ export default class Texture {
 			this.gpuTexture = this.createGPUTexture();
 			this.dirty = false;
 			if (this.textureProp.data) {
-				if (Array.isArray(this.textureProp.data)) {
-					this.textureProp.data.forEach((imageData) => {
-						this.setData(imageData);
-					});
+				if (this.textureProp.dataIsTexture) {
+					if (Array.isArray(this.textureProp.data)) {
+						this.textureProp.data.forEach((textureData) => {
+							this.setData(textureData);
+						});
+					} else {
+						this.setData(this.textureProp.data);
+					}
 				} else {
-					this.setData(this.textureProp.data);
+					if (Array.isArray(this.textureProp.data)) {
+						this.textureProp.data.forEach((imageData) => {
+							this.setData(imageData);
+						});
+					} else {
+						this.setData(this.textureProp.data);
+					}
 				}
 			}
 			if (this.textureProp.needMipMap) {
@@ -78,22 +89,39 @@ export default class Texture {
 			colorSpace = "srgb",
 			premultipliedAlpha = false
 		} = options;
-
-		this.context.device.queue.copyExternalImageToTexture(
-			{
-				source,
-				origin: [sourceX, sourceY]
-			},
-			{
-				texture: this.gpuTexture,
-				origin: [x, y, z],
-				mipLevel,
-				aspect,
-				colorSpace,
-				premultipliedAlpha
-			},
-			[width, height, depth]
-		);
+		if (source instanceof Texture) {
+			let commandEncoder = this.context.device.createCommandEncoder();
+			commandEncoder.copyTextureToTexture(
+				{
+					texture: <GPUTexture>source.gpuTexture,
+					origin: [sourceX, sourceY]
+				},
+				{
+					texture: this.gpuTexture,
+					origin: [x, y, z],
+					mipLevel,
+					aspect
+				},
+				[width, height, depth]
+			);
+			commandEncoder = null;
+		} else {
+			this.context.device.queue.copyExternalImageToTexture(
+				{
+					source,
+					origin: [sourceX, sourceY]
+				},
+				{
+					texture: this.gpuTexture,
+					origin: [x, y, z],
+					mipLevel,
+					aspect,
+					colorSpace,
+					premultipliedAlpha
+				},
+				[width, height, depth]
+			);
+		}
 	}
 	setSize(width: number, height: number, depth?: number) {
 		this.textureProp.size.width = width;
