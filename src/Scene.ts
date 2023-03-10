@@ -5,12 +5,14 @@ import PrimitiveManger from "./core/PrimitiveManger";
 import Context from "./render/Context";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
-import defaultValue from "./utils/defaultValue";
-import { loadPbrTexture } from "./utils/utils";
 import textureCache from "./core/TextureCache";
+import PostEffectCollection from "./post-process/PostEffectCollection";
+import PostEffect from "./post-process/PostEffect";
+import { Instance } from "./core/WebGPUTypes";
+import { Mesh } from "./mesh/Mesh";
+import { Light } from "./light/Light";
 
 export class Scene extends EventDispatcher {
-	primitiveManger: PrimitiveManger;
 	camera: PerspectiveCamera;
 	context: Context;
 	requestAdapter: {};
@@ -21,10 +23,9 @@ export class Scene extends EventDispatcher {
 	currentRenderPipeline: IBaseRenderLine;
 	viewport: { x: number; y: number; width: number; height: number };
 	private ready: boolean;
-	private brdfUrl: string;
-	private specularEnvUrls: Array<string>;
-	private diffuseEnvUrls: Array<string>;
 	private inited: boolean;
+	private primitiveManger: PrimitiveManger;
+	private postEffectCollection: PostEffectCollection;
 	constructor(options) {
 		super();
 		this.container =
@@ -32,20 +33,17 @@ export class Scene extends EventDispatcher {
 				? options.container
 				: document.getElementById(options.container);
 		this.primitiveManger = new PrimitiveManger();
+		this.postEffectCollection = new PostEffectCollection();
 		this.context = new Context({
 			canvas: null,
 			container: this.container,
 			pixelRatio: 1
 		});
-		this.brdfUrl = defaultValue(options.brdfUrl, undefined);
-		this.specularEnvUrls = defaultValue(options.specularEnvUrls, []);
-		this.diffuseEnvUrls = defaultValue(options.diffuseEnvUrls, []);
 		this.requestAdapter = options.requestAdapter || {};
 		this.deviceDescriptor = options.deviceDescriptor || {};
 		this.presentationContextDescriptor = options.presentationContextDescriptor;
 		this.ready = false;
 		this.inited = false;
-		//this.init();
 	}
 	private async init() {
 		await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor);
@@ -57,35 +55,29 @@ export class Scene extends EventDispatcher {
 			width: this.context.presentationSize.width,
 			height: this.context.presentationSize.height
 		};
-		if (this.brdfUrl) {
-			const { brdfTexture, diffuseTexture, specularTexture } = await loadPbrTexture(
-				this.brdfUrl,
-				this.diffuseEnvUrls,
-				this.specularEnvUrls
-			);
-			textureCache.addTexture("brdf", brdfTexture);
-			textureCache.addTexture("diffuse", diffuseTexture);
-		}
 		this.ready = true;
 	}
-	add(instance) {
-		if (instance.type === "primitive" && !this.primitiveManger.contains(instance)) {
-			this.primitiveManger.add(instance);
+	add(instance: Instance) {
+		if ((instance as Mesh)?.isMesh) {
+			this.primitiveManger.add(<Mesh>instance);
+		} else if ((instance as Light)?.isLight) {
+			this.context.lightManger.add(<Light>instance);
+		} else if ((instance as PostEffect)?.isPostEffect) {
+			this.postEffectCollection.add(<PostEffect>instance);
 		}
 	}
-	addPostEffect() {}
-	addLight(light) {
-		this.context.lightManger.add(light);
+	remove(instance: Instance) {
+		if ((instance as Mesh)?.isMesh) {
+			this.primitiveManger.remove(<Mesh>instance);
+		} else if ((instance as Light)?.isLight) {
+			this.context.lightManger.remove(<Light>instance);
+		} else if ((instance as PostEffect)?.isPostEffect) {
+			this.postEffectCollection.remove(<PostEffect>instance);
+		}
 	}
 	setCamera(camera) {
 		this.camera = camera;
 	}
-	remove(instance) {
-		if (instance.type === "primitive" && !this.primitiveManger.contains(instance)) {
-			this.primitiveManger.remove(instance);
-		}
-	}
-	getPrimitiveById() {}
 	async render() {
 		if (!this.inited) {
 			this.inited = true;
@@ -108,5 +100,7 @@ export class Scene extends EventDispatcher {
 		this.primitiveManger.update(this.frameState, this.camera);
 		//selct renderPipeline
 		this.currentRenderPipeline.render(this.frameState, this.camera);
+		//后处理
+		this.postEffectCollection.render(this.context, this.currentRenderPipeline.getOutputTexture());
 	}
 }

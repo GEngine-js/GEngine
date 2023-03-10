@@ -33,19 +33,30 @@ export default class LightManger {
 	update(frameState: FrameState, camera: Camera) {
 		this.updateLight(camera);
 	}
-	add(light) {
+	add(light: Light) {
 		this.lightCountDirty = true;
 		if (light.type == "ambient") {
-			this.ambientLight = light;
+			this.ambientLight = <AmbientLight>light;
 		} else if (light.type == "directional") {
-			this.dirtectLights.push(light);
+			this.dirtectLights.push(<DirectionalLight>light);
 		} else if (light.type == "point") {
-			this.pointLights.push(light);
+			this.pointLights.push(<PointLight>light);
 		} else if (light.type == "spot") {
-			this.spotLights.push(light);
+			this.spotLights.push(<SpotLight>light);
 		}
 	}
-	remove() {}
+	remove(light: Light) {
+		this.lightCountDirty = true;
+		if (light.type == "ambient") {
+			this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
+		} else if (light.type == "directional") {
+			this.dirtectLights.splice(this.dirtectLights.indexOf(<DirectionalLight>light), 1);
+		} else if (light.type == "point") {
+			this.pointLights.splice(this.pointLights.indexOf(<PointLight>light), 1);
+		} else if (light.type == "spot") {
+			this.spotLights.splice(this.spotLights.indexOf(<SpotLight>light), 1);
+		}
+	}
 	private updateLight(camera: Camera) {
 		this.updateLightData(camera);
 		if (this.lightCountDirty) {

@@ -19,6 +19,7 @@ export default class PrimitiveManger {
 		});
 	}
 	add(instance: Mesh, index?: number) {
+		if (this.contains(instance)) return;
 		const hasIndex = defined(index);
 		if (!defined(instance)) {
 			throw new Error("instance is required.");

@@ -1,4 +1,3 @@
-import { TextureFormat } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import { Mesh } from "../mesh/Mesh";
 import { Float32Attribute } from "../render/Attribute";
@@ -27,12 +26,15 @@ export default class PostEffect {
 
 	priority: number;
 
+	isPostEffect: boolean;
+
 	constructor(width: number, height: number, id: string) {
 		this.width = width;
 		this.height = height;
 		this.initDefaultParms();
 		this.id = id;
 		this.priority = 0;
+		this.isPostEffect = true;
 	}
 	setSize(width: number, height: number, depth?: number) {}
 	render(context: Context, colorTexture: Texture): Texture {

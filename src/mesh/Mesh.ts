@@ -2,7 +2,6 @@ import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import Intersect from "../core/Intersect";
 import RenderObject from "../core/RenderObject";
-import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
@@ -14,11 +13,13 @@ export class Mesh extends RenderObject {
 	priority?: number;
 	drawCommand?: DrawCommand;
 	distanceToCamera?: number;
+	isMesh: boolean;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
 		this.material = material;
-		this.type = "primitive";
+		this.type = "mesh";
+		this.isMesh = true;
 	}
 	get ready() {
 		return this.material.ready;

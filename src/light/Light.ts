@@ -17,6 +17,7 @@ export class Light {
 	public _shadow: BaseShadow;
 	public positionVC: Vector3;
 	public targetDirty: boolean;
+	public isLight: boolean;
 
 	constructor(color: Vector3, intensity: number) {
 		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
@@ -28,6 +29,7 @@ export class Light {
 		this.colorDirty = true;
 		this.intensityDirty = true;
 		this._shadow = null;
+		this.isLight = true;
 	}
 
 	get position() {

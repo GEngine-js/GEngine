@@ -14,6 +14,9 @@ import {
 	TextureFormat
 } from "./WebGPUConstant";
 import Sampler from "../render/Sampler";
+import PostEffect from "../post-process/PostEffect";
+import { Light } from "../light/Light";
+import { Mesh } from "../mesh/Mesh";
 export const GPUCanvasCompositingAlphaMode: {
 	[key: string]: GPUCanvasCompositingAlphaMode;
 } = {
@@ -249,3 +252,4 @@ export interface IUniform<TValue = any> {
 	value: TValue;
 }
 export type Uniforms = { [uniform: string]: IUniform };
+export type Instance = Mesh | PostEffect | Light;
