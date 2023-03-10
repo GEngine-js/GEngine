@@ -171,8 +171,8 @@ export default class LightManger {
 				const shadowMapTexture = light.shadow.getShadowMapTexture();
 				const shadowMapSource = {
 					source: shadowMapTexture,
-					width: shadowMapTexture.width,
-					height: shadowMapTexture.height,
+					width: shadowMapTexture.textureProp.size.width,
+					height: shadowMapTexture.textureProp.size.height,
 					depth: 1,
 					x: 0,
 					y: 0,
