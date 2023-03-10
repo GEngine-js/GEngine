@@ -22,9 +22,9 @@ export class ShadowPass extends Pass {
 		this.init(context);
 	}
 
-	beforeRender(): void {
-		return;
-	}
+	// beforeRender(): void {
+	// 	return;
+	// }
 
 	render(frameState: FrameState, camera?: Camera) {
 		const { renderQueue, context } = frameState;

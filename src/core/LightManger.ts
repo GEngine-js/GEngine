@@ -4,18 +4,22 @@ import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
 import { FrameState } from "./FrameState";
 import ShaderData from "../render/ShaderData";
-import { BufferUsage } from "./WebGPUConstant";
+import { BufferUsage, TextureFormat } from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
 import Vector3 from "../math/Vector3";
+import { LightMangerOptions } from "../core/WebGPUTypes";
+import Texture from "../render/Texture";
+import Sampler from "../render/Sampler";
+
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
 	pointLights: PointLight[];
 
 	spotLights: SpotLight[];
 
-	dirtectLights: DirectionalLight[];
+	directLights: DirectionalLight[];
 
 	ambientLight: AmbientLight;
 
@@ -23,12 +27,15 @@ export default class LightManger {
 
 	lightCountDirty: boolean;
 
-	constructor() {
+	private openShadow: boolean;
+
+	constructor(options: LightMangerOptions) {
 		this.spotLights = [];
 		this.pointLights = [];
-		this.dirtectLights = [];
+		this.directLights = [];
 		this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 		this.lightCountDirty = false;
+		this.openShadow = options.openShadow;
 	}
 	update(frameState: FrameState, camera: Camera) {
 		this.updateLight(camera);
@@ -38,7 +45,7 @@ export default class LightManger {
 		if (light.type == "ambient") {
 			this.ambientLight = <AmbientLight>light;
 		} else if (light.type == "directional") {
-			this.dirtectLights.push(<DirectionalLight>light);
+			this.directLights.push(<DirectionalLight>light);
 		} else if (light.type == "point") {
 			this.pointLights.push(<PointLight>light);
 		} else if (light.type == "spot") {
@@ -50,7 +57,7 @@ export default class LightManger {
 		if (light.type == "ambient") {
 			this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 		} else if (light.type == "directional") {
-			this.dirtectLights.splice(this.dirtectLights.indexOf(<DirectionalLight>light), 1);
+			this.directLights.splice(this.directLights.indexOf(<DirectionalLight>light), 1);
 		} else if (light.type == "point") {
 			this.pointLights.splice(this.pointLights.indexOf(<PointLight>light), 1);
 		} else if (light.type == "spot") {
@@ -81,7 +88,7 @@ export default class LightManger {
 		});
 	}
 	private updateDirtectLight(camera: Camera) {
-		this.dirtectLights.forEach((light) => {
+		this.directLights.forEach((light) => {
 			light.update(camera);
 		});
 	}
@@ -91,7 +98,7 @@ export default class LightManger {
 
 		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
 		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
-		this.lightShaderData.setDefine("dirtectLightsCount", this.dirtectLights.length);
+		this.lightShaderData.setDefine("dirtectLightsCount", this.directLights.length);
 		this.lightShaderData.setDefine("ambientLightCount", 1);
 		if (this.ambientLight)
 			this.lightUniformBuffer.setFloatVec4("ambientLight", () => {
@@ -117,28 +124,77 @@ export default class LightManger {
 				this.pointLights.length
 			);
 		}
-		if (this.dirtectLights.length) {
+		if (this.directLights.length) {
 			//方向光
 			this.lightUniformBuffer.setDirtectLights(
-				"dirtectLights",
+				"directLights",
 				() => {
-					return this.dirtectLights;
+					return this.directLights;
 				},
-				this.dirtectLights.length
+				this.directLights.length
 			);
-			// this.shaderData.setTexture("baseTexture", this.baseTexture);
-			// this.shaderData.setSampler("baseSampler", this.baseSampler);
 		}
+
+		if (this.openShadow) {
+			this.lightShaderData.setDefine("openShadow", this.openShadow);
+			const spotLightShadowMapTextureArray = this.createShadowMapTextureArray(this.spotLights);
+			const pointLightShadowMapTextureArray = this.createShadowMapTextureArray(this.pointLights);
+			const directLightShadowMapTextureArray = this.createShadowMapTextureArray(this.directLights);
+			if (spotLightShadowMapTextureArray !== undefined)
+				this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
+			if (pointLightShadowMapTextureArray !== undefined)
+				this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
+			if (directLightShadowMapTextureArray !== undefined)
+				this.lightShaderData.setTexture("directLightShadowMapTextureArray", directLightShadowMapTextureArray);
+			this.lightShaderData.setSampler("shadowSampler", Sampler.baseSampler);
+		}
+
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
 	}
 
 	public getAllLights(): Array<Light> {
 		const result = [];
-		return result.concat(this.spotLights, this.pointLights, this.dirtectLights);
+		return result.concat(this.spotLights, this.pointLights, this.directLights);
 	}
 
 	destroy() {
 		this.lightShaderData.destroy();
 		this.lightUniformBuffer.destroy();
+	}
+
+	createShadowMapTextureArray(lights: Array<Light>) {
+		if (lights.length <= 0) return undefined;
+		const shadowMapSources = [];
+		for (let i = 0; i < lights.length; i++) {
+			const light = lights[i];
+			if (light.shadow) {
+				const shadowMapTexture = light.shadow.getShadowMapTexture();
+				const shadowMapSource = {
+					source: shadowMapTexture,
+					width: shadowMapTexture.width,
+					height: shadowMapTexture.height,
+					depth: 1,
+					x: 0,
+					y: 0,
+					z: i
+				};
+				shadowMapSources.push(shadowMapSource);
+			}
+		}
+
+		const shadowMapTextureArray = new Texture({
+			size: {
+				width: shadowMapSources[0].width,
+				height: shadowMapSources[0].height,
+				depth: shadowMapSources.length
+			},
+			sampleType: "depth",
+			format: TextureFormat.Depth24Plus,
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+			data: shadowMapSources,
+			viewFormats: "2d-array"
+		});
+
+		return shadowMapTextureArray;
 	}
 }

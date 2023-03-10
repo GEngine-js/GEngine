@@ -34,6 +34,8 @@ class Context {
 
 	private _scissorTestEnabled: boolean;
 
+	private _openShadow: boolean;
+
 	constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
 		if (!container.clientWidth || !container.clientHeight) throw new Error("container width or height illegality");
 		this.canvas = canvas || document.createElement("canvas");
@@ -49,7 +51,8 @@ class Context {
 		this.context = context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
 
 		this.device = undefined;
-		this.lightManger = new LightManger();
+		this._openShadow = true;
+		this.lightManger = new LightManger({ openShadow: this._openShadow });
 	}
 
 	public async init(
