@@ -21,11 +21,6 @@ export class ShadowPass extends Pass {
 		super(context);
 		this.init(context);
 	}
-
-	// beforeRender(): void {
-	// 	return;
-	// }
-
 	render(frameState: FrameState, camera?: Camera) {
 		const { renderQueue, context } = frameState;
 		const lights = context.lightManger.getAllLights();
@@ -42,17 +37,11 @@ export class ShadowPass extends Pass {
 			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
 			renderQueue.transparentRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
 			renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
+			super.afterRender();
 		}
 	}
-
-	// afterRender(): void {
-	// 	return;
-	// }
-
 	private setRenderTarget(shadow: BaseShadow) {
-		const shadowMapTexture = shadow.getShadowMapTexture();
-		const depthAttachment = new Attachment(1.0, { texture: shadowMapTexture });
-		this.renderTarget.depthAttachment = depthAttachment;
+		this.renderTarget.depthAttachment.texture = shadow.getShadowMapTexture();
 	}
 
 	private init(context: Context) {
@@ -60,24 +49,19 @@ export class ShadowPass extends Pass {
 		this.createShadowMaterial();
 	}
 	private createRenderTarget(context: Context) {
-		this.renderTarget = new RenderTarget("render", []);
+		const depthAttachment = new Attachment(1.0, { texture: undefined });
+		this.renderTarget = new RenderTarget("render", [], depthAttachment);
 	}
 
 	private createShadowMaterial() {
 		const colorShader = getVertFrag("color");
 		this.shadowMaterial = new ShaderMaterial({
 			type: "shadowMaterial",
-			uniforms: {},
+			uniforms: {
+				modelMatrix: { type: "mat4", value: null }
+			},
 			vert: colorShader.vert,
 			frag: undefined
 		});
-		this.shadowMaterial.light = true;
-		this.shadowMaterial.shaderData = new ShaderData(this.shadowMaterial.type, 0);
-		const uniformBuffer = new UniformBuffer();
-		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return null;
-		});
-
-		this.shadowMaterial.shaderData.setUniformBuffer("shadowUniformStruct", uniformBuffer);
 	}
 }

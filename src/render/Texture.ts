@@ -35,10 +35,10 @@ export default class Texture {
 		};
 	}
 	get textureView() {
-		//if (!this._textureView)
-		this._textureView = this.gpuTexture.createView({
-			dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
-		});
+		if (!this._textureView)
+			this._textureView = this.gpuTexture.createView({
+				dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
+			});
 		return this._textureView;
 	}
 	update(context: Context) {
@@ -141,8 +141,8 @@ export default class Texture {
 			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
 				this._textureView = undefined;
 				this.gpuTexture.destroy();
+				this.gpuTexture = this.createGPUTexture();
 			}
-			this.gpuTexture = this.createGPUTexture();
 		} else {
 			this.gpuTexture = this.createGPUTexture();
 		}
