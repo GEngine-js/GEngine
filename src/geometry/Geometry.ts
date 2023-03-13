@@ -38,7 +38,7 @@ export default class Geometry {
 		this.dirty = false;
 		this.definesDirty = true;
 		this.attributes = new Attributes();
-		this.vertBuffer = new VertextBuffer(this.attributes, 0);
+		this.vertBuffer = new VertextBuffer(this.type, this.attributes, 0);
 		this._defines = {};
 		this.normals = [];
 		this.uvs = [];
@@ -55,7 +55,7 @@ export default class Geometry {
 	}
 	setIndice(indices: Array<number>) {
 		this.indices = indices;
-		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer();
+		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer(this.type + "IndexBuffer");
 		this.indexBuffer.setIndices(indices);
 	}
 	update(frameState: FrameState) {}

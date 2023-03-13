@@ -19,12 +19,6 @@ export default class SkyBoxMaterial extends Material {
 		this.loadFish = false;
 		this.renderState.depthStencil.depthWriteEnabled = false;
 		this.renderState.depthStencil.depthCompare = CompareFunction.LessEqual;
-		// this.renderState.depthStencil
-		// this.depthStencil = {
-		//   depthWriteEnabled: false,
-		//   depthCompare: CompareFunction.LessEqual,
-		//   format: TextureFormat.Depth24Plus,
-		// };
 	}
 	async loadTexture(urls) {
 		const result = await CubeTextureLoader(urls);
@@ -41,7 +35,7 @@ export default class SkyBoxMaterial extends Material {
 	}
 	protected createShaderData(mesh: Mesh) {
 		super.createShaderData(mesh);
-		const uniformBuffer = new UniformBuffer();
+		const uniformBuffer = new UniformBuffer("skybox");
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return null;
 		});

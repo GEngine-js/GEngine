@@ -26,6 +26,7 @@ export default class UniformBuffer {
 	public minBindingSize: number;
 	private _uniformStruct: Map<string, Uniform<any>>;
 	private _bufferSize: number;
+	private label: string;
 	byteOffset: number;
 	uniformDirty: boolean;
 	binding: number;
@@ -35,8 +36,16 @@ export default class UniformBuffer {
 	dataBuffer: Float32Array;
 	offset: number;
 	isUniformBuffer: boolean;
-	constructor(type?: string, usage?: BufferUsage, size?: number, dataBuffer?: Float32Array, binding?: number) {
+	constructor(
+		label: string,
+		type?: string,
+		usage?: BufferUsage,
+		size?: number,
+		dataBuffer?: Float32Array,
+		binding?: number
+	) {
 		this.type = defaultValue(type, "uniform");
+		this.label = defaultValue(label, "");
 		(this.hasDynamicOffset = false), (this.minBindingSize = 0);
 		this.binding = defaultValue(binding, 0);
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
@@ -70,7 +79,8 @@ export default class UniformBuffer {
 		});
 		if (this.uniformDirty) {
 			this.uniformDirty = false;
-			if (!this.buffer) this.buffer = Buffer.createUniformBuffer(context.device, this.bufferSize, this.usage);
+			if (!this.buffer)
+				this.buffer = Buffer.createUniformBuffer(this.label, context.device, this.bufferSize, this.usage);
 			this.buffer.setSubData(0, this.dataBuffer.slice(0, defaultValue(this?.bufferSize / 4, this.uniformsSize)));
 		}
 	}

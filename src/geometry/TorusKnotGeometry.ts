@@ -16,7 +16,9 @@ export default class TorusKnotGeometry extends Geometry {
 		p: number = 2,
 		q: number = 3
 	) {
-		super({});
+		super({
+			type: "torusKnotGeometry"
+		});
 		this.defines = {
 			HAS_NORMAL: true
 		};

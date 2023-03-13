@@ -5,8 +5,9 @@ import Geometry from "./Geometry";
 export default class SphereGeometry extends Geometry {
 	radius: number;
 	constructor(radius: number) {
-		super({});
-		this.type = "sphere";
+		super({
+			type: "sphereGeometry"
+		});
 		this.defines = {
 			HAS_NORMAL: true
 		};

@@ -94,7 +94,11 @@ export default class LightManger {
 	}
 	private createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
-		this.lightUniformBuffer = new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst);
+		this.lightUniformBuffer = new UniformBuffer(
+			"light",
+			"read-only-storage",
+			BufferUsage.Storage | BufferUsage.CopyDst
+		);
 
 		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
 		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);

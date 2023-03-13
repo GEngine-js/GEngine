@@ -95,7 +95,7 @@ export default class PbrMaterial extends Material {
 	}
 	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
 		super.createShaderData(mesh);
-		const uniformBuffer = new UniformBuffer();
+		const uniformBuffer = new UniformBuffer("pbr");
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return mesh.modelMatrix;
 		});

@@ -2,8 +2,9 @@ import Geometry from "./Geometry";
 import { Float32Attribute } from "../render/Attribute";
 export default class PlaneGeometry extends Geometry {
 	constructor(public width: number = 10, public height: number = 10) {
-		super({});
-		this.type = "planeGeometry";
+		super({
+			type: "planeGeometry"
+		});
 		this.defines = {
 			HAS_NORMAL: true
 		};

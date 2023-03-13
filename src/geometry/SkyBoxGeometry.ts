@@ -2,7 +2,9 @@ import { Float32Attribute } from "../render/Attribute";
 import Geometry from "./Geometry";
 export default class SkyBoxGeometry extends Geometry {
 	constructor() {
-		super({});
+		super({
+			type: "skyBoxGeometry"
+		});
 		this.init();
 	}
 	public update(frameState) {

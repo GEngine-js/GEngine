@@ -34,7 +34,7 @@ export default class PhongMaterial extends Material {
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);
-		const uniformBuffer = new UniformBuffer();
+		const uniformBuffer = new UniformBuffer("phong");
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return null;
 		});

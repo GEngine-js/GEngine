@@ -15,7 +15,7 @@ export default class ColorMaterial extends Material {
 	}
 	update(frameState: FrameState, mesh: Mesh) {
 		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
-		const uniformBuffer = new UniformBuffer();
+		const uniformBuffer = new UniformBuffer("color");
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return null;
 		});

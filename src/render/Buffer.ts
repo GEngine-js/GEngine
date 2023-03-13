@@ -5,30 +5,43 @@ class Buffer {
 	usage: number;
 	data: ArrayBufferView;
 	size: number;
-	constructor(device: GPUDevice, usage: GPUBufferUsageFlags, data: ArrayBufferView | null, size?: number) {
+	constructor(
+		label: string,
+		device: GPUDevice,
+		usage: GPUBufferUsageFlags,
+		data: ArrayBufferView | null,
+		size?: number
+	) {
 		this.device = device;
 		this.usage = usage;
 		this.data = data;
 		this.size = size;
 		this.gpuBuffer = device.createBuffer({
+			label: label || "",
 			size: size != undefined ? size : data.byteLength,
 			usage
 		});
 		if (data) this.setSubData(0, data);
 	}
-	static create(device: GPUDevice, usage: GPUBufferUsageFlags, data: ArrayBufferView | null, size?: number) {
-		return new Buffer(device, usage, data, size);
+	static create(
+		label: string,
+		device: GPUDevice,
+		usage: GPUBufferUsageFlags,
+		data: ArrayBufferView | null,
+		size?: number
+	) {
+		return new Buffer(label, device, usage, data, size);
 	}
-	static createVertexBuffer(device: GPUDevice, data: ArrayBufferView): Buffer {
-		return new Buffer(device, BufferUsage.Vertex | BufferUsage.CopyDst, data, data.byteLength);
+	static createVertexBuffer(label: string, device: GPUDevice, data: ArrayBufferView): Buffer {
+		return new Buffer(label, device, BufferUsage.Vertex | BufferUsage.CopyDst, data, data.byteLength);
 	}
 
-	static createIndexBuffer(device: GPUDevice, data: ArrayBufferView): Buffer {
-		return new Buffer(device, BufferUsage.Index | BufferUsage.CopyDst, data);
+	static createIndexBuffer(label: string, device: GPUDevice, data: ArrayBufferView): Buffer {
+		return new Buffer(label, device, BufferUsage.Index | BufferUsage.CopyDst, data);
 	}
 
-	static createUniformBuffer(device: GPUDevice, size: number, usage?: BufferUsage): Buffer {
-		return new Buffer(device, usage, null, size);
+	static createUniformBuffer(label: string, device: GPUDevice, size: number, usage?: BufferUsage): Buffer {
+		return new Buffer(label, device, usage, null, size);
 	}
 	static getBufferType(usage) {
 		let result;

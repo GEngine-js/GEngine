@@ -8,11 +8,13 @@ export default class VertextBuffer {
 	public buffer: Buffer;
 	public attributes: Attributes;
 	public dirty: Boolean;
-	constructor(attributes?: Attributes, index?: number, stepMode?: string) {
+	private label: string;
+	constructor(label: string, attributes?: Attributes, index?: number, stepMode?: string) {
 		this.index = index || 0;
 		this.attributes = attributes || undefined;
 		this.stepMode = InputStepMode.Vertex;
 		this.dirty = true;
+		this.label = label;
 	}
 	public getBufferDes() {
 		return [
@@ -35,7 +37,7 @@ export default class VertextBuffer {
 				arrayStride.reduce(function (sum, item, index, arr) {
 					return (sum += item);
 				}, 0) * 4;
-			this.buffer = Buffer.createVertexBuffer(device, typeArray);
+			this.buffer = Buffer.createVertexBuffer(this.label, device, typeArray);
 		}
 		passEncoder.setVertexBuffer(this.index, this.buffer.gpuBuffer);
 	}

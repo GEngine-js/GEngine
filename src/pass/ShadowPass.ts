@@ -2,19 +2,11 @@ import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
-import DrawCommand from "../render/DrawCommand";
-import RenderQueue from "../core/RenderQueue";
-import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
-import Texture from "../render/Texture";
 import Camera from "../camera/Camera";
-import { Light } from "../light/Light";
 import { BaseShadow } from "../light/shadows/BaseShadow";
 import { FrameState } from "../core/FrameState";
 import ShaderMaterial from "../material/ShaderMaterial";
 import getVertFrag from "../shader/Shaders";
-import ShaderData from "../render/ShaderData";
-import UniformBuffer from "../render/UniformBuffer";
-
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	constructor(context: Context) {

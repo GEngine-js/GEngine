@@ -34,8 +34,8 @@ export default class ShaderMaterial extends Material {
 		let result = checkContainFloatType(this.uniforms);
 		if (result.hasFloat) {
 			this.uniformBuffer = result.hasArraytype
-				? new UniformBuffer("read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
-				: new UniformBuffer();
+				? new UniformBuffer(this.type, "read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
+				: new UniformBuffer(this.type);
 			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
 		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
