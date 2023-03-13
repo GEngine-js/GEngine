@@ -39,6 +39,10 @@ export interface ContextOptions {
 	pixelRatio?: number;
 }
 
+export interface LightMangerOptions {
+	openShadow: boolean;
+}
+
 export interface BindGroupLayoutEntry extends GPUBindGroupLayoutEntry {
 	name: string;
 	uniforms?: any[];

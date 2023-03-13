@@ -3,6 +3,12 @@ import Context from "./Context";
 class Sampler {
 	public gpuSampler: GPUSampler;
 	public layoutType: GPUSamplerBindingLayout;
+
+	static baseSampler = new Sampler({
+		magFilter: "linear",
+		minFilter: "linear"
+	});
+
 	constructor(
 		public descriptor: GPUSamplerDescriptor = {
 			magFilter: "linear",
