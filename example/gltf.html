@@ -95,7 +95,7 @@
 					`./textures/royal_esplanade_1k/nz.png`
 				];
 				const skybox = new SkyBox(urls);
-
+				window.addEventListener("resize", onWindowResize);
 				scene.add(skybox);
 				scene.setCamera(camera);
 				scene.add(directionalLight);
@@ -104,6 +104,11 @@
 					control.update();
 					scene.render();
 				}
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
+
 				animate();
 			};
 			init();

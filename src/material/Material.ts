@@ -106,6 +106,7 @@ export class Material {
 
 	update(frameState?: FrameState, mesh?: Mesh) {}
 	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
+		if (this.shaderData) this.shaderData.destroy();
 		this.shaderData = new ShaderData(this.type, 0);
 		this.ready = true;
 	}

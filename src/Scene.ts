@@ -78,6 +78,9 @@ export class Scene extends EventDispatcher {
 	setCamera(camera) {
 		this.camera = camera;
 	}
+	resize(width: number, height: number) {
+		this.context.resize(width, height);
+	}
 	async render() {
 		if (!this.inited) {
 			this.inited = true;

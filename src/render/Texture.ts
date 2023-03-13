@@ -35,10 +35,10 @@ export default class Texture {
 		};
 	}
 	get textureView() {
-		if (!this._textureView)
-			this._textureView = this.gpuTexture.createView({
-				dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
-			});
+		//if (!this._textureView)
+		this._textureView = this.gpuTexture.createView({
+			dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
+		});
 		return this._textureView;
 	}
 	update(context: Context) {
@@ -126,6 +126,7 @@ export default class Texture {
 		}
 		const { width, height, depth } = this.textureProp.size;
 		return this.context.device.createTexture({
+			label: this.textureProp?.label || "undefined",
 			size: [width, height, depth],
 			dimension: this.textureProp.dimension || "2d",
 			format: this.textureProp.format as GPUTextureFormat,
@@ -137,7 +138,10 @@ export default class Texture {
 	private checkNeedCreateTexture() {
 		const { width, height, depth } = this.textureProp.size;
 		if (this.gpuTexture) {
-			if (width != this.gpuTexture.width || height != this.gpuTexture.height) this.gpuTexture.destroy();
+			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
+				this._textureView = undefined;
+				this.gpuTexture.destroy();
+			}
 			this.gpuTexture = this.createGPUTexture();
 		} else {
 			this.gpuTexture = this.createGPUTexture();

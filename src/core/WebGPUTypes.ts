@@ -125,9 +125,11 @@ export type ImageData = {
 	premultipliedAlpha?: boolean;
 };
 export type WebGPUTextureProps = {
-	size: extent3DDict;
+	size: textureSize;
 
 	format: string;
+
+	label?: string;
 
 	usage?: number;
 
@@ -149,7 +151,7 @@ export type WebGPUTextureProps = {
 
 	dataIsTexture?: boolean;
 };
-export type extent3DDict = {
+export type textureSize = {
 	width: number;
 	height: number;
 	depth: number;

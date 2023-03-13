@@ -49,6 +49,7 @@ export default class ResolveFrame {
 		this.canvasRenderTarget.colorAttachments[0].texture = {
 			textureView: context.context.getCurrentTexture().createView()
 		};
+		this.material.dirty = true;
 		this.material.update(undefined, this.quadMesh);
 
 		const drawComand = this.quadMesh.getDrawCommand();
@@ -60,6 +61,7 @@ export default class ResolveFrame {
 		this.canvasRenderTarget.endRenderPassEncoder();
 	}
 	private initRenderTarget(context: Context) {
+		const { width, height, depth } = context.presentationSize;
 		const colorAttachment = new Attachment(
 			{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
 			{
@@ -70,7 +72,8 @@ export default class ResolveFrame {
 			}
 		);
 		const depthTexture = new Texture({
-			size: context.presentationSize,
+			label: "resolveDepth",
+			size: { width, height, depth },
 			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment
 		});

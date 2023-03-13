@@ -27,13 +27,16 @@ export class BasicPass extends Pass {
 		this.createRenderTarget(context);
 	}
 	private createRenderTarget(context: Context) {
+		const { width, height, depth } = this.context.presentationSize;
 		const colorTexture = new Texture({
-			size: this.context.presentationSize,
+			label: "basicPassColor",
+			size: { width, height, depth },
 			format: this.context.presentationFormat,
 			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
 		});
 		const depthTexture = new Texture({
-			size: this.context.presentationSize,
+			label: "basicPassDepth",
+			size: { width, height, depth },
 			format: TextureFormat.Depth24Plus,
 			usage: TextureUsage.RenderAttachment
 		});

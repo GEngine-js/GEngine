@@ -30,7 +30,7 @@ export default class PhongMaterial extends Material {
 		this.baseSampler = undefined;
 	}
 	update(frameState: FrameState, mesh: Mesh) {
-		if (!this.shaderData) this.createShaderData(mesh);
+		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);

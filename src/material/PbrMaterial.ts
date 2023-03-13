@@ -89,7 +89,7 @@ export default class PbrMaterial extends Material {
 	}
 	update(frameState: FrameState, mesh: Mesh) {
 		if (!textureCache.getTexture("specular")) return;
-		if (!this.shaderData) {
+		if (!this.shaderData || this.dirty) {
 			this.createShaderData(mesh, frameState);
 		}
 	}

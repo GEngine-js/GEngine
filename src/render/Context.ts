@@ -109,10 +109,15 @@ class Context {
 	public resize(width: number, height: number, presentationContextDescriptor = {}): void {
 		const w = width * this.pixelRatio;
 		const h = height * this.pixelRatio;
+		this.canvas.style.width = w + "px";
+		this.canvas.style.height = h + "px";
 		this.canvas.width = w;
 		this.canvas.height = h;
-		Object.assign(this.canvas.style, { width, height });
-
+		this.presentationSize = {
+			width: w,
+			height: h,
+			depth: 1
+		};
 		this.context.configure({
 			device: this.device,
 			format: navigator.gpu.getPreferredCanvasFormat(),

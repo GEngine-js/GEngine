@@ -27,7 +27,7 @@ export default class ShaderMaterial extends Material {
 		this.uniformBuffer = undefined;
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
-		if (!this.shaderData) this.createShaderData(mesh);
+		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);

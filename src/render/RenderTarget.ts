@@ -42,6 +42,7 @@ export default class RenderTarget {
 		}
 	}
 	private getRenderPassDescriptor(): GPURenderPassDescriptor | null {
+		this.checkSize();
 		this.depthAttachment?.texture?.update(this.context);
 		return {
 			...(this.colorAttachments && {
@@ -101,19 +102,27 @@ export default class RenderTarget {
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	public setSize(width: number, height: number, depth?: number) {
+	private checkSize() {
+		const { width, height, depth } = this.context.presentationSize;
+		if (this.depthAttachment.texture) {
+			const size = this.depthAttachment?.texture?.textureProp?.size;
+			if (width != size?.width || height != size?.height || depth != size?.depth) {
+				this.depthAttachment.texture.setSize(width, height, depth);
+			}
+		}
 		if (this.colorAttachments) {
-			this.colorAttachments.map((colorAttachment) => {
+			this.colorAttachments.forEach((colorAttachment) => {
 				if (colorAttachment.texture) {
-					colorAttachment.texture.setSize(width, height, depth);
+					const size = colorAttachment?.texture?.textureProp?.size;
+					if (size && (width != size?.width || height != size?.height || depth != size?.depth))
+						colorAttachment.texture.setSize(width, height, depth);
 				}
 			});
 		}
-		if (this.depthAttachment.texture) this.depthAttachment.texture.setSize(width, height, depth);
 	}
 	destroy() {
 		if (this.colorAttachments) {
-			this.colorAttachments.map((colorAttachment) => {
+			this.colorAttachments.forEach((colorAttachment) => {
 				if (colorAttachment.texture) {
 					colorAttachment.texture.destroy();
 				}
