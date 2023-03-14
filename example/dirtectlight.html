@@ -104,6 +104,11 @@
 				scene.add(directionalLight);
 				primitive.rotateY(0.01);
 				primitive.rotateZ(1.8);
+				window.addEventListener("resize", onWindowResize);
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
 				function animate() {
 					primitive.rotateY(0.01);
 					// if (phongMaterial.shininess>100) {

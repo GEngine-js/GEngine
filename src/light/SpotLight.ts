@@ -15,7 +15,6 @@ export class SpotLight extends Light {
 	penumbraDirty: boolean;
 	angleDirty: boolean;
 	penumbraCosDirty: boolean;
-	public dirtectVC: Vector3;
 	constructor(color, intensity, distance = 0, angle = 60, penumbra = 60, decay = 1) {
 		super(color, intensity);
 		this._distance = distance;
@@ -93,13 +92,6 @@ export class SpotLight extends Light {
 	private updateConeCosOrPenumbraCos() {
 		this._coneCos = Math.cos(this.angle);
 		this._penumbraCos = Math.cos(this.angle + this.penumbra);
-	}
-	update(camera: Camera): void {
-		super.update(camera);
-		let directional = this.directional.clone();
-		const viewMatrix = camera.viewMatrix;
-		//this.dirtectVC = directional.transformDirection(viewMatrix);
-		this.dirtectVC = directional;
 	}
 }
 //uniform

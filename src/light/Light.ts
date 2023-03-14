@@ -15,7 +15,6 @@ export class Light {
 	private _target: Vector3;
 	positionDirty: boolean;
 	public _shadow: BaseShadow;
-	public positionVC: Vector3;
 	public targetDirty: boolean;
 	public isLight: boolean;
 
@@ -75,10 +74,5 @@ export class Light {
 
 	set shadow(value) {
 		this._shadow = value;
-	}
-
-	update(camera: Camera) {
-		let position = this.position.clone();
-		this.positionVC = position;
 	}
 }

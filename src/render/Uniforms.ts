@@ -496,7 +496,7 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		const offset = index * 16;
 		if (spotLight.positionDirty) {
 			spotLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.positionVC.toArray(), offset + 0); //byteOffset=0;
+			setDataToTypeArray(this.buffer, spotLight.position.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (spotLight.distanceDirty) {
 			spotLight.distanceDirty = false;
@@ -504,7 +504,7 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		}
 		if (spotLight.dirtectDirty) {
 			spotLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.dirtectVC.toArray(), offset + 4); //byteOffset=16;
+			setDataToTypeArray(this.buffer, spotLight.directional.toArray(), offset + 4); //byteOffset=16;
 		}
 		if (spotLight.coneCosDirty) {
 			spotLight.coneCosDirty = false;
@@ -554,7 +554,7 @@ export class UniformPointLights extends Uniform<PointLight> {
 		const offset = index * 8;
 		if (pointLight.positionDirty) {
 			pointLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.positionVC.toArray(), offset + 0); //byteOffset=0;
+			setDataToTypeArray(this.buffer, pointLight.position.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (pointLight.distanceDirty) {
 			pointLight.distanceDirty = false;
@@ -600,7 +600,7 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		const offset = index * 8;
 		if (directionalLight.dirtectDirty) {
 			directionalLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, directionalLight.dirtectVC.toArray(), offset + 0); //byteOffset=16;
+			setDataToTypeArray(this.buffer, directionalLight.directional.toArray(), offset + 0); //byteOffset=16;
 		}
 		if (directionalLight.colorDirty) {
 			directionalLight.colorDirty = false;

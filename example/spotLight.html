@@ -120,6 +120,11 @@
 				// scene.add(spotLight2);
 
 				// scene.add(pointLight1);
+				window.addEventListener("resize", onWindowResize);
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
 				scene.add(pointLight);
 				function animate() {
 					// primitive.rotateY(0.01)
@@ -128,6 +133,7 @@
 					requestAnimationFrame(animate);
 					scene.render();
 				}
+
 				// document.body.appendChild(scene.context.canvas);
 				animate();
 			};

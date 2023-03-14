@@ -126,6 +126,11 @@
 				const control = new OrbitControl(camera, document.getElementById("app"));
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;
+				window.addEventListener("resize", onWindowResize);
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
 				function animate() {
 					// primitive.rotateY(0.01)
 					// primitive.rotateX(0.01)

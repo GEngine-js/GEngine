@@ -65,32 +65,11 @@ export default class LightManger {
 		}
 	}
 	private updateLight(camera: Camera) {
-		this.updateLightData(camera);
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
 			if (this.lightShaderData) this.lightShaderData.destroy();
 			this.createLightShaderData();
 		}
-	}
-	private updateLightData(camera: Camera) {
-		this.updateSpotLight(camera);
-		this.updatePointLight(camera);
-		this.updateDirtectLight(camera);
-	}
-	private updateSpotLight(camera: Camera) {
-		this.spotLights.forEach((light) => {
-			light.update(camera);
-		});
-	}
-	private updatePointLight(camera: Camera) {
-		this.pointLights.forEach((light) => {
-			light.update(camera);
-		});
-	}
-	private updateDirtectLight(camera: Camera) {
-		this.directLights.forEach((light) => {
-			light.update(camera);
-		});
 	}
 	private createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);

@@ -6,8 +6,6 @@ import { Light } from "./Light";
 import { DirectionalLightShadow } from "./shadows/DirectionalLightShadow";
 
 export class DirectionalLight extends Light {
-	public dirtectVC: Vector3;
-
 	constructor(color: Vector3, intensity: number, openShadow: Boolean = true) {
 		super(color, intensity);
 		this.type = "directional";
@@ -27,17 +25,6 @@ export class DirectionalLight extends Light {
 		const result = new Vector3();
 		Vector3.subtract(this.target, this.position, result);
 		return result.normalize();
-	}
-
-	update(camera: Camera): void {
-		if (!this.dirtectDirty) return;
-		super.update(camera);
-		this.shadow.update(this);
-
-		const directional = this.directional.clone();
-		const viewMatrix = camera.viewMatrix;
-		// this.dirtectVC = directional.transformDirection(viewMatrix);
-		this.dirtectVC = directional;
 	}
 }
 //uniform
