@@ -4,7 +4,7 @@ import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
 import { FrameState } from "./FrameState";
 import ShaderData from "../render/ShaderData";
-import { BufferUsage, TextureFormat } from "./WebGPUConstant";
+import { BufferUsage, TextureFormat, CompareFunction, SamplerBindingType } from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
@@ -119,17 +119,51 @@ export default class LightManger {
 		}
 
 		if (this.openShadow) {
-			this.lightShaderData.setDefine("openShadow", this.openShadow);
 			const spotLightShadowMapTextureArray = this.createShadowMapTextureArray(this.spotLights);
 			const pointLightShadowMapTextureArray = this.createShadowMapTextureArray(this.pointLights);
 			const directLightShadowMapTextureArray = this.createShadowMapTextureArray(this.directLights);
-			if (spotLightShadowMapTextureArray !== undefined)
+			if (
+				!spotLightShadowMapTextureArray &&
+				!pointLightShadowMapTextureArray &&
+				!directLightShadowMapTextureArray
+			)
+				return;
+
+			//define
+			this.lightShaderData.setDefine("openShadow", this.openShadow);
+
+			//matrix
+			const spotLightMatrixArrayLength = this.setLightVPMatrixArray("spotLightVPMatrixArray", this.spotLights);
+			const pointLightMatrixArrayLength = this.setLightVPMatrixArray("pointLightVPMatrixArray", this.pointLights);
+			const directLightMatrixArrayLength = this.setLightVPMatrixArray(
+				"directLightVPMatrixArray",
+				this.directLights
+			);
+			this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightMatrixArrayLength);
+			this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightMatrixArrayLength);
+			this.lightShaderData.setDefine("directLightShadowMapsCount", directLightMatrixArrayLength);
+
+			//texture,sample
+			if (spotLightShadowMapTextureArray !== undefined) {
+				if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightMatrixArrayLength)
+					console.warn("spotLightShadowMap align has problem");
 				this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
-			if (pointLightShadowMapTextureArray !== undefined)
+			}
+			if (pointLightShadowMapTextureArray !== undefined) {
+				if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightMatrixArrayLength)
+					console.warn("pointLightShadowMap align has problem");
 				this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
-			if (directLightShadowMapTextureArray !== undefined)
+			}
+			if (directLightShadowMapTextureArray !== undefined) {
+				if (directLightShadowMapTextureArray.textureProp.size.depth != directLightMatrixArrayLength)
+					console.warn("directLightShadowMap align has problem");
 				this.lightShaderData.setTexture("directLightShadowMapTextureArray", directLightShadowMapTextureArray);
-			this.lightShaderData.setSampler("shadowSampler", Sampler.baseSampler);
+			}
+			// this.lightShaderData.setSampler(
+			// 	"shadowSampler",
+			// 	new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
+			// );
+			this.lightShaderData.setSampler("shadowSampler", new Sampler());
 		}
 
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
@@ -179,5 +213,25 @@ export default class LightManger {
 		});
 
 		return shadowMapTextureArray;
+	}
+
+	setLightVPMatrixArray(ArrayName: string, lights: Array<Light>) {
+		if (lights.length) {
+			const matrix4Array = [];
+			for (let i = 0; i < lights.length; i++) {
+				const light = lights[i];
+				if (!light.shadow) continue;
+				matrix4Array.push(light.shadow.camera.vpMatrix);
+			}
+			this.lightUniformBuffer.setMatrix4Array(
+				ArrayName,
+				() => {
+					return matrix4Array;
+				},
+				matrix4Array.length
+			);
+
+			return matrix4Array.length;
+		}
 	}
 }

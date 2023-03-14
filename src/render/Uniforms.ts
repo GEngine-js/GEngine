@@ -36,9 +36,9 @@ export class Uniform<T> {
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.type = "number";
 	}
-	setBuffer(array: Array<number>) {
+	setBuffer(array: Array<number>, offset: number = 0) {
 		for (let i = 0; i < array.length; i++) {
-			this.buffer[i] = array[i];
+			this.buffer[i + offset] = array[i];
 		}
 	}
 	set() {
@@ -288,6 +288,32 @@ export class UniformMat4 extends Uniform<Matrix4> {
 			return true;
 		}
 		return false;
+	}
+}
+export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
+	static align = 16;
+	cb: Function;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		this.byteSize = count * 64;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "mat4-array";
+	}
+	set(): boolean {
+		this.value = this.cb();
+		for (let i = 0; i < this.value.length; i++) {
+			this.setBuffer(this.value[i].toArray(), i * 16);
+		}
+		return true;
 	}
 }
 export class UniformFloatArray extends Uniform<Array<number>> {

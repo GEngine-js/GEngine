@@ -94,15 +94,18 @@
 				const scene = new Scene({
 					container: "app"
 				});
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 0.0, 0.0), 0.2);
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2);
 				directionalLight.position.set(-8, 8, -8);
 				const pbr = new PbrMaterial();
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
 				pbr.aoTexture = aoTexture;
 				pbr.normalTexture = normalTexture;
-				const primitive = new Mesh(geometry, pbr);
-				primitive.position.set(-1, 8, -1);
+				const boxColorMaterial = new PhongMaterial();
+				boxColorMaterial.color = new Color(0.3, 0.3, 0.86);
+
+				const primitive = new Mesh(geometry, boxColorMaterial);
+				primitive.position.set(-1, 6, -1);
 
 				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new BlinnPhongMaterial();

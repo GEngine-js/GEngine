@@ -14,6 +14,7 @@ import {
 	UniformMat2,
 	UniformMat3,
 	UniformMat4,
+	UniformMatrix4Array,
 	UniformPointLights,
 	UniformSpotLights,
 	UniformVec2Array,
@@ -171,6 +172,13 @@ export default class UniformBuffer {
 		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMat4.align);
 		const uniform = new UniformMat4(name, this.dataBuffer, this.byteOffset, value, binding);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setMatrix4Array(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniformStruct.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMatrix4Array.align);
+		const uniform = new UniformMatrix4Array(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}

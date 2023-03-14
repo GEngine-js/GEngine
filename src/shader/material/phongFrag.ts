@@ -11,7 +11,7 @@ export default function phongFrag(defines) {
       @location(4) normal: vec3<f32>,
       @location(5) viewPosition: vec3<f32>,
     };
-    #include <light>
+    
     struct MaterialUniform {
       modelMatrix: mat4x4<f32>,
       color: vec3<f32>,
@@ -44,6 +44,9 @@ export default function phongFrag(defines) {
     #else
         #include <getNormal>
     #endif
+
+    #include <light>
+
     @fragment
     fn main(input:VertInput) -> @location(0) vec4<f32> {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
@@ -63,8 +66,10 @@ export default function phongFrag(defines) {
         geometry.normal=N;
         geometry.viewDir=V;
         geometry.position=input.worldPos;
-        let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess);
-        var finnalColor:vec3<f32>=color.xyz+lightColor.directDiffuse+lightColor.directSpecular;
+        let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess,input);
+        // var finnalColor:vec3<f32>=color.xyz+lightColor.directDiffuse+lightColor.directSpecular;
+        var finnalColor:vec3<f32>=lightColor.testColor.xyz;
+
         return vec4<f32>(finnalColor,color.a);
     }`;
 }

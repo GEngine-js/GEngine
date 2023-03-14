@@ -9,6 +9,7 @@ import UniformBuffer from "../render/UniformBuffer";
 export default class Camera extends RenderObject {
 	private _viewMatrix: Matrix4;
 	protected _projectionMatrix: Matrix4;
+	private _vpMatrix: Matrix4;
 	cullingVolume: CullingVolume;
 	projectMatrixDirty: boolean;
 	shaderData: ShaderData;
@@ -18,6 +19,7 @@ export default class Camera extends RenderObject {
 		this.isCamera = true;
 		this.cullingVolume = new CullingVolume();
 		this._viewMatrix = new Matrix4();
+		this._vpMatrix = new Matrix4();
 		this.projectMatrixDirty = true;
 		this.createShaderData();
 	}
@@ -30,6 +32,12 @@ export default class Camera extends RenderObject {
 		this.updateProjectionMatrix();
 		return this._projectionMatrix;
 	}
+
+	get vpMatrix() {
+		Matrix4.multiply(this.viewMatrix, this.projectionMatrix, this._vpMatrix);
+		return this._vpMatrix;
+	}
+
 	get inverseViewMatrix() {
 		this.updateMatrix();
 		return this.modelMatrix;
@@ -80,7 +88,7 @@ export default class Camera extends RenderObject {
 	}
 	private createShaderData() {
 		this.shaderData = new ShaderData("camera", 0, 1, 1);
-		const uniformBuffer = new UniformBuffer("camera");
+		const uniformBuffer = new UniformBuffer();
 		uniformBuffer.setMatrix4("projectionMatrix", () => {
 			return this.projectionMatrix;
 		});

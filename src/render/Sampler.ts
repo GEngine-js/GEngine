@@ -10,18 +10,20 @@ class Sampler {
 	});
 
 	constructor(
-		public descriptor: GPUSamplerDescriptor = {
+		public descriptor?: GPUSamplerDescriptor,
+		layoutType: GPUSamplerBindingLayout = {
+			type: "filtering"
+		}
+	) {
+		this.descriptor = {};
+		Object.assign(this.descriptor, {
 			magFilter: "linear",
 			minFilter: "linear",
 			// mipmapFilter: "linear",
 			addressModeU: "clamp-to-edge",
 			addressModeV: "clamp-to-edge"
 			// addressModeW: "clamp-to-edge",
-		},
-		layoutType: GPUSamplerBindingLayout = {
-			type: "filtering"
-		}
-	) {
+		});
 		this.layoutType = layoutType;
 	}
 	update(context: Context) {

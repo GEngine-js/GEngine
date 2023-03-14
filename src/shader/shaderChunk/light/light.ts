@@ -2,6 +2,7 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 export default function light(defines) {
 	return wgslParseDefines` 
     struct ReflectedLight {
+        testColor: vec4<f32>,
         directDiffuse:vec3<f32>,
         directSpecular:vec3<f32>,
         indirectDiffuse:vec3<f32>,
@@ -118,32 +119,85 @@ export default function light(defines) {
             return incidentLight;         
         }
     #endif
+
+    #if ${defines.openShadow} 
+        fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, shadowPos:vec3<f32>, index:u32)->f32 {
+            var visibility = 0.0;
+            let oneOverShadowDepthTextureSize = 1.0 / 1024.0;
+            for (var y = -1; y <= 1; y++) {
+                for (var x = -1; x <= 1; x++) {
+                    let offset = vec2<f32>(vec2(x, y)) * oneOverShadowDepthTextureSize;
+                
+                    visibility += textureSampleCompare(
+                        shadowMapArray, shadowSampler,
+                        shadowPos.xy + offset, index, shadowPos.z - 0.007);
+                }
+            }
+            visibility /= 9.0;
+            return visibility;
+        }
+    #endif
+
     #if ${
 		defines.ambientLightCount || defines.spotLightsCount || defines.pointLightsCount || defines.dirtectLightsCount
 	}
-    struct LightUniforms{
-        #if ${defines.ambientLightCount}
-            ambient:vec4<f32>,
+        struct LightUniforms{
+            #if ${defines.ambientLightCount}
+                ambient:vec4<f32>,
+            #endif
+            #if ${defines.spotLightsCount}
+                spotLights:array<SpotLight,${defines.spotLightsCount}>,
+            #endif
+            #if ${defines.pointLightsCount}
+                pointLights:array<PointLight,${defines.pointLightsCount}>,
+            #endif
+            #if ${defines.dirtectLightsCount}
+                dirtectLights:array<DirectionalLight,${defines.dirtectLightsCount}>,
+            #endif
+            #if ${defines.openShadow}
+                #if ${defines.spotLightShadowMapsCount}
+                    spotLightVPMatrixArray: array<mat4x4<f32>>,
+                #endif
+                #if ${defines.pointLightShadowMapsCount}
+                    pointLightVPMatrixArray: array<mat4x4<f32>>,
+                #endif
+                #if ${defines.directLightShadowMapsCount}
+                    directLightVPMatrixArray: array<mat4x4<f32>>,
+                #endif
+            #endif
+            
+        }
+        @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
+
+        #if ${defines.openShadow}
+            #if ${defines.spotLightShadowMapTextureArrayBinding}
+                @group(2) @binding(${
+					defines.spotLightShadowMapTextureArrayBinding
+				}) var spotLightShadowMapTextureArray: texture_depth_2d_array;
+            #endif
+            #if ${defines.pointLightShadowMapTextureArrayBinding}
+                @group(2) @binding(${
+					defines.pointLightShadowMapTextureArrayBinding
+				}) var pointLightShadowMapTextureArray: texture_depth_2d_array;
+            #endif
+            #if ${defines.directLightShadowMapTextureArrayBinding}
+                @group(2) @binding(${
+					defines.directLightShadowMapTextureArrayBinding
+				}) var directLightShadowMapTextureArray: texture_depth_2d_array;
+            #endif
+            @group(2) @binding(${defines.shadowSamplerBinding}) var shadowSampler: sampler;
         #endif
-        #if ${defines.spotLightsCount}
-            spotLights:array<SpotLight,${defines.spotLightsCount}>,
-        #endif
-        #if ${defines.pointLightsCount}
-            pointLights:array<PointLight,${defines.pointLightsCount}>,
-        #endif
-        #if ${defines.dirtectLightsCount}
-            dirtectLights:array<DirectionalLight,${defines.dirtectLightsCount}>,
-        #endif
-        
-    }
-    @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
+
     #endif
     #if ${defines.materialPhong}
-        fn parseLights(geometry:Geometry,shininess:f32)->ReflectedLight {
+        fn parseLights(geometry:Geometry,shininess:f32,input:VertInput)->ReflectedLight {
     #elif ${defines.materialPbr}
         fn parseLights(geometry:Geometry,material:PhysicalMaterial)->ReflectedLight{
     #endif
         var reflectedLight:ReflectedLight;
+        var shadowValue:f32 = 1.0;
+        var colorTest: vec4<f32>;
+
         #if ${defines.spotLightsCount > 0}
             //处理聚光灯
             var spotLight:SpotLight;
@@ -185,8 +239,22 @@ export default function light(defines) {
                 let incidentLight=getDirectionalDirectLightIncidentLight(directionalLight,geometry);
                 let dirReflectedLight=direct_Physical(incidentLight, geometry, material);
             #endif
-            reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse;
-            reflectedLight.directSpecular+=dirReflectedLight.directSpecular;
+
+            #if ${defines.materialPhong && defines.openShadow && defines.directLightShadowMapsCount}
+                var lightPos: vec4<f32> = lightUniforms.directLightVPMatrixArray[i] * vec4<f32>(input.worldPos,1.0);
+                var shadowPos: vec3<f32> = vec3(lightPos.xy * vec2(0.5, -0.5) + vec2(0.5), lightPos.z);
+                if i < textureNumLayers(directLightShadowMapTextureArray) {
+                    // shadowValue = getShadowValue(directLightShadowMapTextureArray, shadowSampler, shadowPos, i);
+                    colorTest = textureGather(directLightShadowMapTextureArray, shadowSampler, shadowPos.xy, i);
+
+                    // shadowValue = 0.3;
+                }
+                
+            #endif 
+
+            reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse * shadowValue;
+            reflectedLight.directSpecular+=dirReflectedLight.directSpecular * shadowValue;
+            reflectedLight.testColor = colorTest;
         }
     #endif
         return reflectedLight;
