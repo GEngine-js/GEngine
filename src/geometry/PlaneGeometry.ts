@@ -74,5 +74,4 @@ export default class PlaneGeometry extends Geometry {
 		}
 		return { indices, normals, uvs, vertices };
 	}
-	destroy() {}
 }

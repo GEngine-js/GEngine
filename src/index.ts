@@ -21,9 +21,9 @@ export { default as BoxGeometry } from "./geometry/BoxGeometry";
 export { default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 export { default as PlaneGeometry } from "./geometry/PlaneGeometry";
 //Material
-export { default as PhongMaterial } from "./material/PhongMaterial";
+export { default as BlinnPhongMaterial } from "./material/BlinnPhongMaterial";
 export { default as PbrMaterial } from "./material/PbrMaterial";
-
+export { default as ShaderMaterial } from "./material/ShaderMaterial";
 export { Scene } from "./Scene";
 
 //post-process

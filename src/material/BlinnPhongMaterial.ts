@@ -7,7 +7,7 @@ import UniformBuffer from "../render/UniformBuffer";
 import Texture from "../render/Texture";
 import Sampler from "../render/Sampler";
 import textureCache from "../core/TextureCache";
-export default class PhongMaterial extends Material {
+export default class BlinnPhongMaterial extends Material {
 	public specular: Color;
 	public shininess: number;
 	public normalTexture: Texture;

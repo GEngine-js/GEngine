@@ -46,7 +46,7 @@
 				Mesh,
 				PerspectiveCamera,
 				Scene,
-				PhongMaterial,
+				BlinnPhongMaterial,
 				Vector3,
 				Color,
 				SpotLight,
@@ -80,7 +80,7 @@
 						GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
 					sampler: baseSampler
 				});
-				const phongMaterial = new PhongMaterial();
+				const phongMaterial = new BlinnPhongMaterial();
 				phongMaterial.color = new Color(1.0, 0.0, 0.0);
 				// phongMaterial.baseTexture = baseTexture;
 				// phongMaterial.baseSampler = baseSampler;

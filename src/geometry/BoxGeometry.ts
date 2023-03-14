@@ -1,7 +1,6 @@
 import Geometry from "./Geometry";
 import { Float32Attribute } from "../render/Attribute";
 import { createBox } from "../utils/GeometryUtils";
-import { box } from "primitive-geometry";
 export default class BoxGeometry extends Geometry {
 	constructor(public width: number = 10, public height: number = 10, public depth: number = 10) {
 		super({
@@ -27,5 +26,4 @@ export default class BoxGeometry extends Geometry {
 		this.count = 36;
 	}
 	public update(frameState) {}
-	destroy() {}
 }

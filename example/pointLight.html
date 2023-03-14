@@ -46,7 +46,7 @@
 				Mesh,
 				PerspectiveCamera,
 				Scene,
-				PhongMaterial,
+				BlinnPhongMaterial,
 				Vector3,
 				Color,
 				SpotLight,
@@ -71,7 +71,7 @@
 				img.src = "./brick_diffuse.jpg";
 				await img.decode();
 				const imageBitmap = await createImageBitmap(img);
-				const phongMaterial = new PhongMaterial(imageBitmap);
+				const phongMaterial = new BlinnPhongMaterial(imageBitmap);
 				const baseSampler = new Sampler({
 					magFilter: "linear",
 					minFilter: "linear",
@@ -103,7 +103,7 @@
 				const primitive = new Mesh(geometry, pbr);
 				primitive.position.set(0, 5, 0);
 
-				const groundMaterial = new PhongMaterial();
+				const groundMaterial = new BlinnPhongMaterial();
 				// groundMaterial.baseTexture = baseTexture;
 				groundMaterial.normalTexture = normalTexture;
 				groundMaterial.color = new Color(1.0, 0.0, 0.0);

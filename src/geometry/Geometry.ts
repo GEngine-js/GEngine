@@ -161,5 +161,11 @@ export default class Geometry {
 		this?.indexBuffer.destroy();
 		this.vertBuffer.destroy();
 		this.attributes.destroy();
+		this.normals = null;
+		this.uvs = null;
+		this.positions = null;
+		this.indices = null;
+		this.tangents = null;
+		this.boundingSphere = undefined;
 	}
 }

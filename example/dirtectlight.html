@@ -49,7 +49,7 @@
 				PerspectiveCamera,
 				TorusKnotGeometry,
 				Scene,
-				PhongMaterial,
+				BlinnPhongMaterial,
 				Vector3,
 				Color,
 				DirectionalLight,
@@ -79,7 +79,7 @@
 						GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
 					sampler: baseSampler
 				});
-				const phongMaterial = new PhongMaterial();
+				const phongMaterial = new BlinnPhongMaterial();
 				// phongMaterial.baseTexture = baseTexture;
 				// phongMaterial.baseSampler = baseSampler;
 				phongMaterial.shininess = 16;

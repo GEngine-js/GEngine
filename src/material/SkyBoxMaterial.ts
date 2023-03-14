@@ -2,7 +2,7 @@ import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
-import { CompareFunction, TextureFormat } from "../core/WebGPUConstant";
+import { CompareFunction } from "../core/WebGPUConstant";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 import UniformBuffer from "../render/UniformBuffer";
 import textureCache from "../core/TextureCache";

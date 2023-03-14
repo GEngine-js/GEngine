@@ -1,6 +1,6 @@
 import { FrameState } from "../core/FrameState";
 import { BufferUsage } from "../core/WebGPUConstant";
-import { IUniform, ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
+import { ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
