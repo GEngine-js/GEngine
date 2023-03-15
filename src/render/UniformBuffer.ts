@@ -237,6 +237,6 @@ export default class UniformBuffer {
 		return Math.ceil(byteSize / Align) * Align - byteSize;
 	}
 	destroy() {
-		this.buffer.destroy();
+		this?.buffer?.destroy();
 	}
 }
