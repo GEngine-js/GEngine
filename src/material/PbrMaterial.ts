@@ -14,6 +14,10 @@ export default class PbrMaterial extends Material {
 
 	public specularEnvSampler: Sampler;
 
+	public emissiveTexture: Texture;
+
+	public emissiveSampler: Sampler;
+
 	public normalTexture: Texture;
 
 	public normalSampler: Sampler;
@@ -129,6 +133,11 @@ export default class PbrMaterial extends Material {
 			this.shaderData.setTexture("aoTexture", this.aoTexture);
 			this.shaderData.setSampler("aoSampler", this.aoSampler || textureCache.defaultSampler);
 			uniformBuffer.setFloat("aoTextureIntensity", this);
+		}
+		if (this.emissiveTexture) {
+			this.shaderData.setDefine("USE_EMISSIVETEXTURE", true);
+			this.shaderData.setTexture("emissiveTexture", this.emissiveTexture);
+			this.shaderData.setSampler("emissiveSampler", this.emissiveSampler || textureCache.defaultSampler);
 		}
 		if (this.specularEnvTexture) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
