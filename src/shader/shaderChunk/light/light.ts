@@ -121,8 +121,9 @@ export default function light(defines) {
     #endif
 
     #if ${defines.openShadow} 
-        fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, shadowPos:vec3<f32>, index:u32)->f32 {
+        fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, shadowPos:vec3<f32>, input:VertInput, directionalLight:DirectionalLight, index:u32)->f32 {
             var visibility = 0.0;
+            var bias = max(0.05 * (1.0 - dot(input.normal, directionalLight.direction)), 0.005);
             let oneOverShadowDepthTextureSize = 1.0 / 1024.0;
             for (var y = -1; y <= 1; y++) {
                 for (var x = -1; x <= 1; x++) {
@@ -130,10 +131,14 @@ export default function light(defines) {
                 
                     visibility += textureSampleCompare(
                         shadowMapArray, shadowSampler,
-                        shadowPos.xy + offset, index, shadowPos.z - 0.007);
+                        shadowPos.xy + offset, index, shadowPos.z - bias);
                 }
             }
             visibility /= 9.0;
+            var inFrustum = shadowPos.x >= 0.0 && shadowPos.x <= 1.0 && shadowPos.y >= 0.0 && shadowPos.y <= 1.0;
+            if (!inFrustum && shadowPos.z > 1.0) {
+                visibility = 1.0;
+            }
             return visibility;
         }
     #endif
@@ -185,7 +190,7 @@ export default function light(defines) {
 					defines.directLightShadowMapTextureArrayBinding
 				}) var directLightShadowMapTextureArray: texture_depth_2d_array;
             #endif
-            @group(2) @binding(${defines.shadowSamplerBinding}) var shadowSampler: sampler;
+            @group(2) @binding(${defines.shadowSamplerBinding}) var shadowSampler: sampler_comparison;
         #endif
 
     #endif
@@ -243,14 +248,12 @@ export default function light(defines) {
             #if ${defines.materialPhong && defines.openShadow && defines.directLightShadowMapsCount}
                 var lightPos: vec4<f32> = lightUniforms.directLightVPMatrixArray[i] * vec4<f32>(input.worldPos,1.0);
                 var shadowPos: vec3<f32> = vec3(lightPos.xy * vec2(0.5, -0.5) + vec2(0.5), lightPos.z);
+                
                 if i < textureNumLayers(directLightShadowMapTextureArray) {
-                    // shadowValue = getShadowValue(directLightShadowMapTextureArray, shadowSampler, shadowPos, i);
-                    colorTest = textureGather(directLightShadowMapTextureArray, shadowSampler, shadowPos.xy, i);
-
-                    // shadowValue = 0.3;
+                    shadowValue = getShadowValue(directLightShadowMapTextureArray, shadowSampler, shadowPos, input, directionalLight, i);
                 }
                 
-            #endif 
+            #endif
 
             reflectedLight.directDiffuse+=dirReflectedLight.directDiffuse * shadowValue;
             reflectedLight.directSpecular+=dirReflectedLight.directSpecular * shadowValue;

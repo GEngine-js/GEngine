@@ -34,7 +34,7 @@ export default class Camera extends RenderObject {
 	}
 
 	get vpMatrix() {
-		Matrix4.multiply(this.viewMatrix, this.projectionMatrix, this._vpMatrix);
+		Matrix4.multiply(this.projectionMatrix, this.viewMatrix, this._vpMatrix);
 		return this._vpMatrix;
 	}
 
@@ -88,7 +88,7 @@ export default class Camera extends RenderObject {
 	}
 	private createShaderData() {
 		this.shaderData = new ShaderData("camera", 0, 1, 1);
-		const uniformBuffer = new UniformBuffer();
+		const uniformBuffer = new UniformBuffer("camera");
 		uniformBuffer.setMatrix4("projectionMatrix", () => {
 			return this.projectionMatrix;
 		});

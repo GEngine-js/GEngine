@@ -131,6 +131,8 @@ export type ImageData = {
 export type WebGPUTextureProps = {
 	size: textureSize;
 
+	fixedSize?: boolean;
+
 	format: string;
 
 	label?: string;

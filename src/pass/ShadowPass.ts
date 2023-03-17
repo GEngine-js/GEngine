@@ -7,8 +7,10 @@ import { BaseShadow } from "../light/shadows/BaseShadow";
 import { FrameState } from "../core/FrameState";
 import ShaderMaterial from "../material/ShaderMaterial";
 import getVertFrag from "../shader/Shaders";
+import Texture from "../render/Texture";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
+	_testTexture: Texture;
 	constructor(context: Context) {
 		super(context);
 		this.init(context);
@@ -22,6 +24,7 @@ export class ShadowPass extends Pass {
 			const light = lights[i];
 			const shadow = light.shadow;
 			if (!shadow) continue;
+			// this._testTexture = context.lightManger._testTexture
 			this.setRenderTarget(shadow);
 			super.beforeRender();
 
@@ -32,6 +35,11 @@ export class ShadowPass extends Pass {
 			super.afterRender();
 		}
 	}
+
+	// getDepthTexture(): Texture {
+	// 	return this._testTexture;
+	// }
+
 	private setRenderTarget(shadow: BaseShadow) {
 		this.renderTarget.depthAttachment.texture = shadow.getShadowMapTexture();
 	}

@@ -96,16 +96,18 @@
 				});
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2);
 				directionalLight.position.set(-8, 8, -8);
+				const directionalLight2 = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2);
+				directionalLight2.position.set(-8, 20, -8);
 				const pbr = new PbrMaterial();
 				// pbr.baseTexture = directionalLight.shadow.getShadowMapTexture();
 				pbr.baseTexture = baseTexture;
 				pbr.aoTexture = aoTexture;
 				pbr.normalTexture = normalTexture;
-				const boxColorMaterial = new PhongMaterial();
+				const boxColorMaterial = new BlinnPhongMaterial();
 				boxColorMaterial.color = new Color(0.3, 0.3, 0.86);
 
 				const primitive = new Mesh(geometry, boxColorMaterial);
-				primitive.position.set(-1, 6, -1);
+				primitive.position.set(-1, 5, -1);
 
 				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new BlinnPhongMaterial();
@@ -127,18 +129,25 @@
 				scene.add(ground);
 				scene.add(skybox);
 				scene.add(directionalLight);
+				// scene.add(directionalLight2);
 
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
 
 				// scene.setCamera(orthographicCamera);
 				// const control = new OrbitControl(orthographicCamera, document.getElementById("app"));
+				// scene.setCamera(directionalLight.shadow.camera);
+				// const control = new OrbitControl(directionalLight.shadow.camera, document.getElementById("app"));
 
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;
+				var height = 2;
+				document.addEventListener("click", () => {
+					height += 5;
+				});
 				function animate() {
-					// primitive.rotateY(0.01)
-					// primitive.rotateX(0.01)
+					directionalLight.position.set(-8, height, -8);
+					primitive.rotateX(0.01);
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();

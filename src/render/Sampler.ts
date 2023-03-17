@@ -16,14 +16,18 @@ class Sampler {
 		}
 	) {
 		this.descriptor = {};
-		Object.assign(this.descriptor, {
-			magFilter: "linear",
-			minFilter: "linear",
-			// mipmapFilter: "linear",
-			addressModeU: "clamp-to-edge",
-			addressModeV: "clamp-to-edge"
-			// addressModeW: "clamp-to-edge",
-		});
+		Object.assign(
+			this.descriptor,
+			{
+				magFilter: "linear",
+				minFilter: "linear",
+				// mipmapFilter: "linear",
+				addressModeU: "clamp-to-edge",
+				addressModeV: "clamp-to-edge"
+				// addressModeW: "clamp-to-edge",
+			},
+			descriptor
+		);
 		this.layoutType = layoutType;
 	}
 	update(context: Context) {

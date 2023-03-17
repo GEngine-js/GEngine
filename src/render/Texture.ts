@@ -13,6 +13,7 @@ export default class Texture {
 	public context?: Context;
 	public textureProp?: WebGPUTextureProps;
 	public dirty: boolean;
+	public fixedSize: boolean;
 	constructor(textureProp: WebGPUTextureProps) {
 		this.textureProp = Object.assign(
 			{
@@ -24,6 +25,7 @@ export default class Texture {
 		);
 		this.sampler = textureProp.sampler;
 		this.dirty = true;
+		this.fixedSize = textureProp.fixedSize || false;
 	}
 	get layoutType() {
 		const { viewFormats, sampleType, sampleCount } = this.textureProp;
@@ -83,15 +85,21 @@ export default class Texture {
 				{
 					texture: <GPUTexture>source.gpuTexture,
 					origin: [sourceX, sourceY]
+					// aspect
 				},
 				{
 					texture: this.gpuTexture,
-					origin: [x, y, z],
-					mipLevel,
-					aspect
+					origin: { x: 0, y: 0, z },
+					mipLevel
+					// aspect
 				},
-				[width, height, depth]
+				{
+					width,
+					height,
+					depthOrArrayLayers: 1
+				}
 			);
+			this.context.device.queue.submit([commandEncoder.finish()]);
 			commandEncoder = null;
 		} else {
 			this.context.device.queue.copyExternalImageToTexture(
@@ -112,6 +120,7 @@ export default class Texture {
 		}
 	}
 	setSize(width: number, height: number, depth?: number) {
+		if (this.fixedSize) return;
 		this.textureProp.size.width = width;
 		this.textureProp.size.height = height;
 		if (depth) this.textureProp.size.depth = depth;

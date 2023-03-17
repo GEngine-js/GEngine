@@ -10,6 +10,7 @@ export class Light {
 	private _intensity: number;
 	dirty: boolean;
 	colorDirty: boolean;
+	shadowDirty: boolean;
 	intensityDirty: boolean;
 	private _position: Vector3;
 	private _target: Vector3;
@@ -26,6 +27,7 @@ export class Light {
 		this.positionDirty = true;
 		this.targetDirty = true;
 		this.colorDirty = true;
+		this.shadowDirty = true;
 		this.intensityDirty = true;
 		this._shadow = null;
 		this.isLight = true;
@@ -73,6 +75,7 @@ export class Light {
 	}
 
 	set shadow(value) {
+		this.shadowDirty = true;
 		this._shadow = value;
 	}
 }

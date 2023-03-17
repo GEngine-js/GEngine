@@ -70,6 +70,7 @@ export class Mesh extends RenderObject {
 		this.material.shaderSource.setDefines(Object.assign(this.material.shaderData.defines, this.geometry.defines));
 		if (overrideMaterial) {
 			overrideMaterial.update();
+			if (overrideMaterial.dirty) overrideMaterial.dirty = false;
 			return this.drawCommand.shallowClone(overrideMaterial);
 		}
 		return this.drawCommand;

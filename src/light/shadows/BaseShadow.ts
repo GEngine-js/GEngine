@@ -1,6 +1,6 @@
 import { Light } from "../Light";
 import Camera from "../../camera/Camera";
-import { TextureFormat, TextureUsage } from "../../core/WebGPUConstant";
+import { TextureFormat, TextureSampleType, TextureUsage } from "../../core/WebGPUConstant";
 import Texture from "../../render/Texture";
 
 export class BaseShadow {
@@ -42,9 +42,10 @@ export class BaseShadow {
 				height: this._shadowMapSize,
 				depth: 1
 			},
-			sampleType: "depth",
+			fixedSize: true,
+			sampleType: TextureSampleType.Depth,
 			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding | TextureUsage.CopySrc
 		});
 	}
 

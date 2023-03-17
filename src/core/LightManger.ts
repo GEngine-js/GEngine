@@ -4,7 +4,15 @@ import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
 import { FrameState } from "./FrameState";
 import ShaderData from "../render/ShaderData";
-import { BufferUsage, TextureFormat, CompareFunction, SamplerBindingType } from "./WebGPUConstant";
+import {
+	TextureUsage,
+	BufferUsage,
+	TextureFormat,
+	CompareFunction,
+	SamplerBindingType,
+	TextureSampleType,
+	TextureViewDimension
+} from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
@@ -29,6 +37,8 @@ export default class LightManger {
 
 	private openShadow: boolean;
 
+	_testTexture: Texture;
+
 	constructor(options: LightMangerOptions) {
 		this.spotLights = [];
 		this.pointLights = [];
@@ -38,6 +48,7 @@ export default class LightManger {
 		this.openShadow = options.openShadow;
 	}
 	update(frameState: FrameState, camera: Camera) {
+		this.checkLightShadowState();
 		this.updateLight(camera);
 	}
 	add(light: Light) {
@@ -64,6 +75,18 @@ export default class LightManger {
 			this.spotLights.splice(this.spotLights.indexOf(<SpotLight>light), 1);
 		}
 	}
+
+	checkLightShadowState() {
+		const lights = this.getAllLights();
+		for (let i = 0; i < lights.length; i++) {
+			const light = lights[i];
+			if (light.shadowDirty) {
+				light.shadowDirty = false;
+				this.lightCountDirty = true;
+			}
+		}
+	}
+
 	private updateLight(camera: Camera) {
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
@@ -158,12 +181,13 @@ export default class LightManger {
 				if (directLightShadowMapTextureArray.textureProp.size.depth != directLightMatrixArrayLength)
 					console.warn("directLightShadowMap align has problem");
 				this.lightShaderData.setTexture("directLightShadowMapTextureArray", directLightShadowMapTextureArray);
+				// this._testTexture = directLightShadowMapTextureArray
 			}
-			// this.lightShaderData.setSampler(
-			// 	"shadowSampler",
-			// 	new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
-			// );
-			this.lightShaderData.setSampler("shadowSampler", new Sampler());
+			this.lightShaderData.setSampler(
+				"shadowSampler",
+				new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
+			);
+			// this.lightShaderData.setSampler("shadowSampler", new Sampler());
 		}
 
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
@@ -205,11 +229,12 @@ export default class LightManger {
 				height: shadowMapSources[0].height,
 				depth: shadowMapSources.length
 			},
-			sampleType: "depth",
+			fixedSize: true,
+			sampleType: TextureSampleType.Depth,
 			format: TextureFormat.Depth24Plus,
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+			usage: TextureUsage.TextureBinding | TextureUsage.CopyDst,
 			data: shadowMapSources,
-			viewFormats: "2d-array"
+			viewFormats: TextureViewDimension.E2dArray
 		});
 
 		return shadowMapTextureArray;
@@ -217,21 +242,28 @@ export default class LightManger {
 
 	setLightVPMatrixArray(ArrayName: string, lights: Array<Light>) {
 		if (lights.length) {
-			const matrix4Array = [];
+			const lightWithShadowArray = [];
 			for (let i = 0; i < lights.length; i++) {
 				const light = lights[i];
 				if (!light.shadow) continue;
-				matrix4Array.push(light.shadow.camera.vpMatrix);
+				lightWithShadowArray.push(light);
 			}
+
 			this.lightUniformBuffer.setMatrix4Array(
 				ArrayName,
 				() => {
+					const matrix4Array = [];
+					for (let i = 0; i < lightWithShadowArray.length; i++) {
+						const light = lightWithShadowArray[i];
+						light.shadow.update(light);
+						matrix4Array.push(light.shadow.camera.vpMatrix);
+					}
 					return matrix4Array;
 				},
-				matrix4Array.length
+				lightWithShadowArray.length
 			);
 
-			return matrix4Array.length;
+			return lightWithShadowArray.length;
 		}
 	}
 }
