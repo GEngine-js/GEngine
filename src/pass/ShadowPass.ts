@@ -34,6 +34,7 @@ export class ShadowPass extends Pass {
 			renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
 			super.afterRender();
 		}
+		context.lightManger.updateLightShadow();
 	}
 
 	// getDepthTexture(): Texture {
@@ -61,7 +62,8 @@ export class ShadowPass extends Pass {
 				modelMatrix: { type: "mat4", value: null }
 			},
 			vert: colorShader.vert,
-			frag: undefined
+			frag: undefined,
+			light: true
 		});
 	}
 }

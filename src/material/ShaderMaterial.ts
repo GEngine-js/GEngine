@@ -13,7 +13,7 @@ export default class ShaderMaterial extends Material {
 	uniformBuffer: UniformBuffer;
 	constructor(options: ShaderMaterialParms) {
 		super();
-		const { type, frag, vert, defines } = options;
+		const { type, frag, vert, defines, light } = options;
 		this.type = type;
 		this.shaderSource = new ShaderSource({
 			type,
@@ -25,6 +25,7 @@ export default class ShaderMaterial extends Material {
 		});
 		this.uniforms = options.uniforms;
 		this.uniformBuffer = undefined;
+		this.light = light || false;
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!this.shaderData || this.dirty) this.createShaderData(mesh);

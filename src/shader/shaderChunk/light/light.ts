@@ -123,7 +123,7 @@ export default function light(defines) {
     #if ${defines.openShadow} 
         fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, shadowPos:vec3<f32>, input:VertInput, directionalLight:DirectionalLight, index:u32)->f32 {
             var visibility = 0.0;
-            var bias = max(0.05 * (1.0 - dot(input.normal, directionalLight.direction)), 0.005);
+            var bias = max(0.01 * (1.0 - dot(input.normal, directionalLight.direction)), 0.001);
             let oneOverShadowDepthTextureSize = 1.0 / 1024.0;
             for (var y = -1; y <= 1; y++) {
                 for (var x = -1; x <= 1; x++) {

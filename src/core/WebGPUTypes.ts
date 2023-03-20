@@ -254,6 +254,7 @@ export type ShaderMaterialParms = {
 	vert: string;
 	uniforms: { [uniform: string]: IUniform };
 	defines?: any;
+	light?: boolean;
 };
 export interface IUniform<TValue = any> {
 	type: string;

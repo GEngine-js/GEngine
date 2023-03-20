@@ -107,7 +107,7 @@
 				boxColorMaterial.color = new Color(0.3, 0.3, 0.86);
 
 				const primitive = new Mesh(geometry, boxColorMaterial);
-				primitive.position.set(-1, 5, -1);
+				// primitive.position.set(-1, 5, -1);
 
 				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new BlinnPhongMaterial();
@@ -146,8 +146,9 @@
 					height += 5;
 				});
 				function animate() {
-					directionalLight.position.set(-8, height, -8);
-					primitive.rotateX(0.01);
+					// directionalLight.position.set(-8, height, -8);
+					// primitive.rotateX(0.01);
+					// primitive.rotateY(0.01);
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();

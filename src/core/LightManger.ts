@@ -36,7 +36,9 @@ export default class LightManger {
 	lightCountDirty: boolean;
 
 	private openShadow: boolean;
-
+	spotLightShadowMapTextureArray: Texture;
+	pointLightShadowMapTextureArray: Texture;
+	directLightShadowMapTextureArray: Texture;
 	_testTexture: Texture;
 
 	constructor(options: LightMangerOptions) {
@@ -85,6 +87,14 @@ export default class LightManger {
 				this.lightCountDirty = true;
 			}
 		}
+	}
+
+	updateLightShadow() {
+		if (this.spotLightShadowMapTextureArray) this.spotLightShadowMapTextureArray.dirty = true;
+
+		if (this.pointLightShadowMapTextureArray) this.pointLightShadowMapTextureArray.dirty = true;
+
+		if (this.directLightShadowMapTextureArray) this.directLightShadowMapTextureArray.dirty = true;
 	}
 
 	private updateLight(camera: Camera) {
@@ -142,9 +152,12 @@ export default class LightManger {
 		}
 
 		if (this.openShadow) {
-			const spotLightShadowMapTextureArray = this.createShadowMapTextureArray(this.spotLights);
-			const pointLightShadowMapTextureArray = this.createShadowMapTextureArray(this.pointLights);
-			const directLightShadowMapTextureArray = this.createShadowMapTextureArray(this.directLights);
+			const spotLightShadowMapTextureArray = (this.spotLightShadowMapTextureArray =
+				this.createShadowMapTextureArray(this.spotLights));
+			const pointLightShadowMapTextureArray = (this.pointLightShadowMapTextureArray =
+				this.createShadowMapTextureArray(this.pointLights));
+			const directLightShadowMapTextureArray = (this.directLightShadowMapTextureArray =
+				this.createShadowMapTextureArray(this.directLights));
 			if (
 				!spotLightShadowMapTextureArray &&
 				!pointLightShadowMapTextureArray &&

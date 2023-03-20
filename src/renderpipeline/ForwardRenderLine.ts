@@ -26,9 +26,7 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 		// return this.shadowPass.getDepthTexture()
 	}
 	render(frameState: FrameState, camera?: Camera) {
-		// this.shadowPass.beforeRender();
 		this.shadowPass.render(frameState, camera);
-		// this.shadowPass.afterRender();
 
 		this.basicPass.beforeRender();
 		this.basicPass.render(frameState, camera);
