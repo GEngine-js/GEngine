@@ -9,8 +9,6 @@ import UniformBuffer from "./UniformBuffer";
 import Texture from "./Texture";
 import Sampler from "./Sampler";
 export default class ShaderData {
-	uniformBuffer: UniformBuffer;
-
 	textureBinding: number;
 
 	defines: { [prop: string]: boolean | number };
@@ -22,6 +20,8 @@ export default class ShaderData {
 	bindGroup: BindGroup;
 
 	groupLayout: BindGroupLayout;
+
+	subBindGroup: { [prop: string]: BindGroup };
 
 	layoutIndex: number;
 
@@ -78,16 +78,9 @@ export default class ShaderData {
 	}
 	bind(context: Context, passEncoder: GPURenderPassEncoder) {
 		this.uploadUniform(context);
-		if (!this.bindGroup || !this.groupLayout) {
-			const { groupLayout, bindGroup } = this.createBindGroupAndLayout(
-				context.device,
-				this.label,
-				this.layoutIndex,
-				this.groupIndex
-			);
-			this.bindGroup = bindGroup;
-			this.groupLayout = groupLayout;
-		}
+		if (!this.bindGroup) this.bindGroup = this.createBindGroup(context.device, this.label, this.groupIndex);
+		if (!this.groupLayout)
+			this.groupLayout = this.createBindGroupLayout(context.device, this.label, this.layoutIndex);
 		this.bindGroup.bind(passEncoder);
 	}
 	destroy() {
@@ -97,25 +90,23 @@ export default class ShaderData {
 		this.label = undefined;
 		this.textureBinding = 1;
 		this.defineDirty = true;
-		this.defines = {};
+		this.defines = undefined;
 		this._uniforms.clear();
 		BindGroupLayout.removeBindGroupLayoutFromCache(this.groupLayout);
-		BindGroup.removeBindGroupFromCache(this.bindGroup);
+		this.bindGroup = undefined;
 	}
-	public getBindGroupAndLayout(device: GPUDevice, label: string, index: number) {
-		const layoutEntities = this.createBindGroupLayoutEntry();
-		const groupLayout = BindGroupLayout.getBindGroupLayoutFromCache(device, label, layoutEntities, index);
+	private createBindGroup(device: GPUDevice, label: string, groupIndex?: number) {
 		const groupEntities = this.createBindGroupEntity();
-		const bindGroup = BindGroup.getBindGroupFromCache({
+		const bindGroup = new BindGroup({
 			label: label,
 			entires: groupEntities,
 			device: device,
-			layout: groupLayout,
-			index: index
+			layout: this.groupLayout,
+			index: groupIndex || 0 //后续改成groupIndex
 		});
-		return { groupLayout, bindGroup };
+		return bindGroup;
 	}
-	public createBindGroupAndLayout(device: GPUDevice, label: string, layoutIndex?: number, groupIndex?: number) {
+	private createBindGroupLayout(device: GPUDevice, label: string, layoutIndex?: number) {
 		const layoutEntities = this.createBindGroupLayoutEntry();
 		const groupLayout = BindGroupLayout.getBindGroupLayoutFromCache(
 			device,
@@ -123,15 +114,7 @@ export default class ShaderData {
 			layoutEntities,
 			layoutIndex || 0
 		);
-		const groupEntities = this.createBindGroupEntity();
-		const bindGroup = new BindGroup({
-			label: label,
-			entires: groupEntities,
-			device: device,
-			layout: groupLayout,
-			index: groupIndex || 0 //后续改成groupIndex
-		});
-		return { groupLayout, bindGroup };
+		return groupLayout;
 	}
 	protected uploadUniform(context: Context) {
 		this._uniforms.forEach((uniform) => {

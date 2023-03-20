@@ -20,6 +20,10 @@ class BindGroup {
 	bind(passEncoder: GPURenderPassEncoder) {
 		passEncoder.setBindGroup(this.index, this.gpuBindGroup);
 	}
+	destroy() {
+		this.gpuBindGroup = undefined;
+		this.device = undefined;
+	}
 	static getBindGroupFromCache(options: BindGroupCacheOptions): BindGroup {
 		if (bindGroupCache.has(options.label)) {
 			return bindGroupCache.get(options.label);
