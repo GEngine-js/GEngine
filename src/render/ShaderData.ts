@@ -78,9 +78,9 @@ export default class ShaderData {
 	}
 	bind(context: Context, passEncoder: GPURenderPassEncoder) {
 		this.uploadUniform(context);
-		if (!this.bindGroup) this.bindGroup = this.createBindGroup(context.device, this.label, this.groupIndex);
 		if (!this.groupLayout)
 			this.groupLayout = this.createBindGroupLayout(context.device, this.label, this.layoutIndex);
+		if (!this.bindGroup) this.bindGroup = this.createBindGroup(context.device, this.label, this.groupIndex);
 		this.bindGroup.bind(passEncoder);
 	}
 	destroy() {
