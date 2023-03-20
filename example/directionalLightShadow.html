@@ -67,8 +67,8 @@
 
 			const init = async () => {
 				const geometry = new BoxGeometry(10, 10, 10);
-				//const geometry=new TorusKnotGeometry(10, 3, 200, 32)
-				//const geometry= new SphereGeometry();
+				const torusKnotGeometry = new TorusKnotGeometry(10, 3, 200, 32);
+				const sphereGeometry = new SphereGeometry(3);
 				const img = document.createElement("img");
 				img.src = "./brick_diffuse.jpg";
 				await img.decode();
@@ -96,7 +96,7 @@
 					container: "app"
 				});
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2);
-				directionalLight.position.set(-8, 8, -8);
+				directionalLight.position.set(-0, 40, -8);
 				const directionalLight2 = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2);
 				directionalLight2.position.set(-8, 20, -8);
 				const pbr = new PbrMaterial();
@@ -106,9 +106,17 @@
 				pbr.normalTexture = normalTexture;
 				const boxColorMaterial = new BlinnPhongMaterial();
 				boxColorMaterial.color = new Color(0.3, 0.3, 0.86);
+				const torusKnotMaterial = new BlinnPhongMaterial();
+				torusKnotMaterial.color = new Color(0.99, 0.0, 0.0);
+				const sphereMaterial = new BlinnPhongMaterial();
+				sphereMaterial.color = new Color(0.0, 0.99, 0.0);
 
 				const primitive = new Mesh(geometry, boxColorMaterial);
-				// primitive.position.set(-1, 5, -1);
+				const torusKnotPrimitive = new Mesh(torusKnotGeometry, torusKnotMaterial);
+				const spherePrimitive = new Mesh(sphereGeometry, sphereMaterial);
+				primitive.position.set(-1, 10, -1);
+				torusKnotPrimitive.position.set(10, 20, -20);
+				spherePrimitive.position.set(20, 10, 20);
 
 				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new BlinnPhongMaterial();
@@ -128,6 +136,8 @@
 				const skybox = new SkyBox(environmentUrls);
 				const ambientLight = new AmbientLight(new Vector3(0.15, 0.15, 0.15), 1.0);
 				scene.add(primitive);
+				scene.add(torusKnotPrimitive);
+				scene.add(spherePrimitive);
 				scene.add(ground);
 				scene.add(skybox);
 				scene.add(ambientLight);
@@ -151,7 +161,9 @@
 				function animate() {
 					// directionalLight.position.set(-8, height, -8);
 					primitive.rotateX(0.01);
-					// primitive.rotateY(0.01);
+					primitive.rotateY(0.01);
+					primitive.rotateZ(0.01);
+					// torusKnotPrimitive.rotateX(0.01);
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();
