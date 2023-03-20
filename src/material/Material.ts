@@ -103,7 +103,9 @@ export class Material {
 	onBeforeRender() {}
 
 	onBeforeCompile() {}
-
+	clone(): Material {
+		return null;
+	}
 	update(frameState?: FrameState, mesh?: Mesh) {}
 	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
 		if (this.shaderData) this.shaderData.destroy();

@@ -21,8 +21,6 @@ export default class ShaderData {
 
 	groupLayout: BindGroupLayout;
 
-	subBindGroup: { [prop: string]: BindGroup };
-
 	layoutIndex: number;
 
 	groupIndex: number;

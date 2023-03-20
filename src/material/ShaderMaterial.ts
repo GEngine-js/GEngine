@@ -11,10 +11,12 @@ import { Material } from "./Material";
 export default class ShaderMaterial extends Material {
 	uniforms: Uniforms;
 	uniformBuffer: UniformBuffer;
+	private shaderMaterialParms: ShaderMaterialParms;
 	constructor(options: ShaderMaterialParms) {
 		super();
 		const { type, frag, vert, defines, light } = options;
 		this.type = type;
+		this.shaderMaterialParms = options;
 		this.shaderSource = new ShaderSource({
 			type,
 			frag,
@@ -29,6 +31,9 @@ export default class ShaderMaterial extends Material {
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
+	}
+	clone() {
+		return new ShaderMaterial(this.shaderMaterialParms);
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);

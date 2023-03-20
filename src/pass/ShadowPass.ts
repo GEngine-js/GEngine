@@ -8,6 +8,7 @@ import { FrameState } from "../core/FrameState";
 import ShaderMaterial from "../material/ShaderMaterial";
 import getVertFrag from "../shader/Shaders";
 import Texture from "../render/Texture";
+import { CommandSubType } from "../core/WebGPUConstant";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -30,8 +31,20 @@ export class ShadowPass extends Pass {
 
 			renderQueue.sort();
 			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-			renderQueue.transparentRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
-			renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, this.shadowMaterial);
+			renderQueue.transparentRender(
+				shadow.camera,
+				this.context,
+				this.passRenderEncoder,
+				this.shadowMaterial,
+				CommandSubType.Shadow
+			);
+			renderQueue.opaqueRender(
+				shadow.camera,
+				this.context,
+				this.passRenderEncoder,
+				this.shadowMaterial,
+				CommandSubType.Shadow
+			);
 			super.afterRender();
 		}
 		context.lightManger.updateLightShadow();

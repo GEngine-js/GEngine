@@ -4,6 +4,7 @@ import { Material } from "../material/Material";
 import { Mesh } from "../mesh/Mesh";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
+import { CommandSubType } from "./WebGPUConstant";
 export default class RenderQueue {
 	public pre: Array<Mesh>;
 	public opaque: Array<Mesh>;
@@ -19,11 +20,22 @@ export default class RenderQueue {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
 		RenderQueue.sort(this.transparent, 0, this.transparent.length, RenderQueue._compareFromFarToNear);
 	}
-	opaqueRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
+	opaqueRender(
+		camera: Camera,
+		context: Context,
+		passEncoder?: GPURenderPassEncoder,
+		replaceMaterial?: Material,
+		commandSubType?: CommandSubType
+	) {
 		this.opaque.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
+			RenderQueue.excuteCommand(
+				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				context,
+				passEncoder,
+				camera
+			);
 			mesh.afterRender();
 		});
 	}
@@ -31,12 +43,18 @@ export default class RenderQueue {
 		camera: Camera,
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
-		replaceMaterial?: Material
+		replaceMaterial?: Material,
+		commandSubType?: CommandSubType
 	) {
 		this.transparent.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(mesh.getDrawCommand(replaceMaterial), context, passEncoder, camera);
+			RenderQueue.excuteCommand(
+				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				context,
+				passEncoder,
+				camera
+			);
 			mesh.afterRender();
 		});
 	}
