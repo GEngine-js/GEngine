@@ -61,7 +61,8 @@
 				PbrMaterial,
 				loadTexture,
 				OrbitControl,
-				PlaneGeometry
+				PlaneGeometry,
+				AmbientLight
 			} from "../dist/index.js";
 
 			const init = async () => {
@@ -125,9 +126,11 @@
 				camera.lookAt(0, 0, 0);
 
 				const skybox = new SkyBox(environmentUrls);
+				const ambientLight = new AmbientLight(new Vector3(0.15, 0.15, 0.15), 1.0);
 				scene.add(primitive);
 				scene.add(ground);
 				scene.add(skybox);
+				scene.add(ambientLight);
 				scene.add(directionalLight);
 				// scene.add(directionalLight2);
 

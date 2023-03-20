@@ -41,6 +41,7 @@ export { default as Color } from "./math/Color";
 export { SpotLight } from "./light/SpotLight";
 export { PointLight } from "./light/PointLight";
 export { DirectionalLight } from "./light/DirectionalLight";
+export { AmbientLight } from "./light/AmbientLight";
 
 //loader
 export { default as CubeTextureLoader } from "./loader/CubeTextureLoader";
