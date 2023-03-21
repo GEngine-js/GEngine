@@ -2,7 +2,7 @@ import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import Intersect from "./Intersect";
+import { Intersect } from "./WebGPUConstant";
 import Plane from "../math/Plane";
 
 /**
@@ -113,57 +113,6 @@ class CullingVolume {
 		}
 
 		return intersecting ? Intersect.INTERSECTING : Intersect.INSIDE;
-	}
-
-	/**
-	 * Determines whether a bounding volume intersects the culling volume.
-	 *
-	 * @param {Object} boundingVolume The bounding volume whose intersection with the culling volume is to be tested.
-	 * @param {Number} parentPlaneMask A bit mask from the boundingVolume's parent's check against the same culling
-	 *                                 volume, such that if (planeMask & (1 << planeIndex) === 0), for k < 31, then
-	 *                                 the parent (and therefore this) volume is completely inside plane[planeIndex]
-	 *                                 and that plane check can be skipped.
-	 * @returns {Number} A plane mask as described above (which can be applied to this boundingVolume's children).
-	 *
-	 * @private
-	 */
-	computeVisibilityWithPlaneMask(boundingVolume, parentPlaneMask) {
-		//>>includeStart('debug', pragmas.debug);
-		if (!defined(boundingVolume)) {
-			throw new Error("boundingVolume is required.");
-		}
-		if (!defined(parentPlaneMask)) {
-			throw new Error("parentPlaneMask is required.");
-		}
-		//>>includeEnd('debug');
-
-		if (parentPlaneMask === CullingVolume.MASK_OUTSIDE || parentPlaneMask === CullingVolume.MASK_INSIDE) {
-			// parent is completely outside or completely inside, so this child is as well.
-			return parentPlaneMask;
-		}
-
-		// Start with MASK_INSIDE (all zeros) so that after the loop, the return value can be compared with MASK_INSIDE.
-		// (Because if there are fewer than 31 planes, the upper bits wont be changed.)
-		let mask = CullingVolume.MASK_INSIDE;
-
-		const planes = this.planes;
-		for (let k = 0, len = planes.length; k < len; ++k) {
-			// For k greater than 31 (since 31 is the maximum number of INSIDE/INTERSECTING bits we can store), skip the optimization.
-			const flag = k < 31 ? 1 << k : 0;
-			if (k < 31 && (parentPlaneMask & flag) === 0) {
-				// boundingVolume is known to be INSIDE this plane.
-				continue;
-			}
-			scratchPlanes.set(planes[k].normal.x, planes[k].normal.y, planes[k].normal.z, planes[k].distance);
-			const result = boundingVolume.intersectPlane(Plane.fromVector4(scratchPlanes, scratchPlane));
-			if (result === Intersect.OUTSIDE) {
-				return CullingVolume.MASK_OUTSIDE;
-			} else if (result === Intersect.INTERSECTING) {
-				mask |= flag;
-			}
-		}
-
-		return mask;
 	}
 }
 

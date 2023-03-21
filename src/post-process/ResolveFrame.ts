@@ -49,7 +49,6 @@ export default class ResolveFrame {
 		this.canvasRenderTarget.colorAttachments[0].texture = {
 			textureView: context.context.getCurrentTexture().createView()
 		};
-		this.material.dirty = true;
 		this.material.update(undefined, this.quadMesh);
 
 		const drawComand = this.quadMesh.getDrawCommand();

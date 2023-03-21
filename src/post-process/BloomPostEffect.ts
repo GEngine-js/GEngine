@@ -37,7 +37,6 @@ export default class BloomPostEffect extends PostEffect {
 		this.threshold = options.threshold;
 		this.init();
 	}
-	setSize(width: number, height: number, depth?: number): void {}
 	destroy() {
 		this.renderTargetBright.destroy();
 	}

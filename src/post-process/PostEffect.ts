@@ -36,7 +36,6 @@ export default class PostEffect {
 		this.priority = 0;
 		this.isPostEffect = true;
 	}
-	setSize(width: number, height: number, depth?: number) {}
 	render(context: Context, colorTexture: Texture): Texture {
 		return null;
 	}

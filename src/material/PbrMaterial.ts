@@ -38,6 +38,8 @@ export default class PbrMaterial extends Material {
 
 	private _normalScale: Vector2;
 
+	private _IBLRender: boolean;
+
 	public get roughness(): number {
 		return this._roughness;
 	}
@@ -67,6 +69,13 @@ export default class PbrMaterial extends Material {
 	public set normalScale(v: Vector2) {
 		this._normalScale = v;
 	}
+	public set IBLRender(value) {
+		this._IBLRender = value;
+		this.shaderSource.setDefines({
+			USE_IBL: this._IBLRender
+		});
+		this.dirty = true;
+	}
 	constructor() {
 		super();
 		this.type = "pbr_mat";
@@ -78,12 +87,13 @@ export default class PbrMaterial extends Material {
 		this._aoTextureIntensity = 1.0;
 		this.light = true;
 		this._normalScale = new Vector2(1, 1);
-
+		this._IBLRender = true;
 		this.shaderSource = new ShaderSource({
 			type: this.type,
 			render: true,
 			defines: {
-				materialPbr: true
+				materialPbr: true,
+				USE_IBL: this._IBLRender
 			}
 		});
 	}
@@ -139,7 +149,7 @@ export default class PbrMaterial extends Material {
 			this.shaderData.setTexture("emissiveTexture", this.emissiveTexture);
 			this.shaderData.setSampler("emissiveSampler", this.emissiveSampler || textureCache.defaultSampler);
 		}
-		if (this.specularEnvTexture) {
+		if (this.specularEnvTexture && this._IBLRender) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
 			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
 		}

@@ -40,6 +40,7 @@
 	<body>
 		<div id="app"></div>
 		<script type="module">
+			// import { captureFrame } from './webgpu-debugger.js';
 			import {
 				BoxGeometry,
 				Mesh,
@@ -104,6 +105,7 @@
 					control.update();
 					scene.render();
 				}
+				// captureFrame();
 				function onWindowResize() {
 					camera.aspect = window.innerWidth / window.innerHeight;
 					scene.resize(window.innerWidth, window.innerHeight);

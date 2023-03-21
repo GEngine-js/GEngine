@@ -1,6 +1,6 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
-import Intersect from "../core/Intersect";
+import { Intersect } from "../core/WebGPUConstant";
 import RenderObject from "../core/RenderObject";
 import { CommandSubType } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";

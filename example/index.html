@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta
+			name="viewport"
+			content="width=device-width, minimal-ui, viewport-fit=cover, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+		/>
+		<title>OGL WebGL Library</title>
+		<link href="./css/main.css" rel="stylesheet" />
+	</head>
+	<body>
+		<div class="Side">
+			<a class="Title" href="https://github.com/oframe/ogl">GEngine</a>
+			<div class="SubTitle">Examples</div>
+			<div class="Section">Geometry</div>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/spotLight.html">SpotLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/pointLight.html">PointLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/dirtectlight.html">Dirtectlight</a>
+			<div class="Section">Mesh</div>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/spotLight.html">SpotLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/pointLight.html">PointLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/dirtectlight.html">Dirtectlight</a>
+			<div class="Section">Materials</div>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/spotLight.html">SpotLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/pointLight.html">PointLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/dirtectlight.html">Dirtectlight</a>
+			<div class="Section">GLTF</div>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/gltf.html">GLtf</a>
+			<div class="Section">light</div>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/spotLight.html">SpotLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/pointLight.html">PointLight</a>
+			<a class="Example" href="https://hpugis.github.io/GEngine/example/dirtectlight.html">Dirtectlight</a>
+		</div>
+		<iframe class="Iframe" allow="autoplay" src="./gltf.html"></iframe>
+		<a class="SideIcon">&lt;</a>
+		<a class="CodeIcon" href="https://hpugis.github.io/GEngine/example/gltf.html" target="_blank">&lt;/&gt;</a>
+
+		<script>
+			const sourceLink = document.querySelector(".CodeIcon");
+			const toggleLink = document.querySelector(".SideIcon");
+			const exampleLinks = document.querySelectorAll("a.Example");
+			const iFrame = document.querySelector(".Iframe");
+			const sourcePath = "https://hpugis.github.io/GEngine/example/";
+
+			toggleLink.addEventListener("click", (e) => {
+				e.preventDefault();
+				document.body.toggleAttribute("data-hideSidebar");
+			});
+			let loadQuery = location.search.split("src=");
+			if (loadQuery[1]) {
+				iFrame.src = loadQuery[1];
+				sourceLink.href = sourcePath + loadQuery[1];
+				highlight(loadQuery[1]);
+			} else {
+				// choose random example to show if none linked
+				let target = exampleLinks[Math.floor(Math.random() * exampleLinks.length)];
+				updateExample({ target });
+			}
+
+			exampleLinks.forEach((link) => {
+				link.addEventListener("click", updateExample, true);
+			});
+
+			function updateExample(e) {
+				let src = e.target.href.split("example/")[1];
+				// Allow user to cmd/ctrl + click to open in new tab
+				if (e.metaKey) {
+					window.open(`${location.origin}${location.pathname}?src=${src}`, "_blank");
+					return;
+				}
+				iFrame.src = e.target.href;
+				sourceLink.href = sourcePath + src;
+				highlight(src);
+
+				// Update search query
+				history.pushState(null, null, `${location.origin}${location.pathname}?src=${src}`);
+				e.preventDefault && e.preventDefault();
+			}
+			// Highlight and update others
+			function highlight(src) {
+				exampleLinks.forEach((link) => {
+					let linkSrc = link.href.split("example/")[1];
+					if (src === linkSrc) link.classList.add("active");
+					else link.classList.remove("active");
+				});
+			}
+		</script>
+	</body>
+</html>

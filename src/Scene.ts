@@ -80,6 +80,7 @@ export class Scene extends EventDispatcher {
 	}
 	resize(width: number, height: number) {
 		this.context.resize(width, height);
+		this.postEffectCollection.setResolveFrameDirty(true);
 	}
 	async render() {
 		if (!this.inited) {

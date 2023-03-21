@@ -5,7 +5,7 @@ import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
-import Intersect from "./Intersect";
+import { Intersect } from "./WebGPUConstant";
 
 export default class BoundingSphere {
 	radius: number;
@@ -22,7 +22,7 @@ export default class BoundingSphere {
 	 * @param {Vector3[]} [positions] An array of points that the bounding sphere will enclose.  Each point must have <code>x</code>, <code>y</code>, and <code>z</code> properties.
 	 * @returns {BoundingSphere} The modified result parameter or a new BoundingSphere instance if one was not provided.
 	 */
-	static fromPoints(positions) {
+	static fromPoints(positions: Vector3[]) {
 		let result = new BoundingSphere();
 
 		if (!defined(positions) || positions.length === 0) {

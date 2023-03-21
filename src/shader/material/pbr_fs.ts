@@ -73,8 +73,10 @@ export default function pbr_fs(defines) {
         @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
         @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
         // IBL
-        @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvTexture: texture_cube<f32>;
-        @group(0) @binding(${defines.specularEnvSamplerBinding}) var specularEnvSampler: sampler;
+        #if ${defines.USE_IBL}
+            @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvTexture: texture_cube<f32>;
+            @group(0) @binding(${defines.specularEnvSamplerBinding}) var specularEnvSampler: sampler;
+        #endif
         #if ${defines.USE_TEXTURE}
            @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
            @group(0) @binding(${defines.baseColorSamplerBinding}) var baseColorSampler: sampler;
@@ -106,18 +108,20 @@ export default function pbr_fs(defines) {
         #else
             #include <getNormal>
         #endif
-        #include <ibl>
+        #if ${defines.USE_IBL}
+            #include <ibl>
+        #endif
         @fragment
         fn main(input:VertInput) -> @location(0) vec4<f32> 
         {
             var perceptualRoughness:f32 = materialUniform.roughness;
             var metallic:f32 = materialUniform.metallic;
 
-        #if ${defines.USE_METALNESSTEXTURE}
-            let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,metalnessRoughnessSampler, input.uv);
-            perceptualRoughness = mrSample.g * perceptualRoughness;
-            metallic = mrSample.b * metallic;
-        #endif
+            #if ${defines.USE_METALNESSTEXTURE}
+                let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,metalnessRoughnessSampler, input.uv);
+                perceptualRoughness = mrSample.g * perceptualRoughness;
+                metallic = mrSample.b * metallic;
+            #endif
             perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
             metallic = clamp(metallic, 0.0, 1.0);
             let alphaRoughness:f32 = perceptualRoughness * perceptualRoughness;
@@ -144,24 +148,25 @@ export default function pbr_fs(defines) {
             geometry.viewDir=normalize(systemUniform.cameraPosition - input.worldPos);
             geometry.position=input.worldPos;
             geometry.dotNV = saturate(dot(geometry.normal, geometry.viewDir) );
-
+            //light shading
             var reflectedLight=parseLights(geometry,material);
             var color=reflectedLight.directDiffuse+reflectedLight.directSpecular;
-            // USE_IBL
-            var reflectedLightDiffuse=indirectDiffuse_Physical(geometry,material);
-            var reflectedLightSpecular=indirectSpecular_Physical(geometry,material);
-            color+=reflectedLightDiffuse.indirectDiffuse;
-            color+=reflectedLightSpecular.indirectSpecular;
-        // Apply optional PBR terms for additional (optional) shading
-        #if ${defines.USE_AOTEXTURE}
-            let ao:f32 = textureSample(aoTexture,aoSampler, input.uv).r;
-            color = mix(color, color * ao, materialUniform.occlusionStrength);
-        #endif
+            //IBL
+            #if ${defines.USE_IBL}
+                var reflectedLightDiffuse=indirectDiffuse_Physical(geometry,material);
+                var reflectedLightSpecular=indirectSpecular_Physical(geometry,material);
+                color+=reflectedLightDiffuse.indirectDiffuse;
+                color+=reflectedLightSpecular.indirectSpecular;
+            #endif
+            #if ${defines.USE_AOTEXTURE}
+                let ao:f32 = textureSample(aoTexture,aoSampler, input.uv).r;
+                color = mix(color, color * ao, materialUniform.occlusionStrength);
+            #endif
 
-        #if ${defines.USE_EMISSIVETEXTURE}
-            let emissive:vec3<f32> = textureSample(emissiveTexture, emissiveSampler,input.uv).rgb ;
-            color += emissive;
-        #endif
+            #if ${defines.USE_EMISSIVETEXTURE}
+                let emissive:vec3<f32> = textureSample(emissiveTexture, emissiveSampler,input.uv).rgb ;
+                color += emissive;
+            #endif
        return vec4<f32>(color, baseColor.a);
     }
    `;
