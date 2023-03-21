@@ -1,6 +1,7 @@
 import Camera from "../camera/Camera";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
+import { SpotLightShadow } from "./shadows/SpotLightShadow";
 
 export class SpotLight extends Light {
 	private _distance: number;
@@ -15,7 +16,7 @@ export class SpotLight extends Light {
 	penumbraDirty: boolean;
 	angleDirty: boolean;
 	penumbraCosDirty: boolean;
-	constructor(color, intensity, distance = 0, angle = 60, penumbra = 60, decay = 1) {
+	constructor(color, intensity, distance = 0, angle = 60, penumbra = 60, decay = 4, openShadow = true) {
 		super(color, intensity);
 		this._distance = distance;
 		this._angle = (angle / 180) * Math.PI;
@@ -28,6 +29,7 @@ export class SpotLight extends Light {
 		this.decayDirty = true;
 		this.coneCosDirty = true;
 		this.penumbraCosDirty = true;
+		if (openShadow) this.shadow = new SpotLightShadow();
 		this.updateConeCosOrPenumbraCos();
 	}
 

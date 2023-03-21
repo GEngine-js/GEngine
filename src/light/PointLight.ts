@@ -12,7 +12,7 @@ export class PointLight extends Light {
 		color: Vector3,
 		intensity: number,
 		distance: number = 0,
-		decay: number = 1,
+		decay: number = 4,
 		openShadow: Boolean = true
 	) {
 		super(color, intensity);

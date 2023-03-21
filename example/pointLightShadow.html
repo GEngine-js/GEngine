@@ -50,7 +50,7 @@
 				BlinnPhongMaterial,
 				Vector3,
 				Color,
-				SpotLight,
+				PointLight,
 				DirectionalLight,
 				Texture,
 				Sampler,
@@ -90,14 +90,25 @@
 				];
 				const skybox = new SkyBox(environmentUrls);
 
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-				directionalLight.position.set(-0, 40, -8);
+				const pointLightGeometry = new SphereGeometry(1);
+				const pointLightMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
+				pointLightMaterial.color = new Color(1.0, 1.0, 1.0);
+				const pointLightPrimitive = new Mesh(pointLightGeometry, pointLightMaterial);
+				const pointLightPosition = new Vector3(0, 35, 0);
+				pointLightPrimitive.position.set(pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 70, 4.0, false);
+				pointLight.position = pointLightPosition;
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
-				const boxMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
-				boxMaterial.color = new Color(1.0, 0.0, 0.0);
-				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
-				boxPrimitive.position.set(-1, 10, 3);
+				const pbr = new PbrMaterial();
+				const baseTexture = await loadTexture("./brick_diffuse.jpg");
+				const aoTexture = await loadTexture("./textures/AmbientOcclusionMap.png");
+				const normalTexture = await loadTexture("./textures/NormalMap.png");
+				pbr.baseTexture = baseTexture;
+				pbr.aoTexture = aoTexture;
+				pbr.normalTexture = normalTexture;
+				const boxPrimitive = new Mesh(boxGeometry, pbr);
+				boxPrimitive.position.set(-1, 10, -1);
 
 				const torusKnotGeometry = new TorusKnotGeometry(10, 3, 200, 32);
 				const torusKnotMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
@@ -118,18 +129,18 @@
 				ground.rotateX(Math.PI / 2);
 
 				scene.add(boxPrimitive);
-				scene.add(boxPrimitive);
 				scene.add(torusKnotPrimitive);
 				scene.add(spherePrimitive);
 				scene.add(ground);
 				scene.add(skybox);
 				scene.add(ambientLight);
-				scene.add(directionalLight);
+				scene.add(pointLight);
+				scene.add(pointLightPrimitive);
 
 				function animate() {
-					// boxPrimitive.rotateX(0.01);
-					// boxPrimitive.rotateY(0.01);
-					// boxPrimitive.rotateZ(0.01);
+					boxPrimitive.rotateX(0.01);
+					boxPrimitive.rotateY(0.01);
+					boxPrimitive.rotateZ(0.01);
 					torusKnotPrimitive.rotateX(0.01);
 					requestAnimationFrame(animate);
 					control.update();

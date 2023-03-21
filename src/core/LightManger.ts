@@ -45,8 +45,8 @@ export default class LightManger {
 		this.spotLights = [];
 		this.pointLights = [];
 		this.directLights = [];
-		this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-		this.lightCountDirty = false;
+		this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 0.2);
+		this.lightCountDirty = true;
 		this.openShadow = options.openShadow;
 	}
 	update(frameState: FrameState, camera: Camera) {
@@ -151,56 +151,67 @@ export default class LightManger {
 			);
 		}
 
-		if (this.openShadow) {
-			const spotLightShadowMapTextureArray = (this.spotLightShadowMapTextureArray =
-				this.createShadowMapTextureArray(this.spotLights));
-			const pointLightShadowMapTextureArray = (this.pointLightShadowMapTextureArray =
-				this.createShadowMapTextureArray(this.pointLights));
-			const directLightShadowMapTextureArray = (this.directLightShadowMapTextureArray =
-				this.createShadowMapTextureArray(this.directLights));
-			if (
-				!spotLightShadowMapTextureArray &&
-				!pointLightShadowMapTextureArray &&
-				!directLightShadowMapTextureArray
-			)
-				return;
+		shadowShaderData: {
+			if (this.openShadow) {
+				const spotLightShadowMapTextureArray = (this.spotLightShadowMapTextureArray =
+					this.createShadowMapTextureArray(this.spotLights));
+				const pointLightShadowMapTextureArray = (this.pointLightShadowMapTextureArray =
+					this.createShadowMapTextureArray(this.pointLights));
+				const directLightShadowMapTextureArray = (this.directLightShadowMapTextureArray =
+					this.createShadowMapTextureArray(this.directLights));
+				if (
+					!spotLightShadowMapTextureArray &&
+					!pointLightShadowMapTextureArray &&
+					!directLightShadowMapTextureArray
+				)
+					break shadowShaderData;
 
-			//define
-			this.lightShaderData.setDefine("openShadow", this.openShadow);
+				//define
+				this.lightShaderData.setDefine("openShadow", this.openShadow);
 
-			//matrix
-			const spotLightMatrixArrayLength = this.setLightVPMatrixArray("spotLightVPMatrixArray", this.spotLights);
-			const pointLightMatrixArrayLength = this.setLightVPMatrixArray("pointLightVPMatrixArray", this.pointLights);
-			const directLightMatrixArrayLength = this.setLightVPMatrixArray(
-				"directLightVPMatrixArray",
-				this.directLights
-			);
-			this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightMatrixArrayLength);
-			this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightMatrixArrayLength);
-			this.lightShaderData.setDefine("directLightShadowMapsCount", directLightMatrixArrayLength);
+				//matrix
+				const spotLightMatrixArrayLength = this.setLightVPMatrixArray(
+					"spotLightVPMatrixArray",
+					this.spotLights
+				);
+				const pointLightMatrixArrayLength = this.setLightVPMatrixArray(
+					"pointLightVPMatrixArray",
+					this.pointLights
+				);
+				const directLightMatrixArrayLength = this.setLightVPMatrixArray(
+					"directLightVPMatrixArray",
+					this.directLights
+				);
+				this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightMatrixArrayLength);
+				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightMatrixArrayLength);
+				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightMatrixArrayLength);
 
-			//texture,sample
-			if (spotLightShadowMapTextureArray !== undefined) {
-				if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightMatrixArrayLength)
-					console.warn("spotLightShadowMap align has problem");
-				this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
+				//texture,sample
+				if (spotLightShadowMapTextureArray !== undefined) {
+					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightMatrixArrayLength)
+						console.warn("spotLightShadowMap align has problem");
+					this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
+				}
+				if (pointLightShadowMapTextureArray !== undefined) {
+					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightMatrixArrayLength)
+						console.warn("pointLightShadowMap align has problem");
+					this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
+				}
+				if (directLightShadowMapTextureArray !== undefined) {
+					if (directLightShadowMapTextureArray.textureProp.size.depth != directLightMatrixArrayLength)
+						console.warn("directLightShadowMap align has problem");
+					this.lightShaderData.setTexture(
+						"directLightShadowMapTextureArray",
+						directLightShadowMapTextureArray
+					);
+					// this._testTexture = directLightShadowMapTextureArray
+				}
+				this.lightShaderData.setSampler(
+					"shadowSampler",
+					new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
+				);
+				// this.lightShaderData.setSampler("shadowSampler", new Sampler());
 			}
-			if (pointLightShadowMapTextureArray !== undefined) {
-				if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightMatrixArrayLength)
-					console.warn("pointLightShadowMap align has problem");
-				this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
-			}
-			if (directLightShadowMapTextureArray !== undefined) {
-				if (directLightShadowMapTextureArray.textureProp.size.depth != directLightMatrixArrayLength)
-					console.warn("directLightShadowMap align has problem");
-				this.lightShaderData.setTexture("directLightShadowMapTextureArray", directLightShadowMapTextureArray);
-				// this._testTexture = directLightShadowMapTextureArray
-			}
-			this.lightShaderData.setSampler(
-				"shadowSampler",
-				new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
-			);
-			// this.lightShaderData.setSampler("shadowSampler", new Sampler());
 		}
 
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
@@ -235,6 +246,8 @@ export default class LightManger {
 				shadowMapSources.push(shadowMapSource);
 			}
 		}
+
+		if (shadowMapSources.length <= 0) return undefined;
 
 		const shadowMapTextureArray = new Texture({
 			size: {

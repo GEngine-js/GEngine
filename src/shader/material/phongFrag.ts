@@ -66,9 +66,9 @@ export default function phongFrag(defines) {
         geometry.normal=N;
         geometry.viewDir=V;
         geometry.position=input.worldPos;
-        let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess,input);
-        var finnalColor:vec3<f32>=color.xyz+lightColor.directDiffuse+lightColor.directSpecular;
-        // var finnalColor:vec3<f32>=lightColor.testColor.xyz;
+        let lightColor:ReflectedLight=parseLights(geometry,materialUniform.shininess);
+        // var finnalColor:vec3<f32>=color.xyz + (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
+        var finnalColor:vec3<f32>=color.xyz * (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
 
         return vec4<f32>(finnalColor,color.a);
     }`;
