@@ -570,10 +570,10 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 18;
 		this.byteSize = count * this._subDataSize * bytesPerElement;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotLightShadows";
 		this.visibility = ShaderStage.Fragment;
 		this._nearValue = null;
@@ -669,10 +669,10 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 18;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "pointLightShadows";
 		this.visibility = ShaderStage.Fragment;
 		this._nearValue = null;
@@ -759,10 +759,10 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 	) {
 		super(uniformName, cb, binding, offset);
 		this.cb = cb;
-		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
-		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 16;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "dirtectLightShadows";
 		this.visibility = ShaderStage.Fragment;
 	}

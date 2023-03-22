@@ -23,6 +23,7 @@ import Sampler from "../render/Sampler";
 
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
+	shadowUniformBuffer: UniformBuffer;
 	pointLights: PointLight[];
 
 	spotLights: SpotLight[];
@@ -169,36 +170,48 @@ export default class LightManger {
 				//define
 				this.lightShaderData.setDefine("openShadow", this.openShadow);
 
-				//matrix
-				const spotLightMatrixArrayLength = this.setLightVPMatrixArray(
-					"spotLightVPMatrixArray",
-					this.spotLights
+				//shadowUniformBuffer
+				this.shadowUniformBuffer = new UniformBuffer(
+					"shadow",
+					"read-only-storage",
+					BufferUsage.Storage | BufferUsage.CopyDst
 				);
-				const pointLightMatrixArrayLength = this.setLightVPMatrixArray(
-					"pointLightVPMatrixArray",
-					this.pointLights
+
+				//matrix,near,far...
+				const spotLightWithShadowCount = this.setShadowUniform(
+					"spotLightShadows",
+					this.spotLights,
+					"setSpotLightShadows"
 				);
-				const directLightMatrixArrayLength = this.setLightVPMatrixArray(
-					"directLightVPMatrixArray",
-					this.directLights
+				const pointLightWithShadowCount = this.setShadowUniform(
+					"pointLightShadows",
+					this.pointLights,
+					"setPointLightShadows"
 				);
-				this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightMatrixArrayLength);
-				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightMatrixArrayLength);
-				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightMatrixArrayLength);
+				const directLightWithShadowCount = this.setShadowUniform(
+					"directLightShadows",
+					this.directLights,
+					"setDirtectLightShadows"
+				);
+				this.lightShaderData.setUniformBuffer("shadow", this.shadowUniformBuffer);
+
+				this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightWithShadowCount);
+				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightWithShadowCount);
+				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightWithShadowCount);
 
 				//texture,sample
 				if (spotLightShadowMapTextureArray !== undefined) {
-					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightMatrixArrayLength)
+					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
 						console.warn("spotLightShadowMap align has problem");
 					this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
 				}
 				if (pointLightShadowMapTextureArray !== undefined) {
-					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightMatrixArrayLength)
+					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightWithShadowCount)
 						console.warn("pointLightShadowMap align has problem");
 					this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
 				}
 				if (directLightShadowMapTextureArray !== undefined) {
-					if (directLightShadowMapTextureArray.textureProp.size.depth != directLightMatrixArrayLength)
+					if (directLightShadowMapTextureArray.textureProp.size.depth != directLightWithShadowCount)
 						console.warn("directLightShadowMap align has problem");
 					this.lightShaderData.setTexture(
 						"directLightShadowMapTextureArray",
@@ -265,7 +278,7 @@ export default class LightManger {
 		return shadowMapTextureArray;
 	}
 
-	setLightVPMatrixArray(ArrayName: string, lights: Array<Light>) {
+	setShadowUniform(uniformName: string, lights: Array<Light>, functionName: string) {
 		if (lights.length) {
 			const lightWithShadowArray = [];
 			for (let i = 0; i < lights.length; i++) {
@@ -274,16 +287,10 @@ export default class LightManger {
 				lightWithShadowArray.push(light);
 			}
 
-			this.lightUniformBuffer.setMatrix4Array(
-				ArrayName,
+			this.shadowUniformBuffer[functionName](
+				uniformName,
 				() => {
-					const matrix4Array = [];
-					for (let i = 0; i < lightWithShadowArray.length; i++) {
-						const light = lightWithShadowArray[i];
-						light.shadow.update(light);
-						matrix4Array.push(light.shadow.camera.vpMatrix);
-					}
-					return matrix4Array;
+					return lightWithShadowArray;
 				},
 				lightWithShadowArray.length
 			);

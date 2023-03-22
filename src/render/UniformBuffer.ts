@@ -6,6 +6,7 @@ import {
 	Uniform,
 	UniformColor,
 	UniformDirtectLights,
+	UniformDirtectLightShadows,
 	UniformFloat,
 	UniformFloatArray,
 	UniformFloatVec2,
@@ -16,7 +17,9 @@ import {
 	UniformMat4,
 	UniformMatrix4Array,
 	UniformPointLights,
+	UniformPointLightShadows,
 	UniformSpotLights,
+	UniformSpotLightShadows,
 	UniformVec2Array,
 	UniformVec3Array,
 	UniformVec4Array
@@ -230,6 +233,35 @@ export default class UniformBuffer {
 		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLights.align);
 		const uniform = new UniformDirtectLights(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setSpotLightShadows(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniformStruct.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformSpotLightShadows.align);
+		const uniform = new UniformSpotLightShadows(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setPointLightShadows(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniformStruct.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformPointLightShadows.align);
+		const uniform = new UniformPointLightShadows(name, this.dataBuffer, this.byteOffset, value, binding, 0, count);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setDirtectLightShadows(name: string, value: Function, count: number, binding?: number) {
+		if (this._uniformStruct.get(name)) return;
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLightShadows.align);
+		const uniform = new UniformDirtectLightShadows(
+			name,
+			this.dataBuffer,
+			this.byteOffset,
+			value,
+			binding,
+			0,
+			count
+		);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
