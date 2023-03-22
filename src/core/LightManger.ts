@@ -210,7 +210,6 @@ export default class LightManger {
 					"shadowSampler",
 					new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
 				);
-				// this.lightShaderData.setSampler("shadowSampler", new Sampler());
 			}
 		}
 

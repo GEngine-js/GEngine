@@ -550,6 +550,59 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		}
 	}
 }
+
+export class UniformSpotLightShadows extends Uniform<SpotLight> {
+	static align = 16;
+	lights: Array<SpotLight>;
+	cb: Function;
+	private _nearValue: number;
+	private _farValue: number;
+	private _subDataSize: number;
+
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		this._subDataSize = 18;
+		this.byteSize = count * this._subDataSize * bytesPerElement;
+		this.type = "spotLightShadows";
+		this.visibility = ShaderStage.Fragment;
+		this._nearValue = null;
+		this._farValue = null;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((spotLight, index) => {
+			this.setSubData(spotLight, index);
+		});
+	}
+	private setSubData(spotLight: SpotLight, index: number) {
+		const offset = index * this._subDataSize;
+		if (spotLight.positionDirty || spotLight.targetDirty) {
+			spotLight.shadow.update(spotLight);
+			setDataToTypeArray(this.buffer, spotLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
+		}
+		const nearValue = spotLight.shadow.camera.near;
+		if (nearValue != this._nearValue) {
+			this._nearValue = nearValue;
+			setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
+		}
+		const farValue = spotLight.shadow.camera.far;
+		if (farValue != this._farValue) {
+			this._farValue = farValue;
+			setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
+		}
+	}
+}
 export class UniformPointLights extends Uniform<PointLight> {
 	static align = 16;
 	lights: Array<PointLight>;
@@ -596,6 +649,60 @@ export class UniformPointLights extends Uniform<PointLight> {
 		}
 	}
 }
+
+export class UniformPointLightShadows extends Uniform<PointLight> {
+	static align = 16;
+	lights: Array<PointLight>;
+	cb: Function;
+	private _nearValue: number;
+	private _farValue: number;
+	private _subDataSize: number;
+
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		this._subDataSize = 18;
+		this.byteSize = count * bytesPerElement * this._subDataSize;
+		this.type = "pointLightShadows";
+		this.visibility = ShaderStage.Fragment;
+		this._nearValue = null;
+		this._farValue = null;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((pointLight, index) => {
+			this.setSubData(pointLight, index);
+		});
+	}
+	private setSubData(pointLight: PointLight, index: number) {
+		const offset = index * this._subDataSize;
+		if (pointLight.positionDirty) {
+			// TODO:未完成更新
+			pointLight.shadow.update(pointLight);
+			setDataToTypeArray(this.buffer, pointLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
+		}
+		const nearValue = pointLight.shadow.camera.near;
+		if (nearValue != this._nearValue) {
+			this._nearValue = nearValue;
+			setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
+		}
+		const farValue = pointLight.shadow.camera.far;
+		if (farValue != this._farValue) {
+			this._farValue = farValue;
+			setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
+		}
+	}
+}
 export class UniformDirtectLights extends Uniform<DirectionalLight> {
 	static align = 16;
 	lights: Array<DirectionalLight>;
@@ -631,6 +738,45 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		if (directionalLight.colorDirty) {
 			directionalLight.colorDirty = false;
 			setDataToTypeArray(this.buffer, directionalLight.color.toArray(), offset + 4); //byteOffset=32;
+		}
+	}
+}
+
+export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
+	static align = 16;
+	lights: Array<DirectionalLight>;
+	cb: Function;
+	private _subDataSize: number;
+
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function,
+		binding?: number,
+		offset?: number,
+		count?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.cb = cb;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		const bytesPerElement = this.buffer.BYTES_PER_ELEMENT;
+		this._subDataSize = 16;
+		this.byteSize = count * bytesPerElement * this._subDataSize;
+		this.type = "dirtectLightShadows";
+		this.visibility = ShaderStage.Fragment;
+	}
+	set() {
+		this.lights = this.cb();
+		this.lights.forEach((directionalLight, index) => {
+			this.setSubData(directionalLight, index);
+		});
+	}
+	private setSubData(directionalLight: DirectionalLight, index: number) {
+		const offset = index * this._subDataSize;
+		if (directionalLight.dirtectDirty) {
+			directionalLight.shadow.update(directionalLight);
+			setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=16;
 		}
 	}
 }

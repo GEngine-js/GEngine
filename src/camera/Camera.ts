@@ -13,6 +13,8 @@ export default class Camera extends RenderObject {
 	cullingVolume: CullingVolume;
 	projectMatrixDirty: boolean;
 	shaderData: ShaderData;
+	near: number;
+	far: number;
 	constructor() {
 		super();
 		this._viewMatrix = undefined;
