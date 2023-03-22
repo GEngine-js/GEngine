@@ -56,7 +56,7 @@ export default class SkyBoxGeometry extends Geometry {
 			// NegZ (Back)
 			6, 5, 4, 5, 6, 7
 		];
-		this.setAttribute(new Float32Attribute("positions", this.positions, 3));
+		this.setAttribute(new Float32Attribute("position", this.positions, 3));
 		this.setIndice(this.indices);
 		this.count = this.indices.length;
 	}

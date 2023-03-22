@@ -15,10 +15,10 @@ export default function pbr_vs(defines) {
         #if ${defines.USE_AOTEXTURE}
             occlusionStrength:f32,
         #endif
-        // #if ${defines.HAS_SKIN} 
-        //     jointMatrixCount:f32,
-        //     jointMatrixs:array<mat4x4>,
-        // #endif
+        #if ${defines.HAS_SKIN} 
+             jointMatrixCount:f32,
+             jointMatrixs:array<mat4x4>,
+        #endif
    }
 
    struct SystemUniform {
@@ -32,17 +32,15 @@ export default function pbr_vs(defines) {
         @location(0) position: vec3<f32>,       
         @location(1) normal: vec3<f32>,
         @location(2) uv: vec2<f32>,
+        #if${defines.HAS_SKIN} 
+            @location(3) joint0:vec4<f32>;
+            @location(4) weight0:vec4<f32>;
+            #if${defines.SKIN_VEC8}
+                @location(5) joint1:vec4<f32>;
+                @location(6) weight1:vec4:<f32>;
+            #endif
+        #endif
    }
-//    ifdef HAS_SKIN
-//    layout(location = JOINTS_0_LOCATION) in vec4 joint0;
-//    layout(location = WEIGHTS_0_LOCATION) in vec4 weight0;
-//    ifdef SKIN_VEC8
-//    layout(location = JOINTS_1_LOCATION) in vec4 joint1;
-//    layout(location = WEIGHTS_1_LOCATION) in vec4 weight1;
-//    endif
-//    endif
-   
-   
     struct VertexOutput {
         @builtin(position) position:vec4<f32>,
         @location(0) worldPos:vec3<f32>,
@@ -56,17 +54,17 @@ export default function pbr_vs(defines) {
    fn main(input: VertexInput)-> VertexOutput
    {
        #if ${defines.HAS_SKIN} 
-            mat4 skinMatrix = 
-                   weight0.x * u_jointMatrix.matrix[int(joint0.x)] +
-                   weight0.y * u_jointMatrix.matrix[int(joint0.y)] +
-                   weight0.z * u_jointMatrix.matrix[int(joint0.z)] +
-                   weight0.w * u_jointMatrix.matrix[int(joint0.w)];
+            var skinMatrix:mat4x4<f32> = 
+                   input.weight0.x * materialUniform.jointMatrixs[u32(input.joint0.x)] +
+                   input.weight0.y * materialUniform.jointMatrixs[u32(input.joint0.y)] +
+                   input.weight0.z * materialUniform.jointMatrixs[u32(input.joint0.z)] +
+                   input.weight0.w * materialUniform.jointMatrixs[u32(input.joint0.w)];
            #if ${defines.SKIN_VEC8} 
                skinMatrix +=
-                   weight1.x * u_jointMatrix.matrix[int(joint1.x)] +
-                   weight1.y * u_jointMatrix.matrix[int(joint1.y)] +
-                   weight1.z * u_jointMatrix.matrix[int(joint1.z)] +
-                   weight1.w * u_jointMatrix.matrix[int(joint1.w)];
+                   input.weight1.x * materialUniform.jointMatrixs[u32(joint1.x)] +
+                   input.weight1.y * materialUniform.jointMatrixs[u32(joint1.y)] +
+                   input.weight1.z * materialUniform.jointMatrixs[u32(joint1.z)] +
+                   input.weight1.w * materialUniform.jointMatrixs[u32(joint1.w)];
            #endif
         #endif
         var output: VertexOutput;

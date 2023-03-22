@@ -9,6 +9,7 @@ import IndexBuffer from "../render/IndexBuffer";
 import combine from "../utils/combine";
 import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
+import BoundingBox from "../core/BoundingBox";
 export default class Geometry {
 	normals: number[];
 	uvs: number[];
@@ -20,9 +21,11 @@ export default class Geometry {
 	indexBuffer?: IndexBuffer;
 	vertBuffer: VertextBuffer;
 	count: number;
-	boundingSphere: BoundingSphere;
+	boundingSphere?: BoundingSphere;
+	boundingBox?: BoundingBox;
 	private _defines: { [prop: string]: boolean | number };
 	private attributes: Attributes;
+	private locationIndex?: number;
 	definesDirty: boolean;
 	topology: PrimitiveTopology;
 	get defines() {
@@ -37,6 +40,7 @@ export default class Geometry {
 		this.boundingSphere = undefined;
 		this.dirty = false;
 		this.definesDirty = true;
+		this.locationIndex = 0;
 		this.attributes = new Attributes();
 		this.vertBuffer = new VertextBuffer(this.type, this.attributes, 0);
 		this._defines = {};
@@ -50,7 +54,10 @@ export default class Geometry {
 		return this.attributes.getAttribute(name);
 	}
 	setAttribute(attribute: Attribute) {
-		if (this[attribute.name] != undefined) this[attribute.name] = attribute.value;
+		if (!this._defines[attribute?.name?.concat("Location")]) {
+			this._defines[attribute?.name?.concat("Location")] = this.locationIndex;
+			this.locationIndex += 1;
+		}
 		this.attributes.setAttribute(attribute);
 	}
 	setIndice(indices: Array<number>) {

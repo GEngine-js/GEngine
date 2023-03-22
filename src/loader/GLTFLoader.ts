@@ -266,9 +266,9 @@ export class GLTF {
 		}
 		const geo = new Geometry({});
 		if (indices) geo.setIndice(Array.from(indices));
-		if (positions) geo.setAttribute(new Float32Attribute("positions", Array.from(positions), 3));
-		if (normals) geo.setAttribute(new Float32Attribute("normals", Array.from(normals), 3));
-		if (uvs) geo.setAttribute(new Float32Attribute("uvs", Array.from(uvs), 2));
+		if (positions) geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
+		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
 		geo.defines = {
 			HAS_NORMAL: true,
 			HAS_UV: true
