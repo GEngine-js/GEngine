@@ -9,7 +9,7 @@ import UniformBuffer from "./UniformBuffer";
 import Texture from "./Texture";
 import Sampler from "./Sampler";
 export default class ShaderData {
-	textureBinding: number;
+	currentBinding: number;
 
 	defines: { [prop: string]: boolean | number };
 
@@ -29,7 +29,7 @@ export default class ShaderData {
 
 	constructor(label: string, size?: number, layoutIndex?: number, groupIndex?) {
 		this.label = label;
-		this.textureBinding = 1;
+		this.currentBinding = 0;
 		this.defineDirty = true;
 		this.defines = {};
 		this._uniforms = new Map();
@@ -38,20 +38,23 @@ export default class ShaderData {
 	}
 	setUniformBuffer(name: string, uniformBuffer: UniformBuffer) {
 		if (this._uniforms.get(name)) return;
+		uniformBuffer.binding = this.currentBinding;
+		this.setDefine(name.concat("Binding"), this.currentBinding);
+		this.currentBinding += 1;
 		this._uniforms.set(name, uniformBuffer);
 	}
 	setTexture(name: string, value: Function | Texture, binding?: number) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformTexture(name, this.textureBinding, value);
-		this.setDefine(name.concat("Binding"), this.textureBinding);
-		this.textureBinding += 1;
+		const uniform = new UniformTexture(name, this.currentBinding, value);
+		this.setDefine(name.concat("Binding"), this.currentBinding);
+		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
 	}
 	setSampler(name: string, value: Function | Sampler, binding?: number) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformSampler(name, this.textureBinding, value);
-		this.setDefine(name.concat("Binding"), this.textureBinding);
-		this.textureBinding += 1;
+		const uniform = new UniformSampler(name, this.currentBinding, value);
+		this.setDefine(name.concat("Binding"), this.currentBinding);
+		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
 	}
 	setDefine(name: string, value: boolean | number) {
@@ -86,7 +89,7 @@ export default class ShaderData {
 			if (uniform.destroy) uniform?.destroy();
 		});
 		this.label = undefined;
-		this.textureBinding = 1;
+		this.currentBinding = 1;
 		this.defineDirty = true;
 		this.defines = undefined;
 		this._uniforms.clear();

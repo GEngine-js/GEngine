@@ -70,8 +70,8 @@ export default function pbr_fs(defines) {
        };
         const M_PI:f32 = 3.141592653589793;
         const c_MinRoughness:f32 = 0.04;
-        @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
-        @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+        @binding(${defines.pbrBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
+        @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
         // IBL
         #if ${defines.USE_IBL}
             @group(0) @binding(${defines.specularEnvTextureBinding}) var specularEnvTexture: texture_cube<f32>;

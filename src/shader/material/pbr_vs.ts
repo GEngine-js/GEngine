@@ -50,8 +50,8 @@ export default function pbr_vs(defines) {
         @location(2) uv:vec2<f32>
     }  
 
-    @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
-    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+    @binding(${defines.pbrBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
+    @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
     @vertex
    fn main(input: VertexInput)-> VertexOutput
    {

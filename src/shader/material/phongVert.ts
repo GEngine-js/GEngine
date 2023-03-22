@@ -26,8 +26,8 @@ export default function phongVert(defines) {
             cameraPosition: vec3<f32>,
       }; 
 
-      @binding(0) @group(0) var<uniform> selfUniform : MaterialUniform;
-      @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+      @binding(${defines.phongBinding}) @group(0) var<uniform> selfUniform : MaterialUniform;
+      @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
 
       struct VertexInput {
             @location(0) position: vec3<f32>,       

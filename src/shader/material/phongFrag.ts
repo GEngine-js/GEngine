@@ -36,8 +36,8 @@ export default function phongFrag(defines) {
       @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
       @group(0) @binding(${defines.normalSamplerBinding}) var normalSampler: sampler;
     #endif
-    @binding(0) @group(0) var<uniform> materialUniform : MaterialUniform;
-    @binding(0) @group(1) var<uniform> systemUniform : SystemUniform;
+    @binding(${defines.phongBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
+    @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
     #if ${defines.USE_NORMALTEXTURE}
       #include <getTBN>
       #include <getNormalByNormalTexture>

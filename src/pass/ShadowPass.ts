@@ -68,7 +68,10 @@ export class ShadowPass extends Pass {
 	}
 
 	private createShadowMaterial() {
-		const colorShader = getVertFrag("color");
+		const colorShader = getVertFrag("color", {
+			colorBinding: 0,
+			cameraBinding: 0
+		});
 		this.shadowMaterial = new ShaderMaterial({
 			type: "shadowMaterial",
 			uniforms: {

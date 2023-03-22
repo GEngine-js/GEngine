@@ -61,23 +61,30 @@ export class GLTF {
 	private json: any;
 
 	private materials: any;
+
+	private glbBin?: ArrayBuffer;
+
+	private rootUrl: string;
+
 	textures: any[];
+
 	samplers: Sampler[];
 
-	constructor(json: any, buffers: Array<ArrayBuffer>, images: Array<ImageBitmap>, glbOffset = 0) {
+	constructor(json: any, rootUrl: string, glbOffset = 0, glbBin?: ArrayBuffer) {
 		this.json = json;
 		this.bufferViews = json.bufferViews;
-		this.buffers = buffers;
 		this.glbOffset = glbOffset;
+		this.rootUrl = rootUrl;
 		this.scenes = json.scenes;
 		this.defaultScene = json.scene || 0;
 		this.nodes = json.nodes;
 		this.cameras = json.cameras || [];
-		this.images = images;
+		this.glbBin = glbBin;
 		this.meshes = [];
-		this.parseData();
 	}
 	async parseData() {
+		this.buffers = await this.loadBuffes();
+		this.images = await this.loadImages();
 		this.parseSamplers();
 		this.parseTextures();
 		this.parseMaterials();
@@ -284,86 +291,90 @@ export class GLTF {
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
 		});
 	}
-}
-
-async function loadGLTFObject(json: any, url: string, glbOffset = 0, bin?: ArrayBuffer) {
-	const dir = url.substring(0, url.lastIndexOf("/"));
-	const images: Array<ImageBitmap> = [];
-	let loadExternalImages: Promise<any> = Promise.resolve();
-	if (json.images) {
-		loadExternalImages = Promise.all(
-			json.images.map(async (image: any, index: number) => {
-				if (image.uri) {
-					const imageUrl = image.uri.slice(0, 5) === "data:" ? image.uri : `${dir}/${image.uri}`;
-					images[index] = await fetch(imageUrl)
-						.then((response) => response.blob())
-						.then((blob) =>
-							createImageBitmap(blob, {
-								colorSpaceConversion: "none"
-							})
-						);
-				}
-			})
-		);
-	}
-
-	const buffers: Array<ArrayBuffer> = [];
-	await Promise.all(
-		json.buffers.map((buffer: any, index: number) => {
-			if (!buffer.uri) {
-				if (index !== 0) {
-					throw new Error("buffer uri undefined");
-				}
-				buffers[index] = bin!;
-				return Promise.resolve();
-			}
-			const bufferUrl = buffer.uri.slice(0, 5) === "data:" ? buffer.uri : `${dir}/${buffer.uri}`;
-			return fetch(bufferUrl)
-				.then((response) => response.arrayBuffer())
-				.then((arrayBuffer: ArrayBuffer) => {
-					buffers[index] = arrayBuffer;
-				});
-		})
-	);
-
-	let loadInternalImages: Promise<any> = Promise.resolve();
-	if (json.images) {
-		loadInternalImages = Promise.all(
-			json.images.map(async (image: any, index: number) => {
-				if (image.bufferView !== undefined) {
-					const { buffer, byteOffset, byteLength } = json.bufferViews[image.bufferView];
-					const array = new Uint8Array(
-						buffers[buffer],
-						buffer === 0 ? byteOffset + glbOffset : byteOffset,
-						byteLength
-					);
-					let type;
-					if (image.mimeType) {
-						type = image.mimeType;
-					} else {
-						type = array[0] === 0xff ? "image/jpeg" : "image/png";
+	private async loadImages() {
+		const images: Array<ImageBitmap> = [];
+		let loadExternalImages: Promise<any> = Promise.resolve();
+		if (this.json.images) {
+			loadExternalImages = Promise.all(
+				this.json.images.map(async (image: any, index: number) => {
+					if (image.uri) {
+						const imageUrl = image.uri.slice(0, 5) === "data:" ? image.uri : `${this.rootUrl}/${image.uri}`;
+						images[index] = await fetch(imageUrl)
+							.then((response) => response.blob())
+							.then((blob) =>
+								createImageBitmap(blob, {
+									colorSpaceConversion: "none"
+								})
+							);
 					}
-					const blob = new Blob([array], { type });
-					images[index] = await createImageBitmap(blob, {
-						colorSpaceConversion: "none"
-					});
+				})
+			);
+		}
+		let loadInternalImages: Promise<any> = Promise.resolve();
+		if (this.json.images) {
+			loadInternalImages = Promise.all(
+				this.json.images.map(async (image: any, index: number) => {
+					if (image.bufferView !== undefined) {
+						const { buffer, byteOffset, byteLength } = this.json.bufferViews[image.bufferView];
+						const array = new Uint8Array(
+							this.buffers[buffer],
+							buffer === 0 ? byteOffset + this.glbOffset : byteOffset,
+							byteLength
+						);
+						let type;
+						if (image.mimeType) {
+							type = image.mimeType;
+						} else {
+							type = array[0] === 0xff ? "image/jpeg" : "image/png";
+						}
+						const blob = new Blob([array], { type });
+						images[index] = await createImageBitmap(blob, {
+							colorSpaceConversion: "none"
+						});
+					}
+				})
+			);
+		}
+
+		await Promise.all([loadExternalImages, loadInternalImages]);
+		return images;
+	}
+	private async loadBuffes() {
+		const buffers: Array<ArrayBuffer> = [];
+		await Promise.all(
+			this.json.buffers.map((buffer: any, index: number) => {
+				if (!buffer.uri) {
+					if (index !== 0) {
+						throw new Error("buffer uri undefined");
+					}
+					buffers[index] = this.glbBin!;
+					return Promise.resolve();
 				}
+				const bufferUrl = buffer.uri.slice(0, 5) === "data:" ? buffer.uri : `${this.rootUrl}/${buffer.uri}`;
+				return fetch(bufferUrl)
+					.then((response) => response.arrayBuffer())
+					.then((arrayBuffer: ArrayBuffer) => {
+						buffers[index] = arrayBuffer;
+					});
 			})
 		);
+		return buffers;
 	}
-
-	await Promise.all([loadExternalImages, loadInternalImages]);
-	return new GLTF(json, buffers, images, glbOffset);
 }
 export async function loadGLTF(url: string) {
+	let gltf;
 	const ext = url.split(".").pop();
+	const rootUrl = url.substring(0, url.lastIndexOf("/"));
 	if (ext === "gltf") {
 		const json = await fetch(url).then((response) => response.json());
-		return loadGLTFObject(json, url);
+		gltf = new GLTF(json, rootUrl, 0);
+	} else {
+		const glb = await fetch(url).then((response) => response.arrayBuffer());
+		const jsonLength = new Uint32Array(glb, 12, 1)[0];
+		const jsonChunk = new Uint8Array(glb, 20, jsonLength);
+		const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
+		gltf = new GLTF(json, rootUrl, 28 + jsonLength, glb);
 	}
-	const glb = await fetch(url).then((response) => response.arrayBuffer());
-	const jsonLength = new Uint32Array(glb, 12, 1)[0];
-	const jsonChunk = new Uint8Array(glb, 20, jsonLength);
-	const json = JSON.parse(new TextDecoder("utf-8").decode(jsonChunk));
-	return loadGLTFObject(json, url, 28 + jsonLength, glb);
+	await gltf.parseData();
+	return gltf;
 }

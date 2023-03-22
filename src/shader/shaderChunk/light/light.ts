@@ -177,7 +177,7 @@ export default function light(defines) {
             #endif
             
         }
-        @group(2) @binding(0) var<storage, read> lightUniforms: LightUniforms;
+        @group(2) @binding(${defines.lightBinding}) var<storage, read> lightUniforms: LightUniforms;
 
         #if ${defines.openShadow}
             #if ${defines.spotLightShadowMapTextureArrayBinding}

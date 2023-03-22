@@ -39,7 +39,7 @@ export default class SkyBoxMaterial extends Material {
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return null;
 		});
-		this.shaderData.setUniformBuffer("sky", uniformBuffer);
+		this.shaderData.setUniformBuffer("skybox", uniformBuffer);
 		this.shaderData.setTexture("baseTexture", this.baseTexture);
 		this.shaderData.setSampler("baseSampler", this.baseSampler);
 	}

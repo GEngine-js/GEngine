@@ -63,7 +63,7 @@
 				// const geometry = new PlaneGeometry(100, 100);
 				const geometry = new SphereGeometry(10);
 				const img = document.createElement("img");
-				img.src = "./uv.jpg";
+				img.src = "./textures/uv.jpg";
 				await img.decode();
 				const imageBitmap = await createImageBitmap(img);
 				const baseSampler = new Sampler({

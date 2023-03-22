@@ -140,6 +140,7 @@ class Context {
 		if (camera) {
 			camera.shaderData.bind(this, passEncoder);
 			grouplayouts.push(camera.shaderData.groupLayout);
+			if (command.shaderSource) command.shaderSource.setDefines(camera.shaderData.defines);
 		}
 		if (command.light && this.lightManger.lightShaderData) {
 			this.lightManger.lightShaderData.bind(this, passEncoder);
