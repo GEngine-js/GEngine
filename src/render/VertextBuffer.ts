@@ -36,7 +36,7 @@ export default class VertextBuffer {
 			this.arrayStride =
 				arrayStride.reduce(function (sum, item, index, arr) {
 					return (sum += item);
-				}, 0) * 4;
+				}, 0) * typeArray.BYTES_PER_ELEMENT;
 			this.buffer = Buffer.createVertexBuffer(this.label, device, typeArray);
 		}
 		passEncoder.setVertexBuffer(this.index, this.buffer.gpuBuffer);

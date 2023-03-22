@@ -12,7 +12,7 @@ export default function skyBoxVert(defines) {
    @binding(${defines.skyboxBinding}) @group(0) var<uniform> selfUniform : MaterialUniform;
    @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
      struct VertexInput {
-       @location(0) position : vec3<f32>,
+       @location(${defines.positionLocation}) position : vec3<f32>,
      };
      struct VertexOutput {
        @builtin(position) position : vec4<f32>,

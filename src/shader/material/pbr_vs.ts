@@ -29,15 +29,18 @@ export default function pbr_vs(defines) {
    }; 
    
    struct VertexInput {
-        @location(0) position: vec3<f32>,       
-        @location(1) normal: vec3<f32>,
-        @location(2) uv: vec2<f32>,
+        @location(${defines.positionLocation}) position: vec3<f32>,       
+        @location(${defines.normalLocation}) normal: vec3<f32>,
+        #if${defines.HAS_COLOR} 
+            @location(${defines.colorLocation}) color: vec3<f32>,
+        #endif
+        @location(${defines.uvLocation}) uv: vec2<f32>,
         #if${defines.HAS_SKIN} 
-            @location(3) joint0:vec4<f32>;
-            @location(4) weight0:vec4<f32>;
+            @location(${defines.joint0Location}) joint0:vec4<f32>;
+            @location(${defines.weight0Location}) weight0:vec4<f32>;
             #if${defines.SKIN_VEC8}
-                @location(5) joint1:vec4<f32>;
-                @location(6) weight1:vec4:<f32>;
+                @location(${defines.joint1Location}) joint1:vec4<f32>;
+                @location(${defines.weight1Location}) weight1:vec4:<f32>;
             #endif
         #endif
    }

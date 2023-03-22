@@ -7,6 +7,7 @@ export default class IndexBuffer {
 	dirty: boolean;
 	private label: string;
 	constructor(label: string, indices?: Array<number>) {
+		this.label = label;
 		this.indices = indices;
 		this.indexFormat = IndexFormat.Uint16;
 		this.dirty = true;

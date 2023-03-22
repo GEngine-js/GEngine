@@ -27,6 +27,7 @@ export class Uniform<T> {
 	binding?: number;
 	visibility?: number;
 	type?: string;
+	dirty?: boolean;
 
 	constructor(uniformName: string, cb?: Function | number | Object, binding?: number, offset?: number) {
 		this.name = uniformName;
@@ -511,42 +512,44 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
 		this.visibility = ShaderStage.Fragment;
+		this.dirty = false;
 	}
 	set() {
 		this.lights = this.cb();
 		this.lights.forEach((spotLight, index) => {
 			this.setSubData(spotLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(spotLight: SpotLight, index: number) {
 		const offset = index * 16;
 		if (spotLight.positionDirty) {
 			spotLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.position.toArray(), offset + 0); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.position.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (spotLight.distanceDirty) {
 			spotLight.distanceDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.distance, offset + 3); //byteOffset=12;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.distance, offset + 3); //byteOffset=12;
 		}
 		if (spotLight.dirtectDirty) {
 			spotLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.directional.toArray(), offset + 4); //byteOffset=16;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.directional.toArray(), offset + 4); //byteOffset=16;
 		}
 		if (spotLight.coneCosDirty) {
 			spotLight.coneCosDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.coneCos, offset + 7); //byteOffset=28;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.coneCos, offset + 7); //byteOffset=28;
 		}
 		if (spotLight.colorDirty) {
 			spotLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.color.toArray(), offset + 8); //byteOffset=32;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.color.toArray(), offset + 8); //byteOffset=32;
 		}
 		if (spotLight.penumbraCosDirty) {
 			spotLight.penumbraCosDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.penumbraCos, offset + 11); //byteOffset=44;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.penumbraCos, offset + 11); //byteOffset=44;
 		}
 		if (spotLight.decayDirty) {
 			spotLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, spotLight.decay, offset + 12); //byteOffset=48;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.decay, offset + 12); //byteOffset=48;
 		}
 	}
 }
@@ -584,22 +587,23 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		this.lights.forEach((spotLight, index) => {
 			this.setSubData(spotLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(spotLight: SpotLight, index: number) {
 		const offset = index * this._subDataSize;
 		if (spotLight.positionDirty || spotLight.targetDirty) {
 			spotLight.shadow.update(spotLight);
-			setDataToTypeArray(this.buffer, spotLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, spotLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}
 		const nearValue = spotLight.shadow.camera.near;
 		if (nearValue != this._nearValue) {
 			this._nearValue = nearValue;
-			setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
 		}
 		const farValue = spotLight.shadow.camera.far;
 		if (farValue != this._farValue) {
 			this._farValue = farValue;
-			setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
 		}
 	}
 }
@@ -628,24 +632,25 @@ export class UniformPointLights extends Uniform<PointLight> {
 		this.lights.forEach((pointLight, index) => {
 			this.setSubData(pointLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * 8;
 		if (pointLight.positionDirty) {
 			pointLight.positionDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.position.toArray(), offset + 0); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, pointLight.position.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (pointLight.distanceDirty) {
 			pointLight.distanceDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.distance, offset + 3); //byteOffset=12;
+			this.dirty = setDataToTypeArray(this.buffer, pointLight.distance, offset + 3); //byteOffset=12;
 		}
 		if (pointLight.colorDirty) {
 			pointLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.color.toArray(), offset + 4); //byteOffset=32;
+			this.dirty = setDataToTypeArray(this.buffer, pointLight.color.toArray(), offset + 4); //byteOffset=32;
 		}
 		if (pointLight.decayDirty) {
 			pointLight.decayDirty = false;
-			setDataToTypeArray(this.buffer, pointLight.decay, offset + 7); //byteOffset=12;
+			this.dirty = setDataToTypeArray(this.buffer, pointLight.decay, offset + 7); //byteOffset=12;
 		}
 	}
 }
@@ -683,23 +688,24 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		this.lights.forEach((pointLight, index) => {
 			this.setSubData(pointLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * this._subDataSize;
 		if (pointLight.positionDirty) {
 			// TODO:未完成更新
 			pointLight.shadow.update(pointLight);
-			setDataToTypeArray(this.buffer, pointLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, pointLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}
 		const nearValue = pointLight.shadow.camera.near;
 		if (nearValue != this._nearValue) {
 			this._nearValue = nearValue;
-			setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, this._nearValue, offset + 16); //byteOffset=0;
 		}
 		const farValue = pointLight.shadow.camera.far;
 		if (farValue != this._farValue) {
 			this._farValue = farValue;
-			setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, this._farValue, offset + 17); //byteOffset=0;
 		}
 	}
 }
@@ -728,16 +734,17 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		this.lights.forEach((directionalLight, index) => {
 			this.setSubData(directionalLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(directionalLight: DirectionalLight, index: number) {
 		const offset = index * 8;
 		if (directionalLight.dirtectDirty) {
 			directionalLight.dirtectDirty = false;
-			setDataToTypeArray(this.buffer, directionalLight.directional.toArray(), offset + 0); //byteOffset=16;
+			this.dirty = setDataToTypeArray(this.buffer, directionalLight.directional.toArray(), offset + 0); //byteOffset=16;
 		}
 		if (directionalLight.colorDirty) {
 			directionalLight.colorDirty = false;
-			setDataToTypeArray(this.buffer, directionalLight.color.toArray(), offset + 4); //byteOffset=32;
+			this.dirty = setDataToTypeArray(this.buffer, directionalLight.color.toArray(), offset + 4); //byteOffset=32;
 		}
 	}
 }
@@ -771,12 +778,13 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		this.lights.forEach((directionalLight, index) => {
 			this.setSubData(directionalLight, index);
 		});
+		return this.dirty;
 	}
 	private setSubData(directionalLight: DirectionalLight, index: number) {
 		const offset = index * this._subDataSize;
 		if (directionalLight.dirtectDirty) {
 			directionalLight.shadow.update(directionalLight);
-			setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=16;
+			this.dirty = setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=16;
 		}
 	}
 }
@@ -788,4 +796,5 @@ function setDataToTypeArray(buffer, data, offset) {
 	} else {
 		buffer[offset] = data;
 	}
+	return true;
 }

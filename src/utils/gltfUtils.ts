@@ -26,6 +26,8 @@ export function newTypedArray(type: number, buffer: ArrayBuffer, byteOffset: num
 			return new Int16Array(buffer, byteOffset, length);
 		case 5123:
 			return new Uint16Array(buffer, byteOffset, length);
+		case 5124:
+			return new Int32Array(buffer, byteOffset, length);
 		case 5125:
 			return new Uint32Array(buffer, byteOffset, length);
 		case 5126:

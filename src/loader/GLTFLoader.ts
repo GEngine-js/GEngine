@@ -226,6 +226,7 @@ export class GLTF {
 	}
 	private createGeometry(primitive, material) {
 		let indices = null;
+		const defines: { [prop: string]: boolean | number } = { HAS_NORMAL: true };
 		let vertexCount;
 		if (primitive.indices !== undefined) {
 			indices = toIndices(this.accessors[primitive.indices]);
@@ -247,32 +248,42 @@ export class GLTF {
 		let uvs = null;
 		if (primitive.attributes.TEXCOORD_0 !== undefined) {
 			uvs = this.accessors[primitive.attributes.TEXCOORD_0];
+			defines.HAS_UV = true;
 		}
 		let uv1s = null;
 		if (primitive.attributes.TEXCOORD_1 !== undefined) {
 			uv1s = this.accessors[primitive.attributes.TEXCOORD_1];
+			defines.HAS_UV1 = true;
 		}
 
 		let tangents = null;
 		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
 			tangents = this.accessors[primitive.attributes.TANGENT];
+			defines.HAS_TANGENT = true;
 		} else if (material.normalTexture) {
 			//tangents = generateTangents(indices, positions, normals, uvs!);
 		}
-
 		let colors = null;
 		if (primitive.attributes.COLOR_0 !== undefined) {
 			colors = this.accessors[primitive.attributes.COLOR_0];
+			defines.HAS_COLOR = true;
 		}
-		const geo = new Geometry({});
+		let joints = null;
+		if (primitive.attributes.JOINTS_0 !== undefined) {
+			joints = this.accessors[primitive.attributes.JOINTS_0];
+			defines.HAS_SKIN = true;
+		}
+		let weights = null;
+		if (primitive.attributes.WEIGHTS_0 !== undefined) {
+			weights = this.accessors[primitive.attributes.WEIGHTS_0];
+		}
+		const geo = new Geometry({ type: "pbrGeomtry" });
 		if (indices) geo.setIndice(Array.from(indices));
 		if (positions) geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
+		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), 3));
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
-		geo.defines = {
-			HAS_NORMAL: true,
-			HAS_UV: true
-		};
+		geo.defines = defines;
 		geo.computeBoundingSphere(Array.from(positions));
 		geo.count = vertexCount;
 		return geo;

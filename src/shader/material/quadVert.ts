@@ -1,7 +1,7 @@
 export default function quadVert(defines) {
-  return `
+	return `
     struct VertexInput {
-         @location(0) position: vec2<f32>,       
+         @location(${defines.positionLocation}) position: vec2<f32>,       
     }
     struct VertexOutput {
          @builtin(position) position: vec4<f32>,

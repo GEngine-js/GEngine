@@ -15,13 +15,13 @@ class Buffer {
 		this.device = device;
 		this.usage = usage;
 		this.data = data;
-		this.size = size;
+		this.size = size != undefined ? (size + 3) & ~3 : (data.byteLength + 3) & ~3; // 4 bytes alignments (because of the upload which requires this)
 		this.gpuBuffer = device.createBuffer({
 			label: label || "",
-			size: size != undefined ? size : data.byteLength,
+			size: this.size,
 			usage
 		});
-		if (data) this.setSubData(0, data);
+		if (data) this.setSubData(0, data, this.size);
 	}
 	static create(
 		label: string,
@@ -57,9 +57,9 @@ class Buffer {
 		}
 	}
 	// https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
-	public setSubData(offset: number, data: ArrayBufferView): void {
+	public setSubData(offset: number, data: ArrayBufferView, size?: number): void {
 		const srcArrayBuffer = data.buffer;
-		const byteCount = srcArrayBuffer.byteLength;
+		const byteCount = size ?? srcArrayBuffer.byteLength;
 		const srcBuffer = this.device.createBuffer({
 			mappedAtCreation: true,
 			size: byteCount,
@@ -67,7 +67,7 @@ class Buffer {
 		});
 		const arrayBuffer = srcBuffer.getMappedRange();
 
-		new Uint8Array(arrayBuffer).set(new Uint8Array(srcArrayBuffer)); // memcpy
+		new Uint16Array(arrayBuffer).set(new Uint16Array(srcArrayBuffer)); // memcpy
 		srcBuffer.unmap();
 
 		this.copyToBuffer(srcBuffer, offset, byteCount);

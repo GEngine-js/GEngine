@@ -20,7 +20,7 @@ export default class ResolveFrame {
 			new Float32Attribute("position", [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0], 2)
 		);
 		this.geometry.count = 6;
-		const shader = getVertFrag("resolve", {});
+		const shader = getVertFrag("resolve", { positionLocation: 0 });
 		this.material = new ShaderMaterial({
 			type: "resolve",
 			frag: shader.frag,

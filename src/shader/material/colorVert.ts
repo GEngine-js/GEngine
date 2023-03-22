@@ -1,8 +1,8 @@
 export default function colorVert(defines) {
 	return `
    struct VertexInput {
-        @location(0) position: vec3<f32>,       
-        @location(1) color: vec4<f32>,
+        @location(${defines.positionLocation}) position: vec3<f32>,       
+        @location(${defines.colorLocation}) color: vec4<f32>,
    }
    struct VertexOutput {
         @builtin(position) position: vec4<f32>,

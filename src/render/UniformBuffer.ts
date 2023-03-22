@@ -72,6 +72,7 @@ export default class UniformBuffer {
 	bind(context: Context) {
 		this._uniformStruct.forEach((uniform) => {
 			const result = uniform.set();
+			if (uniform?.dirty != undefined) uniform.dirty = false;
 			if (result != undefined && this.uniformDirty == false) this.uniformDirty = result;
 		});
 		if (this.uniformDirty) {

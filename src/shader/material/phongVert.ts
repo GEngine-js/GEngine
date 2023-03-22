@@ -30,9 +30,9 @@ export default function phongVert(defines) {
       @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
 
       struct VertexInput {
-            @location(0) position: vec3<f32>,       
-            @location(1) normal: vec3<f32>,
-            @location(2) uv: vec2<f32>,
+            @location(${defines.positionLocation}) position: vec3<f32>,       
+            @location(${defines.normalLocation}) normal: vec3<f32>,
+            @location(${defines.uvLocation}) uv: vec2<f32>,
       }
       @vertex
       fn main(input: VertexInput) -> VertexOutput {
