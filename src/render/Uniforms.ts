@@ -591,7 +591,7 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 	}
 	private setSubData(spotLight: SpotLight, index: number) {
 		const offset = index * this._subDataSize;
-		if (spotLight.positionDirty || spotLight.targetDirty) {
+		if (spotLight.positionDirty || spotLight.targetDirty || spotLight.shadow.camera.projectMatrixDirty) {
 			spotLight.shadow.update(spotLight);
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}

@@ -94,9 +94,11 @@
 				const spotLightMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
 				spotLightMaterial.color = new Color(1.0, 1.0, 1.0);
 				const spotLightPrimitive = new Mesh(spotLightGeometry, spotLightMaterial);
-				const spotLightPosition = new Vector3(0, 35, 0);
-				spotLightPrimitive.position.set(spotLightPosition.x, spotLightPosition.y, spotLightPosition.z);
-				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 150, 40, 10);
+				const spotLightPosition = new Vector3(30, 30, 0);
+				spotLightPrimitive.position.set(spotLightPosition.x, spotLightPosition.y + 3, spotLightPosition.z);
+				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 150, 50, 10);
+				spotLight.shadow.camera.fov = 100;
+				spotLight.shadow.camera.near = 0.1;
 				spotLight.position = spotLightPosition;
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
@@ -120,7 +122,7 @@
 				const sphereMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#222222"), 150);
 				sphereMaterial.color = new Color(0.0, 1.0, 0.0);
 				const spherePrimitive = new Mesh(sphereGeometry, sphereMaterial);
-				spherePrimitive.position.set(20, 10, 20);
+				spherePrimitive.position.set(10, 15, 10);
 
 				const groundGeometry = new PlaneGeometry(100, 100);
 				const groundMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#111111"), 150);
@@ -137,11 +139,20 @@
 				scene.add(spotLight);
 				scene.add(spotLightPrimitive);
 
+				var height = 30;
 				function animate() {
-					boxPrimitive.rotateX(0.01);
+					boxPrimitive.rotateX(0.02);
 					boxPrimitive.rotateY(0.01);
 					boxPrimitive.rotateZ(0.01);
 					torusKnotPrimitive.rotateX(0.01);
+					if (height <= 100) {
+						height += 0.1;
+					} else {
+						height -= 0.1;
+					}
+					spotLight.position = new Vector3(0, height, 0);
+					spotLightPrimitive.position.set(0, height + 3, 0);
+
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();
