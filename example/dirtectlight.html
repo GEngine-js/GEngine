@@ -60,7 +60,7 @@
 				//const geometry=new BoxGeometry(10,10,10);
 				const geometry = new TorusKnotGeometry(7, 2, 300, 20, 1, 4);
 				const img = document.createElement("img");
-				img.src = "./uv.jpg";
+				img.src = "./textures/uv.jpg";
 				await img.decode();
 				const imageBitmap = await createImageBitmap(img);
 				const baseSampler = new Sampler({
