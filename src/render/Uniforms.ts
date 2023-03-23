@@ -524,33 +524,34 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 	private setSubData(spotLight: SpotLight, index: number) {
 		const offset = index * 16;
 		if (spotLight.positionDirty) {
-			spotLight.positionDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.position.toArray(), offset + 0); //byteOffset=0;
 		}
 		if (spotLight.distanceDirty) {
-			spotLight.distanceDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.distance, offset + 3); //byteOffset=12;
 		}
 		if (spotLight.dirtectDirty) {
-			spotLight.dirtectDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.directional.toArray(), offset + 4); //byteOffset=16;
 		}
 		if (spotLight.coneCosDirty) {
-			spotLight.coneCosDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.coneCos, offset + 7); //byteOffset=28;
 		}
 		if (spotLight.colorDirty) {
-			spotLight.colorDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.color.toArray(), offset + 8); //byteOffset=32;
 		}
 		if (spotLight.penumbraCosDirty) {
-			spotLight.penumbraCosDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.penumbraCos, offset + 11); //byteOffset=44;
 		}
 		if (spotLight.decayDirty) {
-			spotLight.decayDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.decay, offset + 12); //byteOffset=48;
 		}
+
+		spotLight.positionDirty = false;
+		spotLight.distanceDirty = false;
+		spotLight.dirtectDirty = false;
+		spotLight.coneCosDirty = false;
+		spotLight.colorDirty = false;
+		spotLight.penumbraCosDirty = false;
+		spotLight.decayDirty = false;
 	}
 }
 

@@ -150,7 +150,7 @@ export default function light(defines) {
             }
             visibility /= 9.0;
             var inFrustum = shadowPos.x >= 0.0 && shadowPos.x <= 1.0 && shadowPos.y >= 0.0 && shadowPos.y <= 1.0;
-            if (!inFrustum && depth > 1.0) {
+            if (!inFrustum || depth > 1.0) {
                 visibility = 1.0;
             }
             return visibility;
