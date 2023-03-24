@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="Atzk/dTch1Tt8qYq/UwLn6aWawymlc3xOKy3xiuwsaj1HBK6eCTBb+EGOnv7LK+oSQ8Fr1l/qykGHhK64mAn+w4AAABjeyJvcmlnaW4iOiJodHRwczovL2hwdWdpcy5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+		/>
+		<title>gltf</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				height: 100%;
+				width: 100%;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="module">
+			// import { captureFrame } from './webgpu-debugger.js';
+			import {
+				PerspectiveCamera,
+				Scene,
+				Vector3,
+				Color,
+				SkyBox,
+				CubeTextureLoader,
+				loadGLTF,
+				OrbitControl,
+				AmbientLight
+			} from "../../dist/index.js";
+
+			const init = async () => {
+				const scene = new Scene({
+					container: "app"
+				});
+				const gltf = await loadGLTF(
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF/Avocado.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF/WaterBottle.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf"
+					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
+				);
+				gltf.meshes.forEach((mesh) => {
+					scene.add(mesh);
+				});
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
+				camera.position.set(1, 0, 1);
+				camera.lookAt(0, 0, 0);
+				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
+				scene.add(ambientLight);
+				const control = new OrbitControl(camera, document.getElementById("app"));
+				const urls = [
+					`../textures/royal_esplanade_1k/px.png`,
+					`../textures/royal_esplanade_1k/nx.png`,
+					`../textures/royal_esplanade_1k/py.png`,
+					`../textures/royal_esplanade_1k/ny.png`,
+					`../textures/royal_esplanade_1k/pz.png`,
+					`../textures/royal_esplanade_1k/nz.png`
+				];
+				const skybox = new SkyBox(urls);
+				window.addEventListener("resize", onWindowResize);
+				scene.add(skybox);
+				scene.setCamera(camera);
+				function animate() {
+					requestAnimationFrame(animate);
+					control.update();
+					scene.render();
+				}
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

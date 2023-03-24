@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="AgCqLeZDrlcoBR+S3p8SekllqqN81ek8KciDtqMY8FFuHadgBC7fB0EoiYocrgNqd6IE7rFfqHAv1my2hc0jDQEAAABJeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjU1MDAiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjkxNzExOTk5fQ=="
+		/>
+		<title>webworkerTask</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				height: 100%;
+				width: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				height: 100%;
+				width: 100%;
+			}
+		</style>
+		<!-- <script type="module" src="../dist/index.js"></script> -->
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="module">
+			import {
+				BoxGeometry,
+				Mesh,
+				PerspectiveCamera,
+				Scene,
+				BlinnPhongMaterial,
+				Vector3,
+				Color,
+				OrbitControl,
+				AmbientLight
+			} from "../../dist/index.js";
+			const init = async () => {
+				const scene = new Scene({
+					container: "app"
+				});
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
+				camera.position.set(-8, 8, -8);
+				camera.lookAt(0, 0, 0);
+				scene.setCamera(camera);
+				const control = new OrbitControl(camera, document.getElementById("app"));
+				control.zoomSpeed = 2.0;
+				control.maxPolarAngle = Math.PI / 2;
+
+				const ambientLight = new AmbientLight(new Vector3(0.25, 0.25, 0.25), 1.0);
+
+				const boxGeometry = new BoxGeometry(10, 10, 10);
+				const boxMaterial = new BlinnPhongMaterial();
+				boxMaterial.color = new Color(1.0, 1.0, 0.0);
+				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
+				boxPrimitive.position.set(-1, 10, 3);
+
+				scene.add(boxPrimitive);
+				scene.add(ambientLight);
+				function animate() {
+					requestAnimationFrame(animate);
+					control.update();
+					scene.render();
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

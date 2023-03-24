@@ -30,13 +30,10 @@ export class Mesh extends RenderObject {
 	update(frameState: FrameState, camera?: Camera) {
 		//update matrix
 		this.updateMatrix();
-
-		this.updateNormalMatrix(camera);
 		//create
 		this.geometry.update(frameState);
 
 		this.material.update(frameState, this);
-
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);

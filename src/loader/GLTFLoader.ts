@@ -1,10 +1,12 @@
 import Geometry from "../geometry/Geometry";
 import PbrMaterial from "../material/PbrMaterial";
+import Matrix4 from "../math/Matrix4";
 import { Mesh } from "../mesh/Mesh";
 import { Float32Attribute } from "../render/Attribute";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
+import Node from "../mesh/Node";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -77,7 +79,7 @@ export class GLTF {
 		this.rootUrl = rootUrl;
 		this.scenes = json.scenes;
 		this.defaultScene = json.scene || 0;
-		this.nodes = json.nodes;
+		// this.nodes = json.nodes;
 		this.cameras = json.cameras || [];
 		this.glbBin = glbBin;
 		this.meshes = [];
@@ -85,12 +87,14 @@ export class GLTF {
 	async parseData() {
 		this.buffers = await this.loadBuffes();
 		this.images = await this.loadImages();
+		this.parseNodes();
 		this.parseSamplers();
 		this.parseTextures();
 		this.parseMaterials();
 		this.parseAccessors();
 		this.parseMesh();
 		this.parseAnimations();
+		this.normalizeData();
 	}
 	private parseSamplers() {
 		this.samplers = this.json.samplers
@@ -283,6 +287,8 @@ export class GLTF {
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
 		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), 3));
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
+		if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
+		if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
 		geo.defines = defines;
 		geo.computeBoundingSphere(Array.from(positions));
 		geo.count = vertexCount;
@@ -371,6 +377,28 @@ export class GLTF {
 		);
 		return buffers;
 	}
+	private parseNodes() {
+		this.nodes = this?.json?.nodes?.map((gltfNode) => {
+			return this.parseNodeTRS(new Node(), gltfNode);
+		});
+	}
+	private parseNodeTRS(node: Node, gltfNode: GLTFNode): Node {
+		const { matrix, rotation, translation, scale } = gltfNode;
+		if (matrix) Matrix4.fromColumnMajorArray(matrix, node.modelMatrix);
+		if (rotation) node.quaternion.set(rotation[0], rotation[1], rotation[2], rotation[3]);
+		if (translation) node.position.set(translation[0], translation[1], translation[2]);
+		if (scale) node.scale.set(scale[0], scale[1], scale[2]);
+		return node;
+	}
+	private normalizeData() {
+		this?.nodes?.map?.((node: Node, index) => {
+			node.children = this.json?.nodes[index]?.children?.map((nodeId: number) => {
+				const childNode = this.nodes[nodeId];
+				if (childNode) childNode.parent = node;
+				return childNode;
+			});
+		});
+	}
 }
 export async function loadGLTF(url: string) {
 	let gltf;
@@ -389,3 +417,10 @@ export async function loadGLTF(url: string) {
 	await gltf.parseData();
 	return gltf;
 }
+type GLTFNode = {
+	children?: number[];
+	matrix?: number[];
+	scale?: number[];
+	rotation?: number[];
+	translation?: number[];
+};

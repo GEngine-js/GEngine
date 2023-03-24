@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="AgCqLeZDrlcoBR+S3p8SekllqqN81ek8KciDtqMY8FFuHadgBC7fB0EoiYocrgNqd6IE7rFfqHAv1my2hc0jDQEAAABJeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjU1MDAiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjkxNzExOTk5fQ=="
+		/>
+		<title>webworkerTask</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				height: 100%;
+				width: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				height: 100%;
+				width: 100%;
+			}
+		</style>
+		<!-- <script type="module" src="../dist/index.js"></script> -->
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="module">
+			import {
+				Mesh,
+				PerspectiveCamera,
+				Scene,
+				BlinnPhongMaterial,
+				Vector3,
+				Color,
+				SpotLight,
+				Sampler,
+				Texture,
+				PlaneGeometry,
+				OrbitControl,
+				AmbientLight
+			} from "../../dist/index.js";
+
+			const init = async () => {
+				const scene = new Scene({ container: "app" });
+				const groundGeometry = new PlaneGeometry(100, 100);
+				const groundMaterial = new BlinnPhongMaterial();
+				groundMaterial.color = new Color(0.5, 0.5, 0.0);
+				const ground = new Mesh(groundGeometry, groundMaterial);
+				ground.rotateX(Math.PI / 2);
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
+				camera.position.set(0, 20, 0);
+				camera.lookAt(0, 0, 0);
+
+				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 25, 6, 1);
+				spotLight.position = new Vector3(0, 20, 0);
+				const ambientLight = new AmbientLight(new Vector3(0.25, 0.25, 0.25), 1.0);
+				scene.add(ambientLight);
+				const control = new OrbitControl(camera, document.getElementById("app"));
+				scene.add(ground);
+				scene.setCamera(camera);
+				scene.add(spotLight);
+				window.addEventListener("resize", onWindowResize);
+				function onWindowResize() {
+					camera.aspect = window.innerWidth / window.innerHeight;
+					scene.resize(window.innerWidth, window.innerHeight);
+				}
+				function animate() {
+					control.update();
+					requestAnimationFrame(animate);
+					scene.render();
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

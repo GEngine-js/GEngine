@@ -33,14 +33,14 @@ export default class RenderObject {
 	public get quaternion(): Quaternion {
 		return this._quaternion;
 	}
-	updateNormalMatrix(camera) {
-		//Matrix4.multiply(camera.viewMatrix, this.this._normalMatrix,this._normalMatrix, this._normalMatrix);
+	private updateNormalMatrix() {
 		Matrix4.inverse(this.modelMatrix, this._normalMatrix);
 		Matrix4.transpose(this._normalMatrix, this._normalMatrix);
-		// this._normalMatrix.getNormalMatrix(this.modelMatrix);
 	}
-	updateMatrix() {
+	updateMatrix(matrix?: Matrix4) {
 		Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
+		if (matrix) Matrix4.multiply(this.modelMatrix, matrix, this.modelMatrix);
+		this.updateNormalMatrix();
 	}
 	lookAt(x, y, z) {
 		_target.set(x, y, z);

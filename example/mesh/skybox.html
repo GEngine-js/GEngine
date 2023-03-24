@@ -42,71 +42,44 @@
 		<script type="module">
 			// import { captureFrame } from './webgpu-debugger.js';
 			import {
-				BoxGeometry,
-				Mesh,
 				PerspectiveCamera,
 				Scene,
-				BlinnPhongMaterial,
 				Vector3,
 				Color,
-				SpotLight,
-				PointLight,
-				Texture,
-				Sampler,
-				TorusKnotGeometry,
 				SkyBox,
 				CubeTextureLoader,
-				SphereGeometry,
-				PbrMaterial,
 				loadGLTF,
 				OrbitControl,
-				DirectionalLight
-			} from "../dist/index.js";
+				AmbientLight
+			} from "../../dist/index.js";
 
 			const init = async () => {
 				const scene = new Scene({
 					container: "app"
 				});
-				const gltf = await loadGLTF(
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF/Avocado.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF/WaterBottle.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf"
-					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
-					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
-				);
-				gltf.meshes.forEach((mesh) => {
-					scene.add(mesh);
-				});
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
 				camera.position.set(1, 0, 1);
 				camera.lookAt(0, 0, 0);
+				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
+				scene.add(ambientLight);
 				const control = new OrbitControl(camera, document.getElementById("app"));
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 0.2, new Vector3(1, 1, 1));
-				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 30, 1);
-				pointLight.position = new Vector3(10, 10, 10);
-				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 6.0, 100, 60, 1);
-				spotLight.position = new Vector3(0, 10, 0);
 				const urls = [
-					`./textures/royal_esplanade_1k/px.png`,
-					`./textures/royal_esplanade_1k/nx.png`,
-					`./textures/royal_esplanade_1k/py.png`,
-					`./textures/royal_esplanade_1k/ny.png`,
-					`./textures/royal_esplanade_1k/pz.png`,
-					`./textures/royal_esplanade_1k/nz.png`
+					`../textures/royal_esplanade_1k/px.png`,
+					`../textures/royal_esplanade_1k/nx.png`,
+					`../textures/royal_esplanade_1k/py.png`,
+					`../textures/royal_esplanade_1k/ny.png`,
+					`../textures/royal_esplanade_1k/pz.png`,
+					`../textures/royal_esplanade_1k/nz.png`
 				];
 				const skybox = new SkyBox(urls);
 				window.addEventListener("resize", onWindowResize);
 				scene.add(skybox);
 				scene.setCamera(camera);
-				scene.add(directionalLight);
 				function animate() {
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();
 				}
-				// captureFrame();
 				function onWindowResize() {
 					camera.aspect = window.innerWidth / window.innerHeight;
 					scene.resize(window.innerWidth, window.innerHeight);
