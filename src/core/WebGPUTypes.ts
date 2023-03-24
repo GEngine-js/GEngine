@@ -250,8 +250,8 @@ export type ScissorTest = {
 };
 export type ShaderMaterialParms = {
 	type: string;
-	frag: string;
-	vert: string;
+	frag: string | Function;
+	vert: string | Function;
 	uniforms: { [uniform: string]: IUniform };
 	defines?: any;
 	light?: boolean;

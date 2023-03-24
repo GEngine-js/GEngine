@@ -105,7 +105,7 @@ export default class BloomPostEffect extends PostEffect {
 			defaultColor: { type: "color", value: new Color(0.0, 0, 0) },
 			defaultOpacity: { type: "float", value: 1.0 }
 		};
-		const shader = getVertFrag("luminosityHigh", {});
+		const shader = getVertFrag("luminosityHigh", { positionLocation: 0 });
 		this.materialHighPassFilter = new ShaderMaterial({
 			type: "bloom",
 			uniforms: this.highPassUniforms,
@@ -138,7 +138,7 @@ export default class BloomPostEffect extends PostEffect {
 				value: this.defaultSampler
 			}
 		};
-		const blendShader = getVertFrag("blend", {});
+		const blendShader = getVertFrag("blend", { positionLocation: 0 });
 		this.blendMaterial = new ShaderMaterial({
 			type: "postBlend",
 			uniforms: this.blendUniforms,
@@ -186,7 +186,8 @@ export default class BloomPostEffect extends PostEffect {
 				}
 			},
 
-			vert: `
+			vert: (defines) => {
+				`
               struct VertexInput {
                     @location(0) position: vec2<f32>,       
                }
@@ -201,9 +202,11 @@ export default class BloomPostEffect extends PostEffect {
                 output.position = vec4<f32>(input.position, 0.0, 1.0);;
                 return output;
                }
-                `,
+                `;
+			},
 
-			frag: `
+			frag: (defines) => {
+				`
                 struct FragInput {
                     @location(0) uv: vec2<f32>,
                 };
@@ -215,12 +218,12 @@ export default class BloomPostEffect extends PostEffect {
                 }  
                 @group(0) @binding(0)  var<storage, read> bloomUniforms : BloomUniforms;
 
-                @group(0) @binding({{blurTexture1Binding}}) var blurTexture1: texture_2d<f32>;
-                @group(0) @binding({{blurTexture2Binding}}) var blurTexture2: texture_2d<f32>;
-                @group(0) @binding({{blurTexture3Binding}}) var blurTexture3: texture_2d<f32>;
-                @group(0) @binding({{blurTexture4Binding}}) var blurTexture4: texture_2d<f32>;
-                @group(0) @binding({{blurTexture5Binding}}) var blurTexture5: texture_2d<f32>;
-                @group(0) @binding({{tSamplerBinding}}) var tSampler: sampler;
+                @group(0) @binding(${defines.blurTexture1Binding}) var blurTexture1: texture_2d<f32>;
+                @group(0) @binding(${defines.blurTexture2Binding}) var blurTexture2: texture_2d<f32>;
+                @group(0) @binding(${defines.blurTexture3Binding}) var blurTexture3: texture_2d<f32>;
+                @group(0) @binding(${defines.blurTexture4Binding}) var blurTexture4: texture_2d<f32>;
+                @group(0) @binding(${defines.blurTexture5Binding}) var blurTexture5: texture_2d<f32>;
+                @group(0) @binding(${defines.tSamplerBinding}}) var tSampler: sampler;
 
 				fn lerpBloomFactor(factor:f32)->f32 {
 					let mirrorFactor:f32 = 1.2 - factor;
@@ -233,13 +236,15 @@ export default class BloomPostEffect extends PostEffect {
 						lerpBloomFactor(bloomUniforms.bloomFactors[2]) * vec4<f32>(bloomUniforms.bloomTintColors[2], 1.0) * textureSample(blurTexture3, tSampler, input.uv) +
 						lerpBloomFactor(bloomUniforms.bloomFactors[3]) * vec4<f32>(bloomUniforms.bloomTintColors[3], 1.0) * textureSample(blurTexture4, tSampler, input.uv) +
 						lerpBloomFactor(bloomUniforms.bloomFactors[4]) * vec4<f32>(bloomUniforms.bloomTintColors[4], 1.0) * textureSample(blurTexture5, tSampler, input.uv) );
-				}`
+				}`;
+			}
 		});
 	}
 	private getSeperableBlurMaterial(kernelRadius, type) {
 		const shader = getVertFrag("blur", {
 			KERNEL_RADIUS: kernelRadius,
-			SIGMA: kernelRadius
+			SIGMA: kernelRadius,
+			positionLocation: 0
 		});
 		const mat = new ShaderMaterial({
 			type,

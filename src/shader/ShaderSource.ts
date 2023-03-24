@@ -7,9 +7,9 @@ export interface GPUShaderModuleObject {
 export class ShaderSource {
 	vertEntryPoint?: string;
 	fragEntryPoint?: string;
-	vert?: string;
-	frag?: string;
-	compute?: string;
+	vert?: string | Function;
+	frag?: string | Function;
+	compute?: string | Function;
 	computeMain?: string;
 	defines?: {};
 	dirty: boolean;
@@ -40,10 +40,10 @@ export class ShaderSource {
 	private updateShaderStr() {
 		if (this.custom) {
 			if (this.compute) {
-				this.compute = ShaderSource.compileCustomShader(this.compute, this.defines);
+				this.compute = (<Function>this.compute)(this.defines);
 			} else {
-				this.vert = ShaderSource.compileCustomShader(this.vert, this.defines);
-				this.frag = ShaderSource.compileCustomShader(this.frag, this.defines);
+				this.vert = this.vert instanceof Function ? this.vert(this.defines) : this.vert;
+				this.frag = this.frag instanceof Function ? this.frag(this.defines) : this.frag;
 			}
 		} else {
 			const source = getVertFrag(this.type, this.defines);
@@ -64,19 +64,19 @@ export class ShaderSource {
 		if (this.render) {
 			const vert = this.vert
 				? device.createShaderModule({
-						code: this.vert
+						code: <string>this.vert
 				  })
 				: undefined;
 			const frag = this.frag
 				? device.createShaderModule({
-						code: this.frag
+						code: <string>this.frag
 				  })
 				: undefined;
 
 			return { vert, frag };
 		} else {
 			const compute = device.createShaderModule({
-				code: this.compute
+				code: <string>this.compute
 			});
 			return compute;
 		}
@@ -85,11 +85,22 @@ export class ShaderSource {
 		renamedMain = `void ${renamedMain}()`;
 		return source.replace(/void\s+main\s*\(\s*(?:void)?\s*\)/g, renamedMain);
 	}
-	static compileCustomShader(template, defines): string {
+	static compileCustomShaderbackUp(template, defines): string {
 		const reg = /\{\{(\w+)\}\}/;
 		if (reg.test(template)) {
 			const name = reg.exec(template)[1];
 			template = template.replace(reg, defines[name]);
+			return ShaderSource.compileCustomShader(template, defines);
+		}
+		return template;
+	}
+	static compileCustomShader(template, defines): string {
+		const reg = /\${(\w+).(\w+)}/;
+		if (reg.test(template)) {
+			const regValue = reg.exec(template);
+			const define = regValue[2];
+			const name = regValue[0];
+			template = template.replace(name, defines[define]);
 			return ShaderSource.compileCustomShader(template, defines);
 		}
 		return template;
