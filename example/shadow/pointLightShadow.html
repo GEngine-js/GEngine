@@ -63,7 +63,7 @@
 				OrbitControl,
 				PlaneGeometry,
 				AmbientLight
-			} from "../dist/index.js";
+			} from "../../dist/index.js";
 
 			const init = async () => {
 				const scene = new Scene({
@@ -81,12 +81,12 @@
 				const ambientLight = new AmbientLight(new Vector3(0.25, 0.25, 0.25), 0.1);
 
 				const environmentUrls = [
-					`./textures/environment/px.jpg`,
-					`./textures/environment/nx.jpg`,
-					`./textures/environment/py.jpg`,
-					`./textures/environment/ny.jpg`,
-					`./textures/environment/pz.jpg`,
-					`./textures/environment/nz.jpg`
+					`../textures/environment/px.jpg`,
+					`../textures/environment/nx.jpg`,
+					`../textures/environment/py.jpg`,
+					`../textures/environment/ny.jpg`,
+					`../textures/environment/pz.jpg`,
+					`../textures/environment/nz.jpg`
 				];
 				const skybox = new SkyBox(environmentUrls);
 
