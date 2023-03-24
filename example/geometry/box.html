@@ -57,7 +57,7 @@
 					container: "app"
 				});
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
-				camera.position.set(-8, 8, -8);
+				camera.position.set(8, 12, 8);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -70,7 +70,7 @@
 				const boxMaterial = new BlinnPhongMaterial();
 				boxMaterial.color = new Color(1.0, 1.0, 0.0);
 				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
-				boxPrimitive.position.set(-1, 10, 3);
+				// boxPrimitive.position.set(-1, 10, 3);
 
 				scene.add(boxPrimitive);
 				scene.add(ambientLight);
