@@ -78,7 +78,7 @@ export default class PbrMaterial extends Material {
 	}
 	constructor() {
 		super();
-		this.type = "pbr_mat";
+		this.type = "pbr";
 
 		this._roughness = 0.1;
 
