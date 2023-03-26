@@ -1,45 +1,53 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
-import RenderObject from "../core/RenderObject";
 import createGuid from "../utils/createGuid";
 import { Mesh } from "./Mesh";
 
-export default class Node extends RenderObject {
+export default class Node extends Mesh {
 	uid: string;
 	id: number;
 	isNode: boolean;
-	children: Node[];
+	children: Map<string, Node>;
 	parent: Node;
 	meshList: Array<Mesh>;
 	constructor() {
 		super();
 		this.isNode = true;
-		this.children = [];
+		this.children = new Map();
 		this.parent = null;
 		this.uid = createGuid();
 	}
 	add(node: Node) {
 		node.parent = this;
-		this.children.push(node);
+		this.children.set(node.uid, node);
 	}
-	remove(node: Node) {}
+	remove(node: Node) {
+		this.children.delete(node.uid);
+	}
 	update(frameState: FrameState, camera?: Camera) {
 		if (this.parent) this.updateMatrix(this.parent.modelMatrix);
-		this.children.forEach((node: Node) => {
+		if (this.meshList)
+			this.meshList.map((mesh: Mesh) => {
+				mesh.update(frameState, camera, this.modelMatrix);
+			});
+		this?.children?.forEach?.((node: Node) => {
 			node.update(frameState, camera);
 		});
 	}
 	destroy() {
-		this.meshList.forEach((mesh: Mesh) => {
+		this.meshList.map((mesh: Mesh) => {
 			mesh?.destroy();
 		});
 		this.children.forEach((node: Node) => {
 			node.destroy();
 		});
+		this?.children?.clear();
 	}
 	traverse(traverseFunction: Function, param: { [prop: string]: any }): void {
-		for (let i = 0, len = this.children.length; i < len; i++) {
-			this.children[i].traverse(traverseFunction, param);
+		for (let i = 0, len = this.children.size; i < len; i++) {
+			this.children.forEach((child) => {
+				child.traverse(traverseFunction, param);
+			});
 		}
 	}
 }

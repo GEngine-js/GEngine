@@ -6,6 +6,7 @@ import { CommandSubType } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
+import Matrix4 from "../math/Matrix4";
 export class Mesh extends RenderObject {
 	[x: string]: any;
 	geometry?: Geometry;
@@ -27,9 +28,9 @@ export class Mesh extends RenderObject {
 	get ready() {
 		return this.material.ready;
 	}
-	update(frameState: FrameState, camera?: Camera) {
+	update(frameState: FrameState, camera?: Camera, matrix?: Matrix4) {
 		//update matrix
-		this.updateMatrix();
+		this.updateMatrix(matrix);
 		//create
 		this.geometry.update(frameState);
 

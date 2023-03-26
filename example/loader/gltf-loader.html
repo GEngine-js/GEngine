@@ -66,11 +66,11 @@
 					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
-				gltf.meshes.forEach((mesh) => {
-					scene.add(mesh);
+				gltf.scenes.map((node) => {
+					scene.add(node);
 				});
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
-				camera.position.set(1, 0, 1);
+				camera.position.set(2, 0, 2);
 				camera.lookAt(0, 0, 0);
 				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 				scene.add(ambientLight);

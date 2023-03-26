@@ -4,7 +4,7 @@ import createGuid from "../utils/createGuid";
 import defined from "../utils/defined";
 import { FrameState } from "./FrameState";
 export default class PrimitiveManger {
-	private _list: any[];
+	private _list: Array<Mesh>;
 	private _guid: any;
 	constructor() {
 		this._list = [];
@@ -14,8 +14,8 @@ export default class PrimitiveManger {
 		return this._list.length;
 	}
 	update(frameState: FrameState, camera: Camera) {
-		this._list.forEach((primitive) => {
-			primitive.update(frameState, camera);
+		this._list.map((instance) => {
+			instance.update(frameState, camera);
 		});
 	}
 	add(instance: Mesh, index?: number) {

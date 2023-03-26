@@ -7,6 +7,7 @@ import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
 import Node from "../mesh/Node";
+import { Primitive } from "../render/RenderState";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -72,6 +73,8 @@ export class GLTF {
 
 	samplers: Sampler[];
 
+	gltfMeshs: any[];
+
 	constructor(json: any, rootUrl: string, glbOffset = 0, glbBin?: ArrayBuffer) {
 		this.json = json;
 		this.bufferViews = json.bufferViews;
@@ -79,7 +82,6 @@ export class GLTF {
 		this.rootUrl = rootUrl;
 		this.scenes = json.scenes;
 		this.defaultScene = json.scene || 0;
-		// this.nodes = json.nodes;
 		this.cameras = json.cameras || [];
 		this.glbBin = glbBin;
 		this.meshes = [];
@@ -87,19 +89,29 @@ export class GLTF {
 	async parseData() {
 		this.buffers = await this.loadBuffes();
 		this.images = await this.loadImages();
-		this.parseNodes();
 		this.parseSamplers();
 		this.parseTextures();
 		this.parseMaterials();
 		this.parseAccessors();
-		this.parseMesh();
 		this.parseAnimations();
+		this.parseMeshs();
+		this.parseNodes();
 		this.normalizeData();
+		this.parseScenes();
 	}
 	private parseSamplers() {
 		this.samplers = this.json.samplers
 			? (this.json.samplers as Array<any>).map((sampler) => this.getSampler(sampler))
 			: [];
+	}
+	private parseScenes() {
+		this.scenes = this.json.scenes.map((scene) => {
+			const node = new Node();
+			scene?.nodes?.map((nodeId) => {
+				node.add(this.nodes[nodeId]);
+			});
+			return node;
+		});
 	}
 	private parseTextures() {
 		this.textures = this.json.textures
@@ -182,18 +194,21 @@ export class GLTF {
 				return { channels, length };
 			}) || [];
 	}
-	private parseMesh() {
-		(this.json.meshes as Array<any>).map((mesh) =>
-			(mesh.primitives as Array<any>).map((primitive) => {
-				const material =
-					primitive.material !== undefined
-						? this.materials[primitive.material]
-						: { pbrMetallicRoughness: {} };
-				const geo = this.createGeometry(primitive, material);
-				const mesh = new Mesh(geo, material);
-				this.meshes.push(mesh);
-			})
-		);
+	private parseMeshs() {
+		this.gltfMeshs = this?.json?.meshes?.map?.((gltfmesh) => {
+			return {
+				name: gltfmesh.name,
+				primitives: gltfmesh?.primitives?.map?.((primitive) => {
+					const material =
+						primitive.material !== undefined
+							? this.materials[primitive.material]
+							: { pbrMetallicRoughness: {} };
+					const geo = this.createGeometry(primitive, material);
+					const mesh = new Mesh(geo, material);
+					return mesh;
+				})
+			};
+		});
 	}
 	private getSampler(samplerJson: any) {
 		return new Sampler({
@@ -263,7 +278,7 @@ export class GLTF {
 		let tangents = null;
 		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
 			tangents = this.accessors[primitive.attributes.TANGENT];
-			defines.HAS_TANGENT = true;
+			//defines.HAS_TANGENT = true;
 		} else if (material.normalTexture) {
 			//tangents = generateTangents(indices, positions, normals, uvs!);
 		}
@@ -379,7 +394,9 @@ export class GLTF {
 	}
 	private parseNodes() {
 		this.nodes = this?.json?.nodes?.map((gltfNode) => {
-			return this.parseNodeTRS(new Node(), gltfNode);
+			const node = new Node();
+			if (gltfNode.mesh != undefined) node.meshList = this.gltfMeshs[gltfNode.mesh].primitives;
+			return this.parseNodeTRS(node, gltfNode);
 		});
 	}
 	private parseNodeTRS(node: Node, gltfNode: GLTFNode): Node {
