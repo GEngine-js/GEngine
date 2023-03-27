@@ -30,7 +30,9 @@ export default function pbr_fs(defines) {
             @builtin(front_facing) frontFacing: bool,
             @location(0) worldPos:vec3<f32>,
             @location(1) normal:vec3<f32>,
-            @location(2) uv:vec2<f32>
+            #if ${defines.HAS_UV}
+                @location(2) uv:vec2<f32>
+            #endif
         }    
         struct PhysicalMaterial {
             diffuseColor:vec3<f32>,
@@ -94,7 +96,9 @@ export default function pbr_fs(defines) {
 
         // metal roughness
         #if ${defines.USE_METALNESSTEXTURE}
-             @group(0) @binding(${defines.metalnessRoughnessTextureBinding}) var metalnessRoughnessTexture: texture_2d<f32>;
+             @group(0) @binding(${
+					defines.metalnessRoughnessTextureBinding
+				}) var metalnessRoughnessTexture: texture_2d<f32>;
              @group(0) @binding(${defines.metalnessRoughnessSamplerBinding}) var metalnessRoughnessSampler: sampler;
         #endif
         // occlusion texture
@@ -152,7 +156,7 @@ export default function pbr_fs(defines) {
             var reflectedLight=parseLights(geometry,material);
             var color=reflectedLight.directDiffuse+reflectedLight.directSpecular;
             //IBL
-            #if ${defines.USE_IBL}
+            #if ${defines.USE_IBL && defines.HAS_UV}
                 var reflectedLightDiffuse=indirectDiffuse_Physical(geometry,material);
                 var reflectedLightSpecular=indirectSpecular_Physical(geometry,material);
                 color+=reflectedLightDiffuse.indirectDiffuse;

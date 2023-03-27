@@ -7,7 +7,11 @@ import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
 import Node from "../mesh/Node";
-import { Primitive } from "../render/RenderState";
+import { Animation } from "./gltf/libs/Animation";
+import { AnimationChannel } from "./gltf/libs/AnimationChannel";
+import { AnimationSampler } from "./gltf/libs/AnimationSampler";
+import { AnimationChannelTarget } from "./gltf/libs/AnimationChannelTarget";
+import Color from "../math/Color";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -59,9 +63,9 @@ export class GLTF {
 
 	private bufferViews: any;
 
-	private accessors: any;
+	accessors: any;
 
-	private json: any;
+	json: any;
 
 	private materials: any;
 
@@ -93,11 +97,14 @@ export class GLTF {
 		this.parseTextures();
 		this.parseMaterials();
 		this.parseAccessors();
-		this.parseAnimations();
 		this.parseMeshs();
 		this.parseNodes();
 		this.normalizeData();
 		this.parseScenes();
+		this.parseAnimations();
+	}
+	private getAccessor(index: number) {
+		return this.accessors[index];
 	}
 	private parseSamplers() {
 		this.samplers = this.json.samplers
@@ -127,24 +134,33 @@ export class GLTF {
 		this.materials = this.json.materials
 			? (this.json.materials as Array<any>).map((material) => {
 					const mat = new PbrMaterial();
+					const {
+						baseColorFactor,
+						metallicFactor,
+						metallicRoughnessTexture,
+						baseColorTexture,
+						roughnessFactor
+					} = material.pbrMetallicRoughness;
 					if (material.normalTexture) mat.normalTexture = this.textures[material.normalTexture.index].texture;
 					if (material.occlusionTexture)
 						mat.aoTexture = this.textures[material.occlusionTexture.index].texture;
 					if (material.emissiveTexture)
 						mat.emissiveTexture = this.textures[material.emissiveTexture.index].texture;
-					if (material.pbrMetallicRoughness?.baseColorTexture)
-						mat.baseTexture = this.textures[material.pbrMetallicRoughness?.baseColorTexture.index].texture;
-					if (material.pbrMetallicRoughness?.metallicRoughnessTexture)
-						mat.metalnessRoughnessTexture =
-							this.textures[material.pbrMetallicRoughness?.metallicRoughnessTexture.index].texture;
+					if (baseColorTexture) mat.baseTexture = this.textures[baseColorTexture.index].texture;
+					if (metallicRoughnessTexture)
+						mat.metalnessRoughnessTexture = this.textures[metallicRoughnessTexture.index].texture;
+					if (baseColorFactor)
+						mat.color = new Color(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2]);
+					mat.metalness = metallicFactor ?? 1.0;
+					mat.roughness = roughnessFactor ?? 0.0;
 					mat.baseSampler = new Sampler({
 						magFilter: "linear",
 						minFilter: "linear",
 						addressModeU: "repeat",
 						addressModeV: "repeat"
 					});
-					mat.roughness = 0.0;
-					mat.metalness = 1.0;
+					// mat.roughness = 0.0;
+					// mat.metalness = 1.0;
 					return mat;
 			  })
 			: [];
@@ -181,18 +197,24 @@ export class GLTF {
 		});
 	}
 	private parseAnimations() {
-		this.animations =
-			(this.json.animations as Array<any>)?.map((animation) => {
-				const channels = (animation.channels as Array<any>).map(({ sampler, target }) => ({
-					input: this.accessors[animation.samplers[sampler].input],
-					output: this.accessors[animation.samplers[sampler].output],
-					interpolation: animation.samplers[sampler].interpolation || "LINEAR",
-					node: target.node,
-					path: target.path
-				}));
-				const length = channels.reduce((acc, { input }) => Math.max(acc, input[input.length - 1]), 0);
-				return { channels, length };
-			}) || [];
+		this.animations = this?.json?.animations?.map((gltfAnimation, index) => {
+			const samplers = gltfAnimation?.samplers?.map((gltfSampler) => {
+				const sampler = new AnimationSampler();
+				sampler.formGltf(this, gltfSampler);
+				return sampler;
+			});
+			const channels = gltfAnimation?.channels?.map((gltfChannel) => {
+				const animationChannel = new AnimationChannel();
+				animationChannel.sampler = samplers[gltfChannel.sampler];
+				animationChannel.target = new AnimationChannelTarget(
+					this.nodes[gltfChannel.target.node],
+					gltfChannel.target.path
+				);
+				return animationChannel;
+			});
+			const animation = new Animation(index.toString(), samplers, channels);
+			return animation;
+		});
 	}
 	private parseMeshs() {
 		this.gltfMeshs = this?.json?.meshes?.map?.((gltfmesh) => {
@@ -290,7 +312,7 @@ export class GLTF {
 		let joints = null;
 		if (primitive.attributes.JOINTS_0 !== undefined) {
 			joints = this.accessors[primitive.attributes.JOINTS_0];
-			defines.HAS_SKIN = true;
+			// defines.HAS_SKIN = true;
 		}
 		let weights = null;
 		if (primitive.attributes.WEIGHTS_0 !== undefined) {
@@ -302,8 +324,8 @@ export class GLTF {
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
 		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), 3));
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
-		if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
-		if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
+		// if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
+		// if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
 		geo.defines = defines;
 		geo.computeBoundingSphere(Array.from(positions));
 		geo.count = vertexCount;
@@ -441,3 +463,12 @@ type GLTFNode = {
 	rotation?: number[];
 	translation?: number[];
 };
+export enum Type2NumOfComponent {
+	"SCALAR" = 1,
+	"VEC2" = 2,
+	"VEC3" = 3,
+	"VEC4" = 4,
+	"MAT2" = 4,
+	"MAT3" = 9,
+	"MAT4" = 16
+}

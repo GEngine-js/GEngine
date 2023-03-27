@@ -34,7 +34,9 @@ export default function pbr_vs(defines) {
         #if${defines.HAS_COLOR} 
             @location(${defines.colorLocation}) color: vec3<f32>,
         #endif
-        @location(${defines.uvLocation}) uv: vec2<f32>,
+        #if ${defines.HAS_UV}
+            @location(${defines.uvLocation}) uv: vec2<f32>,
+        #endif
         #if${defines.HAS_SKIN} 
             @location(${defines.joint0Location}) joint0:vec4<f32>;
             @location(${defines.weight0Location}) weight0:vec4<f32>;
@@ -48,7 +50,9 @@ export default function pbr_vs(defines) {
         @builtin(position) position:vec4<f32>,
         @location(0) worldPos:vec3<f32>,
         @location(1) normal:vec3<f32>,
-        @location(2) uv:vec2<f32>
+        #if ${defines.HAS_UV}
+            @location(2) uv:vec2<f32>
+        #endif
     }  
 
     @binding(${defines.pbrBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
@@ -71,8 +75,9 @@ export default function pbr_vs(defines) {
            #endif
         #endif
         var output: VertexOutput;
-        output.uv = input.uv;
-   
+        #if ${defines.HAS_UV}
+            output.uv = input.uv;
+        #endif
         #if ${defines.HAS_SKIN} 
             output.normal = normalize((materialUniform.normalMatrix * transpose(inverse(skinMatrix)) * vec4<f32>(input.normal, 0.0)).xyz);
             let pos:vec4<f32> = systemUniform.viewMatrix *materialUniform.modelMatrix*skinMatrix * vec4<f32>(input.position, 1.0);
