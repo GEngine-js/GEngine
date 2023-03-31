@@ -1,5 +1,6 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
+import { Skin } from "../loader/gltf/libs/Skin";
 import createGuid from "../utils/createGuid";
 import { Mesh } from "./Mesh";
 
@@ -9,7 +10,6 @@ export default class Node extends Mesh {
 	isNode: boolean;
 	children: Map<string, Node>;
 	parent: Node;
-	meshList: Array<Mesh>;
 	constructor() {
 		super();
 		this.isNode = true;
@@ -26,18 +26,11 @@ export default class Node extends Mesh {
 	}
 	update(frameState: FrameState, camera?: Camera) {
 		if (this.parent) this.updateMatrix(this.parent.modelMatrix);
-		if (this.meshList)
-			this.meshList.map((mesh: Mesh) => {
-				mesh.update(frameState, camera, this.modelMatrix);
-			});
 		this?.children?.forEach?.((node: Node) => {
 			node.update(frameState, camera);
 		});
 	}
 	destroy() {
-		this.meshList.map((mesh: Mesh) => {
-			mesh?.destroy();
-		});
 		this.children.forEach((node: Node) => {
 			node.destroy();
 		});

@@ -36,6 +36,9 @@ export default class ShaderData {
 		this.groupIndex = defaultValue(groupIndex, 0);
 		this.layoutIndex = defaultValue(layoutIndex, 0);
 	}
+	getUniformBuffer(name: string): UniformBuffer {
+		return this._uniforms.get(name);
+	}
 	setUniformBuffer(name: string, uniformBuffer: UniformBuffer) {
 		if (this._uniforms.get(name)) return;
 		uniformBuffer.binding = this.currentBinding;

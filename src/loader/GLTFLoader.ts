@@ -6,12 +6,14 @@ import { Float32Attribute } from "../render/Attribute";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
-import Node from "../mesh/Node";
 import { Animation } from "./gltf/libs/Animation";
 import { AnimationChannel } from "./gltf/libs/AnimationChannel";
 import { AnimationSampler } from "./gltf/libs/AnimationSampler";
 import { AnimationChannelTarget } from "./gltf/libs/AnimationChannelTarget";
 import Color from "../math/Color";
+import { Skin } from "./gltf/libs/Skin";
+import { Accessor } from "./gltf/libs/Accessor";
+import { GLTFNode } from "./gltf/libs/GLTFNode";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -43,9 +45,7 @@ export type GLTFAnimation = {
 };
 
 export class GLTF {
-	scenes: Array<any>;
-
-	defaultScene: number;
+	scenes: Array<GLTFNode>;
 
 	nodes: Array<any>;
 
@@ -77,15 +77,12 @@ export class GLTF {
 
 	samplers: Sampler[];
 
-	gltfMeshs: any[];
-
 	constructor(json: any, rootUrl: string, glbOffset = 0, glbBin?: ArrayBuffer) {
 		this.json = json;
 		this.bufferViews = json.bufferViews;
 		this.glbOffset = glbOffset;
 		this.rootUrl = rootUrl;
 		this.scenes = json.scenes;
-		this.defaultScene = json.scene || 0;
 		this.cameras = json.cameras || [];
 		this.glbBin = glbBin;
 		this.meshes = [];
@@ -113,7 +110,7 @@ export class GLTF {
 	}
 	private parseScenes() {
 		this.scenes = this.json.scenes.map((scene) => {
-			const node = new Node();
+			const node = new GLTFNode();
 			scene?.nodes?.map((nodeId) => {
 				node.add(this.nodes[nodeId]);
 			});
@@ -166,7 +163,7 @@ export class GLTF {
 			: [];
 	}
 	private parseAccessors() {
-		this.accessors = (this.json.accessors as Array<any>).map((accessor) => {
+		this.accessors = (this.json.accessors as Array<any>).map((accessor, index) => {
 			const n = gltfEnum[accessor.type] as number;
 			let array;
 			if (accessor.bufferView === undefined) {
@@ -192,8 +189,15 @@ export class GLTF {
 					}
 				}
 			}
-
-			return array;
+			return new Accessor({
+				componentType: <number>gltfEnum[accessor.componentType],
+				count: accessor.count,
+				type: n,
+				values: array,
+				id: index,
+				min: accessor?.min,
+				max: accessor?.max
+			});
 		});
 	}
 	private parseAnimations() {
@@ -217,7 +221,7 @@ export class GLTF {
 		});
 	}
 	private parseMeshs() {
-		this.gltfMeshs = this?.json?.meshes?.map?.((gltfmesh) => {
+		this.meshes = this?.json?.meshes?.map?.((gltfmesh) => {
 			return {
 				name: gltfmesh.name,
 				primitives: gltfmesh?.primitives?.map?.((primitive) => {
@@ -267,39 +271,45 @@ export class GLTF {
 	}
 	private createGeometry(primitive, material) {
 		let indices = null;
+		let accessor = null;
 		const defines: { [prop: string]: boolean | number } = { HAS_NORMAL: true };
 		let vertexCount;
+		accessor = this.getAccessor(primitive.attributes.POSITION);
+		const positions = accessor.getArray();
+		vertexCount = accessor.count;
+		// const { max, min } = accessor;
+		// const boundingBox = { max, min };
 		if (primitive.indices !== undefined) {
-			indices = toIndices(this.accessors[primitive.indices]);
-			vertexCount = this.json.accessors[primitive.indices].count;
-		} else {
-			vertexCount = this.json.accessors[primitive.attributes.POSITION].count;
+			accessor = this.getAccessor(primitive.indices);
+			indices = toIndices(accessor.getArray());
+			vertexCount = accessor.count;
 		}
-		const positions = this.accessors[primitive.attributes.POSITION];
-		const { max, min } = this.json.accessors[primitive.attributes.POSITION];
-		const boundingBox = { max, min };
-
 		let normals;
+
 		if (primitive.attributes.NORMAL !== undefined) {
-			normals = this.accessors[primitive.attributes.NORMAL];
+			accessor = this.getAccessor(primitive.attributes.NORMAL);
+			normals = accessor.getArray();
 		} else {
 			normals = generateNormals(indices, positions);
 		}
 
 		let uvs = null;
 		if (primitive.attributes.TEXCOORD_0 !== undefined) {
-			uvs = this.accessors[primitive.attributes.TEXCOORD_0];
+			accessor = this.getAccessor(primitive.attributes.TEXCOORD_0);
+			uvs = accessor.getArray();
 			defines.HAS_UV = true;
 		}
 		let uv1s = null;
 		if (primitive.attributes.TEXCOORD_1 !== undefined) {
-			uv1s = this.accessors[primitive.attributes.TEXCOORD_1];
+			accessor = this.getAccessor(primitive.attributes.TEXCOORD_1);
+			uv1s = accessor.getArray();
 			defines.HAS_UV1 = true;
 		}
 
 		let tangents = null;
 		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
-			tangents = this.accessors[primitive.attributes.TANGENT];
+			accessor = this.getAccessor(primitive.attributes.TANGENT);
+			tangents = accessor.getArray();
 			//defines.HAS_TANGENT = true;
 		} else if (material.normalTexture) {
 			//tangents = generateTangents(indices, positions, normals, uvs!);
@@ -311,12 +321,14 @@ export class GLTF {
 		}
 		let joints = null;
 		if (primitive.attributes.JOINTS_0 !== undefined) {
-			joints = this.accessors[primitive.attributes.JOINTS_0];
+			accessor = this.getAccessor(primitive.attributes.JOINTS_0);
+			joints = accessor.getArray();
 			// defines.HAS_SKIN = true;
 		}
 		let weights = null;
 		if (primitive.attributes.WEIGHTS_0 !== undefined) {
-			weights = this.accessors[primitive.attributes.WEIGHTS_0];
+			accessor = this.getAccessor(primitive.attributes.WEIGHTS_0);
+			weights = accessor.getArray();
 		}
 		const geo = new Geometry({ type: "pbrGeomtry" });
 		if (indices) geo.setIndice(Array.from(indices));
@@ -416,12 +428,21 @@ export class GLTF {
 	}
 	private parseNodes() {
 		this.nodes = this?.json?.nodes?.map((gltfNode) => {
-			const node = new Node();
-			if (gltfNode.mesh != undefined) node.meshList = this.gltfMeshs[gltfNode.mesh].primitives;
+			const node = new GLTFNode();
+			if (gltfNode.mesh != undefined) node.meshList = this.meshes[gltfNode.mesh].primitives;
+			if (gltfNode.skin != undefined) {
+				const gltfSkin = this.json.skins[gltfNode.skin];
+				node.skin = new Skin({
+					inverseBindMatrices: this.getAccessor(gltfSkin.inverseBindMatrices).getMat4Array(),
+					name: gltfSkin.name,
+					joints: gltfSkin.joints,
+					skeleton: gltfSkin.skeleton
+				});
+			}
 			return this.parseNodeTRS(node, gltfNode);
 		});
 	}
-	private parseNodeTRS(node: Node, gltfNode: GLTFNode): Node {
+	private parseNodeTRS(node: GLTFNode, gltfNode: GLTFNodeParms): GLTFNode {
 		const { matrix, rotation, translation, scale } = gltfNode;
 		if (matrix) Matrix4.fromColumnMajorArray(matrix, node.modelMatrix);
 		if (rotation) node.quaternion.set(rotation[0], rotation[1], rotation[2], rotation[3]);
@@ -430,7 +451,11 @@ export class GLTF {
 		return node;
 	}
 	private normalizeData() {
-		this?.nodes?.map?.((node: Node, index) => {
+		this?.nodes?.map?.((node: GLTFNode, index) => {
+			if (node.skin)
+				node.skin.joints = node.skin.joints.map((joint) => {
+					return this.nodes[<number>joint];
+				});
 			node.children = this.json?.nodes[index]?.children?.map((nodeId: number) => {
 				const childNode = this.nodes[nodeId];
 				if (childNode) childNode.parent = node;
@@ -456,7 +481,7 @@ export async function loadGLTF(url: string) {
 	await gltf.parseData();
 	return gltf;
 }
-type GLTFNode = {
+type GLTFNodeParms = {
 	children?: number[];
 	matrix?: number[];
 	scale?: number[];

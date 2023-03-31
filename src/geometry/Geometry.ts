@@ -60,6 +60,9 @@ export default class Geometry {
 		}
 		this.attributes.setAttribute(attribute);
 	}
+	containAttribute(name: string): boolean {
+		return this._defines[name?.concat("Location")] != undefined ? true : false;
+	}
 	setIndice(indices: Array<number>) {
 		this.indices = indices;
 		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer(this.type + "IndexBuffer");
