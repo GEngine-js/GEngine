@@ -1,4 +1,4 @@
-import { GPUCanvasCompositingAlphaMode, ScissorTest, ViewPort } from "../core/WebGPUTypes";
+import { GPUCanvasCompositingAlphaMode } from "../core/WebGPUTypes";
 import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
 import DrawCommand from "./DrawCommand.js";
@@ -6,6 +6,7 @@ import { MipmapGenerator } from "../utils/MipmapGenerator";
 import Pipeline from "./Pipeline";
 import Camera from "../camera/Camera";
 import LightManger from "../core/LightManger";
+import { RenderState, ScissorTest, ViewPort } from "./RenderState";
 
 class Context {
 	public canvas: HTMLCanvasElement;
@@ -32,10 +33,15 @@ class Context {
 
 	private _scissorTest: ScissorTest;
 
-	private _scissorTestEnabled: boolean;
-
 	private _openShadow: boolean;
 
+	public get viewPort(): ViewPort {
+		return this._viewPort;
+	}
+
+	public get scissorTest(): ScissorTest {
+		return this._scissorTest;
+	}
 	constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
 		if (!container.clientWidth || !container.clientHeight) throw new Error("container width or height illegality");
 		this.canvas = canvas || document.createElement("canvas");
@@ -88,13 +94,18 @@ class Context {
 				alphaMode: "opaque",
 				...presentationContextDescriptor
 			});
-			this._viewPort = {
-				x: 0,
-				y: 0,
-				width: this.canvas.clientWidth * this.pixelRatio,
-				height: this.canvas.clientHeight * this.pixelRatio
-			};
-			this._scissorTestEnabled = false;
+			this._viewPort = new ViewPort(
+				0,
+				0,
+				this.canvas.clientWidth * this.pixelRatio,
+				this.canvas.clientHeight * this.pixelRatio
+			);
+			this._scissorTest = new ScissorTest(
+				0,
+				0,
+				this.canvas.clientWidth * this.pixelRatio,
+				this.canvas.clientHeight * this.pixelRatio
+			);
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -103,11 +114,10 @@ class Context {
 		return true;
 	}
 	public setViewPort(x: number, y: number, width: number, height: number) {
-		this._viewPort = { x, y, width, height };
+		this._viewPort.set(x, y, width, height);
 	}
 	public setScissorTest(x: number, y: number, width: number, height: number) {
-		this._scissorTestEnabled = true;
-		this._scissorTest = { x, y, width, height };
+		this._scissorTest.set(x, y, width, height);
 	}
 	public resize(width: number, height: number, presentationContextDescriptor = {}): void {
 		const w = width * this.pixelRatio;

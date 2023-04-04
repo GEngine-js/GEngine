@@ -11,6 +11,8 @@ import PostEffect from "./post-process/PostEffect";
 import { Instance } from "./core/WebGPUTypes";
 import { Mesh } from "./mesh/Mesh";
 import { Light } from "./light/Light";
+import Node from "./mesh/Node";
+import Camera from "./camera/Camera";
 
 export class Scene extends EventDispatcher {
 	camera: PerspectiveCamera;
@@ -82,28 +84,38 @@ export class Scene extends EventDispatcher {
 		this.context.resize(width, height);
 		this.postEffectCollection.setResolveFrameDirty(true);
 	}
-	async render() {
+	async render(node?: Node, camera?: Camera) {
 		if (!this.inited) {
 			this.inited = true;
 			await this.init();
-			this.update();
+			this.update(node, camera);
 		} else {
-			this.update();
+			this.update(node, camera);
 		}
 	}
-	private update() {
+	public setViewPort(x: number, y: number, width: number, height: number): boolean {
+		if (!this.ready) return false;
+		this.context.setViewPort(x, y, width, height);
+		return true;
+	}
+	public setScissorTest(x: number, y: number, width: number, height: number): boolean {
+		if (!this.ready) return false;
+		this.context.setScissorTest(x, y, width, height);
+		return true;
+	}
+	private update(node?: Node, camera?: Camera) {
 		if (!this.ready) return;
 		//释放纹理
 		textureCache.releasedTextures();
 		//更新相机
 		this.frameState.viewport = this.viewport;
-		this.frameState.update(this.camera);
+		this.frameState.update(camera ?? this.camera);
 		//更新灯光
-		this.context.lightManger.update(this.frameState, this.camera);
+		this.context.lightManger.update(this.frameState, camera ?? this.camera);
 		//update primitive and select
-		this.primitiveManger.update(this.frameState, this.camera);
+		(node ?? this.primitiveManger).update(this.frameState, camera ?? this.camera);
 		//selct renderPipeline
-		this.currentRenderPipeline.render(this.frameState, this.camera);
+		this.currentRenderPipeline.render(this.frameState, camera ?? this.camera);
 		//后处理
 		this.postEffectCollection.render(this.context, this.currentRenderPipeline.getOutputTexture());
 	}

@@ -36,32 +36,16 @@ export class RenderState {
 		this.targets = undefined;
 	}
 	bind(passEncoder: GPURenderPassEncoder, context: Context) {
-		// const {width,height}=context.presentationSize;
-		// this.setViewPort(400,0,400,900);
-		// this.setScissorRect(400,0,400,900)
-		// if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
-		// if (this.viewport.equalsAndUpdateCache(cacheViewPort)) {
-		// 	const { x, y, width, height, minDepth, maxDepth } = this.viewport;
-		// passEncoder.setViewport(0, 0, 400, 400, 0, 1);
-		//}
-		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
-		// if (this.scissorTest.equalsAndUpdateCache(cacheScissorTest)) {
-		// 	const { x, y, width, height } = this.scissorTest;
-		// 	passEncoder.setScissorRect(x, y, width, height);
-		// }
-	}
-	setViewPort(x, y, width, height, minDepth = 0, maxDepth = 1) {
-		if (this.viewport) {
-			this.viewport.set(x, y, width, height, minDepth, maxDepth);
-		} else {
-			this.viewport = new ViewPort(x, y, width, height, minDepth, maxDepth);
+		const { viewPort, scissorTest } = context;
+		if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
+		if ((this.viewport ?? viewPort).equalsAndUpdateCache(cacheViewPort)) {
+			const { x, y, width, height, minDepth, maxDepth } = this.viewport;
+			passEncoder.setViewport(x, y, width, height, minDepth, maxDepth);
 		}
-	}
-	setScissorRect(x, y, width, height) {
-		if (this.scissorTest) {
-			this.scissorTest.set(x, y, width, height);
-		} else {
-			this.scissorTest = new ScissorTest(x, y, width, height);
+		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
+		if ((this.scissorTest ?? scissorTest).equalsAndUpdateCache(cacheScissorTest)) {
+			const { x, y, width, height } = this.scissorTest;
+			passEncoder.setScissorRect(x, y, width, height);
 		}
 	}
 	destroy() {
