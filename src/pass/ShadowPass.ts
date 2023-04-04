@@ -9,6 +9,7 @@ import ShaderMaterial from "../material/ShaderMaterial";
 import getVertFrag from "../shader/Shaders";
 import Texture from "../render/Texture";
 import { CommandSubType } from "../core/WebGPUConstant";
+import RenderQueue from "../core/RenderQueue";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -26,33 +27,59 @@ export class ShadowPass extends Pass {
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture
-			this.setRenderTarget(shadow);
-			super.beforeRender();
+			this.beforeRender(shadow);
 
-			renderQueue.sort();
-			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-			renderQueue.transparentRender(
-				shadow.camera,
-				this.context,
-				this.passRenderEncoder,
-				this.shadowMaterial,
-				CommandSubType.Shadow
-			);
-			renderQueue.opaqueRender(
-				shadow.camera,
-				this.context,
-				this.passRenderEncoder,
-				this.shadowMaterial,
-				CommandSubType.Shadow
-			);
+			if (shadow.type == "pointLightShadow") {
+				// for (let i = 0; i < shadow.viewports.length; i++) {
+				// 	const viewport = shadow.viewports[i];
+				// 	const viewportSize = shadow.viewportSize;
+				// 	shadow.currentViewportIndex = i;
+				// 	// this.shadowMaterial.renderState.setViewPort(
+				// 	// 	viewport.x * viewportSize.x,
+				// 	// 	viewport.y * viewportSize.y,
+				// 	// 	viewportSize.x,
+				// 	// 	viewportSize.y
+				// 	// );
+				// 	this.subRender(renderQueue, shadow);
+				// }
+				this.shadowMaterial.renderState.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				this.subRender(renderQueue, shadow);
+			} else {
+				this.shadowMaterial.renderState.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				this.subRender(renderQueue, shadow);
+			}
+
 			super.afterRender();
 		}
 		context.lightManger.updateLightShadow();
 	}
 
+	subRender(renderQueue: RenderQueue, shadow: BaseShadow) {
+		renderQueue.sort();
+		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
+		renderQueue.transparentRender(
+			shadow.camera,
+			this.context,
+			this.passRenderEncoder,
+			this.shadowMaterial,
+			CommandSubType.Shadow
+		);
+		renderQueue.opaqueRender(
+			shadow.camera,
+			this.context,
+			this.passRenderEncoder,
+			this.shadowMaterial,
+			CommandSubType.Shadow
+		);
+	}
+
 	// getDepthTexture(): Texture {
 	// 	return this._testTexture;
 	// }
+	beforeRender(shadow: BaseShadow) {
+		this.setRenderTarget(shadow);
+		super.beforeRender();
+	}
 
 	private setRenderTarget(shadow: BaseShadow) {
 		this.renderTarget.depthAttachment.texture = shadow.getShadowMapTexture();

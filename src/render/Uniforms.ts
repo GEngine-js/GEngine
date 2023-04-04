@@ -694,7 +694,6 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * this._subDataSize;
 		if (pointLight.positionDirty) {
-			// TODO:未完成更新
 			pointLight.shadow.update(pointLight);
 			this.dirty = setDataToTypeArray(this.buffer, pointLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}

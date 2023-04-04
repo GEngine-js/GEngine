@@ -1,12 +1,13 @@
 import { BaseShadow } from "./BaseShadow";
 import PerspectiveCamera from "../../camera/PerspectiveCamera";
 import { SpotLight } from "../SpotLight";
+import Vector2 from "../../math/Vector2";
 
 export class SpotLightShadow extends BaseShadow {
 	public type: string;
 	constructor() {
 		const camera = new PerspectiveCamera(60, 1, 0.1, 500);
-		super(1024, camera);
+		super(new Vector2(1024, 1024), camera);
 		this.type = "spotLightShadow";
 	}
 

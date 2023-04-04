@@ -19,7 +19,7 @@ class Pass {
 		this.context = context;
 	}
 	render(frameState: FrameState): void {}
-	beforeRender() {
+	beforeRender(options?: any) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
 		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}

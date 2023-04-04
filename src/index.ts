@@ -10,6 +10,8 @@ export { Attribute } from "./render/Attribute";
 export { default as BindGroup } from "./render/BindGroup";
 export { default as BindGroupEntity } from "./render/BindGroupEntity";
 //utils
+//helper
+export { ShadowMapDebugger } from "./helper/ShadowMapDebugger";
 //mesh
 export { Mesh } from "./mesh/Mesh";
 export { default as Axes } from "./mesh/Axes";

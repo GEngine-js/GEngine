@@ -15,6 +15,8 @@ import pbr_fs from "./material/pbr_fs";
 import Blur from "./postProcess/bloom/Blur";
 import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
 import blendFrag from "./postProcess/blend/blendFrag";
+import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
+import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
 
 function reduceComma(shader) {
 	//对所有的include处理
@@ -59,6 +61,10 @@ const shaders = {
 	blend: {
 		frag: blendFrag,
 		vert: quadVert
+	},
+	shadowMapDebugger: {
+		frag: shadowMapDebuggerFrag,
+		vert: shadowMapDebuggerVert
 	}
 };
 

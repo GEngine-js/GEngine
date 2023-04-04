@@ -71,7 +71,7 @@
 				});
 
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
-				camera.position.set(-8, 8, -8);
+				camera.position.set(40, 50, 40);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -91,13 +91,13 @@
 				const skybox = new SkyBox(environmentUrls);
 
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-				directionalLight.position.set(-0, 40, -8);
+				directionalLight.position.set(30, 40, -8);
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
 				const boxMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
 				boxMaterial.color = new Color(1.0, 0.0, 0.0);
 				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
-				boxPrimitive.position.set(-1, 5, 3);
+				boxPrimitive.position.set(-30, 5, 3);
 
 				const torusKnotGeometry = new TorusKnotGeometry(10, 3, 200, 32);
 				const torusKnotMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);

@@ -1,12 +1,13 @@
 import { BaseShadow } from "./BaseShadow";
 import OrthographicCamera from "../../camera/OrthographicCamera";
 import { DirectionalLight } from "../DirectionalLight";
+import Vector2 from "../../math/Vector2";
 
 export class DirectionalLightShadow extends BaseShadow {
 	public type: string;
 	constructor() {
 		const camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
-		super(1024, camera);
+		super(new Vector2(1024, 1024), camera);
 		this.type = "directionalLightShadow";
 	}
 
