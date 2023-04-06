@@ -111,11 +111,11 @@ export default class ShaderData {
 		return bindGroup;
 	}
 	private createBindGroupLayout(device: GPUDevice, label: string, layoutIndex?: number) {
-		const layoutEntities = this.createBindGroupLayoutEntry();
+		const result = this.createBindGroupLayoutEntry();
 		const groupLayout = BindGroupLayout.getBindGroupLayoutFromCache(
 			device,
-			label,
-			layoutEntities,
+			label + result.uid,
+			result.layouts,
 			layoutIndex || 0
 		);
 		return groupLayout;
@@ -126,18 +126,15 @@ export default class ShaderData {
 		});
 	}
 	private createBindGroupLayoutEntry() {
+		let uid = "";
 		const result = new Map();
 		this._uniforms.forEach((uniform) => {
 			if (!result.has(uniform.binding)) {
+				uid = uid.concat(uniform.name);
 				result.set(uniform.binding, this.createOneLayoutEntry(uniform));
 			}
 		});
-		const lauoutEntityArray = [];
-		result.forEach((value) => {
-			lauoutEntityArray.push(value);
-		});
-
-		return lauoutEntityArray;
+		return { uid, layouts: [...result.values()] };
 	}
 	private createBindGroupEntity() {
 		const result = new Map();

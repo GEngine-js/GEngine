@@ -429,6 +429,7 @@ export class GLTF {
 	private parseNodes() {
 		this.nodes = this?.json?.nodes?.map((gltfNode) => {
 			const node = new GLTFNode();
+			this.parseNodeTRS(node, gltfNode);
 			if (gltfNode.mesh != undefined) node.meshList = this.meshes[gltfNode.mesh].primitives;
 			if (gltfNode.skin != undefined) {
 				const gltfSkin = this.json.skins[gltfNode.skin];
@@ -439,7 +440,7 @@ export class GLTF {
 					skeleton: gltfSkin.skeleton
 				});
 			}
-			return this.parseNodeTRS(node, gltfNode);
+			return node;
 		});
 	}
 	private parseNodeTRS(node: GLTFNode, gltfNode: GLTFNodeParms): GLTFNode {

@@ -40,9 +40,11 @@ export default class UniformBuffer {
 	dataBuffer: Float32Array;
 	offset: number;
 	isUniformBuffer: boolean;
+	name: string;
 	constructor(label: string, type?: string, usage?: BufferUsage, size?: number, dataBuffer?: Float32Array) {
 		this.type = defaultValue(type, "uniform");
 		this.label = defaultValue(label, "");
+		this.name = defaultValue(label, "");
 		(this.hasDynamicOffset = false), (this.minBindingSize = 0);
 		this.binding = 0;
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;

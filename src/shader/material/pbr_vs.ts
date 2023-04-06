@@ -16,7 +16,7 @@ export default function pbr_vs(defines) {
             occlusionStrength:f32,
         #endif
         #if ${defines.HAS_SKIN} 
-             jointMatrixCount:f32,
+             //jointMatrixCount:f32,
              jointMatrixs:array<mat4x4>,
         #endif
    }

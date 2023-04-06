@@ -24,7 +24,6 @@ export default class Geometry {
 	boundingSphere?: BoundingSphere;
 	boundingBox?: BoundingBox;
 	private _defines: { [prop: string]: boolean | number };
-	private attributes: Attributes;
 	private locationIndex?: number;
 	definesDirty: boolean;
 	topology: PrimitiveTopology;
@@ -41,8 +40,7 @@ export default class Geometry {
 		this.dirty = false;
 		this.definesDirty = true;
 		this.locationIndex = 0;
-		this.attributes = new Attributes();
-		this.vertBuffer = new VertextBuffer(this.type, this.attributes, 0);
+		this.vertBuffer = new VertextBuffer(this.type, 0);
 		this._defines = {};
 		this.normals = [];
 		this.uvs = [];
@@ -51,14 +49,14 @@ export default class Geometry {
 		this.tangents = [];
 	}
 	getAttribute(name: string) {
-		return this.attributes.getAttribute(name);
+		return this.vertBuffer.getAttribute(name);
 	}
 	setAttribute(attribute: Attribute) {
 		if (!this._defines[attribute?.name?.concat("Location")]) {
 			this._defines[attribute?.name?.concat("Location")] = this.locationIndex;
 			this.locationIndex += 1;
 		}
-		this.attributes.setAttribute(attribute);
+		this.vertBuffer.setAttribute(attribute);
 	}
 	containAttribute(name: string): boolean {
 		return this._defines[name?.concat("Location")] != undefined ? true : false;
@@ -170,7 +168,6 @@ export default class Geometry {
 	destroy() {
 		this?.indexBuffer.destroy();
 		this.vertBuffer.destroy();
-		this.attributes.destroy();
 		this.normals = null;
 		this.uvs = null;
 		this.positions = null;

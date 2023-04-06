@@ -26,9 +26,6 @@ export default function skyBoxVert(defines) {
        // Drop the translation portion of the modelView matrix
        modelView[3] = vec4(0.0, 0.0, 0.0, modelView[3].w);
        output.position = systemUniform.projectionMatrix * modelView * vec4<f32>(input.position,1.0);
-       // Returning the W component for both Z and W forces the geometry depth to
-       // the far plane. When combined with a depth func of "less-equal" this makes
-       // the sky write to any depth fragment that has not been written to yet.
        output.position = output.position.xyww;
        return output;
      }

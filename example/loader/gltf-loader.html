@@ -50,14 +50,20 @@
 				CubeTextureLoader,
 				loadGLTF,
 				OrbitControl,
-				AmbientLight
+				AmbientLight,
+				DirectionalLight,
+				Axes
 			} from "../../dist/index.js";
 
 			const init = async () => {
 				const scene = new Scene({
 					container: "app"
 				});
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
+				directionalLight.position.set(1, 1, 1);
 				const gltf = await loadGLTF(
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf"
+					//'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf'
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF/Avocado.gltf"
@@ -67,12 +73,14 @@
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
 				gltf.scenes.map((node) => {
+					///node.rotateX(-Math.PI/2)
+					// node.scale.set(30,30,30)
 					scene.add(node);
 				});
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
 				camera.position.set(2, 0, 2);
 				camera.lookAt(0, 0, 0);
-				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
+				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 0.8);
 				scene.add(ambientLight);
 				const control = new OrbitControl(camera, document.getElementById("app"));
 				const urls = [
@@ -87,6 +95,9 @@
 				window.addEventListener("resize", onWindowResize);
 				scene.add(skybox);
 				scene.setCamera(camera);
+				const axes = new Axes();
+				// scene.add(axes)
+				// scene.add(directionalLight)
 				function animate() {
 					requestAnimationFrame(animate);
 					control.update();

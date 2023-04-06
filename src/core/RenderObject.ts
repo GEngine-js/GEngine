@@ -39,7 +39,7 @@ export default class RenderObject {
 	}
 	updateMatrix(matrix?: Matrix4) {
 		Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
-		if (matrix) Matrix4.multiply(this.modelMatrix, matrix, this.modelMatrix);
+		if (matrix) Matrix4.multiply(matrix, this.modelMatrix, this.modelMatrix);
 		this.updateNormalMatrix();
 	}
 	lookAt(x, y, z) {

@@ -11,15 +11,15 @@ export class GLTFNode extends Node {
 		super();
 	}
 	update(frameState: FrameState, camera?: Camera) {
-		if (this.parent) this.updateMatrix(this.parent.modelMatrix);
-		if (this.skin) this.skin.update(this.modelMatrix);
-		if (this.meshList)
-			this.meshList.map((mesh: Mesh) => {
-				mesh.update(frameState, camera, this.modelMatrix);
-			});
+		this.updateMatrix(this?.parent?.modelMatrix ?? undefined);
 		this?.children?.forEach?.((node: Node) => {
 			node.update(frameState, camera);
 		});
+		if (this.skin) this.skin.update(this.modelMatrix);
+		if (this.meshList)
+			this?.meshList?.map?.((mesh: Mesh) => {
+				mesh.update(frameState, camera, this.modelMatrix);
+			});
 	}
 	destroy() {
 		this.meshList.map((mesh: Mesh) => {

@@ -13,6 +13,7 @@ import { Mesh } from "./mesh/Mesh";
 import { Light } from "./light/Light";
 import Node from "./mesh/Node";
 import Camera from "./camera/Camera";
+import { ViewPort } from "./render/RenderState";
 
 export class Scene extends EventDispatcher {
 	camera: PerspectiveCamera;
@@ -23,7 +24,7 @@ export class Scene extends EventDispatcher {
 	container: HTMLDivElement;
 	frameState: FrameState;
 	currentRenderPipeline: IBaseRenderLine;
-	viewport: { x: number; y: number; width: number; height: number };
+	viewport: ViewPort;
 	private ready: boolean;
 	private inited: boolean;
 	private primitiveManger: PrimitiveManger;
@@ -51,12 +52,7 @@ export class Scene extends EventDispatcher {
 		await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor);
 		this.currentRenderPipeline = new ForwardRenderLine(this.context);
 		this.frameState = new FrameState(this.context);
-		this.viewport = {
-			x: 0,
-			y: 0,
-			width: this.context.presentationSize.width,
-			height: this.context.presentationSize.height
-		};
+		this.viewport = new ViewPort(0, 0, this.context.presentationSize.width, this.context.presentationSize.height);
 		this.ready = true;
 	}
 	add(instance: Instance) {

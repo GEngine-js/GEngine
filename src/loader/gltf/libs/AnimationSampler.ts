@@ -6,12 +6,6 @@ export class AnimationSampler {
 	input: any;
 	interpolation: "LINEAR" | "STEP" | "CUBICSPLINE";
 	output: any;
-	keyFrameIndices: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
-	keyFrameRaw: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
-	keyFrames: {
-		src: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
-		dst: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
-	};
 	currentIndex: number;
 	startTime: number;
 	endTime: number;

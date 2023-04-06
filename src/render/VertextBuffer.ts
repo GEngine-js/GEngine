@@ -1,4 +1,5 @@
 import { InputStepMode } from "../core/WebGPUConstant";
+import { Attribute } from "./Attribute";
 import Attributes from "./Attributes";
 import Buffer from "./Buffer";
 export default class VertextBuffer {
@@ -9,9 +10,9 @@ export default class VertextBuffer {
 	public attributes: Attributes;
 	public dirty: Boolean;
 	private label: string;
-	constructor(label: string, attributes?: Attributes, index?: number, stepMode?: string) {
+	constructor(label: string, index?: number, stepMode?: string) {
 		this.index = index || 0;
-		this.attributes = attributes || undefined;
+		this.attributes = new Attributes();
 		this.stepMode = InputStepMode.Vertex;
 		this.dirty = true;
 		this.label = label;
@@ -25,9 +26,12 @@ export default class VertextBuffer {
 			}
 		];
 	}
-	public setAttributes(attributes: Attributes) {
-		this.attributes = attributes;
+	public setAttribute(attribute: Attribute) {
+		this.attributes.setAttribute(attribute);
 		this.dirty = true;
+	}
+	public getAttribute(name: string): Attribute {
+		return this.attributes.getAttribute(name);
 	}
 	public bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {
 		if (this.dirty) {
@@ -43,5 +47,6 @@ export default class VertextBuffer {
 	}
 	destroy() {
 		this.buffer.destroy();
+		this.attributes.destroy();
 	}
 }
