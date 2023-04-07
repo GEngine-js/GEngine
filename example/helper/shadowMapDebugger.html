@@ -72,7 +72,7 @@
 				});
 
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
-				camera.position.set(-8, 8, -8);
+				camera.position.set(-40, 40, -40);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -133,6 +133,9 @@
 				scene.add(ambientLight);
 				scene.add(spotLight);
 				scene.add(spotLightPrimitive);
+
+				// use ShadowMapDebugger display spotlight shadowmap texture
+				const shadowMapDebuggerInstance = new ShadowMapDebugger(spotLight, scene);
 
 				var radiu = 40;
 				var i = 0;
