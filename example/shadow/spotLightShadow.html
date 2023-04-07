@@ -62,7 +62,8 @@
 				loadTexture,
 				OrbitControl,
 				PlaneGeometry,
-				AmbientLight
+				AmbientLight,
+				ShadowMapDebugger
 			} from "../../dist/index.js";
 
 			const init = async () => {
@@ -96,7 +97,7 @@
 				const spotLightPrimitive = new Mesh(spotLightGeometry, spotLightMaterial);
 				const spotLightPosition = new Vector3(30, 30, 30);
 				spotLightPrimitive.position.set(spotLightPosition.x, spotLightPosition.y + 3, spotLightPosition.z);
-				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 120, 50, 10);
+				const spotLight = new SpotLight(new Vector3(1.0, 1.0, 1.0), 1.0, 120, 50, 10, 4, true);
 				spotLight.shadow.camera.fov = 100;
 				spotLight.position = spotLightPosition;
 
@@ -132,6 +133,8 @@
 				scene.add(ambientLight);
 				scene.add(spotLight);
 				scene.add(spotLightPrimitive);
+
+				const shadowMapDebuggerInstance = new ShadowMapDebugger(spotLight, scene);
 
 				var radiu = 40;
 				var i = 0;

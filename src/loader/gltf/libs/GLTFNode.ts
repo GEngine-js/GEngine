@@ -20,6 +20,9 @@ export class GLTFNode extends Node {
 			this?.meshList?.map?.((mesh: Mesh) => {
 				mesh.update(frameState, camera, this.modelMatrix);
 			});
+		this?.children?.forEach?.((node: Node | Mesh) => {
+			node.update(frameState, camera);
+		});
 	}
 	destroy() {
 		this.meshList.map((mesh: Mesh) => {

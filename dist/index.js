@@ -5096,7 +5096,6 @@ class UniformPointLightShadows extends Uniform {
 	setSubData(pointLight, index) {
 		const offset = index * this._subDataSize;
 		if (pointLight.positionDirty) {
-			// TODO:未完成更新
 			pointLight.shadow.update(pointLight);
 			this.dirty = setDataToTypeArray(this.buffer, pointLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}
@@ -6018,11 +6017,13 @@ class LightManger {
 					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
 						console.warn("spotLightShadowMap align has problem");
 					this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
+					// this._testTexture = spotLightShadowMapTextureArray
 				}
 				if (pointLightShadowMapTextureArray !== undefined) {
 					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightWithShadowCount)
 						console.warn("pointLightShadowMap align has problem");
 					this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
+					// this._testTexture = pointLightShadowMapTextureArray;
 				}
 				if (directLightShadowMapTextureArray !== undefined) {
 					if (directLightShadowMapTextureArray.textureProp.size.depth != directLightWithShadowCount)
@@ -6037,6 +6038,7 @@ class LightManger {
 					"shadowSampler",
 					new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
 				);
+				// this.lightShaderData.setSampler("shadowSampler", new Sampler());
 			}
 		}
 		this.lightShaderData.setUniformBuffer("light", this.lightUniformBuffer);
@@ -6119,14 +6121,16 @@ class RenderState {
 	}
 	bind(passEncoder, context) {
 		const { viewPort, scissorTest } = context;
+		const finalViewport = this.viewport ?? viewPort;
+		const finalScissorTest = this.scissorTest ?? scissorTest;
 		if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
-		if ((this.viewport ?? viewPort).equalsAndUpdateCache(cacheViewPort)) {
-			const { x, y, width, height, minDepth, maxDepth } = this.viewport;
+		if (finalViewport.equalsAndUpdateCache(cacheViewPort)) {
+			const { x, y, width, height, minDepth, maxDepth } = finalViewport;
 			passEncoder.setViewport(x, y, width, height, minDepth, maxDepth);
 		}
 		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
-		if ((this.scissorTest ?? scissorTest).equalsAndUpdateCache(cacheScissorTest)) {
-			const { x, y, width, height } = this.scissorTest;
+		if (finalScissorTest.equalsAndUpdateCache(cacheScissorTest)) {
+			const { x, y, width, height } = finalScissorTest;
 			passEncoder.setScissorRect(x, y, width, height);
 		}
 	}
@@ -6365,6 +6369,9 @@ class Context {
 	}
 	setViewPort(x, y, width, height) {
 		this._viewPort.set(x, y, width, height);
+	}
+	resetViewPortToFullCanvas() {
+		this._viewPort.set(0, 0, this.canvas.clientWidth * this.pixelRatio, this.canvas.clientHeight * this.pixelRatio);
 	}
 	setScissorTest(x, y, width, height) {
 		this._scissorTest.set(x, y, width, height);
@@ -7827,6 +7834,72 @@ class Geometry {
 		this.indices = null;
 		this.tangents = null;
 		this.boundingSphere = undefined;
+	}
+}
+
+class PlaneGeometry extends Geometry {
+	constructor(width = 10, height = 10) {
+		super({
+			type: "planeGeometry"
+		});
+		this.width = width;
+		this.height = height;
+		this.defines = {
+			HAS_NORMAL: true
+		};
+		this.init();
+	}
+	init() {
+		//generate pos uv normal so on
+		const { indices, normals, uvs, vertices } = this.createGrid(this.width, this.height);
+		this.positions = vertices;
+		this.normals = normals;
+		this.uvs = uvs;
+		this.indices = indices;
+		this.computeBoundingSphere(this.positions);
+		this.setAttribute(new Float32Attribute("position", this.positions, 3));
+		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
+		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
+		this.setIndice(indices);
+		this.count = this.indices.length;
+		// this.count = 36;
+	}
+	update(frameState) {}
+	createGrid(width = 1, height = 1, widthSegments = 1, heightSegments = 1) {
+		const width_half = width / 2;
+		const height_half = height / 2;
+		const gridX = Math.floor(widthSegments);
+		const gridY = Math.floor(heightSegments);
+		const gridX1 = gridX + 1;
+		const gridY1 = gridY + 1;
+		const segment_width = width / gridX;
+		const segment_height = height / gridY;
+		//
+		const indices = [];
+		const vertices = [];
+		const normals = [];
+		const uvs = [];
+		for (let iy = 0; iy < gridY1; iy++) {
+			const y = iy * segment_height - height_half;
+			for (let ix = 0; ix < gridX1; ix++) {
+				const x = ix * segment_width - width_half;
+				vertices.push(x, -y, 0);
+				normals.push(0, 0, 1);
+				uvs.push(ix / gridX);
+				uvs.push(1 - iy / gridY);
+			}
+		}
+		for (let iy = 0; iy < gridY; iy++) {
+			for (let ix = 0; ix < gridX; ix++) {
+				const a = ix + gridX1 * iy;
+				const b = ix + gridX1 * (iy + 1);
+				const c = ix + 1 + gridX1 * (iy + 1);
+				const d = ix + 1 + gridX1 * iy;
+				indices.push(a, b, d);
+				indices.push(b, c, d);
+			}
+		}
+		return { indices, normals, uvs, vertices };
 	}
 }
 
@@ -10679,6 +10752,55 @@ function blendFrag(defines) {
     `;
 }
 
+function shadowMapDebuggerFrag(defines) {
+	return `
+    @group(0) @binding(1) var shadowSampler: sampler;
+    @group(0) @binding(0) var shadowMap: texture_depth_2d;
+    
+    // @group(0) @binding(0) var shadowMap: texture_depth_2d_array;
+    // @group(0) @binding(0) var shadowMap: texture_2d<f32>;
+
+    struct VertexOutput {
+        @builtin(position) position: vec4<f32>,
+        @location(0) uv: vec2<f32>,
+    };
+
+    fn linearizeDepth(depth: f32, near: f32, far: f32)->f32 {
+      return 2 * (near * far) / (far + near - depth * (far - near));
+    }
+
+    @fragment
+    fn main(input:VertexOutput) -> @location(0) vec4<f32> {
+			let color: vec4<f32> = textureGather(shadowMap, shadowSampler, vec2<f32>(input.uv.x,1.0-input.uv.y));
+      let depth = (linearizeDepth(color.r, 0.1, 500) - 0.1) / (500 - 0.1);
+      return vec4(vec3(depth), 1.0); // PerspectiveCamera
+      // return color;
+
+      // return textureSample(shadowMap, shadowSampler, vec2<f32>(input.uv.x,1.0-input.uv.y));
+
+    }
+    `;
+}
+
+function shadowMapDebuggerVert(defines) {
+	return `
+    struct VertexInput {
+         @location(${defines.positionLocation}) position: vec2<f32>,       
+    }
+    struct VertexOutput {
+         @builtin(position) position: vec4<f32>,
+         @location(0) uv: vec2<f32>,
+     };
+    @vertex
+    fn main(input: VertexInput) -> VertexOutput {
+     var output:VertexOutput;
+     output.uv = input.position * 0.5 + 0.5;
+     output.position = vec4<f32>(input.position, 0.0, 1.0);;
+     return output;
+    }
+    `;
+}
+
 function reduceComma(shader) {
 	//对所有的include处理
 	const str = resolveIncludes(shader);
@@ -10722,6 +10844,10 @@ const shaders = {
 	blend: {
 		frag: blendFrag,
 		vert: quadVert
+	},
+	shadowMapDebugger: {
+		frag: shadowMapDebuggerFrag,
+		vert: shadowMapDebuggerVert
 	}
 };
 function resolveIncludes(string) {
@@ -10833,6 +10959,122 @@ class ShaderSource {
 	}
 }
 
+const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
+function checkContainFloatType(uniforms) {
+	let result = 0;
+	let hasArraytype = false;
+	const uniformsNames = Object.getOwnPropertyNames(uniforms);
+	uniformsNames.map((uniformsName) => {
+		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
+			result += 0;
+		} else {
+			if (
+				uniformArrayNames.find((name) => {
+					return name === uniforms[uniformsName].type;
+				})
+			) {
+				hasArraytype = true;
+			} else {
+				result += 1;
+			}
+		}
+	});
+	return {
+		hasFloat: result,
+		hasArraytype
+	};
+}
+function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
+	switch (uniform.type) {
+		case "float":
+			uniformBuffer.setFloat(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec2":
+			uniformBuffer.setFloatVec2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec3":
+			uniformBuffer.setFloatVec3(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "color":
+			uniformBuffer.setColor(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "vec4":
+			uniformBuffer.setFloatVec4(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat2":
+			uniformBuffer.setMatrix2(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "mat3":
+			uniformBuffer.setMatrix3(name, () => {
+				return uniforms[name].value;
+			});
+		case "mat4":
+			uniformBuffer.setMatrix4(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "float-array":
+			uniformBuffer.setFloatArray(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec2-array":
+			uniformBuffer.setVec2Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec3-array":
+			uniformBuffer.setVec3Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "vec4-array":
+			uniformBuffer.setVec4Array(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				uniforms[name].value.length
+			);
+			break;
+		case "texture":
+			shaderData.setTexture(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		case "sampler":
+			shaderData.setSampler(name, () => {
+				return uniforms[name].value;
+			});
+			break;
+		default:
+			throw new Error("not match unifrom type");
+	}
+}
+
 class Material {
 	constructor() {
 		this.label = undefined;
@@ -10919,6 +11161,737 @@ class Material {
 		this.baseTexture = undefined;
 		this.baseSampler = undefined;
 		this.color = undefined;
+	}
+}
+
+class ShaderMaterial extends Material {
+	constructor(options) {
+		super();
+		const { type, frag, vert, defines, light } = options;
+		this.type = type;
+		this.shaderMaterialParms = options;
+		this.shaderSource = new ShaderSource({
+			type,
+			frag,
+			vert,
+			custom: true,
+			defines: defaultValue(defines, {}),
+			render: true
+		});
+		this.uniforms = options.uniforms;
+		this.uniformBuffer = undefined;
+		this.light = light || false;
+	}
+	update(frameState, mesh) {
+		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
+	}
+	clone() {
+		return new ShaderMaterial(this.shaderMaterialParms);
+	}
+	createShaderData(mesh) {
+		super.createShaderData(mesh);
+		let result = checkContainFloatType(this.uniforms);
+		if (result.hasFloat) {
+			this.uniformBuffer = result.hasArraytype
+				? new UniformBuffer(this.type, "read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
+				: new UniformBuffer(this.type);
+			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
+		}
+		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
+		uniformsNames.map((uniformsName) => {
+			addUniformToShaderData(
+				uniformsName,
+				this.uniforms[uniformsName],
+				this.uniforms,
+				this.shaderData,
+				this.uniformBuffer
+			);
+		});
+	}
+}
+
+// @ts-nocheck
+/**
+ * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
+ * @alias Quaternion
+ * @constructor
+ *
+ * @param {Number} [x=0.0] The X component.
+ * @param {Number} [y=0.0] The Y component.
+ * @param {Number} [z=0.0] The Z component.
+ * @param {Number} [w=0.0] The W component.
+ *
+ * @see PackableForInterpolation
+ */
+class Quaternion {
+	constructor(x = 0, y = 0, z = 0, w = 1) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+	}
+	set(x, y, z, w) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+	}
+	normalize() {
+		const inverseMagnitude = 1.0 / Quaternion.magnitude(this);
+		const x = this.x * inverseMagnitude;
+		const y = this.y * inverseMagnitude;
+		const z = this.z * inverseMagnitude;
+		const w = this.w * inverseMagnitude;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+		return this;
+	}
+	invert() {
+		this.x *= -1;
+		this.y *= -1;
+		this.z *= -1;
+		return this;
+	}
+	dot(v) {
+		return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+	}
+	setFromUnitVectors(vFrom, vTo) {
+		// assumes direction vectors vFrom and vTo are normalized
+		let r = Vector3.dot(vFrom, vTo) + 1;
+		if (r < Number.EPSILON) {
+			// vFrom and vTo point in opposite directions
+			r = 0;
+			if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
+				this.x = -vFrom.y;
+				this.y = vFrom.x;
+				this.z = 0;
+				this.w = r;
+			} else {
+				this.x = 0;
+				this.y = -vFrom.z;
+				this.z = vFrom.y;
+				this.w = r;
+			}
+		} else {
+			// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
+			this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+			this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+			this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
+			this._w = r;
+		}
+		return this.normalize();
+	}
+	setFromRotationMatrix(matrix) {
+		const te = matrix,
+			m11 = te[0],
+			m12 = te[4],
+			m13 = te[8],
+			m21 = te[1],
+			m22 = te[5],
+			m23 = te[9],
+			m31 = te[2],
+			m32 = te[6],
+			m33 = te[10],
+			trace = m11 + m22 + m33;
+		if (trace > 0) {
+			const s = 0.5 / Math.sqrt(trace + 1.0);
+			this.w = 0.25 / s;
+			this.x = (m32 - m23) * s;
+			this.y = (m13 - m31) * s;
+			this.z = (m21 - m12) * s;
+		} else if (m11 > m22 && m11 > m33) {
+			const s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
+			this.w = (m32 - m23) / s;
+			this.x = 0.25 * s;
+			this.y = (m12 + m21) / s;
+			this.z = (m13 + m31) / s;
+		} else if (m22 > m33) {
+			const s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
+			this.w = (m13 - m31) / s;
+			this.x = (m12 + m21) / s;
+			this.y = 0.25 * s;
+			this.z = (m23 + m32) / s;
+		} else {
+			const s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
+			this.w = (m21 - m12) / s;
+			this.x = (m13 + m31) / s;
+			this.y = (m23 + m32) / s;
+			this.z = 0.25 * s;
+		}
+		return this;
+	}
+	clone() {
+		return Quaternion.clone(this, this);
+	}
+	equals(right) {
+		return Quaternion.equals(this, right);
+	}
+	equalsEpsilon(right, epsilon = 0) {
+		return Quaternion.equalsEpsilon(this, right, epsilon);
+	}
+	static fromAxisAngle(axis, angle) {
+		const halfAngle = angle / 2.0;
+		const s = Math.sin(halfAngle);
+		fromAxisAngleScratch = Vector3.normalize(axis, fromAxisAngleScratch);
+		const x = fromAxisAngleScratch.x * s;
+		const y = fromAxisAngleScratch.y * s;
+		const z = fromAxisAngleScratch.z * s;
+		const w = Math.cos(halfAngle);
+		// if (!defined(result)) {
+		//   return
+		// }
+		let result = new Quaternion(x, y, z, w);
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		result.w = w;
+		return result;
+	}
+	static fromRotationMatrix(matrix, result) {
+		let root;
+		let x;
+		let y;
+		let z;
+		let w;
+		const m00 = matrix[Matrix3.COLUMN0ROW0];
+		const m11 = matrix[Matrix3.COLUMN1ROW1];
+		const m22 = matrix[Matrix3.COLUMN2ROW2];
+		const trace = m00 + m11 + m22;
+		if (trace > 0.0) {
+			// |w| > 1/2, may as well choose w > 1/2
+			root = Math.sqrt(trace + 1.0); // 2w
+			w = 0.5 * root;
+			root = 0.5 / root; // 1/(4w)
+			x = (matrix[Matrix3.COLUMN1ROW2] - matrix[Matrix3.COLUMN2ROW1]) * root;
+			y = (matrix[Matrix3.COLUMN2ROW0] - matrix[Matrix3.COLUMN0ROW2]) * root;
+			z = (matrix[Matrix3.COLUMN0ROW1] - matrix[Matrix3.COLUMN1ROW0]) * root;
+		} else {
+			// |w| <= 1/2
+			const next = fromRotationMatrixNext;
+			let i = 0;
+			if (m11 > m00) {
+				i = 1;
+			}
+			if (m22 > m00 && m22 > m11) {
+				i = 2;
+			}
+			const j = next[i];
+			const k = next[j];
+			root = Math.sqrt(
+				matrix[Matrix3.getElementIndex(i, i)] -
+					matrix[Matrix3.getElementIndex(j, j)] -
+					matrix[Matrix3.getElementIndex(k, k)] +
+					1.0
+			);
+			const quat = fromRotationMatrixQuat;
+			quat[i] = 0.5 * root;
+			root = 0.5 / root;
+			w = (matrix[Matrix3.getElementIndex(k, j)] - matrix[Matrix3.getElementIndex(j, k)]) * root;
+			quat[j] = (matrix[Matrix3.getElementIndex(j, i)] + matrix[Matrix3.getElementIndex(i, j)]) * root;
+			quat[k] = (matrix[Matrix3.getElementIndex(k, i)] + matrix[Matrix3.getElementIndex(i, k)]) * root;
+			x = -quat[0];
+			y = -quat[1];
+			z = -quat[2];
+		}
+		if (!defined(result)) {
+			return new Quaternion(x, y, z, w);
+		}
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		result.w = w;
+		return result;
+	}
+	static clone(quaternion, result) {
+		if (!defined(quaternion)) {
+			return undefined;
+		}
+		if (!defined(result)) {
+			return new Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+		}
+		result.x = quaternion.x;
+		result.y = quaternion.y;
+		result.z = quaternion.z;
+		result.w = quaternion.w;
+		return result;
+	}
+	static conjugate(quaternion, result) {
+		result.x = -quaternion.x;
+		result.y = -quaternion.y;
+		result.z = -quaternion.z;
+		result.w = quaternion.w;
+		return result;
+	}
+	static magnitudeSquared(quaternion) {
+		return (
+			quaternion.x * quaternion.x +
+			quaternion.y * quaternion.y +
+			quaternion.z * quaternion.z +
+			quaternion.w * quaternion.w
+		);
+	}
+	static magnitude(quaternion) {
+		return Math.sqrt(Quaternion.magnitudeSquared(quaternion));
+	}
+	static normalize(quaternion, result) {
+		const inverseMagnitude = 1.0 / Quaternion.magnitude(quaternion);
+		const x = quaternion.x * inverseMagnitude;
+		const y = quaternion.y * inverseMagnitude;
+		const z = quaternion.z * inverseMagnitude;
+		const w = quaternion.w * inverseMagnitude;
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		result.w = w;
+		return result;
+	}
+	static inverse(quaternion, result) {
+		const magnitudeSquared = Quaternion.magnitudeSquared(quaternion);
+		result = Quaternion.conjugate(quaternion, result);
+		return Quaternion.multiplyByScalar(result, 1.0 / magnitudeSquared, result);
+	}
+	static add(left, right, result) {
+		result.x = left.x + right.x;
+		result.y = left.y + right.y;
+		result.z = left.z + right.z;
+		result.w = left.w + right.w;
+		return result;
+	}
+	static subtract(left, right, result) {
+		result.x = left.x - right.x;
+		result.y = left.y - right.y;
+		result.z = left.z - right.z;
+		result.w = left.w - right.w;
+		return result;
+	}
+	static negate(quaternion, result) {
+		result.x = -quaternion.x;
+		result.y = -quaternion.y;
+		result.z = -quaternion.z;
+		result.w = -quaternion.w;
+		return result;
+	}
+	static dot(left, right) {
+		return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+	}
+	static multiply(left, right, result) {
+		const leftX = left.x;
+		const leftY = left.y;
+		const leftZ = left.z;
+		const leftW = left.w;
+		const rightX = right.x;
+		const rightY = right.y;
+		const rightZ = right.z;
+		const rightW = right.w;
+		const x = leftW * rightX + leftX * rightW + leftY * rightZ - leftZ * rightY;
+		const y = leftW * rightY - leftX * rightZ + leftY * rightW + leftZ * rightX;
+		const z = leftW * rightZ + leftX * rightY - leftY * rightX + leftZ * rightW;
+		const w = leftW * rightW - leftX * rightX - leftY * rightY - leftZ * rightZ;
+		result.x = x;
+		result.y = y;
+		result.z = z;
+		result.w = w;
+		return result;
+	}
+	static multiplyByScalar(quaternion, scalar, result) {
+		result.x = quaternion.x * scalar;
+		result.y = quaternion.y * scalar;
+		result.z = quaternion.z * scalar;
+		result.w = quaternion.w * scalar;
+		return result;
+	}
+	static divideByScalar(quaternion, scalar, result) {
+		result.x = quaternion.x / scalar;
+		result.y = quaternion.y / scalar;
+		result.z = quaternion.z / scalar;
+		result.w = quaternion.w / scalar;
+		return result;
+	}
+	static computeAxis(quaternion, result) {
+		const w = quaternion.w;
+		if (Math.abs(w - 1.0) < GMath.EPSILON6) {
+			result.x = result.y = result.z = 0;
+			return result;
+		}
+		const scalar = 1.0 / Math.sqrt(1.0 - w * w);
+		result.x = quaternion.x * scalar;
+		result.y = quaternion.y * scalar;
+		result.z = quaternion.z * scalar;
+		return result;
+	}
+	static computeAngle(quaternion) {
+		if (Math.abs(quaternion.w - 1.0) < GMath.EPSILON6) {
+			return 0.0;
+		}
+		return 2.0 * Math.acos(quaternion.w);
+	}
+	static lerp(start, end, t, result) {
+		lerpScratch = Quaternion.multiplyByScalar(end, t, lerpScratch);
+		result = Quaternion.multiplyByScalar(start, 1.0 - t, result);
+		return Quaternion.add(lerpScratch, result, result);
+	}
+	static slerp(start, end, t, result) {
+		let dot = Quaternion.dot(start, end);
+		// The angle between start must be acute. Since q and -q represent
+		// the same rotation, negate q to get the acute angle.
+		let r = end;
+		if (dot < 0.0) {
+			dot = -dot;
+			r = slerpEndNegated = Quaternion.negate(end, slerpEndNegated);
+		}
+		// dot > 0, as the dot product approaches 1, the angle between the
+		// quaternions vanishes. use linear interpolation.
+		if (1.0 - dot < GMath.EPSILON6) {
+			return Quaternion.lerp(start, r, t, result);
+		}
+		const theta = Math.acos(dot);
+		slerpScaledP = Quaternion.multiplyByScalar(start, Math.sin((1 - t) * theta), slerpScaledP);
+		slerpScaledR = Quaternion.multiplyByScalar(r, Math.sin(t * theta), slerpScaledR);
+		result = Quaternion.add(slerpScaledP, slerpScaledR, result);
+		return Quaternion.multiplyByScalar(result, 1.0 / Math.sin(theta), result);
+	}
+	static computeInnerQuadrangle(q0, q1, q2, result) {
+		const qInv = Quaternion.conjugate(q1, squadScratchQuaternion0);
+		Quaternion.multiply(qInv, q2, squadScratchQuaternion1);
+		const cart0 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian0);
+		Quaternion.multiply(qInv, q0, squadScratchQuaternion1);
+		const cart1 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian1);
+		Vector3.add(cart0, cart1, cart0);
+		Vector3.multiplyByScalar(cart0, 0.25, cart0);
+		Vector3.negate(cart0, cart0);
+		Quaternion.exp(cart0, squadScratchQuaternion0);
+		return Quaternion.multiply(q1, squadScratchQuaternion0, result);
+	}
+	static squad(q0, q1, s0, s1, t, result) {
+		const slerp0 = Quaternion.slerp(q0, q1, t, squadScratchQuaternion0);
+		const slerp1 = Quaternion.slerp(s0, s1, t, squadScratchQuaternion1);
+		return Quaternion.slerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
+	}
+	static fastSlerp(start, end, t, result) {
+		let x = Quaternion.dot(start, end);
+		let sign;
+		if (x >= 0) {
+			sign = 1.0;
+		} else {
+			sign = -1.0;
+			x = -x;
+		}
+		const xm1 = x - 1.0;
+		const d = 1.0 - t;
+		const sqrT = t * t;
+		const sqrD = d * d;
+		for (let i = 7; i >= 0; --i) {
+			bT[i] = (u[i] * sqrT - v[i]) * xm1;
+			bD[i] = (u[i] * sqrD - v[i]) * xm1;
+		}
+		const cT =
+			sign *
+			t *
+			(1.0 +
+				bT[0] *
+					(1.0 +
+						bT[1] *
+							(1.0 +
+								bT[2] *
+									(1.0 + bT[3] * (1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7]))))))));
+		const cD =
+			d *
+			(1.0 +
+				bD[0] *
+					(1.0 +
+						bD[1] *
+							(1.0 +
+								bD[2] *
+									(1.0 + bD[3] * (1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7]))))))));
+		const temp = Quaternion.multiplyByScalar(start, cD, fastSlerpScratchQuaternion);
+		Quaternion.multiplyByScalar(end, cT, result);
+		return Quaternion.add(temp, result, result);
+	}
+	static fastSquad(q0, q1, s0, s1, t, result) {
+		const slerp0 = Quaternion.fastSlerp(q0, q1, t, squadScratchQuaternion0);
+		const slerp1 = Quaternion.fastSlerp(s0, s1, t, squadScratchQuaternion1);
+		return Quaternion.fastSlerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
+	}
+	static equals(left, right) {
+		return (
+			left === right ||
+			(defined(left) &&
+				defined(right) &&
+				left.x === right.x &&
+				left.y === right.y &&
+				left.z === right.z &&
+				left.w === right.w)
+		);
+	}
+	static equalsEpsilon(left, right, epsilon = 0) {
+		epsilon = defaultValue(epsilon, 0);
+		return (
+			left === right ||
+			(defined(left) &&
+				defined(right) &&
+				Math.abs(left.x - right.x) <= epsilon &&
+				Math.abs(left.y - right.y) <= epsilon &&
+				Math.abs(left.z - right.z) <= epsilon &&
+				Math.abs(left.w - right.w) <= epsilon)
+		);
+	}
+	static log(quaternion, result) {
+		const theta = GMath.acosClamped(quaternion.w);
+		let thetaOverSinTheta = 0.0;
+		if (theta !== 0.0) {
+			thetaOverSinTheta = theta / Math.sin(theta);
+		}
+		return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
+	}
+	static exp(cartesian, result) {
+		const theta = Vector3.magnitude(cartesian);
+		let sinThetaOverTheta = 0.0;
+		if (theta !== 0.0) {
+			sinThetaOverTheta = Math.sin(theta) / theta;
+		}
+		result.x = cartesian.x * sinThetaOverTheta;
+		result.y = cartesian.y * sinThetaOverTheta;
+		result.z = cartesian.z * sinThetaOverTheta;
+		result.w = Math.cos(theta);
+		return result;
+	}
+}
+Quaternion.ZERO = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 0.0));
+Quaternion.IDENTITY = Object.freeze(new Quaternion(0.0, 0.0, 0.0, 1.0));
+let fromAxisAngleScratch = new Vector3();
+const fromRotationMatrixNext = [1, 2, 0];
+const fromRotationMatrixQuat = new Array(3);
+new Quaternion();
+new Quaternion();
+new Quaternion();
+new Quaternion();
+new Vector3();
+new Vector3();
+new Quaternion();
+new Quaternion();
+new Quaternion();
+let lerpScratch = new Quaternion();
+let slerpEndNegated = new Quaternion();
+let slerpScaledP = new Quaternion();
+let slerpScaledR = new Quaternion();
+const fastSlerpScratchQuaternion = new Quaternion();
+// eslint-disable-next-line no-loss-of-precision
+const opmu = 1.90110745351730037;
+const u = new Float32Array(8);
+const v = new Float32Array(8);
+const bT = new Float32Array(8);
+const bD = new Float32Array(8);
+for (let i = 0; i < 7; ++i) {
+	const s = i + 1.0;
+	const t = 2.0 * s + 1.0;
+	u[i] = 1.0 / (s * t);
+	v[i] = s / t;
+}
+u[7] = opmu / (8.0 * 17.0);
+v[7] = (opmu * 8.0) / 17.0;
+const squadScratchCartesian0 = new Vector3();
+const squadScratchCartesian1 = new Vector3();
+const squadScratchQuaternion0 = new Quaternion();
+const squadScratchQuaternion1 = new Quaternion();
+
+class RenderObject {
+	constructor() {
+		this._position = new Vector3();
+		this._scale = new Vector3(1, 1, 1);
+		this._quaternion = new Quaternion();
+		this.modelMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
+		this._normalMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
+		this.up = new Vector3(0, 1, 0);
+	}
+	get normalMatrix() {
+		return this._normalMatrix;
+	}
+	get position() {
+		return this._position;
+	}
+	get scale() {
+		return this._scale;
+	}
+	get quaternion() {
+		return this._quaternion;
+	}
+	updateNormalMatrix() {
+		Matrix4.inverse(this.modelMatrix, this._normalMatrix);
+		Matrix4.transpose(this._normalMatrix, this._normalMatrix);
+	}
+	updateMatrix(matrix) {
+		Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
+		if (matrix) Matrix4.multiply(this.modelMatrix, matrix, this.modelMatrix);
+		this.updateNormalMatrix();
+	}
+	lookAt(x, y, z) {
+		_target.set(x, y, z);
+		if (this.isCamera || this.isLight) {
+			_m1.lookAt(this.position, _target, this.up);
+		} else {
+			_m1.lookAt(_target, this.position, this.up);
+		}
+		this.quaternion.setFromRotationMatrix(_m1);
+	}
+	rotateOnAxis(axis, angle) {
+		const quat = Quaternion.fromAxisAngle(axis, angle);
+		Quaternion.multiply(this.quaternion, quat, this.quaternion);
+	}
+	rotateX(angle) {
+		return this.rotateOnAxis(_xAxis, angle);
+	}
+	rotateY(angle) {
+		return this.rotateOnAxis(_yAxis, angle);
+	}
+	rotateZ(angle) {
+		return this.rotateOnAxis(_zAxis, angle);
+	}
+}
+const _xAxis = new Vector3(1, 0, 0);
+const _yAxis = new Vector3(0, 1, 0);
+const _zAxis = new Vector3(0, 0, 1);
+const _m1 = new Matrix4();
+const _target = new Vector3();
+new Matrix3();
+new Matrix4();
+
+function createGuid() {
+	// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+		const r = (Math.random() * 16) | 0;
+		const v = c === "x" ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
+}
+
+class Mesh extends RenderObject {
+	constructor(geometry, material) {
+		super();
+		this.geometry = geometry;
+		this.material = material;
+		this.type = "mesh";
+		this.isMesh = true;
+		this.isDebuggerMesh = false;
+		this.subCommands = {};
+		this.uid = createGuid();
+	}
+	get ready() {
+		return this.material.ready;
+	}
+	update(frameState, camera, matrix) {
+		//update matrix
+		this.updateMatrix(matrix);
+		//create
+		this.geometry.update(frameState);
+		this.material.update(frameState, this);
+		// update boundingSphere
+		this.geometry.boundingSphere.update(this.modelMatrix);
+		this.material.shaderSource.setDefines(frameState.defines);
+		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
+		if (this.isDebuggerMesh) {
+			frameState.renderQueue.debugQueue.push(this);
+			return;
+		}
+		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
+		//视锥剔除
+		if (visibility === Intersect.INTERSECTING || visibility === Intersect.INSIDE) {
+			if (this.material.transparent) {
+				frameState.renderQueue.transparent.push(this);
+			} else {
+				frameState.renderQueue.opaque.push(this);
+			}
+		}
+	}
+	beforeRender() {}
+	afterRender() {}
+	getDrawCommand(overrideMaterial, commandSubType) {
+		if (!this.drawCommand || this.material.dirty) {
+			this.material.shaderSource.setDefines(
+				Object.assign(this.material.shaderData.defines, this.geometry.defines)
+			);
+			if (this.material.dirty) this.material.dirty = false;
+			this.drawCommand = new DrawCommand({
+				vertexBuffer: this.geometry.vertBuffer,
+				indexBuffer: this.geometry.indexBuffer,
+				shaderData: this.material.shaderData,
+				instances: this.instances,
+				count: this.geometry.count,
+				renderState: this.material.renderState,
+				shaderSource: this.material.shaderSource,
+				type: "render",
+				light: this.material.light,
+				modelMatrix: this.modelMatrix
+			});
+		}
+		if (overrideMaterial) {
+			if (!this.subCommands[commandSubType]) {
+				const copyMat = overrideMaterial.clone();
+				overrideMaterial.update();
+				copyMat.update();
+				if (copyMat.dirty) copyMat.dirty = false;
+				this.subCommands[commandSubType] = this.drawCommand.shallowClone(copyMat);
+			}
+			return this.subCommands[commandSubType];
+		}
+		return this.drawCommand;
+	}
+	destroy() {
+		this.geometry.destroy();
+		this.material.destroy();
+	}
+}
+
+class ShadowMapDebugger {
+	constructor(light, scene) {
+		if (!light || !(light instanceof Light)) throw new Error("The parameter must be Light instance");
+		this.light = light;
+		this.scene = scene;
+		this.debuggerSize = {
+			width: 256,
+			height: 256
+		};
+		this.mesh = this._createShadowMapMesh();
+		const shadowMap = this.light.shadow.getShadowMapTexture();
+		this.material.uniforms.texture.value = shadowMap;
+		this.mesh.isDebuggerMesh = true;
+		this.scene.add(this.mesh);
+	}
+	_createShadowMapMesh() {
+		const shader = getVertFrag("shadowMapDebugger", {
+			positionLocation: 0
+		});
+		this.geometry = new PlaneGeometry(2, 2);
+		this.material = new ShaderMaterial({
+			type: "shadowMapDebugger",
+			frag: shader.frag,
+			vert: shader.vert,
+			uniforms: {
+				texture: {
+					type: "texture",
+					value: undefined
+				},
+				sampler: {
+					type: "sampler",
+					value: new Sampler({
+						magFilter: "linear",
+						minFilter: "linear"
+					})
+				}
+			}
+		});
+		this.material.renderState.viewport = new ViewPort(0, 0, this.debuggerSize.width, this.debuggerSize.height);
+		return new Mesh(this.geometry, this.material);
+	}
+	setSize(width, height) {
+		if (!width || !height) return;
+		this.debuggerSize.width = width;
+		this.debuggerSize.height = height;
+		this.update();
+	}
+	update() {
+		this.material.renderState.viewport = new ViewPort(0, 0, this.debuggerSize.width, this.debuggerSize.height);
 	}
 }
 
@@ -11622,72 +12595,6 @@ function calculatePositionOnCurve(u, p, q, radius, position) {
 	position.z = radius * Math.sin(quOverP) * 0.5;
 }
 
-class PlaneGeometry extends Geometry {
-	constructor(width = 10, height = 10) {
-		super({
-			type: "planeGeometry"
-		});
-		this.width = width;
-		this.height = height;
-		this.defines = {
-			HAS_NORMAL: true
-		};
-		this.init();
-	}
-	init() {
-		//generate pos uv normal so on
-		const { indices, normals, uvs, vertices } = this.createGrid(this.width, this.height);
-		this.positions = vertices;
-		this.normals = normals;
-		this.uvs = uvs;
-		this.indices = indices;
-		this.computeBoundingSphere(this.positions);
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
-		this.setIndice(indices);
-		this.count = this.indices.length;
-		// this.count = 36;
-	}
-	update(frameState) {}
-	createGrid(width = 1, height = 1, widthSegments = 1, heightSegments = 1) {
-		const width_half = width / 2;
-		const height_half = height / 2;
-		const gridX = Math.floor(widthSegments);
-		const gridY = Math.floor(heightSegments);
-		const gridX1 = gridX + 1;
-		const gridY1 = gridY + 1;
-		const segment_width = width / gridX;
-		const segment_height = height / gridY;
-		//
-		const indices = [];
-		const vertices = [];
-		const normals = [];
-		const uvs = [];
-		for (let iy = 0; iy < gridY1; iy++) {
-			const y = iy * segment_height - height_half;
-			for (let ix = 0; ix < gridX1; ix++) {
-				const x = ix * segment_width - width_half;
-				vertices.push(x, -y, 0);
-				normals.push(0, 0, 1);
-				uvs.push(ix / gridX);
-				uvs.push(1 - iy / gridY);
-			}
-		}
-		for (let iy = 0; iy < gridY; iy++) {
-			for (let ix = 0; ix < gridX; ix++) {
-				const a = ix + gridX1 * iy;
-				const b = ix + gridX1 * (iy + 1);
-				const c = ix + 1 + gridX1 * (iy + 1);
-				const d = ix + 1 + gridX1 * iy;
-				indices.push(a, b, d);
-				indices.push(b, c, d);
-			}
-		}
-		return { indices, normals, uvs, vertices };
-	}
-}
-
 class BlinnPhongMaterial extends Material {
 	constructor() {
 		super();
@@ -11853,168 +12760,6 @@ class PbrMaterial extends Material {
 	destroy() {}
 }
 
-const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
-function checkContainFloatType(uniforms) {
-	let result = 0;
-	let hasArraytype = false;
-	const uniformsNames = Object.getOwnPropertyNames(uniforms);
-	uniformsNames.map((uniformsName) => {
-		if (uniforms[uniformsName].type == "texture" || uniforms[uniformsName].type == "sampler") {
-			result += 0;
-		} else {
-			if (
-				uniformArrayNames.find((name) => {
-					return name === uniforms[uniformsName].type;
-				})
-			) {
-				hasArraytype = true;
-			} else {
-				result += 1;
-			}
-		}
-	});
-	return {
-		hasFloat: result,
-		hasArraytype
-	};
-}
-function addUniformToShaderData(name, uniform, uniforms, shaderData, uniformBuffer) {
-	switch (uniform.type) {
-		case "float":
-			uniformBuffer.setFloat(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec2":
-			uniformBuffer.setFloatVec2(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec3":
-			uniformBuffer.setFloatVec3(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "color":
-			uniformBuffer.setColor(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec4":
-			uniformBuffer.setFloatVec4(name, () => {
-				return uniforms[name].value;
-			});
-		case "mat2":
-			uniformBuffer.setMatrix2(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "mat3":
-			uniformBuffer.setMatrix3(name, () => {
-				return uniforms[name].value;
-			});
-		case "mat4":
-			uniformBuffer.setMatrix4(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "float-array":
-			uniformBuffer.setFloatArray(
-				name,
-				() => {
-					return uniforms[name].value;
-				},
-				uniforms[name].value.length
-			);
-			break;
-		case "vec2-array":
-			uniformBuffer.setVec2Array(
-				name,
-				() => {
-					return uniforms[name].value;
-				},
-				uniforms[name].value.length
-			);
-			break;
-		case "vec3-array":
-			uniformBuffer.setVec3Array(
-				name,
-				() => {
-					return uniforms[name].value;
-				},
-				uniforms[name].value.length
-			);
-			break;
-		case "vec4-array":
-			uniformBuffer.setVec4Array(
-				name,
-				() => {
-					return uniforms[name].value;
-				},
-				uniforms[name].value.length
-			);
-			break;
-		case "texture":
-			shaderData.setTexture(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "sampler":
-			shaderData.setSampler(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		default:
-			throw new Error("not match unifrom type");
-	}
-}
-
-class ShaderMaterial extends Material {
-	constructor(options) {
-		super();
-		const { type, frag, vert, defines, light } = options;
-		this.type = type;
-		this.shaderMaterialParms = options;
-		this.shaderSource = new ShaderSource({
-			type,
-			frag,
-			vert,
-			custom: true,
-			defines: defaultValue(defines, {}),
-			render: true
-		});
-		this.uniforms = options.uniforms;
-		this.uniformBuffer = undefined;
-		this.light = light || false;
-	}
-	update(frameState, mesh) {
-		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
-	}
-	clone() {
-		return new ShaderMaterial(this.shaderMaterialParms);
-	}
-	createShaderData(mesh) {
-		super.createShaderData(mesh);
-		let result = checkContainFloatType(this.uniforms);
-		if (result.hasFloat) {
-			this.uniformBuffer = result.hasArraytype
-				? new UniformBuffer(this.type, "read-only-storage", BufferUsage.Storage | BufferUsage.CopyDst)
-				: new UniformBuffer(this.type);
-			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
-		}
-		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
-		uniformsNames.map((uniformsName) => {
-			addUniformToShaderData(
-				uniformsName,
-				this.uniforms[uniformsName],
-				this.uniforms,
-				this.shaderData,
-				this.uniformBuffer
-			);
-		});
-	}
-}
-
 class EventDispatcher {
 	constructor() {}
 	addEventListener(type, listener) {
@@ -12064,6 +12809,7 @@ class RenderQueue {
 		this.opaque = [];
 		this.transparent = [];
 		this.computes = [];
+		this.debugQueue = [];
 	}
 	sort() {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
@@ -12100,6 +12846,19 @@ class RenderQueue {
 			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
+	debugQueueRender(camera, context, passEncoder, replaceMaterial, commandSubType) {
+		this.debugQueue.map((mesh) => {
+			if (!mesh.ready) return;
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(
+				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				context,
+				passEncoder,
+				camera
+			);
+			mesh.afterRender();
+		});
+	}
 	preRender(camera, context, passEncoder, replaceMaterial) {
 		this.pre.map((mesh) => {
 			if (!mesh.ready) return;
@@ -12125,6 +12884,7 @@ class RenderQueue {
 		this.opaque = [];
 		this.transparent = [];
 		this.computes = [];
+		this.debugQueue = [];
 	}
 	static _compareFromNearToFar(a, b) {
 		return a.priority - b.priority || a.distanceToCamera - b.distanceToCamera;
@@ -12256,15 +13016,9 @@ class FrameState {
 		this.cullingVolume = camera.getCullingVolume();
 		this.frameNumber += 1;
 	}
-}
-
-function createGuid() {
-	// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-		const r = (Math.random() * 16) | 0;
-		const v = c === "x" ? r : (r & 0x3) | 0x8;
-		return v.toString(16);
-	});
+	resetCullingVolume(camera) {
+		this.cullingVolume = camera.getCullingVolume();
+	}
 }
 
 class PrimitiveManger {
@@ -12332,7 +13086,7 @@ class Pass {
 		this.context = context;
 	}
 	render(frameState) {}
-	beforeRender() {
+	beforeRender(options) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
 		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
 	}
@@ -12479,6 +13233,7 @@ class BasicPass extends Pass {
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
 		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
 		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.debugQueueRender(camera, this.context, this.passRenderEncoder);
 	}
 	init(context) {
 		this.createRenderTarget(context);
@@ -12517,31 +13272,59 @@ class ShadowPass extends Pass {
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture
-			this.setRenderTarget(shadow);
-			super.beforeRender();
-			renderQueue.sort();
-			// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-			renderQueue.transparentRender(
-				shadow.camera,
-				this.context,
-				this.passRenderEncoder,
-				this.shadowMaterial,
-				CommandSubType.Shadow
-			);
-			renderQueue.opaqueRender(
-				shadow.camera,
-				this.context,
-				this.passRenderEncoder,
-				this.shadowMaterial,
-				CommandSubType.Shadow
-			);
+			this.beforeRender({ shadow });
+			if (shadow.type == "pointLightShadow") {
+				// for (let i = 0; i < shadow.viewports.length; i++) {
+				// 	const viewport = shadow.viewports[i];
+				// 	const viewportSize = shadow.viewportSize;
+				// 	shadow.currentViewportIndex = i;
+				// 	// context.setViewPort(
+				// 	// 	viewport.x * viewportSize.x,
+				// 	// 	viewport.y * viewportSize.y,
+				// 	// 	viewportSize.x,
+				// 	// 	viewportSize.y
+				// 	// );
+				// 	this.subRender(renderQueue, shadow);
+				// }
+				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				this.subRender(renderQueue, shadow);
+			} else {
+				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				this.subRender(renderQueue, shadow);
+			}
 			super.afterRender();
 		}
 		context.lightManger.updateLightShadow();
+		context.resetViewPortToFullCanvas();
+	}
+	subRender(renderQueue, shadow) {
+		renderQueue.sort();
+		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
+		renderQueue.transparentRender(
+			shadow.camera,
+			this.context,
+			this.passRenderEncoder,
+			this.shadowMaterial,
+			CommandSubType.Shadow
+		);
+		renderQueue.opaqueRender(
+			shadow.camera,
+			this.context,
+			this.passRenderEncoder,
+			this.shadowMaterial,
+			CommandSubType.Shadow
+		);
 	}
 	// getDepthTexture(): Texture {
 	// 	return this._testTexture;
 	// }
+	beforeRender(options) {
+		const { shadow } = options;
+		this.setRenderTarget(shadow);
+		super.beforeRender();
+	}
 	setRenderTarget(shadow) {
 		this.renderTarget.depthAttachment.texture = shadow.getShadowMapTexture();
 	}
@@ -12567,7 +13350,7 @@ class ShadowPass extends Pass {
 			},
 			vert: colorShader.vert,
 			frag: undefined,
-			light: true
+			light: true //TODO:先true，false有显示bug
 		});
 	}
 }
@@ -12750,10 +13533,13 @@ class Scene extends EventDispatcher {
 			this.inited = true;
 			await this.init();
 			this.update(node, camera);
+			this.afterRender();
 		} else {
 			this.update(node, camera);
+			this.afterRender();
 		}
 	}
+	afterRender() {}
 	setViewPort(x, y, width, height) {
 		if (!this.ready) return false;
 		this.context.setViewPort(x, y, width, height);
@@ -12769,7 +13555,6 @@ class Scene extends EventDispatcher {
 		//释放纹理
 		textureCache.releasedTextures();
 		//更新相机
-		this.frameState.viewport = this.viewport;
 		this.frameState.update(camera ?? this.camera);
 		//更新灯光
 		this.context.lightManger.update(this.frameState, camera ?? this.camera);
@@ -13420,6 +14205,9 @@ class BaseShadow {
 	get shadowMapSize() {
 		return this._shadowMapSize;
 	}
+	get viewports() {
+		return this._viewports;
+	}
 	getShadowMapTexture() {
 		return this._shadowMap;
 	}
@@ -13432,8 +14220,8 @@ class BaseShadow {
 	_createShadowMapTexture() {
 		this._shadowMap = new Texture({
 			size: {
-				width: this._shadowMapSize,
-				height: this._shadowMapSize,
+				width: this._shadowMapSize.x,
+				height: this._shadowMapSize.y,
 				depth: 1
 			},
 			fixedSize: true,
@@ -13448,7 +14236,7 @@ class BaseShadow {
 class SpotLightShadow extends BaseShadow {
 	constructor() {
 		const camera = new PerspectiveCamera(60, 1, 0.1, 500);
-		super(1024, camera);
+		super(new Vector2(1024, 1024), camera);
 		this.type = "spotLightShadow";
 	}
 	update(light) {
@@ -13551,9 +14339,51 @@ class SpotLight extends Light {
 
 class PointLightShadow extends BaseShadow {
 	constructor() {
-		const camera = new PerspectiveCamera(60, 1, 0.1, 500);
-		super(1024, camera);
+		const camera = new PerspectiveCamera(90, 1, 0.1, 500);
+		super(new Vector2(1536, 1024), camera);
+		this.viewportSize = new Vector2(512, 512);
+		this.currentViewportIndex = 0;
 		this.type = "pointLightShadow";
+		this._viewports = [
+			// positive X
+			new Vector4(0, 0, 1, 1),
+			// negative X
+			new Vector4(1, 0, 1, 1),
+			// positive Z
+			new Vector4(0, 1, 1, 1),
+			// negative Z
+			new Vector4(1, 1, 1, 1),
+			// positive Y
+			new Vector4(0, 2, 1, 1),
+			// negative Y
+			new Vector4(1, 2, 1, 1)
+		];
+		this._pointLightShadowLookDirections = [
+			new Vector3(1, 0, 0),
+			new Vector3(-1, 0, 0),
+			new Vector3(0, 0, 1),
+			new Vector3(0, 0, -1),
+			new Vector3(0, 1, 0),
+			new Vector3(0, -1, 0)
+		];
+		this._pointLightShadowUps = [
+			new Vector3(0, 1, 0),
+			new Vector3(0, 1, 0),
+			new Vector3(0, 1, 0),
+			new Vector3(0, 1, 0),
+			new Vector3(0, 0, 1),
+			new Vector3(0, 0, -1)
+		];
+	}
+	update(light) {
+		this.updateMatrices(light);
+	}
+	updateMatrices(light) {
+		this.camera.position.copy(light.position);
+		const target = this.camera.position.add(this._pointLightShadowLookDirections[this.currentViewportIndex]);
+		const { x, y, z } = target;
+		this.camera.lookAt(x, y, z);
+		this.camera.updateMatrix();
 	}
 }
 
@@ -13591,7 +14421,7 @@ class PointLight extends Light {
 class DirectionalLightShadow extends BaseShadow {
 	constructor() {
 		const camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
-		super(1024, camera);
+		super(new Vector2(1024, 1024), camera);
 		this.type = "directionalLightShadow";
 	}
 	update(light) {
@@ -15153,6 +15983,7 @@ export {
 	Scene,
 	ShaderMaterial,
 	ShaderStage,
+	ShadowMapDebugger,
 	SkyBox,
 	SphereGeometry,
 	SpotLight,

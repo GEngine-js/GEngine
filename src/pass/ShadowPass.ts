@@ -27,14 +27,14 @@ export class ShadowPass extends Pass {
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture
-			this.beforeRender(shadow);
+			this.beforeRender({ shadow });
 
 			if (shadow.type == "pointLightShadow") {
 				// for (let i = 0; i < shadow.viewports.length; i++) {
 				// 	const viewport = shadow.viewports[i];
 				// 	const viewportSize = shadow.viewportSize;
 				// 	shadow.currentViewportIndex = i;
-				// 	// this.shadowMaterial.renderState.setViewPort(
+				// 	// context.setViewPort(
 				// 	// 	viewport.x * viewportSize.x,
 				// 	// 	viewport.y * viewportSize.y,
 				// 	// 	viewportSize.x,
@@ -42,16 +42,19 @@ export class ShadowPass extends Pass {
 				// 	// );
 				// 	this.subRender(renderQueue, shadow);
 				// }
-				this.shadowMaterial.renderState.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				this.subRender(renderQueue, shadow);
 			} else {
-				this.shadowMaterial.renderState.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
+				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				this.subRender(renderQueue, shadow);
 			}
 
 			super.afterRender();
 		}
 		context.lightManger.updateLightShadow();
+		context.resetViewPortToFullCanvas();
 	}
 
 	subRender(renderQueue: RenderQueue, shadow: BaseShadow) {
@@ -76,7 +79,8 @@ export class ShadowPass extends Pass {
 	// getDepthTexture(): Texture {
 	// 	return this._testTexture;
 	// }
-	beforeRender(shadow: BaseShadow) {
+	beforeRender(options: { shadow: BaseShadow }) {
+		const { shadow } = options;
 		this.setRenderTarget(shadow);
 		super.beforeRender();
 	}
@@ -108,7 +112,7 @@ export class ShadowPass extends Pass {
 			},
 			vert: colorShader.vert,
 			frag: undefined,
-			light: true
+			light: true //TODO:先true，false有显示bug
 		});
 	}
 }

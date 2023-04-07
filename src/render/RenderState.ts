@@ -37,14 +37,16 @@ export class RenderState {
 	}
 	bind(passEncoder: GPURenderPassEncoder, context: Context) {
 		const { viewPort, scissorTest } = context;
+		const finalViewport = this.viewport ?? viewPort;
+		const finalScissorTest = this.scissorTest ?? scissorTest;
 		if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
-		if ((this.viewport ?? viewPort).equalsAndUpdateCache(cacheViewPort)) {
-			const { x, y, width, height, minDepth, maxDepth } = this.viewport;
+		if (finalViewport.equalsAndUpdateCache(cacheViewPort)) {
+			const { x, y, width, height, minDepth, maxDepth } = finalViewport;
 			passEncoder.setViewport(x, y, width, height, minDepth, maxDepth);
 		}
 		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
-		if ((this.scissorTest ?? scissorTest).equalsAndUpdateCache(cacheScissorTest)) {
-			const { x, y, width, height } = this.scissorTest;
+		if (finalScissorTest.equalsAndUpdateCache(cacheScissorTest)) {
+			const { x, y, width, height } = finalScissorTest;
 			passEncoder.setScissorRect(x, y, width, height);
 		}
 	}

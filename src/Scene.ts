@@ -85,10 +85,15 @@ export class Scene extends EventDispatcher {
 			this.inited = true;
 			await this.init();
 			this.update(node, camera);
+			this.afterRender();
 		} else {
 			this.update(node, camera);
+			this.afterRender();
 		}
 	}
+
+	afterRender() {}
+
 	public setViewPort(x: number, y: number, width: number, height: number): boolean {
 		if (!this.ready) return false;
 		this.context.setViewPort(x, y, width, height);
@@ -104,7 +109,6 @@ export class Scene extends EventDispatcher {
 		//释放纹理
 		textureCache.releasedTextures();
 		//更新相机
-		this.frameState.viewport = this.viewport;
 		this.frameState.update(camera ?? this.camera);
 		//更新灯光
 		this.context.lightManger.update(this.frameState, camera ?? this.camera);

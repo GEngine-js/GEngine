@@ -9,12 +9,14 @@ export default class RenderQueue {
 	public pre: Array<Mesh>;
 	public opaque: Array<Mesh>;
 	public transparent: Array<Mesh>;
+	public debugQueue: Array<Mesh>;
 	public computes: Array<Compute>;
 	constructor() {
 		this.pre = [];
 		this.opaque = [];
 		this.transparent = [];
 		this.computes = [];
+		this.debugQueue = [];
 	}
 	sort() {
 		RenderQueue.sort(this.opaque, 0, this.opaque.length, RenderQueue._compareFromNearToFar);
@@ -63,6 +65,25 @@ export default class RenderQueue {
 			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
+	debugQueueRender(
+		camera: Camera,
+		context: Context,
+		passEncoder?: GPURenderPassEncoder,
+		replaceMaterial?: Material,
+		commandSubType?: CommandSubType
+	) {
+		this.debugQueue.map((mesh) => {
+			if (!mesh.ready) return;
+			mesh.beforeRender();
+			RenderQueue.excuteCommand(
+				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				context,
+				passEncoder,
+				camera
+			);
+			mesh.afterRender();
+		});
+	}
 	preRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
 		this.pre.map((mesh) => {
 			if (!mesh.ready) return;
@@ -88,6 +109,7 @@ export default class RenderQueue {
 		this.opaque = [];
 		this.transparent = [];
 		this.computes = [];
+		this.debugQueue = [];
 	}
 	static _compareFromNearToFar(a: Mesh, b: Mesh): number {
 		return a.priority - b.priority || a.distanceToCamera - b.distanceToCamera;

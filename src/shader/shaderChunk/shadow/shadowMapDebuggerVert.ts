@@ -1,4 +1,4 @@
-export default function quadVert(defines) {
+export default function shadowMapDebuggerVert(defines) {
 	return `
     struct VertexInput {
          @location(${defines.positionLocation}) position: vec2<f32>,       

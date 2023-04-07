@@ -116,6 +116,11 @@ class Context {
 	public setViewPort(x: number, y: number, width: number, height: number) {
 		this._viewPort.set(x, y, width, height);
 	}
+
+	public resetViewPortToFullCanvas() {
+		this._viewPort.set(0, 0, this.canvas.clientWidth * this.pixelRatio, this.canvas.clientHeight * this.pixelRatio);
+	}
+
 	public setScissorTest(x: number, y: number, width: number, height: number) {
 		this._scissorTest.set(x, y, width, height);
 	}

@@ -13,7 +13,6 @@ export class FrameState {
 	public frameNumber: number;
 	public cullingVolume: CullingVolume;
 	public definesDirty: boolean;
-	public viewport: { x: number; y: number; width: number; height: number };
 	private _defines: {};
 	constructor(public context: Context) {
 		this.renderQueue = new RenderQueue();
@@ -34,5 +33,9 @@ export class FrameState {
 		this.renderQueue.reset();
 		this.cullingVolume = camera.getCullingVolume();
 		this.frameNumber += 1;
+	}
+
+	resetCullingVolume(camera: Camera) {
+		this.cullingVolume = camera.getCullingVolume();
 	}
 }

@@ -8,7 +8,7 @@ export default class Node extends Mesh {
 	uid: string;
 	id: number;
 	isNode: boolean;
-	children: Map<string, Node>;
+	children: Map<string, Node | Mesh>;
 	parent: Node;
 	constructor() {
 		super();
@@ -17,21 +17,21 @@ export default class Node extends Mesh {
 		this.parent = null;
 		this.uid = createGuid();
 	}
-	add(node: Node) {
+	add(node: Node | Mesh) {
 		node.parent = this;
 		this.children.set(node.uid, node);
 	}
-	remove(node: Node) {
+	remove(node: Node | Mesh) {
 		this.children.delete(node.uid);
 	}
 	update(frameState: FrameState, camera?: Camera) {
 		if (this.parent) this.updateMatrix(this.parent.modelMatrix);
-		this?.children?.forEach?.((node: Node) => {
+		this?.children?.forEach?.((node: Node | Mesh) => {
 			node.update(frameState, camera);
 		});
 	}
 	destroy() {
-		this.children.forEach((node: Node) => {
+		this.children.forEach((node: Node | Mesh) => {
 			node.destroy();
 		});
 		this?.children?.clear();

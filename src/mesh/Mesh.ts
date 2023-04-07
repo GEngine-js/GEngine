@@ -7,8 +7,11 @@ import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
 import Matrix4 from "../math/Matrix4";
+import createGuid from "../utils/createGuid";
+
 export class Mesh extends RenderObject {
 	[x: string]: any;
+	uid: string;
 	geometry?: Geometry;
 	material?: Material;
 	instances?: number;
@@ -17,13 +20,16 @@ export class Mesh extends RenderObject {
 	subCommands: { [prop: string]: DrawCommand };
 	distanceToCamera?: number;
 	isMesh: boolean;
+	isDebuggerMesh: boolean;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
 		this.material = material;
 		this.type = "mesh";
 		this.isMesh = true;
+		this.isDebuggerMesh = false;
 		this.subCommands = {};
+		this.uid = createGuid();
 	}
 	get ready() {
 		return this.material.ready;
@@ -39,6 +45,11 @@ export class Mesh extends RenderObject {
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
 		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
+
+		if (this.isDebuggerMesh) {
+			frameState.renderQueue.debugQueue.push(this);
+			return;
+		}
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		//视锥剔除

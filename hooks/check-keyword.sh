@@ -12,10 +12,11 @@ for FILE in $(git diff --name-only --cached); do
     continue
   fi
 
-  # -e 使用正则匹配
+  # -e 实现多个选项间的逻辑or 关系
   # -i 查找时不区分大小写
+  # -w 全字匹配
   if [ -f $FILE ]; then
-    grep -ie 'debugger\|console.log' $FILE 2>&1 >/dev/null
+    grep -n -i -w -e 'debugger' -e 'debugger;' -e 'console.log' -e 'console.log;' $FILE 2>&1
   fi
 
   if [ $? -eq 0 ]; then
