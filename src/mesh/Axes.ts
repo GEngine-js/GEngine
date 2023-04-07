@@ -1,13 +1,14 @@
 import { FrameState } from "../core/FrameState";
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import ColorMaterial from "../material/ColorMaterial";
 import { Float32Attribute } from "../render/Attribute";
 import { Mesh } from "./Mesh";
 export default class Axes extends Mesh {
-	type: string;
 	material: ColorMaterial;
 	constructor() {
 		super();
+		this.type = RenderObjectType.Axes;
 		this.distanceToCamera = 10;
 		this.material = new ColorMaterial();
 		this.material.wireframe = true;

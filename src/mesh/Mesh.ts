@@ -7,8 +7,8 @@ import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
 import Matrix4 from "../math/Matrix4";
+import { RenderObjectType } from "../core/WebGPUTypes";
 import createGuid from "../utils/createGuid";
-
 export class Mesh extends RenderObject {
 	[x: string]: any;
 	uid: string;
@@ -19,15 +19,12 @@ export class Mesh extends RenderObject {
 	drawCommand?: DrawCommand;
 	subCommands: { [prop: string]: DrawCommand };
 	distanceToCamera?: number;
-	isMesh: boolean;
-	isDebuggerMesh: boolean;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
 		this.material = material;
-		this.type = "mesh";
-		this.isMesh = true;
-		this.isDebuggerMesh = false;
+		this.type = RenderObjectType.Mesh;
+		this.uid = createGuid();
 		this.subCommands = {};
 		this.uid = createGuid();
 	}
@@ -44,12 +41,11 @@ export class Mesh extends RenderObject {
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
-		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
-
-		if (this.isDebuggerMesh) {
+		if (this.type==RenderObjectType.Debugger) {
 			frameState.renderQueue.debugQueue.push(this);
 			return;
 		}
+		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		//视锥剔除

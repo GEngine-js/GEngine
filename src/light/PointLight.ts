@@ -1,3 +1,4 @@
+import { LightType } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
@@ -20,7 +21,7 @@ export class PointLight extends Light {
 		this._decay = decay;
 		this.distanceDirty = true;
 		this.decayDirty = true;
-		this.type = "point";
+		this.lightType = LightType.PointLight;
 		if (openShadow) this.shadow = new PointLightShadow();
 	}
 	set distance(value) {

@@ -8,7 +8,7 @@ import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 import textureCache from "./core/TextureCache";
 import PostEffectCollection from "./post-process/PostEffectCollection";
 import PostEffect from "./post-process/PostEffect";
-import { Instance } from "./core/WebGPUTypes";
+import { Instance, RenderObjectType } from "./core/WebGPUTypes";
 import { Mesh } from "./mesh/Mesh";
 import { Light } from "./light/Light";
 import Node from "./mesh/Node";
@@ -56,20 +56,20 @@ export class Scene extends EventDispatcher {
 		this.ready = true;
 	}
 	add(instance: Instance) {
-		if ((instance as Mesh)?.isMesh) {
+		if ([RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh].includes(instance.type)) {
 			this.primitiveManger.add(<Mesh>instance);
-		} else if ((instance as Light)?.isLight) {
+		} else if (instance.type == RenderObjectType.Light) {
 			this.context.lightManger.add(<Light>instance);
-		} else if ((instance as PostEffect)?.isPostEffect) {
+		} else if (instance.type == RenderObjectType.PostEffect) {
 			this.postEffectCollection.add(<PostEffect>instance);
 		}
 	}
 	remove(instance: Instance) {
-		if ((instance as Mesh)?.isMesh) {
+		if ([RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh].includes(instance.type)) {
 			this.primitiveManger.remove(<Mesh>instance);
-		} else if ((instance as Light)?.isLight) {
+		} else if (instance.type == RenderObjectType.Light) {
 			this.context.lightManger.remove(<Light>instance);
-		} else if ((instance as PostEffect)?.isPostEffect) {
+		} else if (instance.type == RenderObjectType.PostEffect) {
 			this.postEffectCollection.remove(<PostEffect>instance);
 		}
 	}

@@ -1,3 +1,5 @@
+import IClone from "../core/IClone";
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Mesh } from "../mesh/Mesh";
 import { Float32Attribute } from "../render/Attribute";
@@ -7,7 +9,7 @@ import RenderTarget from "../render/RenderTarget";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 
-export default class PostEffect {
+export default class PostEffect implements IClone {
 	width: number;
 
 	height: number;
@@ -28,6 +30,8 @@ export default class PostEffect {
 
 	isPostEffect: boolean;
 
+	type: RenderObjectType;
+
 	constructor(width: number, height: number, id: string) {
 		this.width = width;
 		this.height = height;
@@ -35,6 +39,7 @@ export default class PostEffect {
 		this.id = id;
 		this.priority = 0;
 		this.isPostEffect = true;
+		this.type = RenderObjectType.PostEffect;
 	}
 	render(context: Context, colorTexture: Texture): Texture {
 		return null;

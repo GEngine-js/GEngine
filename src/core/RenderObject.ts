@@ -2,16 +2,18 @@ import Matrix3 from "../math/Matrix3";
 import Matrix4 from "../math/Matrix4";
 import { Quaternion } from "../math/Quaternion";
 import Vector3 from "../math/Vector3";
+import IClone from "./IClone";
+import { RenderObjectType } from "./WebGPUTypes";
 
-export default class RenderObject {
+export default class RenderObject implements IClone {
 	public up: Vector3;
-	private _position: Vector3;
-	private _scale: Vector3;
-	private _quaternion: Quaternion;
+	protected _position: Vector3;
+	protected _scale: Vector3;
+	protected _quaternion: Quaternion;
+	protected _target: Vector3;
 	modelMatrix: Matrix4;
 	private _normalMatrix: Matrix4;
-	isCamera: boolean;
-	isLight: boolean;
+	type: RenderObjectType;
 	constructor() {
 		this._position = new Vector3();
 		this._scale = new Vector3(1, 1, 1);
@@ -19,6 +21,7 @@ export default class RenderObject {
 		this.modelMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
 		this._normalMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
 		this.up = new Vector3(0, 1, 0);
+		this._target = new Vector3(0, 0, 0);
 	}
 	public get normalMatrix(): Matrix4 {
 		return this._normalMatrix;
@@ -43,11 +46,11 @@ export default class RenderObject {
 		this.updateNormalMatrix();
 	}
 	lookAt(x, y, z) {
-		_target.set(x, y, z);
-		if (this.isCamera || this.isLight) {
-			_m1.lookAt(this.position, _target, this.up);
+		this._target.set(x, y, z);
+		if (this.type == RenderObjectType.Camera || this.type == RenderObjectType.Light) {
+			_m1.lookAt(this.position, this._target, this.up);
 		} else {
-			_m1.lookAt(_target, this.position, this.up);
+			_m1.lookAt(this._target, this.position, this.up);
 		}
 		this.quaternion.setFromRotationMatrix(_m1);
 	}
@@ -69,6 +72,3 @@ const _xAxis = new Vector3(1, 0, 0);
 const _yAxis = new Vector3(0, 1, 0);
 const _zAxis = new Vector3(0, 0, 1);
 const _m1 = new Matrix4();
-const _target = new Vector3();
-const _matrix3 = new Matrix3();
-const _mvMatrix = new Matrix4();

@@ -1,3 +1,4 @@
+import { LightType } from "../core/WebGPUTypes";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import { Light } from "./Light";
@@ -6,7 +7,7 @@ export class AmbientLight extends Light {
 	private _colorAndIntensity: Vector4;
 	constructor(color: Vector3, intensity: number) {
 		super(color, intensity);
-		this.type = "ambient";
+		this.lightType = LightType.AmbientLight;
 		this._colorAndIntensity = new Vector4(color.x, color.y, color.z, intensity);
 	}
 	get ColorAndIntensity() {

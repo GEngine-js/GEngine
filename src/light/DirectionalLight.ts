@@ -1,5 +1,4 @@
-import Camera from "../camera/Camera";
-import RenderObject from "../core/RenderObject";
+import { LightType } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
@@ -8,7 +7,7 @@ import { DirectionalLightShadow } from "./shadows/DirectionalLightShadow";
 export class DirectionalLight extends Light {
 	constructor(color: Vector3, intensity: number, openShadow: Boolean = true) {
 		super(color, intensity);
-		this.type = "directional";
+		this.lightType = LightType.DirectionalLight;
 		if (openShadow) this.shadow = new DirectionalLightShadow();
 	}
 

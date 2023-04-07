@@ -262,3 +262,21 @@ export interface IUniform<TValue = any> {
 }
 export type Uniforms = { [uniform: string]: IUniform };
 export type Instance = Mesh | PostEffect | Light;
+
+export enum RenderObjectType {
+	Camera = "camera",
+	Light = "light",
+	Mesh = "mesh",
+	SkinMesh = "skinMesh",
+	Node = "node",
+	Axes = "axes",
+	Skybox = "skyBox",
+	PostEffect = "postEffect",
+	Debugger='debugger',
+}
+export enum LightType {
+	SpotLight = "spotLight",
+	PointLight = "pointLight",
+	AmbientLight = "ambientLight",
+	DirectionalLight = "directionalLight"
+}

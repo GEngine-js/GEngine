@@ -7,6 +7,7 @@ import Sampler from "../render/Sampler";
 import { Scene } from "../Scene";
 import getVertFrag from "../shader/Shaders";
 import { ViewPort } from "../render/RenderState";
+import { RenderObjectType } from "../core/WebGPUTypes";
 
 export class ShadowMapDebugger {
 	private mesh: Mesh;
@@ -29,7 +30,7 @@ export class ShadowMapDebugger {
 		this.mesh = this._createShadowMapMesh();
 		const shadowMap = this.light.shadow.getShadowMapTexture();
 		this.material.uniforms.texture.value = shadowMap;
-		this.mesh.isDebuggerMesh = true;
+		this.mesh.type = RenderObjectType.Debugger;
 		this.scene.add(this.mesh);
 	}
 

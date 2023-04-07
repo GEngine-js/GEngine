@@ -143,12 +143,7 @@ export default class ShaderData {
 				result.set(uniform.binding, this.creayeOneGroupEntity(uniform));
 			}
 		});
-		const groupEntityArray = [];
-		result.forEach((value) => {
-			groupEntityArray.push(value);
-		});
-
-		return groupEntityArray;
+		return [...result.values()];
 	}
 	private createOneLayoutEntry(uniform) {
 		let layoutEntity;

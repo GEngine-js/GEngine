@@ -17,7 +17,7 @@ import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
 import { Light } from "../light/Light";
 import Vector3 from "../math/Vector3";
-import { LightMangerOptions } from "../core/WebGPUTypes";
+import { LightMangerOptions, LightType } from "../core/WebGPUTypes";
 import Texture from "../render/Texture";
 import Sampler from "../render/Sampler";
 
@@ -56,25 +56,25 @@ export default class LightManger {
 	}
 	add(light: Light) {
 		this.lightCountDirty = true;
-		if (light.type == "ambient") {
+		if (light.lightType == LightType.AmbientLight) {
 			this.ambientLight = <AmbientLight>light;
-		} else if (light.type == "directional") {
+		} else if (light.lightType == LightType.DirectionalLight) {
 			this.directLights.push(<DirectionalLight>light);
-		} else if (light.type == "point") {
+		} else if (light.lightType == LightType.PointLight) {
 			this.pointLights.push(<PointLight>light);
-		} else if (light.type == "spot") {
+		} else if (light.lightType == LightType.SpotLight) {
 			this.spotLights.push(<SpotLight>light);
 		}
 	}
 	remove(light: Light) {
 		this.lightCountDirty = true;
-		if (light.type == "ambient") {
+		if (light.lightType == LightType.AmbientLight) {
 			this.ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-		} else if (light.type == "directional") {
+		} else if (light.lightType == LightType.DirectionalLight) {
 			this.directLights.splice(this.directLights.indexOf(<DirectionalLight>light), 1);
-		} else if (light.type == "point") {
+		} else if (light.lightType == LightType.PointLight) {
 			this.pointLights.splice(this.pointLights.indexOf(<PointLight>light), 1);
-		} else if (light.type == "spot") {
+		} else if (light.lightType == LightType.SpotLight) {
 			this.spotLights.splice(this.spotLights.indexOf(<SpotLight>light), 1);
 		}
 	}

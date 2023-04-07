@@ -1,5 +1,6 @@
 import CullingVolume from "../core/CullingVolume";
 import RenderObject from "../core/RenderObject";
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Matrix4 from "../math/Matrix4";
 import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
@@ -18,7 +19,7 @@ export default class Camera extends RenderObject {
 	constructor() {
 		super();
 		this._viewMatrix = undefined;
-		this.isCamera = true;
+		this.type = RenderObjectType.Camera;
 		this.cullingVolume = new CullingVolume();
 		this._viewMatrix = new Matrix4();
 		this._vpMatrix = new Matrix4();

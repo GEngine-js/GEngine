@@ -1,25 +1,24 @@
-import Camera from "../camera/Camera";
 import RenderObject from "../core/RenderObject";
-import Color from "../math/Color";
+import { LightType, RenderObjectType } from "../core/WebGPUTypes";
 import Vector3 from "../math/Vector3";
 import { BaseShadow } from "./shadows/BaseShadow";
 
-export class Light {
+export class Light extends RenderObject {
 	private _color: Vector3;
-	type: string;
+	type: RenderObjectType;
 	private _intensity: number;
 	dirty: boolean;
 	colorDirty: boolean;
 	shadowDirty: boolean;
 	intensityDirty: boolean;
-	private _position: Vector3;
-	private _target: Vector3;
 	positionDirty: boolean;
 	public _shadow: BaseShadow;
 	public targetDirty: boolean;
-	public isLight: boolean;
+	public lightType: LightType;
 
 	constructor(color: Vector3, intensity: number) {
+		super();
+		this.type = RenderObjectType.Light;
 		this._color = Vector3.multiplyByScalar(color, intensity, new Vector3());
 		this._intensity = intensity;
 		this._position = new Vector3(0, 1, 0);
@@ -30,7 +29,6 @@ export class Light {
 		this.shadowDirty = true;
 		this.intensityDirty = true;
 		this._shadow = null;
-		this.isLight = true;
 	}
 
 	get position() {

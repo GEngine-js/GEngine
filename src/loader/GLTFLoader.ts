@@ -13,7 +13,7 @@ import { AnimationChannelTarget } from "./gltf/libs/AnimationChannelTarget";
 import Color from "../math/Color";
 import { Skin } from "./gltf/libs/Skin";
 import { Accessor } from "./gltf/libs/Accessor";
-import { GLTFNode } from "./gltf/libs/GLTFNode";
+import Node from "../mesh/Node";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -45,7 +45,7 @@ export type GLTFAnimation = {
 };
 
 export class GLTF {
-	scenes: Array<GLTFNode>;
+	scenes: Array<Node>;
 
 	nodes: Array<any>;
 
@@ -110,7 +110,7 @@ export class GLTF {
 	}
 	private parseScenes() {
 		this.scenes = this.json.scenes.map((scene) => {
-			const node = new GLTFNode();
+			const node = new Node();
 			scene?.nodes?.map((nodeId) => {
 				node.add(this.nodes[nodeId]);
 			});
@@ -428,22 +428,26 @@ export class GLTF {
 	}
 	private parseNodes() {
 		this.nodes = this?.json?.nodes?.map((gltfNode) => {
-			const node = new GLTFNode();
+			const node = new Node();
 			this.parseNodeTRS(node, gltfNode);
-			if (gltfNode.mesh != undefined) node.meshList = this.meshes[gltfNode.mesh].primitives;
+			if (gltfNode.mesh != undefined) {
+				this.meshes[gltfNode.mesh].primitives.forEach((primitive) => {
+					node.add(primitive);
+				});
+			}
 			if (gltfNode.skin != undefined) {
 				const gltfSkin = this.json.skins[gltfNode.skin];
-				node.skin = new Skin({
-					inverseBindMatrices: this.getAccessor(gltfSkin.inverseBindMatrices).getMat4Array(),
-					name: gltfSkin.name,
-					joints: gltfSkin.joints,
-					skeleton: gltfSkin.skeleton
-				});
+				// node.skin = new Skin({
+				// 	inverseBindMatrices: this.getAccessor(gltfSkin.inverseBindMatrices).getMat4Array(),
+				// 	name: gltfSkin.name,
+				// 	joints: gltfSkin.joints,
+				// 	skeleton: gltfSkin.skeleton
+				// });
 			}
 			return node;
 		});
 	}
-	private parseNodeTRS(node: GLTFNode, gltfNode: GLTFNodeParms): GLTFNode {
+	private parseNodeTRS(node: Node, gltfNode: GLTFNodeParms): Node {
 		const { matrix, rotation, translation, scale } = gltfNode;
 		if (matrix) Matrix4.fromColumnMajorArray(matrix, node.modelMatrix);
 		if (rotation) node.quaternion.set(rotation[0], rotation[1], rotation[2], rotation[3]);
@@ -452,15 +456,14 @@ export class GLTF {
 		return node;
 	}
 	private normalizeData() {
-		this?.nodes?.map?.((node: GLTFNode, index) => {
+		this?.nodes?.map?.((node: Node, index) => {
 			if (node.skin)
 				node.skin.joints = node.skin.joints.map((joint) => {
 					return this.nodes[<number>joint];
 				});
-			node.children = this.json?.nodes[index]?.children?.map((nodeId: number) => {
+			this.json?.nodes[index]?.children?.map((nodeId: number) => {
 				const childNode = this.nodes[nodeId];
-				if (childNode) childNode.parent = node;
-				return childNode;
+				node.add(childNode);
 			});
 		});
 	}

@@ -1,4 +1,5 @@
 import Camera from "../camera/Camera";
+import { LightType } from "../core/WebGPUTypes";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
 import { SpotLightShadow } from "./shadows/SpotLightShadow";
@@ -22,7 +23,7 @@ export class SpotLight extends Light {
 		this._angle = (angle / 180) * Math.PI;
 		this._penumbra = (penumbra / 180) * Math.PI;
 		this._decay = decay;
-		this.type = "spot";
+		this.lightType = LightType.SpotLight;
 		this.angleDirty = true;
 		this.penumbraDirty = true;
 		this.distanceDirty = true;
