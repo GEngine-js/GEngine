@@ -1,7 +1,8 @@
+import Vector2 from "../../math/Vector2";
 import { BaseShadow } from "./BaseShadow";
 
 export class CascadedShadow extends BaseShadow {
 	constructor() {
-		super(1024, undefined);
+		super(new Vector2(1024, 1024), undefined);
 	}
 }

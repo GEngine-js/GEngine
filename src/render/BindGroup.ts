@@ -6,8 +6,19 @@ class BindGroup {
 	label: string;
 	index: number;
 	dirty: boolean;
+	offset?: number;
+	// const uniformBytes = 5 * Float32Array.BYTES_PER_ELEMENT;
+	// const alignedSizeBytes = Math.ceil(uniformBytes / 256) * 256;
+	// const alignedSize =alignedSizeBytes / Float32Array.BYTES_PER_ELEMENT;
+	alignedSize?: number;
+	maxOffset?: number;
+	dynamic?: boolean;
 	constructor(options: BindGroupCacheOptions) {
 		this.index = options.index || 0;
+		this.offset = options.offset ?? 0;
+		this.alignedSize = options.alignedSize ?? 0;
+		this.maxOffset = options.maxOffset ?? 0;
+		this.dynamic = options.dynamic ?? false;
 		this.gpuBindGroup = options.device.createBindGroup({
 			label: options.label,
 			layout: options.layout.gpuBindGroupLayout,
@@ -18,7 +29,15 @@ class BindGroup {
 		});
 	}
 	bind(passEncoder: GPURenderPassEncoder) {
-		passEncoder.setBindGroup(this.index, this.gpuBindGroup);
+		//dynamic uniforms must bind multiple times
+		if (this.dynamic) {
+			const dynamicOffsets = [0];
+			dynamicOffsets[0] = (this.offset > this.maxOffset ? this.offset : 0) * this.alignedSize;
+			this.offset += 1;
+			passEncoder.setBindGroup(this.index, this.gpuBindGroup, dynamicOffsets);
+		} else {
+			passEncoder.setBindGroup(this.index, this.gpuBindGroup);
+		}
 	}
 	destroy() {
 		this.gpuBindGroup = undefined;

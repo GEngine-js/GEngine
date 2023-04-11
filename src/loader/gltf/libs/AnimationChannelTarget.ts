@@ -1,7 +1,7 @@
-import { GLTFNode } from "./GLTFNode";
+import Node from "../../../mesh/Node";
 
 export class AnimationChannelTarget {
-	node: GLTFNode;
+	node: Node;
 	path: "translation" | "rotation" | "scale" | "weights";
 	constructor(node, path) {
 		this.node = node;

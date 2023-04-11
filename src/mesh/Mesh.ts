@@ -41,7 +41,7 @@ export class Mesh extends RenderObject {
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
-		if (this.type==RenderObjectType.Debugger) {
+		if (this.type == RenderObjectType.Debug) {
 			frameState.renderQueue.debugQueue.push(this);
 			return;
 		}

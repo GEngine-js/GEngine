@@ -112,6 +112,10 @@ export type BindGroupCacheOptions = {
 	layout: BindGroupLayout;
 	entires: BindGroupEntity[];
 	index?: number;
+	offset?: number;
+	alignedSize?: number;
+	maxOffset?: number;
+	dynamic?: boolean;
 };
 export type ImageData = {
 	source: ImageBitmap | HTMLCanvasElement | Texture;
@@ -272,7 +276,7 @@ export enum RenderObjectType {
 	Axes = "axes",
 	Skybox = "skyBox",
 	PostEffect = "postEffect",
-	Debugger='debugger',
+	Debug = "debug"
 }
 export enum LightType {
 	SpotLight = "spotLight",

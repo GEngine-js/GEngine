@@ -30,7 +30,7 @@ export class ShadowMapDebugger {
 		this.mesh = this._createShadowMapMesh();
 		const shadowMap = this.light.shadow.getShadowMapTexture();
 		this.material.uniforms.texture.value = shadowMap;
-		this.mesh.type = RenderObjectType.Debugger;
+		this.mesh.type = RenderObjectType.Debug;
 		this.scene.add(this.mesh);
 	}
 

@@ -41,12 +41,22 @@ export default class UniformBuffer {
 	offset: number;
 	isUniformBuffer: boolean;
 	name: string;
-	constructor(label: string, type?: string, usage?: BufferUsage, size?: number, dataBuffer?: Float32Array) {
+	constructor(
+		label: string,
+		type?: string,
+		usage?: BufferUsage,
+		size?: number,
+		dataBuffer?: Float32Array,
+		binding?: number,
+		hasDynamicOffset?: boolean,
+		minBindingSize?: number
+	) {
 		this.type = defaultValue(type, "uniform");
 		this.label = defaultValue(label, "");
 		this.name = defaultValue(label, "");
-		(this.hasDynamicOffset = false), (this.minBindingSize = 0);
-		this.binding = 0;
+		this.hasDynamicOffset = hasDynamicOffset ?? false;
+		this.minBindingSize = minBindingSize ?? 0;
+		this.binding = binding ?? 0;
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
 		this.usage = defaultValue(usage, BufferUsage.Uniform | BufferUsage.CopyDst);
 		this._uniformStruct = new Map();
@@ -118,6 +128,9 @@ export default class UniformBuffer {
 				break;
 		}
 		return result;
+	}
+	contains(name: string): Uniform<any> {
+		return this._uniformStruct.get(name);
 	}
 	setFloat(name: string, value: Function | number | Object, binding?: number) {
 		if (this._uniformStruct.get(name)) return;

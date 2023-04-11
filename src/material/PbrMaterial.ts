@@ -26,6 +26,8 @@ export default class PbrMaterial extends Material {
 
 	public aoSampler: Sampler;
 
+	public joints: Function;
+
 	public metalnessRoughnessTexture: Texture;
 
 	public metalnessRoughnessSampler: Sampler;
@@ -152,6 +154,16 @@ export default class PbrMaterial extends Material {
 		if (this.specularEnvTexture && this._IBLRender) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
 			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
+		}
+		if (this.joints) {
+			this.shaderData.setDefine("jointsCount", this.joints().length);
+			uniformBuffer.setMatrix4Array(
+				"joints",
+				() => {
+					return this.joints();
+				},
+				this.joints().length
+			);
 		}
 	}
 	destroy() {}

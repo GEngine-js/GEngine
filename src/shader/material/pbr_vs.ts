@@ -17,7 +17,7 @@ export default function pbr_vs(defines) {
         #endif
         #if ${defines.HAS_SKIN} 
              //jointMatrixCount:f32,
-             jointMatrixs:array<mat4x4>,
+             jointMatrixs:array<mat4x4<f32>,${defines.jointsCount}>,
         #endif
    }
 
@@ -38,11 +38,11 @@ export default function pbr_vs(defines) {
             @location(${defines.uvLocation}) uv: vec2<f32>,
         #endif
         #if${defines.HAS_SKIN} 
-            @location(${defines.joint0Location}) joint0:vec4<f32>;
-            @location(${defines.weight0Location}) weight0:vec4<f32>;
+            @location(${defines.joint0Location}) joint0:vec4<f32>,
+            @location(${defines.weight0Location}) weight0:vec4<f32>,
             #if${defines.SKIN_VEC8}
-                @location(${defines.joint1Location}) joint1:vec4<f32>;
-                @location(${defines.weight1Location}) weight1:vec4:<f32>;
+                @location(${defines.joint1Location}) joint1:vec4<f32>,
+                @location(${defines.weight1Location}) weight1:vec4:<f32>,
             #endif
         #endif
    }
@@ -79,7 +79,8 @@ export default function pbr_vs(defines) {
             output.uv = input.uv;
         #endif
         #if ${defines.HAS_SKIN} 
-            output.normal = normalize((materialUniform.normalMatrix * transpose(inverse(skinMatrix)) * vec4<f32>(input.normal, 0.0)).xyz);
+            //output.normal = normalize((materialUniform.normalMatrix * transpose(inverse(skinMatrix)) * vec4<f32>(input.normal, 0.0)).xyz);
+            output.normal =input.normal;
             let pos:vec4<f32> = systemUniform.viewMatrix *materialUniform.modelMatrix*skinMatrix * vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix*materialUniform.modelMatrix * skinMatrix * vec4<f32>(input.position,1.0);
         #else

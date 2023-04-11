@@ -14,6 +14,8 @@ import Color from "../math/Color";
 import { Skin } from "./gltf/libs/Skin";
 import { Accessor } from "./gltf/libs/Accessor";
 import Node from "../mesh/Node";
+import { SKinMesh } from "../mesh/SKinMesh";
+import { RenderObjectType } from "../core/WebGPUTypes";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -156,8 +158,6 @@ export class GLTF {
 						addressModeU: "repeat",
 						addressModeV: "repeat"
 					});
-					// mat.roughness = 0.0;
-					// mat.metalness = 1.0;
 					return mat;
 			  })
 			: [];
@@ -323,7 +323,7 @@ export class GLTF {
 		if (primitive.attributes.JOINTS_0 !== undefined) {
 			accessor = this.getAccessor(primitive.attributes.JOINTS_0);
 			joints = accessor.getArray();
-			// defines.HAS_SKIN = true;
+			defines.HAS_SKIN = true;
 		}
 		let weights = null;
 		if (primitive.attributes.WEIGHTS_0 !== undefined) {
@@ -336,8 +336,8 @@ export class GLTF {
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
 		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), 3));
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
-		// if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
-		// if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
+		if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
+		if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
 		geo.defines = defines;
 		geo.computeBoundingSphere(Array.from(positions));
 		geo.count = vertexCount;
@@ -431,18 +431,28 @@ export class GLTF {
 			const node = new Node();
 			this.parseNodeTRS(node, gltfNode);
 			if (gltfNode.mesh != undefined) {
-				this.meshes[gltfNode.mesh].primitives.forEach((primitive) => {
-					node.add(primitive);
+				let gltfSkin = undefined,
+					isSkinMesh = false;
+				if (gltfNode.skin != undefined) {
+					gltfSkin = this.json.skins[gltfNode.skin];
+					isSkinMesh = true;
+				}
+				this.meshes[gltfNode.mesh].primitives.forEach((primitive: Mesh, index: number, source: Array<Mesh>) => {
+					const tempPrimitive =
+						isSkinMesh && primitive.type == RenderObjectType.Mesh
+							? new SKinMesh(primitive.geometry, primitive.material)
+							: primitive;
+					if (isSkinMesh && primitive.type == RenderObjectType.Mesh) {
+						source[index] = tempPrimitive;
+						tempPrimitive.setSkinData({
+							inverseBindMatrices: this.getAccessor(gltfSkin.inverseBindMatrices).getMat4Array(),
+							joints: gltfSkin.joints
+							// name: gltfSkin.name,
+							// skeleton: gltfSkin.skeleton
+						});
+					}
+					node.add(tempPrimitive);
 				});
-			}
-			if (gltfNode.skin != undefined) {
-				const gltfSkin = this.json.skins[gltfNode.skin];
-				// node.skin = new Skin({
-				// 	inverseBindMatrices: this.getAccessor(gltfSkin.inverseBindMatrices).getMat4Array(),
-				// 	name: gltfSkin.name,
-				// 	joints: gltfSkin.joints,
-				// 	skeleton: gltfSkin.skeleton
-				// });
 			}
 			return node;
 		});
@@ -457,13 +467,17 @@ export class GLTF {
 	}
 	private normalizeData() {
 		this?.nodes?.map?.((node: Node, index) => {
-			if (node.skin)
-				node.skin.joints = node.skin.joints.map((joint) => {
-					return this.nodes[<number>joint];
-				});
 			this.json?.nodes[index]?.children?.map((nodeId: number) => {
 				const childNode = this.nodes[nodeId];
 				node.add(childNode);
+			});
+		});
+		this.meshes.map((mesh) => {
+			mesh.primitives.map((primitive) => {
+				if (primitive.type == RenderObjectType.SkinMesh)
+					primitive.joints = primitive.joints.map((joint) => {
+						return this.nodes[<number>joint];
+					});
 			});
 		});
 	}
