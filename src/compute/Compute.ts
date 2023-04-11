@@ -51,7 +51,7 @@ export class Compute {
 		this.destroy();
 		this.shaderData = new ShaderData(this.name, 0);
 		if (checkContainFloatType(this.uniforms)) {
-			this.uniformBuffer = new UniformBuffer(this.name);
+			this.uniformBuffer = new UniformBuffer({ label: this.name });
 			this.shaderData.setUniformBuffer(this.name, this.uniformBuffer);
 		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);

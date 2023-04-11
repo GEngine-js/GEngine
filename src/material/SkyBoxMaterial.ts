@@ -35,7 +35,7 @@ export default class SkyBoxMaterial extends Material {
 	}
 	protected createShaderData(mesh: Mesh) {
 		super.createShaderData(mesh);
-		const uniformBuffer = new UniformBuffer("skybox");
+		const uniformBuffer = new UniformBuffer({ label: "skybox" });
 		uniformBuffer.setMatrix4("modelMatrix", () => {
 			return null;
 		});

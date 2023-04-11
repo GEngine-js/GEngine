@@ -107,11 +107,11 @@ export default class LightManger {
 	}
 	private createLightShaderData() {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
-		this.lightUniformBuffer = new UniformBuffer(
-			"light",
-			"read-only-storage",
-			BufferUsage.Storage | BufferUsage.CopyDst
-		);
+		this.lightUniformBuffer = new UniformBuffer({
+			label: "light",
+			type: "read-only-storage",
+			usage: BufferUsage.Storage | BufferUsage.CopyDst
+		});
 
 		this.lightShaderData.setDefine("spotLightsCount", this.spotLights.length);
 		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
@@ -171,11 +171,11 @@ export default class LightManger {
 				this.lightShaderData.setDefine("openShadow", this.openShadow);
 
 				//shadowUniformBuffer
-				this.shadowUniformBuffer = new UniformBuffer(
-					"shadow",
-					"read-only-storage",
-					BufferUsage.Storage | BufferUsage.CopyDst
-				);
+				this.shadowUniformBuffer = new UniformBuffer({
+					label: "shadow",
+					type: "read-only-storage",
+					usage: BufferUsage.Storage | BufferUsage.CopyDst
+				});
 
 				//matrix,near,far...
 				const spotLightWithShadowCount = this.setShadowUniform(

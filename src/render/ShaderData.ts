@@ -100,7 +100,7 @@ export default class ShaderData {
 		this.bindGroup = undefined;
 	}
 	private createBindGroup(device: GPUDevice, label: string, groupIndex?: number) {
-		const { entities, dynamic, alignedSize } = this.createBindGroupEntity();
+		const { entities, dynamic, alignedSize, maxOffset } = this.createBindGroupEntity();
 		const bindGroup = new BindGroup({
 			label: label,
 			entires: entities,
@@ -141,11 +141,13 @@ export default class ShaderData {
 	private createBindGroupEntity() {
 		const result = new Map();
 		let dynamic = false,
-			alignedSize = 0;
+			alignedSize = 0,
+			maxOffset = 0;
 		this._uniforms.forEach((uniform) => {
 			if (!result.has(uniform.binding)) {
 				if (uniform?.hasDynamicOffset) {
 					dynamic = true;
+					maxOffset = uniform.maxOffset;
 					alignedSize = (Math.ceil(uniform.bufferSize / 256) * 256) / Float32Array.BYTES_PER_ELEMENT;
 				}
 				result.set(uniform.binding, this.creayeOneGroupEntity(uniform));
@@ -154,7 +156,8 @@ export default class ShaderData {
 		return {
 			entities: [...result.values()],
 			dynamic,
-			alignedSize
+			alignedSize,
+			maxOffset
 		};
 	}
 	private createOneLayoutEntry(uniform) {

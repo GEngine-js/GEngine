@@ -39,33 +39,26 @@ export default class UniformBuffer {
 	buffer: Buffer;
 	dataBuffer: Float32Array;
 	offset: number;
+	maxOffset: number;
 	isUniformBuffer: boolean;
 	name: string;
-	constructor(
-		label: string,
-		type?: string,
-		usage?: BufferUsage,
-		size?: number,
-		dataBuffer?: Float32Array,
-		binding?: number,
-		hasDynamicOffset?: boolean,
-		minBindingSize?: number
-	) {
-		this.type = defaultValue(type, "uniform");
-		this.label = defaultValue(label, "");
-		this.name = defaultValue(label, "");
-		this.hasDynamicOffset = hasDynamicOffset ?? false;
-		this.minBindingSize = minBindingSize ?? 0;
-		this.binding = binding ?? 0;
+	constructor(options: UniformBufferType) {
+		this.type = defaultValue(options.type, "uniform");
+		this.label = defaultValue(options.label, "");
+		this.name = defaultValue(options.label, "");
+		this.hasDynamicOffset = options.hasDynamicOffset ?? false;
+		this.minBindingSize = options.minBindingSize ?? 0;
+		this.binding = options.binding ?? 0;
 		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
-		this.usage = defaultValue(usage, BufferUsage.Uniform | BufferUsage.CopyDst);
+		this.usage = defaultValue(options.usage, BufferUsage.Uniform | BufferUsage.CopyDst);
 		this._uniformStruct = new Map();
 		this.uniformDirty = true;
-		this._bufferSize = size;
+		this._bufferSize = options.size;
 		this.offset = 0;
-		this.dataBuffer = defaultValue(dataBuffer, new Float32Array(defaultValue(this._bufferSize, 400)));
+		this.dataBuffer = defaultValue(options.dataBuffer, new Float32Array(defaultValue(this._bufferSize, 400)));
 		this.byteOffset = 0;
 		this.isUniformBuffer = true;
+		this.maxOffset = options.maxOffset ?? 0;
 	}
 	get layoutType() {
 		return {
@@ -289,3 +282,14 @@ export default class UniformBuffer {
 		this?.buffer?.destroy();
 	}
 }
+type UniformBufferType = {
+	label: string;
+	type?: string;
+	usage?: BufferUsage;
+	size?: number;
+	dataBuffer?: Float32Array;
+	binding?: number;
+	hasDynamicOffset?: boolean;
+	minBindingSize?: number;
+	maxOffset?: number;
+};
