@@ -10,6 +10,8 @@ import getVertFrag from "../shader/Shaders";
 import Texture from "../render/Texture";
 import { CommandSubType } from "../core/WebGPUConstant";
 import RenderQueue from "../core/RenderQueue";
+import { PointLight } from "../light/PointLight";
+import { Light } from "../light/Light";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -23,36 +25,43 @@ export class ShadowPass extends Pass {
 		if (lights.length === 0) return;
 
 		for (let i = 0; i < lights.length; i++) {
-			const light = lights[i];
+			const light: PointLight | Light = lights[i];
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture
 			this.beforeRender({ shadow });
-
-			if (shadow.type == "pointLightShadow") {
-				// for (let i = 0; i < shadow.viewports.length; i++) {
-				// 	const viewport = shadow.viewports[i];
-				// 	const viewportSize = shadow.viewportSize;
-				// 	shadow.currentViewportIndex = i;
-				// 	// context.setViewPort(
-				// 	// 	viewport.x * viewportSize.x,
-				// 	// 	viewport.y * viewportSize.y,
-				// 	// 	viewportSize.x,
-				// 	// 	viewportSize.y
-				// 	// );
-				// 	this.subRender(renderQueue, shadow);
-				// }
-				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
-				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
-				this.subRender(renderQueue, shadow);
+			if (shadow.type == "pointLightShadow" && light instanceof PointLight) {
+				for (let i = 0; i < shadow.viewports.length; i++) {
+					// this.beforeRender({ shadow });
+					const viewport = shadow.viewports[i];
+					const viewportSize = shadow.viewportSize;
+					shadow.currentViewportIndex = i;
+					shadow.update(light);
+					// light.forceUpdate = true;
+					context.setViewPort(
+						viewport.x * viewportSize.x,
+						viewport.y * viewportSize.y,
+						viewportSize.x,
+						viewportSize.y
+					);
+					context.setScissorTest(
+						viewport.x * viewportSize.x,
+						viewport.y * viewportSize.y,
+						viewportSize.x,
+						viewportSize.y
+					);
+					this.subRender(renderQueue, shadow);
+					// super.afterRender();
+				}
 			} else {
+				this.beforeRender({ shadow });
 				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				this.subRender(renderQueue, shadow);
+				// super.afterRender();
 			}
-
-			super.afterRender();
 		}
+		super.afterRender();
 		context.lightManger.updateLightShadow();
 		context.resetViewPortToFullCanvas();
 	}

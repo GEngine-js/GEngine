@@ -24,13 +24,13 @@ export class PointLightShadow extends BaseShadow {
 			// negative X
 			new Vector4(1, 0, 1, 1),
 			// positive Z
-			new Vector4(0, 1, 1, 1),
+			new Vector4(2, 0, 1, 1),
 			// negative Z
-			new Vector4(1, 1, 1, 1),
+			new Vector4(0, 1, 1, 1),
 			// positive Y
-			new Vector4(0, 2, 1, 1),
+			new Vector4(1, 1, 1, 1),
 			// negative Y
-			new Vector4(1, 2, 1, 1)
+			new Vector4(2, 1, 1, 1)
 		];
 
 		this._pointLightShadowLookDirections = [
@@ -58,7 +58,9 @@ export class PointLightShadow extends BaseShadow {
 
 	updateMatrices(light: PointLight) {
 		this.camera.position.copy(light.position);
-		const target = this.camera.position.add(this._pointLightShadowLookDirections[this.currentViewportIndex]);
+		const target = Vector3.clone(light.position);
+		target.add(this._pointLightShadowLookDirections[this.currentViewportIndex]);
+		this.camera.up.copy(this._pointLightShadowUps[this.currentViewportIndex]);
 		const { x, y, z } = target;
 		this.camera.lookAt(x, y, z);
 		this.camera.updateMatrix();
