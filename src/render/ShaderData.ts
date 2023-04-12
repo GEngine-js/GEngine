@@ -131,9 +131,9 @@ export default class ShaderData {
 		let uid = "";
 		const result = new Map();
 		this._uniforms.forEach((uniform) => {
-			if (!result.has(uniform.binding)) {
+			if (!result.has(uniform.name)) {
 				uid = uid.concat(uniform.name);
-				result.set(uniform.binding, this.createOneLayoutEntry(uniform));
+				result.set(uniform.name, this.createOneLayoutEntry(uniform));
 			}
 		});
 		return { uid, layouts: [...result.values()] };
@@ -144,13 +144,13 @@ export default class ShaderData {
 			alignedSize = 0,
 			maxOffset = 0;
 		this._uniforms.forEach((uniform) => {
-			if (!result.has(uniform.binding)) {
+			if (!result.has(uniform.name)) {
 				if (uniform?.hasDynamicOffset) {
 					dynamic = true;
 					maxOffset = uniform.maxOffset;
 					alignedSize = (Math.ceil(uniform.bufferSize / 256) * 256) / Float32Array.BYTES_PER_ELEMENT;
 				}
-				result.set(uniform.binding, this.creayeOneGroupEntity(uniform));
+				result.set(uniform.name, this.creayeOneGroupEntity(uniform));
 			}
 		});
 		return {

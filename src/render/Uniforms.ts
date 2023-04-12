@@ -8,8 +8,6 @@ import Vector4 from "../math/Vector4";
 import { ShaderStage } from "../core/WebGPUConstant";
 import Texture from "./Texture";
 import Sampler from "./Sampler";
-import { Light } from "../light/Light";
-import Buffer from "./Buffer";
 import Context from "./Context";
 import defaultValue from "../utils/defaultValue";
 import UniformBuffer from "./UniformBuffer";
@@ -24,15 +22,13 @@ export class Uniform<T> {
 	buffer: Float32Array | Uint16Array | Uint32Array | Uint8Array | Float64Array | UniformBuffer;
 	cb: Function | number | Object;
 	byteSize: number;
-	binding?: number;
 	visibility?: number;
 	type?: string;
 	dirty?: boolean;
 
-	constructor(uniformName: string, cb?: Function | number | Object, binding?: number, offset?: number) {
+	constructor(uniformName: string, cb?: Function | number | Object, offset?: number) {
 		this.name = uniformName;
 		this.cb = cb;
-		this.binding = defaultValue(binding, 0);
 		this.offset = defaultValue(offset, 0);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.type = "number";
@@ -74,10 +70,9 @@ export class UniformFloat extends Uniform<number> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = 0;
 		this.byteSize = 4;
@@ -101,10 +96,9 @@ export class UniformFloatVec2 extends Uniform<Vector2> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Vector2();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 2);
@@ -129,10 +123,9 @@ export class UniformFloatVec3 extends Uniform<Vector3> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Vector3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
@@ -157,10 +150,9 @@ export class UniformFloatVec4 extends Uniform<Vector4> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Vector4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 4);
@@ -185,10 +177,9 @@ export class UniformColor extends Uniform<Color> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Color();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 3);
@@ -214,7 +205,6 @@ export class UniformMat2 extends Uniform<Matrix2> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -242,10 +232,9 @@ export class UniformMat3 extends Uniform<Matrix3> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Matrix3();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 9);
@@ -270,10 +259,9 @@ export class UniformMat4 extends Uniform<Matrix4> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = new Matrix4();
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, 16);
@@ -299,11 +287,10 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 64;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -325,11 +312,10 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
 		this.byteSize = 4 * count;
@@ -351,11 +337,10 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 8;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -380,11 +365,10 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -411,11 +395,10 @@ export class UniformVec4Array extends Uniform<Array<Vector4>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -479,20 +462,6 @@ export class UniformSampler extends Uniform<Sampler> {
 		this.sampler.update(context);
 	}
 }
-export class UniformLight extends Uniform<Light> {
-	bufferSize: number;
-	buffer: UniformBuffer;
-	constructor(uniformName: string, binding: number, buffer: Buffer | Function | Object, size: number) {
-		super(uniformName);
-		this.cb = buffer;
-		this.binding = binding;
-		this.visibility = ShaderStage.Fragment;
-		this.bufferSize = size;
-	}
-	set() {
-		this.buffer = this.getValue();
-	}
-}
 export class UniformSpotLights extends Uniform<SpotLight> {
 	static align = 16;
 	lights: Array<SpotLight>;
@@ -502,11 +471,10 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		this.byteSize = count * 64;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -568,11 +536,10 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 18;
@@ -617,11 +584,10 @@ export class UniformPointLights extends Uniform<PointLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -669,11 +635,10 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 18;
@@ -718,11 +683,10 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
@@ -760,11 +724,10 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function,
-		binding?: number,
 		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = 16;
