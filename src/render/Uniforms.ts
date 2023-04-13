@@ -63,6 +63,34 @@ export class Uniform<T> {
 	}
 }
 
+export class UniformUint extends Uniform<number> {
+	static align = 4;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: Function | number | Object,
+		binding?: number,
+		offset?: number
+	) {
+		super(uniformName, cb, binding, offset);
+		this.value = undefined;
+		this._value = 0;
+		this.byteSize = 4;
+		this.buffer = new Uint32Array(buffer.buffer, byteOffset, 1);
+		this.type = "uint";
+	}
+	set() {
+		if (this.cb != undefined) this.value = this.getValue();
+		if (this.value !== this._value) {
+			this._value = this.value;
+			this.buffer[0] = this.value;
+			return true;
+		}
+		return false;
+	}
+}
+
 export class UniformFloat extends Uniform<number> {
 	static align = 4;
 	constructor(
@@ -288,16 +316,18 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		byteOffset: number,
 		cb: Function,
 		offset?: number,
-		count?: number
+		count?: number,
+		size: number = 64
 	) {
 		super(uniformName, cb, offset);
 		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
-		this.byteSize = count * 64;
+		this.byteSize = count * size;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "mat4-array";
 	}
 	set(): boolean {
 		this.value = this.cb();
+		if (!this.value) return false;
 		for (let i = 0; i < this.value.length; i++) {
 			this.setBuffer(this.value[i].toArray(), i * 16);
 		}

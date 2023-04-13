@@ -8,7 +8,6 @@ import pbrVert from "./material/pbrVert";
 import skyBoxFrag from "./material/skyBoxFrag";
 import skyBoxVert from "./material/skyBoxVert";
 import quadFrag from "./material/quadFrag";
-import shadowTestFrag from "./material/shadowTestFrag";
 import quadVert from "./material/quadVert";
 import pbr_vs from "./material/pbr_vs";
 import pbr_fs from "./material/pbr_fs";
@@ -17,6 +16,8 @@ import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
 import blendFrag from "./postProcess/blend/blendFrag";
 import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
 import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
+import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
+import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag";
 
 function reduceComma(shader) {
 	//对所有的include处理
@@ -65,6 +66,10 @@ const shaders = {
 	shadowMapDebugger: {
 		frag: shadowMapDebuggerFrag,
 		vert: shadowMapDebuggerVert
+	},
+	shadowMap: {
+		vert: shadowMapVert,
+		frag: shadowMapFrag
 	}
 };
 

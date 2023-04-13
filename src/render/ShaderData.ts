@@ -116,7 +116,7 @@ export default class ShaderData {
 		const result = this.createBindGroupLayoutEntry();
 		const groupLayout = BindGroupLayout.getBindGroupLayoutFromCache(
 			device,
-			label + result.uid,
+			label + "-" + result.uid,
 			result.layouts,
 			layoutIndex || 0
 		);
@@ -132,10 +132,11 @@ export default class ShaderData {
 		const result = new Map();
 		this._uniforms.forEach((uniform) => {
 			if (!result.has(uniform.name)) {
-				uid = uid.concat(uniform.name);
+				uid = uid === "" ? uid.concat(uniform.name) : uid.concat(", ").concat(uniform.name);
 				result.set(uniform.name, this.createOneLayoutEntry(uniform));
 			}
 		});
+		uid = `uniforms[${uid}]`;
 		return { uid, layouts: [...result.values()] };
 	}
 	private createBindGroupEntity() {
@@ -148,7 +149,7 @@ export default class ShaderData {
 				if (uniform?.hasDynamicOffset) {
 					dynamic = true;
 					maxOffset = uniform.maxOffset;
-					alignedSize = (Math.ceil(uniform.bufferSize / 256) * 256) / Float32Array.BYTES_PER_ELEMENT;
+					alignedSize = Math.ceil(uniform.uniformsSize / (4 * 256)) * 256;
 				}
 				result.set(uniform.name, this.creayeOneGroupEntity(uniform));
 			}

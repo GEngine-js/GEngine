@@ -1,6 +1,6 @@
 import { Light } from "../Light";
 import { BaseShadow } from "./BaseShadow";
-import PerspectiveCamera from "../../camera/PerspectiveCamera";
+import PointLightShadowCamera from "../../camera/PointLightShadowCamera";
 import Vector4 from "../../math/Vector4";
 import Vector3 from "../../math/Vector3";
 import Vector2 from "../../math/Vector2";
@@ -12,7 +12,7 @@ export class PointLightShadow extends BaseShadow {
 	private _pointLightShadowUps: Array<Vector3>;
 
 	constructor() {
-		const camera = new PerspectiveCamera(90, 1, 0.1, 500);
+		const camera = new PointLightShadowCamera(90, 1, 0.1, 500);
 		super(new Vector2(1536, 1024), camera);
 		this.viewportSize = new Vector2(512, 512);
 		this.currentViewportIndex = 0;
@@ -57,12 +57,15 @@ export class PointLightShadow extends BaseShadow {
 	}
 
 	updateMatrices(light: PointLight) {
-		this.camera.position.copy(light.position);
-		const target = Vector3.clone(light.position);
-		target.add(this._pointLightShadowLookDirections[this.currentViewportIndex]);
-		this.camera.up.copy(this._pointLightShadowUps[this.currentViewportIndex]);
-		const { x, y, z } = target;
-		this.camera.lookAt(x, y, z);
-		this.camera.updateMatrix();
+		if (this.camera instanceof PointLightShadowCamera) {
+			this.camera.position.copy(light.position);
+			const target = Vector3.clone(light.position);
+			target.add(this._pointLightShadowLookDirections[this.currentViewportIndex]);
+			this.camera.up.copy(this._pointLightShadowUps[this.currentViewportIndex]);
+			const { x, y, z } = target;
+			this.camera.lookAt(x, y, z);
+			this.camera.updateMatrix();
+			this.camera.updateVpMatrixArrayAndIndex(this.currentViewportIndex);
+		}
 	}
 }

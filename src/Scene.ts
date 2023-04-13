@@ -56,7 +56,11 @@ export class Scene extends EventDispatcher {
 		this.ready = true;
 	}
 	add(instance: Instance) {
-		if ([RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh].includes(instance.type)) {
+		if (
+			[RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh, RenderObjectType.Debug].includes(
+				instance.type
+			)
+		) {
 			this.primitiveManger.add(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
 			this.context.lightManger.add(<Light>instance);

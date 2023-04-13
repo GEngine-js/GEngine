@@ -108,18 +108,24 @@ export class ShadowPass extends Pass {
 	}
 
 	private createShadowMaterial() {
-		const colorShader = getVertFrag("color", {
-			colorBinding: 0,
-			cameraBinding: 0,
-			positionLocation: 0,
-			colorLocation: 1
-		});
+		const shadowMapShaderFunction = (defines = {}) => {
+			const finalDefines = Object.assign(
+				{
+					selfBinding: 0,
+					cameraBinding: 0,
+					positionLocation: 0
+				},
+				defines
+			);
+			return getVertFrag("shadowMap", finalDefines).vert;
+		};
+
 		this.shadowMaterial = new ShaderMaterial({
 			type: "shadowMaterial",
 			uniforms: {
 				modelMatrix: { type: "mat4", value: null }
 			},
-			vert: colorShader.vert,
+			vert: shadowMapShaderFunction,
 			frag: undefined,
 			light: true //TODO:先true，false有显示bug
 		});

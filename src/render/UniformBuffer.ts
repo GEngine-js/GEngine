@@ -20,6 +20,7 @@ import {
 	UniformPointLightShadows,
 	UniformSpotLights,
 	UniformSpotLightShadows,
+	UniformUint,
 	UniformVec2Array,
 	UniformVec3Array,
 	UniformVec4Array
@@ -125,6 +126,14 @@ export default class UniformBuffer {
 	contains(name: string): Uniform<any> {
 		return this._uniformStruct.get(name);
 	}
+
+	setUint(name: string, value: Function | number | Object) {
+		if (this._uniformStruct.get(name)) return;
+		const uniform = new UniformUint(name, this.dataBuffer, this.byteOffset, value, binding);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+
 	setFloat(name: string, value: Function | number | Object) {
 		if (this._uniformStruct.get(name)) return;
 		const uniform = new UniformFloat(name, this.dataBuffer, this.byteOffset, value);
@@ -268,6 +277,9 @@ export default class UniformBuffer {
 	}
 	private checkUniformOffset(byteSize: number, Align: number): number {
 		//from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+		// return this.hasDynamicOffset
+		// 	? Math.ceil(byteSize / 256) * 256 - byteSize
+		// 	: Math.ceil(byteSize / Align) * Align - byteSize;
 		return Math.ceil(byteSize / Align) * Align - byteSize;
 	}
 	destroy() {

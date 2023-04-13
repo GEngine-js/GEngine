@@ -41,11 +41,11 @@ export default class ShaderMaterial extends Material {
 		if (result.hasFloat) {
 			this.uniformBuffer = result.hasArraytype
 				? new UniformBuffer({
-						label: this.type,
+						label: this.type + "UniformBuffer",
 						type: BufferBindingType.ReadOnlyStorage,
 						usage: BufferUsage.Storage | BufferUsage.CopyDst
 				  })
-				: new UniformBuffer({ label: this.type });
+				: new UniformBuffer({ label: this.type + "UniformBuffer" });
 			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
 		}
 		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
