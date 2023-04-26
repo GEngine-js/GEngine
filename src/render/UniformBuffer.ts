@@ -129,7 +129,7 @@ export default class UniformBuffer {
 
 	setUint(name: string, value: Function | number | Object) {
 		if (this._uniformStruct.get(name)) return;
-		const uniform = new UniformUint(name, this.dataBuffer, this.byteOffset, value, binding);
+		const uniform = new UniformUint(name, this.dataBuffer, this.byteOffset, value);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
@@ -189,10 +189,10 @@ export default class UniformBuffer {
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
-	setMatrix4Array(name: string, value: Function, count: number) {
+	setMatrix4Array(name: string, value: Function, count: number, size?: number) {
 		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformMatrix4Array.align);
-		const uniform = new UniformMatrix4Array(name, this.dataBuffer, this.byteOffset, value, 0, count);
+		const uniform = new UniformMatrix4Array(name, this.dataBuffer, this.byteOffset, value, 0, count, size);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}

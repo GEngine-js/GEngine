@@ -108,7 +108,8 @@ export default class ShaderData {
 			layout: this.groupLayout,
 			index: groupIndex || 0, //后续改成groupIndex
 			dynamic,
-			alignedSize
+			alignedSize,
+			maxOffset
 		});
 		return bindGroup;
 	}

@@ -20,6 +20,7 @@ export default function shadowMapVert(defines) {
    #if ${defines.isPointLightShadowMap}
       struct PointLightUniform {
          vpMatrix: mat4x4<f32>,
+         // vpMatrixArray: array<mat4x4<f32>, 6>,
       };
       @group(1) @binding(${defines.pointLightShadowCameraBinding}) var<storage, read> pointLightUniform: PointLightUniform;
    #endif

@@ -70,10 +70,9 @@ export class UniformUint extends Uniform<number> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: Function | number | Object,
-		binding?: number,
 		offset?: number
 	) {
-		super(uniformName, cb, binding, offset);
+		super(uniformName, cb, offset);
 		this.value = undefined;
 		this._value = 0;
 		this.byteSize = 4;

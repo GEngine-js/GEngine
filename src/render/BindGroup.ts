@@ -32,8 +32,8 @@ class BindGroup {
 		//dynamic uniforms must bind multiple times
 		if (this.dynamic) {
 			const dynamicOffsets = [0];
-			dynamicOffsets[0] = (this.offset > this.maxOffset ? this.offset : 0) * this.alignedSize;
-			this.offset += 1;
+			dynamicOffsets[0] = this.offset * this.alignedSize;
+			this.offset = ++this.offset < this.maxOffset ? this.offset : 0;
 			passEncoder.setBindGroup(this.index, this.gpuBindGroup, dynamicOffsets);
 		} else {
 			passEncoder.setBindGroup(this.index, this.gpuBindGroup);

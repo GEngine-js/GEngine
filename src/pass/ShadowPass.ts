@@ -12,6 +12,7 @@ import { CommandSubType } from "../core/WebGPUConstant";
 import RenderQueue from "../core/RenderQueue";
 import { PointLight } from "../light/PointLight";
 import { Light } from "../light/Light";
+import { PointLightShadow } from "../light/shadows/PointLightShadow";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -29,10 +30,21 @@ export class ShadowPass extends Pass {
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture
-			this.beforeRender({ shadow });
-			if (shadow.type == "pointLightShadow" && light instanceof PointLight) {
+			// this.beforeRender({ shadow });
+			if (shadow instanceof PointLightShadow && light instanceof PointLight) {
 				for (let i = 0; i < shadow.viewports.length; i++) {
-					// this.beforeRender({ shadow });
+					//动态buffer暂未调通，先以此种方式解决
+					switch (i) {
+						case 0:
+							this.renderTarget.depthAttachment.op = "clear";
+							break;
+
+						default:
+							this.renderTarget.depthAttachment.op = "load";
+							break;
+					}
+					this.beforeRender({ shadow });
+
 					const viewport = shadow.viewports[i];
 					const viewportSize = shadow.viewportSize;
 					shadow.currentViewportIndex = i;
@@ -51,17 +63,18 @@ export class ShadowPass extends Pass {
 						viewportSize.y
 					);
 					this.subRender(renderQueue, shadow);
-					// super.afterRender();
+					super.afterRender();
 				}
 			} else {
+				this.renderTarget.depthAttachment.op = "clear";
 				this.beforeRender({ shadow });
 				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				this.subRender(renderQueue, shadow);
-				// super.afterRender();
+				super.afterRender();
 			}
 		}
-		super.afterRender();
+		// super.afterRender();
 		context.lightManger.updateLightShadow();
 		context.resetViewPortToFullCanvas();
 	}
