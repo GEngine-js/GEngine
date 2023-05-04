@@ -12,8 +12,10 @@ export default class RenderObject implements IClone {
 	protected _quaternion: Quaternion;
 	protected _target: Vector3;
 	modelMatrix: Matrix4;
+	parent: RenderObject;
 	private _normalMatrix: Matrix4;
 	type: RenderObjectType;
+	name: string;
 	constructor() {
 		this._position = new Vector3();
 		this._scale = new Vector3(1, 1, 1);
@@ -41,7 +43,7 @@ export default class RenderObject implements IClone {
 		Matrix4.transpose(this._normalMatrix, this._normalMatrix);
 	}
 	updateMatrix(matrix?: Matrix4) {
-		Matrix4.fromTranslationQuaternionRotationScale(this.position, this.quaternion, this.scale, this.modelMatrix);
+		this.modelMatrix.compose(this.position, this.quaternion, this.scale);
 		if (matrix) Matrix4.multiply(matrix, this.modelMatrix, this.modelMatrix);
 		this.updateNormalMatrix();
 	}

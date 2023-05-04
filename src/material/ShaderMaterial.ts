@@ -1,5 +1,5 @@
 import { FrameState } from "../core/FrameState";
-import { BufferUsage } from "../core/WebGPUConstant";
+import { BufferBindingType, BufferUsage } from "../core/WebGPUConstant";
 import { ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
@@ -42,7 +42,7 @@ export default class ShaderMaterial extends Material {
 			this.uniformBuffer = result.hasArraytype
 				? new UniformBuffer({
 						label: this.type,
-						type: "read-only-storage",
+						type: BufferBindingType.ReadOnlyStorage,
 						usage: BufferUsage.Storage | BufferUsage.CopyDst
 				  })
 				: new UniformBuffer({ label: this.type });

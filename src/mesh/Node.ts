@@ -1,7 +1,6 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import { RenderObjectType } from "../core/WebGPUTypes";
-import { Skin } from "../loader/gltf/libs/Skin";
 import Matrix4 from "../math/Matrix4";
 import createGuid from "../utils/createGuid";
 import { Mesh } from "./Mesh";
@@ -9,7 +8,7 @@ import { Mesh } from "./Mesh";
 export default class Node extends Mesh {
 	uid: string;
 	children: Map<string, Node | Mesh>;
-	parent: Node;
+	name: string;
 	constructor() {
 		super();
 		this.isNode = true;
@@ -19,16 +18,17 @@ export default class Node extends Mesh {
 		this.uid = createGuid();
 	}
 	add(node: Node | Mesh) {
-		if (node.type == RenderObjectType.Node) node.parent = this;
+		//if (node.type == RenderObjectType.Node)
+		node.parent = this;
 		this.children.set(node.uid, node);
 	}
 	remove(node: Node | Mesh) {
 		this.children.delete(node.uid);
 	}
-	update(frameState: FrameState, camera?: Camera, matrix?: Matrix4) {
-		this.updateMatrix(matrix);
+	update(frameState: FrameState, camera?: Camera) {
+		this.updateMatrix(this?.parent?.modelMatrix?.clone());
 		this?.children?.forEach?.((node) => {
-			node.update(frameState, camera, this.modelMatrix);
+			node.update(frameState, camera);
 		});
 	}
 	destroy() {

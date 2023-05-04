@@ -4,7 +4,7 @@ import { Mesh } from "../mesh/Mesh";
 import Texture from "../render/Texture";
 import { Material } from "./Material";
 import { ShaderSource } from "../shader/ShaderSource";
-import { CullMode } from "../core/WebGPUConstant";
+import { BufferBindingType, BufferUsage, CullMode } from "../core/WebGPUConstant";
 import textureCache from "../core/TextureCache";
 import UniformBuffer from "../render/UniformBuffer";
 import Sampler from "../render/Sampler";
@@ -27,6 +27,8 @@ export default class PbrMaterial extends Material {
 	public aoSampler: Sampler;
 
 	public joints: Function;
+
+	public jointsInv: Function;
 
 	public metalnessRoughnessTexture: Texture;
 
@@ -156,14 +158,34 @@ export default class PbrMaterial extends Material {
 			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
 		}
 		if (this.joints) {
-			this.shaderData.setDefine("jointsCount", this.joints().length);
-			uniformBuffer.setMatrix4Array(
+			const skinJointsBuffer = new UniformBuffer({
+				label: "skinJointsBuffer",
+				type: BufferBindingType.ReadOnlyStorage,
+				usage: BufferUsage.Storage | BufferUsage.CopyDst,
+				size: 1500
+			});
+			const invsBuffer = new UniformBuffer({
+				label: "invsBuffer",
+				type: BufferBindingType.ReadOnlyStorage,
+				usage: BufferUsage.Storage | BufferUsage.CopyDst,
+				size: 1500
+			});
+			skinJointsBuffer.setMatrix4Array(
 				"joints",
 				() => {
 					return this.joints();
 				},
 				this.joints().length
 			);
+			invsBuffer.setMatrix4Array(
+				"jointsInv",
+				() => {
+					return this.jointsInv();
+				},
+				this.jointsInv().length
+			);
+			this.shaderData.setUniformBuffer("skinJointsBuffer", skinJointsBuffer);
+			this.shaderData.setUniformBuffer("invsBuffer", invsBuffer);
 		}
 	}
 	destroy() {}

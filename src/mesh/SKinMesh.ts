@@ -21,18 +21,18 @@ export class SKinMesh extends Mesh {
 		this.inverseBindMatrices = data.inverseBindMatrices;
 		this.joints = data.joints;
 	}
-	update(frameState: FrameState, camera?: Camera, matrix?: Matrix4) {
-		Matrix4.inverse(matrix, inverseTransformMat4);
+	update(frameState: FrameState, camera?: Camera) {
+		this.uniformMatrixs = [];
 		this.joints.map((joint, index) => {
-			const tempSkinMatrix = new Matrix4();
-			Matrix4.multiply((joint as Node).modelMatrix, this.inverseBindMatrices[index], tempSkinMatrix);
-			Matrix4.multiply(tempSkinMatrix, inverseTransformMat4, tempSkinMatrix);
-			this.uniformMatrixs.push(tempSkinMatrix);
+			this.uniformMatrixs.push((joint as Node).modelMatrix);
 		});
 		(this.material as PbrMaterial).joints = () => {
 			return this.uniformMatrixs;
 		};
-		super.update(frameState, camera, matrix);
+		(this.material as PbrMaterial).jointsInv = () => {
+			return this.inverseBindMatrices;
+		};
+		super.update(frameState, camera);
 	}
 }
 const inverseTransformMat4 = new Matrix4();

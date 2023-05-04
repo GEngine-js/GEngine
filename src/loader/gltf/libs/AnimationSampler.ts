@@ -16,8 +16,8 @@ export class AnimationSampler {
 	private outputType: string;
 	constructor() {}
 	formGltf(gltf: GLTF, sampler) {
-		this.input = gltf.accessors[sampler.input]; //required, accessor object
-		this.output = gltf.accessors[sampler.output]; //required, accessor object
+		this.input = gltf.accessors[sampler.input].values; //required, accessor object
+		this.output = gltf.accessors[sampler.output].values; //required, accessor object
 		this.interpolation = sampler.interpolation !== undefined ? sampler.interpolation : "LINEAR";
 		this.currentIndex = 0;
 		// this.currentValue=new Vector4();
@@ -54,8 +54,13 @@ export class AnimationSampler {
 		const on = o + count;
 
 		const u = Math.max(0, time - this.input[i]) / (this.input[i + 1] - this.input[i]);
-		animationOutputValueVec4a.set(o + 0, o + 1, o + 2, o + 3);
-		animationOutputValueVec4b.set(on + 0, on + 1, on + 2, on + 3);
+		animationOutputValueVec4a.set(this.output[o + 0], this.output[o + 1], this.output[o + 2], this.output[o + 3]);
+		animationOutputValueVec4b.set(
+			this.output[on + 0],
+			this.output[on + 1],
+			this.output[on + 2],
+			this.output[on + 3]
+		);
 		switch (this.interpolation) {
 			case "LINEAR":
 				count === 4

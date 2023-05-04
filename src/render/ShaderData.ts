@@ -162,19 +162,19 @@ export default class ShaderData {
 	}
 	private createOneLayoutEntry(uniform) {
 		let layoutEntity;
-		if (uniform.type === "uniform" || uniform.type === "read-only-storage") {
+		if (uniform.isUniformBuffer) {
 			layoutEntity = new BindGroupLayoutEntry({
 				binding: uniform.binding,
 				buffer: uniform.layoutType,
 				visibility: uniform.visibility
 			});
-		} else if (uniform.type === "texture") {
+		} else if (uniform.isTexture) {
 			layoutEntity = new BindGroupLayoutEntry({
 				binding: uniform.binding,
 				visibility: uniform.visibility,
 				texture: uniform.layoutType
 			});
-		} else if (uniform.type === "sampler") {
+		} else if (uniform.isSampler) {
 			layoutEntity = new BindGroupLayoutEntry({
 				binding: uniform.binding,
 				visibility: uniform.visibility,
@@ -185,7 +185,7 @@ export default class ShaderData {
 	}
 	private creayeOneGroupEntity(uniform) {
 		let groupEntity;
-		if (uniform.type === "uniform" || uniform.type === "read-only-storage") {
+		if (uniform.isUniformBuffer) {
 			groupEntity = new BindGroupEntity({
 				binding: uniform.binding,
 				resource: {
@@ -194,12 +194,12 @@ export default class ShaderData {
 					size: uniform.bufferSize
 				}
 			});
-		} else if (uniform.type === "texture") {
+		} else if (uniform.isTexture) {
 			groupEntity = new BindGroupEntity({
 				binding: uniform.binding,
 				resource: uniform.texture.textureView
 			});
-		} else if (uniform.type === "sampler") {
+		} else if (uniform.isSampler) {
 			groupEntity = new BindGroupEntity({
 				binding: uniform.binding,
 				resource: uniform.sampler.gpuSampler

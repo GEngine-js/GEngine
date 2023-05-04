@@ -23,14 +23,14 @@ export class Accessor {
 	}
 	getVec4Array(): Vector4[] {
 		const result = [];
-		for (let i = 0; i < this.values.length / this.componentType; i += this.componentType) {
+		for (let i = 0; i < this.values.length; i += 4) {
 			result.push(new Vector4(this.values[i], this.values[i + 1], this.values[i + 2], this.values[i + 3]));
 		}
 		return result;
 	}
 	getMat4Array(): Matrix4[] {
 		const result = [];
-		for (let i = 0; i < this.values.length / this.componentType; i += this.componentType) {
+		for (let i = 0; i < this.values.length; i += 16) {
 			const mat4 = new Matrix4();
 			Matrix4.fromColumnMajorArray(this.values.slice(i, i + 16), mat4);
 			result.push(mat4);

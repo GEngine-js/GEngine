@@ -68,7 +68,7 @@ export default class UniformBuffer {
 		};
 	}
 	get bufferSize() {
-		return defaultValue(this._bufferSize, this.uniformsSize * 4);
+		return this.uniformsSize * 4;
 	}
 	get uniformsSize() {
 		//https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
@@ -189,7 +189,7 @@ export default class UniformBuffer {
 	}
 	replaceUniformValue(name: string, value: Function | number | Object) {
 		const uniform = this._uniformStruct.get(name);
-		if (!uniform) console.error("not find uniform");
+		if (!uniform) return;
 		uniform.cb = value;
 	}
 	// uniformBuffer.setVec3Array('test',()=>{return [new Vector3(1,0,0),new Vector3(1,0.8,0.5)]},2);

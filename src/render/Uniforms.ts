@@ -423,11 +423,13 @@ export class UniformTexture extends Uniform<Texture> {
 	public visibility: ShaderStage;
 	public name: string;
 	public texture: Texture;
+	public isTexture: boolean;
 	private _texture: Function | Texture;
 	constructor(uniformName: string, binding: number, texture: Function | Texture) {
 		super(uniformName);
 		this.binding = binding;
 		this.type = "texture";
+		this.isTexture = true;
 		this.visibility = ShaderStage.Fragment;
 		this._texture = texture;
 	}
@@ -445,12 +447,14 @@ export class UniformSampler extends Uniform<Sampler> {
 	public visibility: ShaderStage;
 	public name: string;
 	public sampler: Sampler;
+	public isSampler: boolean;
 	private _sampler: Function | Sampler;
 	constructor(uniformName: string, binding: number, sampler: Function | Sampler) {
 		super(uniformName);
 		this.name = uniformName;
 		this.binding = binding;
 		this.type = "sampler";
+		this.isSampler = true;
 		this.visibility = ShaderStage.Fragment;
 		this._sampler = sampler;
 	}

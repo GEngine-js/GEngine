@@ -14,13 +14,13 @@ export class Animation {
 			node = target.node;
 			switch (target.path) {
 				case "rotation":
-					Quaternion.clone(animationSampler.curValue, node.rotation);
+					Quaternion.clone(animationSampler.currentValue, node.quaternion);
 					break;
 				case "translation":
-					Vector4.clone(animationSampler.curValue, node.translation);
+					Vector4.clone(animationSampler.currentValue, node.position);
 					break;
 				case "scale":
-					Vector4.clone(animationSampler.curValue, node.scale);
+					Vector4.clone(animationSampler.currentValue, node.scale);
 					break;
 			}
 		});

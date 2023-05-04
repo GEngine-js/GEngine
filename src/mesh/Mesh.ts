@@ -31,9 +31,9 @@ export class Mesh extends RenderObject {
 	get ready() {
 		return this.material.ready;
 	}
-	update(frameState: FrameState, camera?: Camera, matrix?: Matrix4) {
+	update(frameState: FrameState, camera?: Camera) {
 		//update matrix
-		this.updateMatrix(matrix);
+		this.updateMatrix(this?.parent?.modelMatrix);
 		//create
 		this.geometry.update(frameState);
 

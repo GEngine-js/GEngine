@@ -62,6 +62,10 @@
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 				directionalLight.position.set(1, 1, 1);
 				const gltf = await loadGLTF(
+					//'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/VC/glTF/VC.gltf'
+					//"https://raw.githubusercontent.com/shrekshao/minimal-gltf-loader/store-drone-model/glTFs/glTF_version_2/buster_drone/scene.gltf"
+					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF/CesiumMilkTruck.gltf"
+					//"../asset/model/dragon.glb"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf"
 					//'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF/CesiumMan.gltf'
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb"
@@ -72,12 +76,12 @@
 					"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
 					//"https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf"
 				);
-				gltf.scenes.map((node) => {
-					///node.rotateX(-Math.PI/2)
-					// node.scale.set(30,30,30)
-					scene.add(node);
+				gltf.scenes.map((nodes) => {
+					nodes.map((node) => {
+						scene.add(node);
+					});
 				});
-				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
 				camera.position.set(2, 0, 2);
 				camera.lookAt(0, 0, 0);
 				const ambientLight = new AmbientLight(new Vector3(1.0, 1.0, 1.0), 0.8);
@@ -98,8 +102,14 @@
 				const axes = new Axes();
 				// scene.add(axes)
 				// scene.add(directionalLight)
-				function animate() {
+				var timeStampZero = performance.now();
+				var timeParameter = 0;
+				function animate(timestamp) {
+					timeParameter = (timestamp - timeStampZero) * 0.001;
 					requestAnimationFrame(animate);
+					gltf?.animations?.map?.((animation) => {
+						animation.play(timeParameter);
+					});
 					control.update();
 					scene.render();
 				}

@@ -67,14 +67,59 @@ class Matrix4 {
 		this[15] = column3Row3;
 	}
 	//????
-	clone(result: Matrix4): Matrix4 {
+	clone(result: Matrix4 = new Matrix4()): Matrix4 {
 		return Matrix4.clone(this, result);
 	}
 
 	equals(right: Matrix4): boolean {
 		return Matrix4.equals(this, right);
 	}
+	compose(position: Vector3, quaternion: Quaternion, scale: Vector3): Matrix4 {
+		const te = this;
 
+		const x = quaternion.x,
+			y = quaternion.y,
+			z = quaternion.z,
+			w = quaternion.w;
+		const x2 = x + x,
+			y2 = y + y,
+			z2 = z + z;
+		const xx = x * x2,
+			xy = x * y2,
+			xz = x * z2;
+		const yy = y * y2,
+			yz = y * z2,
+			zz = z * z2;
+		const wx = w * x2,
+			wy = w * y2,
+			wz = w * z2;
+
+		const sx = scale.x,
+			sy = scale.y,
+			sz = scale.z;
+
+		te[0] = (1 - (yy + zz)) * sx;
+		te[1] = (xy + wz) * sx;
+		te[2] = (xz - wy) * sx;
+		te[3] = 0;
+
+		te[4] = (xy - wz) * sy;
+		te[5] = (1 - (xx + zz)) * sy;
+		te[6] = (yz + wx) * sy;
+		te[7] = 0;
+
+		te[8] = (xz + wy) * sz;
+		te[9] = (yz - wx) * sz;
+		te[10] = (1 - (xx + yy)) * sz;
+		te[11] = 0;
+
+		te[12] = position.x;
+		te[13] = position.y;
+		te[14] = position.z;
+		te[15] = 1;
+
+		return this;
+	}
 	equalsEpsilon(right: Matrix4, epsilon: number = 0): boolean {
 		return Matrix4.equalsEpsilon(this, right, epsilon);
 	}
@@ -666,21 +711,51 @@ class Matrix4 {
 		return result;
 	}
 
-	static getRotation(matrix: Matrix4, result: Matrix3): Matrix3 {
+	static getRotation(matrix: Matrix4, result: Quaternion): Quaternion {
 		const scale = Matrix4.getScale(matrix, scaleScratch5);
 
-		result[0] = matrix[0] / scale.x;
-		result[1] = matrix[1] / scale.x;
-		result[2] = matrix[2] / scale.x;
+		let is1 = 1 / scale.x;
+		let is2 = 1 / scale.y;
+		let is3 = 1 / scale.z;
 
-		result[3] = matrix[4] / scale.y;
-		result[4] = matrix[5] / scale.y;
-		result[5] = matrix[6] / scale.y;
+		let sm11 = matrix[0] * is1;
+		let sm12 = matrix[1] * is2;
+		let sm13 = matrix[2] * is3;
+		let sm21 = matrix[4] * is1;
+		let sm22 = matrix[5] * is2;
+		let sm23 = matrix[6] * is3;
+		let sm31 = matrix[8] * is1;
+		let sm32 = matrix[9] * is2;
+		let sm33 = matrix[10] * is3;
 
-		result[6] = matrix[8] / scale.z;
-		result[7] = matrix[9] / scale.z;
-		result[8] = matrix[10] / scale.z;
+		let trace = sm11 + sm22 + sm33;
+		let S = 0;
 
+		if (trace > 0) {
+			S = Math.sqrt(trace + 1.0) * 2;
+			result.w = 0.25 * S;
+			result.x = (sm23 - sm32) / S;
+			result.y = (sm31 - sm13) / S;
+			result.z = (sm12 - sm21) / S;
+		} else if (sm11 > sm22 && sm11 > sm33) {
+			S = Math.sqrt(1.0 + sm11 - sm22 - sm33) * 2;
+			result.w = (sm23 - sm32) / S;
+			result.x = 0.25 * S;
+			result.y = (sm12 + sm21) / S;
+			result.z = (sm31 + sm13) / S;
+		} else if (sm22 > sm33) {
+			S = Math.sqrt(1.0 + sm22 - sm11 - sm33) * 2;
+			result.w = (sm31 - sm13) / S;
+			result.x = (sm12 + sm21) / S;
+			result.y = 0.25 * S;
+			result.z = (sm23 + sm32) / S;
+		} else {
+			S = Math.sqrt(1.0 + sm33 - sm11 - sm22) * 2;
+			result.w = (sm12 - sm21) / S;
+			result.x = (sm31 + sm13) / S;
+			result.y = (sm23 + sm32) / S;
+			result.z = 0.25 * S;
+		}
 		return result;
 	}
 

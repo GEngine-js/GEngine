@@ -11,11 +11,13 @@ import { AnimationChannel } from "./gltf/libs/AnimationChannel";
 import { AnimationSampler } from "./gltf/libs/AnimationSampler";
 import { AnimationChannelTarget } from "./gltf/libs/AnimationChannelTarget";
 import Color from "../math/Color";
-import { Skin } from "./gltf/libs/Skin";
 import { Accessor } from "./gltf/libs/Accessor";
 import Node from "../mesh/Node";
 import { SKinMesh } from "../mesh/SKinMesh";
 import { RenderObjectType } from "../core/WebGPUTypes";
+import Vector3 from "../math/Vector3";
+import { Quaternion } from "../math/Quaternion";
+import Matrix3 from "../math/Matrix3";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -112,11 +114,10 @@ export class GLTF {
 	}
 	private parseScenes() {
 		this.scenes = this.json.scenes.map((scene) => {
-			const node = new Node();
-			scene?.nodes?.map((nodeId) => {
-				node.add(this.nodes[nodeId]);
+			const nodes = scene?.nodes?.map((nodeId) => {
+				return this.nodes[nodeId];
 			});
-			return node;
+			return nodes;
 		});
 	}
 	private parseTextures() {
@@ -231,6 +232,7 @@ export class GLTF {
 							: { pbrMetallicRoughness: {} };
 					const geo = this.createGeometry(primitive, material);
 					const mesh = new Mesh(geo, material);
+					mesh.name = gltfmesh.name;
 					return mesh;
 				})
 			};
@@ -430,6 +432,7 @@ export class GLTF {
 		this.nodes = this?.json?.nodes?.map((gltfNode) => {
 			const node = new Node();
 			this.parseNodeTRS(node, gltfNode);
+			if (gltfNode.name) node.name = gltfNode.name;
 			if (gltfNode.mesh != undefined) {
 				let gltfSkin = undefined,
 					isSkinMesh = false;
@@ -458,8 +461,20 @@ export class GLTF {
 		});
 	}
 	private parseNodeTRS(node: Node, gltfNode: GLTFNodeParms): Node {
-		const { matrix, rotation, translation, scale } = gltfNode;
-		if (matrix) Matrix4.fromColumnMajorArray(matrix, node.modelMatrix);
+		let { matrix, rotation, translation, scale } = gltfNode;
+		if (matrix) {
+			let tempMatrix4 = new Matrix4(),
+				tempScale = new Vector3(),
+				tempTranslation = new Vector3(),
+				tempRotation = new Quaternion();
+			Matrix4.fromColumnMajorArray(matrix, tempMatrix4);
+			Matrix4.getScale(tempMatrix4, tempScale);
+			Matrix4.getTranslation(tempMatrix4, tempTranslation);
+			Matrix4.getRotation(tempMatrix4, tempRotation);
+			rotation = tempRotation.toArray();
+			translation = tempTranslation.toArray();
+			scale = tempScale.toArray();
+		}
 		if (rotation) node.quaternion.set(rotation[0], rotation[1], rotation[2], rotation[3]);
 		if (translation) node.position.set(translation[0], translation[1], translation[2]);
 		if (scale) node.scale.set(scale[0], scale[1], scale[2]);

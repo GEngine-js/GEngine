@@ -12,6 +12,7 @@ import blinn_phong from "./phong/blinn_phong";
 // import getNormal from "./normal/getNormal";
 import ibl from "./pbr/ibl";
 import { getNormalByNormalTexture, getTBN, getNormal } from "./normal/getNormalBackUp";
+import { getSkinMatrix } from "./skin/getSkinMatrix";
 const ShaderChunk = {
 	light: light,
 	brdf: brdf,
@@ -27,6 +28,7 @@ const ShaderChunk = {
 	getNormal: getNormal,
 	getTBN: getTBN,
 	getNormalByNormalTexture: getNormalByNormalTexture,
-	ibl: ibl
+	ibl: ibl,
+	getSkinMatrix: getSkinMatrix
 };
 export default ShaderChunk;

@@ -137,7 +137,10 @@ export class Quaternion {
 	equalsEpsilon(right: Quaternion, epsilon: number = 0): boolean {
 		return Quaternion.equalsEpsilon(this, right, epsilon);
 	}
-
+	toArray(): number[] {
+		const { x, y, z, w } = this;
+		return [x, y, z, w];
+	}
 	static fromAxisAngle(axis: Vector3, angle: number): Quaternion {
 		const halfAngle = angle / 2.0;
 		const s = Math.sin(halfAngle);

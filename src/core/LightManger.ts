@@ -11,7 +11,8 @@ import {
 	CompareFunction,
 	SamplerBindingType,
 	TextureSampleType,
-	TextureViewDimension
+	TextureViewDimension,
+	BufferBindingType
 } from "./WebGPUConstant";
 import UniformBuffer from "../render/UniformBuffer";
 import Camera from "../camera/Camera";
@@ -109,7 +110,7 @@ export default class LightManger {
 		this.lightShaderData = new ShaderData("light", 0, 2, 2);
 		this.lightUniformBuffer = new UniformBuffer({
 			label: "light",
-			type: "read-only-storage",
+			type: BufferBindingType.ReadOnlyStorage,
 			usage: BufferUsage.Storage | BufferUsage.CopyDst
 		});
 
@@ -173,7 +174,7 @@ export default class LightManger {
 				//shadowUniformBuffer
 				this.shadowUniformBuffer = new UniformBuffer({
 					label: "shadow",
-					type: "read-only-storage",
+					type: BufferBindingType.ReadOnlyStorage,
 					usage: BufferUsage.Storage | BufferUsage.CopyDst
 				});
 
