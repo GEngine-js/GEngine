@@ -1,6 +1,7 @@
 import { IUniform, Uniforms } from "../core/WebGPUTypes";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
+import { UniformEnum } from "../render/Uniforms";
 const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
 export function checkContainFloatType(uniforms) {
 	let result = 0;
@@ -35,76 +36,112 @@ export function addUniformToShaderData(
 ) {
 	switch (uniform.type) {
 		case "float":
-			uniformBuffer.setFloat(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec2":
-			uniformBuffer.setFloatVec2(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec3":
-			uniformBuffer.setFloatVec3(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "color":
-			uniformBuffer.setColor(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "vec4":
-			uniformBuffer.setFloatVec4(name, () => {
-				return uniforms[name].value;
-			});
-		case "mat2":
-			uniformBuffer.setMatrix2(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "mat3":
-			uniformBuffer.setMatrix3(name, () => {
-				return uniforms[name].value;
-			});
-		case "mat4":
-			uniformBuffer.setMatrix4(name, () => {
-				return uniforms[name].value;
-			});
-			break;
-		case "float-array":
-			uniformBuffer.setFloatArray(
+			uniformBuffer.setUniform(
 				name,
 				() => {
 					return uniforms[name].value;
 				},
+				UniformEnum.Float
+			);
+			break;
+		case "vec2":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.FloatVec2
+			);
+			break;
+		case "vec3":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.FloatVec3
+			);
+			break;
+		case "color":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.Color
+			);
+			break;
+		case "vec4":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.FloatVec4
+			);
+		case "mat2":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.Mat2
+			);
+			break;
+		case "mat3":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.Mat3
+			);
+		case "mat4":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.Mat4
+			);
+			break;
+		case "float-array":
+			uniformBuffer.setUniform(
+				name,
+				() => {
+					return uniforms[name].value;
+				},
+				UniformEnum.FloatArray,
 				uniforms[name].value.length
 			);
 			break;
 		case "vec2-array":
-			uniformBuffer.setVec2Array(
+			uniformBuffer.setUniform(
 				name,
 				() => {
 					return uniforms[name].value;
 				},
+				UniformEnum.Vec2Array,
 				uniforms[name].value.length
 			);
 			break;
 		case "vec3-array":
-			uniformBuffer.setVec3Array(
+			uniformBuffer.setUniform(
 				name,
 				() => {
 					return uniforms[name].value;
 				},
+				UniformEnum.Vec3Array,
 				uniforms[name].value.length
 			);
 			break;
 		case "vec4-array":
-			uniformBuffer.setVec4Array(
+			uniformBuffer.setUniform(
 				name,
 				() => {
 					return uniforms[name].value;
 				},
+				UniformEnum.Vec4Array,
 				uniforms[name].value.length
 			);
 			break;

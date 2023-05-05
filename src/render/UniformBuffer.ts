@@ -2,6 +2,7 @@ import { BufferUsage, ShaderStage } from "../core/WebGPUConstant";
 import defaultValue from "../utils/defaultValue";
 import Buffer from "./Buffer";
 import Context from "./Context";
+
 import {
 	Uniform,
 	UniformColor,
@@ -23,7 +24,8 @@ import {
 	UniformUint,
 	UniformVec2Array,
 	UniformVec3Array,
-	UniformVec4Array
+	UniformVec4Array,
+	UniformEnum
 } from "./Uniforms";
 export default class UniformBuffer {
 	public type: string;
@@ -43,6 +45,27 @@ export default class UniformBuffer {
 	maxOffset: number;
 	isUniformBuffer: boolean;
 	name: string;
+	private static UniformType = {
+		[UniformEnum.Float]: UniformFloat,
+		[UniformEnum.FloatVec2]: UniformFloatVec2,
+		[UniformEnum.FloatVec3]: UniformFloatVec3,
+		[UniformEnum.FloatVec4]: UniformFloatVec4,
+		[UniformEnum.Mat2]: UniformMat2,
+		[UniformEnum.Mat3]: UniformMat3,
+		[UniformEnum.Mat4]: UniformMat4,
+		[UniformEnum.Color]: UniformColor,
+		[UniformEnum.FloatArray]: UniformFloatArray,
+		[UniformEnum.Vec2Array]: UniformVec2Array,
+		[UniformEnum.Vec3Array]: UniformVec3Array,
+		[UniformEnum.Vec4Array]: UniformVec4Array,
+		[UniformEnum.Mat4Array]: UniformMatrix4Array,
+		[UniformEnum.PointLights]: UniformPointLights,
+		[UniformEnum.SpotLights]: UniformSpotLights,
+		[UniformEnum.DirtectLights]: UniformDirtectLights,
+		[UniformEnum.PointLightShadows]: UniformPointLightShadows,
+		[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
+		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows
+	};
 	constructor(options: UniformBufferType) {
 		this.type = defaultValue(options.type, "uniform");
 		this.label = defaultValue(options.label, "");
@@ -272,6 +295,17 @@ export default class UniformBuffer {
 		if (this._uniformStruct.get(name)) return;
 		this.byteOffset += this.checkUniformOffset(this.byteOffset, UniformDirtectLightShadows.align);
 		const uniform = new UniformDirtectLightShadows(name, this.dataBuffer, this.byteOffset, value, 0, count);
+		this._uniformStruct.set(name, uniform);
+		this.byteOffset += uniform.byteSize;
+	}
+	setUniform(name: string, value: Function | number | Object, uniformType: UniformEnum, count?: number) {
+		if (this._uniformStruct.get(name)) return;
+		const TypeUniform = UniformBuffer.UniformType[uniformType];
+		this.byteOffset += this.checkUniformOffset(this.byteOffset, TypeUniform.align);
+		const uniform =
+			count != undefined
+				? new TypeUniform(name, this.dataBuffer, this.byteOffset, value, 0, count)
+				: new TypeUniform(name, this.dataBuffer, this.byteOffset, value);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}

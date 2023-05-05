@@ -7,6 +7,7 @@ import { ShaderSource } from "../shader/ShaderSource";
 import { BufferBindingType, BufferUsage, CullMode } from "../core/WebGPUConstant";
 import textureCache from "../core/TextureCache";
 import UniformBuffer from "../render/UniformBuffer";
+import { UniformEnum } from "../render/Uniforms";
 import Sampler from "../render/Sampler";
 
 export default class PbrMaterial extends Material {
@@ -110,17 +111,25 @@ export default class PbrMaterial extends Material {
 	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
 		super.createShaderData(mesh);
 		const uniformBuffer = new UniformBuffer({ label: "pbr" });
-		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return mesh.modelMatrix;
-		});
-		uniformBuffer.setColor("color", this);
-		uniformBuffer.setFloat("opacity", this);
-		uniformBuffer.setMatrix4("normalMtrix", () => {
-			return mesh.normalMatrix;
-		});
-		uniformBuffer.setColor("emissive", this);
-		uniformBuffer.setFloat("metalness", this);
-		uniformBuffer.setFloat("roughness", this);
+		uniformBuffer.setUniform(
+			"modelMatrix",
+			() => {
+				return mesh.modelMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform("color", this, UniformEnum.Color);
+		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
+		uniformBuffer.setUniform(
+			"normalMtrix",
+			() => {
+				return mesh.normalMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform("emissive", this, UniformEnum.Color);
+		uniformBuffer.setUniform("metalness", this, UniformEnum.Float);
+		uniformBuffer.setUniform("roughness", this, UniformEnum.Float);
 		this.shaderData.setUniformBuffer("pbr", uniformBuffer);
 		this.specularEnvTexture = textureCache.getTexture("specular");
 		if (this.baseTexture) {
@@ -137,7 +146,7 @@ export default class PbrMaterial extends Material {
 			);
 		}
 		if (this.normalTexture) {
-			uniformBuffer.setFloatVec2("normalScale", this);
+			uniformBuffer.setUniform("normalScale", this, UniformEnum.FloatVec2);
 			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
 			this.shaderData.setTexture("normalTexture", this.normalTexture);
 			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
@@ -146,7 +155,7 @@ export default class PbrMaterial extends Material {
 			this.shaderData.setDefine("USE_AOTEXTURE", true);
 			this.shaderData.setTexture("aoTexture", this.aoTexture);
 			this.shaderData.setSampler("aoSampler", this.aoSampler || textureCache.defaultSampler);
-			uniformBuffer.setFloat("aoTextureIntensity", this);
+			uniformBuffer.setUniform("aoTextureIntensity", this, UniformEnum.Float);
 		}
 		if (this.emissiveTexture) {
 			this.shaderData.setDefine("USE_EMISSIVETEXTURE", true);
@@ -170,18 +179,20 @@ export default class PbrMaterial extends Material {
 				usage: BufferUsage.Storage | BufferUsage.CopyDst,
 				size: 1500
 			});
-			skinJointsBuffer.setMatrix4Array(
+			skinJointsBuffer.setUniform(
 				"joints",
 				() => {
 					return this.joints();
 				},
+				UniformEnum.Mat4Array,
 				this.joints().length
 			);
-			invsBuffer.setMatrix4Array(
+			invsBuffer.setUniform(
 				"jointsInv",
 				() => {
 					return this.jointsInv();
 				},
+				UniformEnum.Mat4Array,
 				this.jointsInv().length
 			);
 			this.shaderData.setUniformBuffer("skinJointsBuffer", skinJointsBuffer);

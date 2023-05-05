@@ -36,11 +36,8 @@ export default class VertextBuffer {
 	public bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {
 		if (this.dirty) {
 			this.dirty = false;
-			const { arrayStride, typeArray } = this.attributes.getMeregeAtrributeValues();
-			this.arrayStride =
-				arrayStride.reduce(function (sum, item, index, arr) {
-					return (sum += item);
-				}, 0) * typeArray.BYTES_PER_ELEMENT;
+			const { arrayStride, typeArray } = this.attributes.getAtrributeValues();
+			this.arrayStride = arrayStride;
 			this.buffer = Buffer.createVertexBuffer(this.label, device, typeArray);
 		}
 		passEncoder.setVertexBuffer(this.index, this.buffer.gpuBuffer);

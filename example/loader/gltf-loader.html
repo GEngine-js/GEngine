@@ -107,9 +107,9 @@
 				function animate(timestamp) {
 					timeParameter = (timestamp - timeStampZero) * 0.001;
 					requestAnimationFrame(animate);
-					gltf?.animations?.map?.((animation) => {
-						animation.play(timeParameter);
-					});
+					// gltf?.animations?.map?.((animation) => {
+					// 	animation.play(timeParameter);
+					// });
 					control.update();
 					scene.render();
 				}

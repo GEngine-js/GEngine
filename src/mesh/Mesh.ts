@@ -6,7 +6,6 @@ import { CommandSubType } from "../core/WebGPUConstant";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
-import Matrix4 from "../math/Matrix4";
 import { RenderObjectType } from "../core/WebGPUTypes";
 import createGuid from "../utils/createGuid";
 export class Mesh extends RenderObject {
@@ -36,7 +35,6 @@ export class Mesh extends RenderObject {
 		this.updateMatrix(this?.parent?.modelMatrix);
 		//create
 		this.geometry.update(frameState);
-
 		this.material.update(frameState, this);
 		// update boundingSphere
 		this.geometry.boundingSphere.update(this.modelMatrix);

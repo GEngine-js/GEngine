@@ -310,12 +310,11 @@ export class UniformMat4 extends Uniform<Matrix4> {
 }
 export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 	static align = 16;
-	cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number,
 		size: number = 64
@@ -327,8 +326,8 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		this.type = "mat4-array";
 	}
 	set(): boolean {
-		this.value = this.cb();
 		if (!this.value) return false;
+		this.value = this.getValue();
 		for (let i = 0; i < this.value.length; i++) {
 			this.setBuffer(this.value[i].toArray(), i * 16);
 		}
@@ -337,12 +336,12 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 }
 export class UniformFloatArray extends Uniform<Array<number>> {
 	static align = 4;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -353,7 +352,7 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 		this.type = "float-array";
 	}
 	set(): boolean {
-		this.value = this.cb();
+		this.value = this.getValue();
 		for (let i = 0; i < this.value.length; i++) {
 			this.buffer[i] = this.value[i];
 		}
@@ -362,12 +361,12 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 }
 export class UniformVec2Array extends Uniform<Array<Vector2>> {
 	static align = 8;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -378,7 +377,8 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 		this.type = "vec2-array";
 	}
 	set(): boolean {
-		this.value = this.cb();
+		// this.value = this.cb();
+		this.value = this.getValue();
 		let j = 0;
 		for (let i = 0; i < this.value.length; i++) {
 			this.buffer[j] = this.value[i].x;
@@ -390,12 +390,12 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 }
 export class UniformVec3Array extends Uniform<Array<Vector3>> {
 	static align = 16;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -406,7 +406,8 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 		this.type = "vec3-array";
 	}
 	set(): boolean {
-		this.value = this.cb();
+		// this.value = this.cb();
+		this.value = this.getValue();
 		let j = 0;
 		for (let i = 0; i < this.value.length; i++) {
 			this.buffer[j] = this.value[i].x;
@@ -420,12 +421,12 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 }
 export class UniformVec4Array extends Uniform<Array<Vector4>> {
 	static align = 16;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -436,7 +437,7 @@ export class UniformVec4Array extends Uniform<Array<Vector4>> {
 		this.type = "vec4-array";
 	}
 	set(): boolean {
-		this.value = this.cb();
+		this.value = this.getValue();
 		let j = 0;
 		for (let i = 0; i < this.value.length; i++) {
 			this.buffer[j] = this.value[i].x;
@@ -500,12 +501,12 @@ export class UniformSampler extends Uniform<Sampler> {
 export class UniformSpotLights extends Uniform<SpotLight> {
 	static align = 16;
 	lights: Array<SpotLight>;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -518,7 +519,7 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		this.dirty = false;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((spotLight, index) => {
 			this.setSubData(spotLight, index);
 		});
@@ -562,7 +563,7 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 	static align = 16;
 	static uniformSize = 18;
 	lights: Array<SpotLight>;
-	cb: Function;
+	// cb: Function;
 	private _nearValue: number;
 	private _farValue: number;
 	private _subDataSize: number;
@@ -571,12 +572,11 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
 		super(uniformName, cb, offset);
-		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformSpotLightShadows.uniformSize;
 		this.byteSize = count * this._subDataSize * bytesPerElement;
@@ -587,7 +587,7 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		this._farValue = null;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((spotLight, index) => {
 			this.setSubData(spotLight, index);
 		});
@@ -614,24 +614,23 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 export class UniformPointLights extends Uniform<PointLight> {
 	static align = 16;
 	lights: Array<PointLight>;
-	cb: Function;
+	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
 		super(uniformName, cb, offset);
-		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "pointsLight";
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((pointLight, index) => {
 			this.setSubData(pointLight, index);
 		});
@@ -662,7 +661,7 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	static align = 16;
 	static uniformSize = 122;
 	lights: Array<PointLight>;
-	cb: Function;
+	// cb: Function;
 	private _nearValue: number;
 	private _farValue: number;
 	private _subDataSize: number;
@@ -671,12 +670,11 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
 		super(uniformName, cb, offset);
-		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformPointLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
@@ -687,7 +685,7 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		this._farValue = null;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((pointLight, index) => {
 			this.setSubData(pointLight, index);
 		});
@@ -731,12 +729,11 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 export class UniformDirtectLights extends Uniform<DirectionalLight> {
 	static align = 16;
 	lights: Array<DirectionalLight>;
-	cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
@@ -748,7 +745,7 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((directionalLight, index) => {
 			this.setSubData(directionalLight, index);
 		});
@@ -771,19 +768,17 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 	static align = 16;
 	static uniformSize = 16;
 	lights: Array<DirectionalLight>;
-	cb: Function;
 	private _subDataSize: number;
 
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function,
+		cb: Function | number | Object,
 		offset?: number,
 		count?: number
 	) {
 		super(uniformName, cb, offset);
-		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformDirtectLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
@@ -792,7 +787,7 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
-		this.lights = this.cb();
+		this.lights = this.getValue();
 		this.lights.forEach((directionalLight, index) => {
 			this.setSubData(directionalLight, index);
 		});
@@ -805,6 +800,27 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 			this.dirty = setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=16;
 		}
 	}
+}
+export enum UniformEnum {
+	Float = 0,
+	FloatVec2 = 1,
+	FloatVec3 = 2,
+	FloatVec4 = 3,
+	FloatArray = 4,
+	Mat2 = 5,
+	Mat3 = 6,
+	Mat4 = 7,
+	Color = 8,
+	Mat4Array = 9,
+	PointLights = 10,
+	PointLightShadows = 11,
+	SpotLights = 12,
+	SpotLightShadows = 13,
+	DirtectLights = 14,
+	DirtectLightShadows = 15,
+	Vec2Array = 16,
+	Vec3Array = 17,
+	Vec4Array = 18
 }
 function setDataToTypeArray(buffer, data, offset) {
 	if (Array.isArray(data)) {

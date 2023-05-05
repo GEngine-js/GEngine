@@ -16,16 +16,16 @@ export default class SphereGeometry extends Geometry {
 	}
 	private init() {
 		const { positions, normals, uvs, indices } = createSphere({ radius: this.radius });
-		this.positions = positions;
-		this.normals = normals;
-		this.uvs = uvs;
-		this.indices = indices;
-		this.computeBoundingSphere(this.positions);
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
+		// this.positions = positions;
+		// this.normals = normals;
+		// this.uvs = uvs;
+		// this.indices = indices;
+		this.computeBoundingSphere(positions);
+		this.setAttribute(new Float32Attribute("position", positions, 3));
+		this.setAttribute(new Float32Attribute("normal", normals, 3));
+		this.setAttribute(new Float32Attribute("uv", uvs, 2));
 
-		this.setIndice(this.indices);
-		this.count = this.indices.length;
+		this.setIndice(indices);
+		this.count = indices.length;
 	}
 }

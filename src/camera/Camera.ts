@@ -6,6 +6,7 @@ import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
+import { UniformEnum } from "../render/Uniforms";
 
 export default class Camera extends RenderObject {
 	private _viewMatrix: Matrix4;
@@ -93,18 +94,34 @@ export default class Camera extends RenderObject {
 	createShaderData() {
 		this.shaderData = new ShaderData("camera", 0, 1, 1);
 		const uniformBuffer = new UniformBuffer({ label: "camera" });
-		uniformBuffer.setMatrix4("projectionMatrix", () => {
-			return this.projectionMatrix;
-		});
-		uniformBuffer.setMatrix4("viewMatrix", () => {
-			return this.viewMatrix;
-		});
-		uniformBuffer.setMatrix4("inverseViewMatrix", () => {
-			return this.inverseViewMatrix;
-		});
-		uniformBuffer.setFloatVec3("position", () => {
-			return this.position;
-		});
+		uniformBuffer.setUniform(
+			"projectionMatrix",
+			() => {
+				return this.projectionMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform(
+			"viewMatrix",
+			() => {
+				return this.viewMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform(
+			"inverseViewMatrix",
+			() => {
+				return this.inverseViewMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform(
+			"position",
+			() => {
+				return this.position;
+			},
+			UniformEnum.FloatVec3
+		);
 		this.shaderData.setUniformBuffer("camera", uniformBuffer);
 	}
 }

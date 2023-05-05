@@ -28,25 +28,25 @@ export default class TorusKnotGeometry extends Geometry {
 		this.radialSegments = radialSegments;
 		this.p = p;
 		this.q = q;
-		this.indices = [];
-		this.positions = [];
-		this.normals = [];
-		this.uvs = [];
-		this.createGeometry();
-		this.computeBoundingSphere(this.positions);
 		this.init();
 	}
 	public update(frameState) {
 		const { device } = frameState.context;
 	}
 	private init() {
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
-		this.setIndice(this.indices);
-		this.count = this.indices.length;
+		const { normals, uvs, positions, indices } = this.createGeometry();
+		this.computeBoundingSphere(positions);
+		this.setAttribute(new Float32Attribute("position", positions, 3));
+		this.setAttribute(new Float32Attribute("normal", normals, 3));
+		this.setAttribute(new Float32Attribute("uv", uvs, 2));
+		this.setIndice(indices);
+		this.count = indices.length;
 	}
 	private createGeometry() {
+		const positions = [],
+			normals = [],
+			uvs = [],
+			indices = [];
 		const tubularSegments = Math.floor(this.tubularSegments);
 		const radialSegments = Math.floor(this.radialSegments);
 		// helper variables
@@ -105,18 +105,18 @@ export default class TorusKnotGeometry extends Geometry {
 				vertex.y = P1.y + (cx * N.y + cy * B.y);
 				vertex.z = P1.z + (cx * N.z + cy * B.z);
 
-				this.positions.push(vertex.x, vertex.y, vertex.z);
+				positions.push(vertex.x, vertex.y, vertex.z);
 
 				// normal (P1 is always the center/origin of the extrusion, thus we can use it to calculate the normal)
 				Vector3.subtract(vertex, P1, normal);
 				normal.normalize();
 
-				this.normals.push(normal.x, normal.y, normal.z);
+				normals.push(normal.x, normal.y, normal.z);
 
 				// uv
 
-				this.uvs.push(i / tubularSegments);
-				this.uvs.push(j / radialSegments);
+				uvs.push(i / tubularSegments);
+				uvs.push(j / radialSegments);
 			}
 		}
 
@@ -133,10 +133,16 @@ export default class TorusKnotGeometry extends Geometry {
 
 				// faces
 
-				this.indices.push(a, b, d);
-				this.indices.push(b, c, d);
+				indices.push(a, b, d);
+				indices.push(b, c, d);
 			}
 		}
+		return {
+			normals,
+			uvs,
+			positions,
+			indices
+		};
 	}
 }
 function calculatePositionOnCurve(u, p, q, radius, position) {

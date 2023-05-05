@@ -61,7 +61,6 @@ export default function pbr_vs(defines) {
         #endif
         #if ${defines.HAS_SKIN} 
             output.normal = normalize((materialUniform.normalMatrix * skinMatrix * vec4<f32>(input.normal, 0.0)).xyz);
-            // output.normal =input.normal;
            // let pos:vec4<f32> = systemUniform.viewMatrix *materialUniform.modelMatrix*skinMatrix * vec4<f32>(input.position, 1.0);
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix*skinMatrix*vec4<f32>(input.position,1.0);
         #else

@@ -68,7 +68,7 @@ export default class Geometry {
 	}
 	update(frameState: FrameState) {}
 	computeBoundingSphere(positions) {
-		this.boundingSphere = BoundingSphere.fromVertices(this.positions, new Vector3(0, 0, 0), 3);
+		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), 3);
 	}
 	/**
 	 * Calculate mesh tangent.

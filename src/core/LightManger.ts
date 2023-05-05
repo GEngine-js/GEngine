@@ -21,6 +21,7 @@ import Vector3 from "../math/Vector3";
 import { LightMangerOptions, LightType } from "../core/WebGPUTypes";
 import Texture from "../render/Texture";
 import Sampler from "../render/Sampler";
+import { UniformEnum } from "../render/Uniforms";
 
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
@@ -119,36 +120,43 @@ export default class LightManger {
 		this.lightShaderData.setDefine("dirtectLightsCount", this.directLights.length);
 		this.lightShaderData.setDefine("ambientLightCount", 1);
 		if (this.ambientLight)
-			this.lightUniformBuffer.setFloatVec4("ambientLight", () => {
-				return this.ambientLight.ColorAndIntensity;
-			});
+			this.lightUniformBuffer.setUniform(
+				"ambientLight",
+				() => {
+					return this.ambientLight.ColorAndIntensity;
+				},
+				UniformEnum.FloatVec4
+			);
 		if (this.spotLights.length) {
 			//初始化聚光灯
-			this.lightUniformBuffer.setSpotLights(
+			this.lightUniformBuffer.setUniform(
 				"spotLights",
 				() => {
 					return this.spotLights;
 				},
+				UniformEnum.SpotLights,
 				this.spotLights.length
 			);
 		}
 		if (this.pointLights.length) {
 			//点光源
-			this.lightUniformBuffer.setPointLights(
+			this.lightUniformBuffer.setUniform(
 				"pointLights",
 				() => {
 					return this.pointLights;
 				},
+				UniformEnum.PointLights,
 				this.pointLights.length
 			);
 		}
 		if (this.directLights.length) {
 			//方向光
-			this.lightUniformBuffer.setDirtectLights(
+			this.lightUniformBuffer.setUniform(
 				"directLights",
 				() => {
 					return this.directLights;
 				},
+				UniformEnum.DirtectLights,
 				this.directLights.length
 			);
 		}

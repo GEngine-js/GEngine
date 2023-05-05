@@ -7,6 +7,7 @@ import UniformBuffer from "../render/UniformBuffer";
 import Texture from "../render/Texture";
 import Sampler from "../render/Sampler";
 import textureCache from "../core/TextureCache";
+import { UniformEnum } from "../render/Uniforms";
 export default class BlinnPhongMaterial extends Material {
 	public specular: Color;
 	public shininess: number;
@@ -35,17 +36,25 @@ export default class BlinnPhongMaterial extends Material {
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);
 		const uniformBuffer = new UniformBuffer({ label: "phong" });
-		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return null;
-		});
-		uniformBuffer.setColor("color", this);
-		uniformBuffer.setFloat("opacity", this);
-		uniformBuffer.setMatrix4("normalMtrix", () => {
-			return mesh.normalMatrix;
-		});
-		uniformBuffer.setColor("emissive", this);
-		uniformBuffer.setFloat("shininess", this);
-		uniformBuffer.setColor("specular", this);
+		uniformBuffer.setUniform(
+			"modelMatrix",
+			() => {
+				return null;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform("color", this, UniformEnum.Color);
+		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
+		uniformBuffer.setUniform(
+			"normalMtrix",
+			() => {
+				return mesh.normalMatrix;
+			},
+			UniformEnum.Mat4
+		);
+		uniformBuffer.setUniform("emissive", this, UniformEnum.Color);
+		uniformBuffer.setUniform("shininess", this, UniformEnum.Float);
+		uniformBuffer.setUniform("specular", this, UniformEnum.Color);
 		this.shaderData.setUniformBuffer("phong", uniformBuffer);
 		if (this.baseTexture) {
 			this.shaderData.setDefine("USE_COLORTEXTURE", true);

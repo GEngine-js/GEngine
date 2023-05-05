@@ -13,17 +13,12 @@ export default class PlaneGeometry extends Geometry {
 	private init() {
 		//generate pos uv normal so on
 		const { indices, normals, uvs, vertices } = this.createGrid(this.width, this.height);
-		this.positions = vertices;
-		this.normals = normals;
-		this.uvs = uvs;
-		this.indices = indices;
-		this.computeBoundingSphere(this.positions);
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
+		this.computeBoundingSphere(vertices);
+		this.setAttribute(new Float32Attribute("position", vertices, 3));
+		this.setAttribute(new Float32Attribute("normal", normals, 3));
+		this.setAttribute(new Float32Attribute("uv", uvs, 2));
 		this.setIndice(indices);
-		this.count = this.indices.length;
-		// this.count = 36;
+		this.count = indices.length;
 	}
 	public update(frameState) {}
 	private createGrid(width: number = 1, height: number = 1, widthSegments: number = 1, heightSegments: number = 1) {

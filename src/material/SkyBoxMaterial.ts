@@ -6,6 +6,7 @@ import { CompareFunction } from "../core/WebGPUConstant";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 import UniformBuffer from "../render/UniformBuffer";
 import textureCache from "../core/TextureCache";
+import { UniformEnum } from "../render/Uniforms";
 export default class SkyBoxMaterial extends Material {
 	loadFish: Boolean;
 	constructor() {
@@ -36,9 +37,13 @@ export default class SkyBoxMaterial extends Material {
 	protected createShaderData(mesh: Mesh) {
 		super.createShaderData(mesh);
 		const uniformBuffer = new UniformBuffer({ label: "skybox" });
-		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return null;
-		});
+		uniformBuffer.setUniform(
+			"modelMatrix",
+			() => {
+				return null;
+			},
+			UniformEnum.Mat4
+		);
 		this.shaderData.setUniformBuffer("skybox", uniformBuffer);
 		this.shaderData.setTexture("baseTexture", this.baseTexture);
 		this.shaderData.setSampler("baseSampler", this.baseSampler);

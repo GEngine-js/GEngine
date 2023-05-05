@@ -11,7 +11,7 @@ export default class SkyBoxGeometry extends Geometry {
 		const { device } = frameState.context;
 	}
 	public init() {
-		this.positions = [
+		const positions = [
 			1.0,
 			1.0,
 			1.0, // 0
@@ -37,7 +37,7 @@ export default class SkyBoxGeometry extends Geometry {
 			-1.0,
 			-1.0 // 7
 		];
-		this.indices = [
+		const indices = [
 			// PosX (Right)
 			0, 2, 4, 6, 4, 2,
 
@@ -56,8 +56,8 @@ export default class SkyBoxGeometry extends Geometry {
 			// NegZ (Back)
 			6, 5, 4, 5, 6, 7
 		];
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setIndice(this.indices);
-		this.count = this.indices.length;
+		this.setAttribute(new Float32Attribute("position", positions, 3));
+		this.setIndice(indices);
+		this.count = indices.length;
 	}
 }

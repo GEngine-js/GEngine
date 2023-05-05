@@ -3,6 +3,7 @@ import { Material } from "./Material";
 import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
 import UniformBuffer from "../render/UniformBuffer";
+import { UniformEnum } from "../render/Uniforms";
 export default class ColorMaterial extends Material {
 	constructor() {
 		super();
@@ -16,9 +17,13 @@ export default class ColorMaterial extends Material {
 	update(frameState: FrameState, mesh: Mesh) {
 		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
 		const uniformBuffer = new UniformBuffer({ label: "color" });
-		uniformBuffer.setMatrix4("modelMatrix", () => {
-			return null;
-		});
+		uniformBuffer.setUniform(
+			"modelMatrix",
+			() => {
+				return null;
+			},
+			UniformEnum.Mat4
+		);
 		this.shaderData.setUniformBuffer("color", uniformBuffer);
 	}
 }

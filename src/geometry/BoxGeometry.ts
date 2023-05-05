@@ -16,13 +16,10 @@ export default class BoxGeometry extends Geometry {
 		const { positions, normals, uvs } = createBox({
 			dimensions: [this.depth, this.width, this.height]
 		});
-		this.positions = positions;
-		this.normals = normals;
-		this.uvs = uvs;
-		this.computeBoundingSphere(this.positions);
-		this.setAttribute(new Float32Attribute("position", this.positions, 3));
-		this.setAttribute(new Float32Attribute("normal", this.normals, 3));
-		this.setAttribute(new Float32Attribute("uv", this.uvs, 2));
+		this.computeBoundingSphere(positions);
+		this.setAttribute(new Float32Attribute("position", positions, 3));
+		this.setAttribute(new Float32Attribute("normal", normals, 3));
+		this.setAttribute(new Float32Attribute("uv", uvs, 2));
 		this.count = 36;
 	}
 	public update(frameState) {}

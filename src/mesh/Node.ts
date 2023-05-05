@@ -1,24 +1,22 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
+import RenderObject from "../core/RenderObject";
 import { RenderObjectType } from "../core/WebGPUTypes";
-import Matrix4 from "../math/Matrix4";
 import createGuid from "../utils/createGuid";
 import { Mesh } from "./Mesh";
 
-export default class Node extends Mesh {
+export default class Node extends RenderObject {
 	uid: string;
 	children: Map<string, Node | Mesh>;
 	name: string;
 	constructor() {
 		super();
-		this.isNode = true;
 		this.type = RenderObjectType.Node;
 		this.children = new Map();
 		this.parent = null;
 		this.uid = createGuid();
 	}
 	add(node: Node | Mesh) {
-		//if (node.type == RenderObjectType.Node)
 		node.parent = this;
 		this.children.set(node.uid, node);
 	}
