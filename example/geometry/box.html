@@ -50,7 +50,7 @@
 				Vector3,
 				Color,
 				OrbitControl,
-				AmbientLight
+				PointLight
 			} from "../../dist/index.js";
 			const init = async () => {
 				const scene = new Scene({
@@ -64,7 +64,8 @@
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;
 
-				const ambientLight = new AmbientLight(new Vector3(0.25, 0.25, 0.25), 1.0);
+				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 60, 1.0, false);
+				pointLight.position = new Vector3(8, 8, 8);
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
 				const boxMaterial = new BlinnPhongMaterial();
@@ -73,7 +74,7 @@
 				// boxPrimitive.position.set(-1, 10, 3);
 
 				scene.add(boxPrimitive);
-				scene.add(ambientLight);
+				scene.add(pointLight);
 				function animate() {
 					requestAnimationFrame(animate);
 					control.update();
