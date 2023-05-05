@@ -68,6 +68,7 @@ export class ShadowPass extends Pass {
 			} else {
 				this.renderTarget.depthAttachment.op = "clear";
 				this.beforeRender({ shadow });
+				shadow.update(light);
 				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				this.subRender(renderQueue, shadow);
@@ -140,7 +141,7 @@ export class ShadowPass extends Pass {
 			},
 			vert: shadowMapShaderFunction,
 			frag: undefined,
-			light: true //TODO:先true，false有显示bug
+			light: false //TODO:先true，false有显示bug
 		});
 	}
 }

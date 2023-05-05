@@ -20,5 +20,6 @@ export class DirectionalLightShadow extends BaseShadow {
 		const { x, y, z } = light.target;
 		this.camera.lookAt(x, y, z);
 		this.camera.updateMatrix();
+		this.vpMatrixDirty = true;
 	}
 }

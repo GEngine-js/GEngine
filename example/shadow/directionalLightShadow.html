@@ -126,10 +126,14 @@
 				scene.add(ambientLight);
 				scene.add(directionalLight);
 
+				var radiu = 40;
+				var i = 0;
 				function animate() {
-					// boxPrimitive.rotateX(0.01);
-					// boxPrimitive.rotateY(0.01);
-					// boxPrimitive.rotateZ(0.01);
+					i++;
+					var rad = (i * Math.PI) / 180;
+					var x = Math.sin(rad) * radiu;
+					var z = Math.cos(rad) * radiu;
+					directionalLight.position = new Vector3(x, 40, z);
 					torusKnotPrimitive.rotateX(0.01);
 					requestAnimationFrame(animate);
 					control.update();

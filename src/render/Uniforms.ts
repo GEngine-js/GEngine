@@ -595,8 +595,8 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 	}
 	private setSubData(spotLight: SpotLight, index: number) {
 		const offset = index * this._subDataSize;
-		if (spotLight.positionDirty || spotLight.targetDirty || spotLight.shadow.camera.projectMatrixDirty) {
-			spotLight.shadow.update(spotLight);
+		if (spotLight.shadow.vpMatrixDirty) {
+			spotLight.shadow.vpMatrixDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, spotLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=0;
 		}
 		const nearValue = spotLight.shadow.camera.near;
@@ -800,8 +800,8 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 	}
 	private setSubData(directionalLight: DirectionalLight, index: number) {
 		const offset = index * this._subDataSize;
-		if (directionalLight.dirtectDirty) {
-			directionalLight.shadow.update(directionalLight);
+		if (directionalLight.shadow.vpMatrixDirty) {
+			directionalLight.shadow.vpMatrixDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); //byteOffset=16;
 		}
 	}
