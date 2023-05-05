@@ -1,5 +1,4 @@
 import { LightType } from "../core/WebGPUTypes";
-import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
 import { PointLightShadow } from "./shadows/PointLightShadow";
@@ -9,6 +8,16 @@ export class PointLight extends Light {
 	private _decay: number;
 	distanceDirty: boolean;
 	decayDirty: boolean;
+
+	get shadow(): PointLightShadow {
+		return this._shadow as PointLightShadow;
+	}
+
+	set shadow(value: PointLightShadow) {
+		this.shadowDirty = true;
+		this._shadow = value;
+	}
+
 	constructor(
 		color: Vector3,
 		intensity: number,

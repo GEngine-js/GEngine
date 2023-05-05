@@ -1,4 +1,3 @@
-import { Light } from "../Light";
 import { BaseShadow } from "./BaseShadow";
 import PointLightShadowCamera from "../../camera/PointLightShadowCamera";
 import Vector4 from "../../math/Vector4";
@@ -11,6 +10,10 @@ export class PointLightShadow extends BaseShadow {
 	private _pointLightShadowLookDirections: Array<Vector3>;
 	private _pointLightShadowUps: Array<Vector3>;
 	vpMatrixArrayDirty: boolean;
+
+	get camera(): PointLightShadowCamera {
+		return this._camera as PointLightShadowCamera;
+	}
 
 	constructor() {
 		const camera = new PointLightShadowCamera(90, 1, 0.1, 500);

@@ -14,8 +14,6 @@ import UniformBuffer from "./UniformBuffer";
 import { SpotLight } from "../light/SpotLight";
 import { PointLight } from "../light/PointLight";
 import { DirectionalLight } from "../light/DirectionalLight";
-import PointLightShadowCamera from "../camera/PointLightShadowCamera";
-import { PointLightShadow } from "../light/shadows/PointLightShadow";
 export class Uniform<T> {
 	_value: T;
 	name: string;
@@ -693,9 +691,9 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * this._subDataSize;
 
-		if (pointLight.shadow instanceof PointLightShadow && pointLight.shadow.vpMatrixArrayDirty) {
+		if (pointLight.shadow.vpMatrixArrayDirty) {
 			pointLight.shadow.vpMatrixArrayDirty = false;
-			const vpMatrixArray = (pointLight.shadow.camera as PointLightShadowCamera).vpMatrixArray;
+			const vpMatrixArray = pointLight.shadow.camera.vpMatrixArray;
 			for (let i = 0; i < vpMatrixArray.length; i++) {
 				const vpMatrix = vpMatrixArray[i];
 				this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); //byteOffset=98 * 4;

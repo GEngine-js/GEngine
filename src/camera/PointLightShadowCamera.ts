@@ -1,5 +1,4 @@
 import { BufferUsage } from "../core/WebGPUConstant";
-import { PointLightShadow } from "../light/shadows/PointLightShadow";
 import Matrix4 from "../math/Matrix4";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
