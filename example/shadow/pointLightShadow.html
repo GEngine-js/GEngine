@@ -95,7 +95,7 @@
 				const pointLightMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
 				pointLightMaterial.color = new Color(1.0, 1.0, 1.0);
 				const pointLightPrimitive = new Mesh(pointLightGeometry, pointLightMaterial);
-				const pointLightPosition = new Vector3(0, 25, 0);
+				const pointLightPosition = new Vector3(0, 40, 0);
 				pointLightPrimitive.position.set(pointLightPosition.x, pointLightPosition.y + 5, pointLightPosition.z);
 				const pointLight = new PointLight(new Vector3(1.0, 1.0, 1.0), 1.0, 70, 4.0);
 				pointLight.position = pointLightPosition;
@@ -127,7 +127,7 @@
 				const shadowMapDebuggerInstance = new ShadowMapDebugger(pointLight, scene);
 
 				scene.add(boxPrimitive);
-				// scene.add(torusKnotPrimitive);
+				scene.add(torusKnotPrimitive);
 				scene.add(spherePrimitive);
 				scene.add(ground);
 				scene.add(skybox);
@@ -146,16 +146,12 @@
 					var rad = (i * Math.PI) / 180;
 					var x = Math.sin(rad) * radiu;
 					var z = Math.cos(rad) * radiu;
-					pointLight.position = new Vector3(x, 35, z);
-					pointLightPrimitive.position.set(x, 35 + 3, z);
+					pointLight.position = new Vector3(x, 40, z);
+					pointLightPrimitive.position.set(x, 40 + 3, z);
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();
 				}
-
-				document.addEventListener("click", () => {
-					pointLight.position = new Vector3(30, 25, 30);
-				});
 				// document.body.appendChild(scene.context.canvas);
 				animate();
 				//scene.render()
