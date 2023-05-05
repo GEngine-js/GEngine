@@ -361,7 +361,6 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 }
 export class UniformVec2Array extends Uniform<Array<Vector2>> {
 	static align = 8;
-	// cb: Function;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
