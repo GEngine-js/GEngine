@@ -8,6 +8,8 @@ class Attachment {
 	public texture?: Texture;
 	public resolveTarget?: Texture;
 
+	public readOnly?: boolean;
+
 	constructor(public value: GPUColorDict | GPUColor | number, options?: AttachmentOptions) {
 		Object.assign(this, options);
 	}

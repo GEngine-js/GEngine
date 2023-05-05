@@ -7,6 +7,7 @@ export default function light(defines) {
         directSpecular:vec3<f32>,
         indirectDiffuse:vec3<f32>,
         indirectSpecular:vec3<f32>,
+        testColor: vec3<f32>,
     }; 
     struct IncidentLight {
         color: vec3<f32>,
@@ -124,13 +125,37 @@ export default function light(defines) {
     #if ${defines.openShadow} 
         struct LightInfo {
             direction: vec3<f32>,
+            viewport: vec4<f32>,
         };
         
         fn linearizeDepth(depth: f32, near: f32, far: f32)->f32 {
             return 2 * (near * far) / (far + near - depth * (far - near));
         }
 
-        fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:u32, isPerspectiveCamera: bool, near: f32, far: f32)->f32 {
+        fn getCubeFace(v : vec3<f32>) -> i32{
+            let vAbs = abs(v);
+        
+            if (vAbs.z >= vAbs.x && vAbs.z >= vAbs.y) {
+              if (v.z < 0.0) {
+                return 3;
+              }
+              return 2;
+            }
+        
+            if (vAbs.y >= vAbs.x) {
+              if (v.y < 0.0) {
+                return 5;
+              }
+              return 4;
+            }
+        
+            if (v.x < 0.0) {
+              return 1;
+            }
+            return 0;
+        }
+
+        fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:u32, isPointLight: bool, near: f32, far: f32)->f32 {
             var visibility = 0.0;
             var projectPos: vec3<f32> = lightPos.xyz / lightPos.w;
             var shadowPos: vec3<f32> = vec3(projectPos.xy * vec2(0.5, -0.5) + vec2(0.5), projectPos.z);
@@ -139,6 +164,17 @@ export default function light(defines) {
             let oneOverShadowDepthTextureSize = 1.0 / 1024.0;
             // var depth = select(shadowPos.z, (linearizeDepth(shadowPos.z, near, far) - near) / (far- near), isPerspectiveCamera);
             var depth = shadowPos.z;
+
+            if (isPointLight) {
+                shadowPos.x = shadowPos.x * lightInfo.viewport.z;
+                shadowPos.y = shadowPos.y * lightInfo.viewport.w;
+                var viewportX = lightInfo.viewport.x * lightInfo.viewport.z;
+                var viewportY = lightInfo.viewport.y * lightInfo.viewport.w;
+                var uvOffset = 1.5 / 1024.0;
+                shadowPos.x = clamp(shadowPos.x + viewportX, viewportX + uvOffset, viewportX + lightInfo.viewport.z - uvOffset);
+                shadowPos.y = clamp(shadowPos.y + viewportY, viewportY + uvOffset, viewportY + lightInfo.viewport.w - uvOffset);
+            }
+
             for (var y = -1; y <= 1; y++) {
                 for (var x = -1; x <= 1; x++) {
                     let offset = vec2<f32>(vec2(x, y)) * oneOverShadowDepthTextureSize;
@@ -186,9 +222,13 @@ export default function light(defines) {
             #endif
             #if ${defines.pointLightShadowMapsCount}
                 struct PointLightShadow {
+                    shadowCameraVPMatrixArray: array<mat4x4<f32>, 6>,
+                    shadowCameraViewportArray: array<vec4<f32>, 6>,
                     shadowCameraNear: f32,
                     shadowCameraFar: f32,
-                    shadowCameraVPMatrixArray: array<mat4x4<f32>, 6>,
+                    // shadowCameraVPMatrix: mat4x4<f32>,
+                    // shadowCameraVPMatrixArray: array<mat4x4<f32>, 6>,
+                    // shadowCameraViewportArray: array<vec4<f32>, 6>,
                 }
             #endif
             #if ${defines.directLightShadowMapsCount}
@@ -252,8 +292,8 @@ export default function light(defines) {
                         var lightPos: vec4<f32> = spotLightShadow.shadowCameraVPMatrix * vec4<f32>(geometry.position,1.0);
                         var lightInfo:LightInfo;
                         lightInfo.direction = normalize(geometry.position - spotLight.position);
-                    
-                        shadowValue = getShadowValue(spotLightShadowMapTextureArray, shadowSampler, lightPos, geometry, lightInfo, k, true,
+
+                        shadowValue = getShadowValue(spotLightShadowMapTextureArray, shadowSampler, lightPos, geometry, lightInfo, k, false,
                             spotLightShadow.shadowCameraNear, spotLightShadow.shadowCameraFar);
                     }
                     spotLight.color *= shadowValue;
@@ -279,12 +319,18 @@ export default function light(defines) {
                         var pointLightShadow:PointLightShadow = shadowUniforms.pointLightShadows[j];
                         var lightInfo:LightInfo;
                         lightInfo.direction = normalize(geometry.position - pointLight.position);
-                        for (var l = 0u; l < 6; l = l + 1u) {
-                            var lightPos: vec4<f32> = pointLightShadow.shadowCameraVPMatrixArray[l] * vec4<f32>(geometry.position,1.0);
+                        var cubeFace = getCubeFace(lightInfo.direction);
+                        var lightPos: vec4<f32> = pointLightShadow.shadowCameraVPMatrixArray[cubeFace] * vec4<f32>(geometry.position,1.0);
+                        lightInfo.viewport = pointLightShadow.shadowCameraViewportArray[cubeFace];
 
-                            shadowValue = getShadowValue(pointLightShadowMapTextureArray, shadowSampler, lightPos, geometry, lightInfo, j, true,
-                                pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar);
-                        }
+                        // var lightPos: vec4<f32> = pointLightShadow.shadowCameraVPMatrix * vec4<f32>(geometry.position,1.0);
+
+                        shadowValue = getShadowValue(pointLightShadowMapTextureArray, shadowSampler, lightPos, geometry, lightInfo, j, true,
+                            pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar);
+                        
+                        // reflectedLight.testColor = vec3(pointLightShadow.shadowCameraFar / 1000, 
+                        //     pointLightShadow.shadowCameraVPMatrixArray[5][3][2] / 255, pointLightShadow.shadowCameraVPMatrixArray[5][3][3] / 255);
+                        // reflectedLight.testColor = vec3(pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraNear);
                     }
                     pointLight.color *= shadowValue;
                 #endif

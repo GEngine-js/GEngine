@@ -67,7 +67,8 @@ export default class RenderTarget {
 					view: this.depthAttachment?.texture?.textureView || undefined,
 					depthLoadOp: this.depthAttachment?.op || "clear",
 					depthClearValue: this.depthAttachment?.value || 1.0,
-					depthStoreOp: this.depthAttachment?.storeOp || "store"
+					depthStoreOp: this.depthAttachment?.storeOp || "store",
+					depthReadOnly: this.depthAttachment?.readOnly || false
 					// stencilLoadOp: this.stencilAttachment?.op || "clear",
 					// stencilClearValue: this.stencilAttachment?.value || 0,
 					// stencilStoreOp: this.stencilAttachment?.storeOp || "store",

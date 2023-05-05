@@ -12,10 +12,12 @@ export class BaseShadow {
 	public _viewports: Array<Vector4>;
 	public viewportSize: Vector2;
 	public currentViewportIndex: number;
+	public viewPortDirty: boolean;
 
 	constructor(shadowMapSize: Vector2, camera: Camera) {
 		this._shadowMapSize = shadowMapSize;
 		this._camera = camera;
+		this.viewPortDirty = true;
 
 		this._init();
 	}

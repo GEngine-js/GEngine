@@ -10,6 +10,7 @@ export class PointLightShadow extends BaseShadow {
 	public type: string;
 	private _pointLightShadowLookDirections: Array<Vector3>;
 	private _pointLightShadowUps: Array<Vector3>;
+	vpMatrixArrayDirty: boolean;
 
 	constructor() {
 		const camera = new PointLightShadowCamera(90, 1, 0.1, 500);
@@ -17,20 +18,21 @@ export class PointLightShadow extends BaseShadow {
 		this.viewportSize = new Vector2(512, 512);
 		this.currentViewportIndex = 0;
 		this.type = "pointLightShadow";
+		this.vpMatrixArrayDirty = true;
 
 		this._viewports = [
-			// positive X
-			new Vector4(0, 0, 1, 1),
-			// negative X
-			new Vector4(1, 0, 1, 1),
-			// positive Z
-			new Vector4(2, 0, 1, 1),
-			// negative Z
-			new Vector4(0, 1, 1, 1),
-			// positive Y
-			new Vector4(1, 1, 1, 1),
-			// negative Y
-			new Vector4(2, 1, 1, 1)
+			// positive X 0
+			new Vector4(0, 0, 1 / 3, 1 / 2),
+			// negative X 1
+			new Vector4(1, 0, 1 / 3, 1 / 2),
+			// positive Z 2
+			new Vector4(2, 0, 1 / 3, 1 / 2),
+			// negative Z 3
+			new Vector4(0, 1, 1 / 3, 1 / 2),
+			// positive Y 4
+			new Vector4(1, 1, 1 / 3, 1 / 2),
+			// negative Y 5
+			new Vector4(2, 1, 1 / 3, 1 / 2)
 		];
 
 		this._pointLightShadowLookDirections = [
@@ -66,6 +68,7 @@ export class PointLightShadow extends BaseShadow {
 			this.camera.lookAt(x, y, z);
 			this.camera.updateMatrix();
 			this.camera.updateVpMatrixArrayAndIndex(this.currentViewportIndex);
+			if (this.currentViewportIndex == 5) this.vpMatrixArrayDirty = true;
 		}
 	}
 }

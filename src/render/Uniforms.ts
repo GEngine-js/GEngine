@@ -14,6 +14,8 @@ import UniformBuffer from "./UniformBuffer";
 import { SpotLight } from "../light/SpotLight";
 import { PointLight } from "../light/PointLight";
 import { DirectionalLight } from "../light/DirectionalLight";
+import PointLightShadowCamera from "../camera/PointLightShadowCamera";
+import { PointLightShadow } from "../light/shadows/PointLightShadow";
 export class Uniform<T> {
 	_value: T;
 	name: string;
@@ -558,6 +560,7 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 
 export class UniformSpotLightShadows extends Uniform<SpotLight> {
 	static align = 16;
+	static uniformSize = 18;
 	lights: Array<SpotLight>;
 	cb: Function;
 	private _nearValue: number;
@@ -575,7 +578,7 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
-		this._subDataSize = 18;
+		this._subDataSize = UniformSpotLightShadows.uniformSize;
 		this.byteSize = count * this._subDataSize * bytesPerElement;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotLightShadows";
@@ -657,6 +660,7 @@ export class UniformPointLights extends Uniform<PointLight> {
 
 export class UniformPointLightShadows extends Uniform<PointLight> {
 	static align = 16;
+	static uniformSize = 122;
 	lights: Array<PointLight>;
 	cb: Function;
 	private _nearValue: number;
@@ -674,7 +678,7 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
-		this._subDataSize = 98;
+		this._subDataSize = UniformPointLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "pointLightShadows";
@@ -691,26 +695,36 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	}
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * this._subDataSize;
+
+		if (pointLight.shadow instanceof PointLightShadow && pointLight.shadow.vpMatrixArrayDirty) {
+			pointLight.shadow.vpMatrixArrayDirty = false;
+			const vpMatrixArray = (pointLight.shadow.camera as PointLightShadowCamera).vpMatrixArray;
+			for (let i = 0; i < vpMatrixArray.length; i++) {
+				const vpMatrix = vpMatrixArray[i];
+				this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); //byteOffset=98 * 4;
+			}
+		}
+
+		if (pointLight.shadow.viewPortDirty) {
+			pointLight.shadow.viewPortDirty = false;
+			for (let i = 0; i < 6; i++) {
+				this.dirty = setDataToTypeArray(
+					this.buffer,
+					pointLight.shadow.viewports[i].toArray(),
+					offset + 96 + 4 * i
+				); //byteOffset=0;
+			}
+		}
+
 		const nearValue = pointLight.shadow.camera.near;
 		if (nearValue != this._nearValue) {
 			this._nearValue = nearValue;
-			this.dirty = setDataToTypeArray(this.buffer, this._nearValue, offset + 0); //byteOffset=0;
+			this.dirty = setDataToTypeArray(this.buffer, this._nearValue, offset + 120); //byteOffset=0;
 		}
 		const farValue = pointLight.shadow.camera.far;
 		if (farValue != this._farValue) {
 			this._farValue = farValue;
-			this.dirty = setDataToTypeArray(this.buffer, this._farValue, offset + 1); //byteOffset=0;
-		}
-		if (pointLight.positionDirty) {
-			for (let i = 0; i < 6; i++) {
-				pointLight.shadow.currentViewportIndex = i;
-				pointLight.shadow.update(pointLight);
-				this.dirty = setDataToTypeArray(
-					this.buffer,
-					pointLight.shadow.camera.vpMatrix.toArray(),
-					offset + 2 + 16 * i
-				); //byteOffset=0;
-			}
+			this.dirty = setDataToTypeArray(this.buffer, this._farValue, offset + 121); //byteOffset=1;
 		}
 	}
 }
@@ -755,6 +769,7 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 
 export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 	static align = 16;
+	static uniformSize = 16;
 	lights: Array<DirectionalLight>;
 	cb: Function;
 	private _subDataSize: number;
@@ -770,7 +785,7 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		super(uniformName, cb, offset);
 		this.cb = cb;
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
-		this._subDataSize = 16;
+		this._subDataSize = UniformDirtectLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "dirtectLightShadows";

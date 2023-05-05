@@ -70,6 +70,8 @@ export default function phongFrag(defines) {
         // var finnalColor:vec3<f32>=color.xyz + (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
         var finnalColor:vec3<f32>=color.xyz * (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
 
+        // finnalColor = lightColor.testColor.xyz;
+
         return vec4<f32>(finnalColor,color.a);
     }`;
 }
