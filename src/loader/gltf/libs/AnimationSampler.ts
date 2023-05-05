@@ -1,7 +1,6 @@
 import { Quaternion } from "../../../math/Quaternion";
 import Vector4 from "../../../math/Vector4";
-import { GLTF, Type2NumOfComponent } from "../../GLTFLoader";
-
+import { Type2NumOfComponent } from "../types/gltfType";
 export class AnimationSampler {
 	input: any;
 	interpolation: "LINEAR" | "STEP" | "CUBICSPLINE";
@@ -15,7 +14,7 @@ export class AnimationSampler {
 	private inputType: string;
 	private outputType: string;
 	constructor() {}
-	formGltf(gltf: GLTF, sampler) {
+	formGltf(gltf, sampler) {
 		this.input = gltf.accessors[sampler.input].values; //required, accessor object
 		this.output = gltf.accessors[sampler.output].values; //required, accessor object
 		this.interpolation = sampler.interpolation !== undefined ? sampler.interpolation : "LINEAR";
