@@ -72,7 +72,7 @@
 				});
 
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
-				camera.position.set(-8, 8, -8);
+				camera.position.set(-40, 60, -40);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -123,8 +123,6 @@
 				groundMaterial.color = new Color(0.78, 0.85, 0.86);
 				const ground = new Mesh(groundGeometry, groundMaterial);
 				ground.rotateX(Math.PI / 2);
-
-				const shadowMapDebuggerInstance = new ShadowMapDebugger(pointLight, scene);
 
 				scene.add(boxPrimitive);
 				scene.add(torusKnotPrimitive);
