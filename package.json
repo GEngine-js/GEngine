@@ -52,6 +52,9 @@
     "url": "https://github.com/hpugis/GEngine/issues"
   },
   "homepage": "https://github.com/hpugis/GEngine/blob/main/README.md",
+  "engines": {
+    "node": ">=14.19.3"
+  },
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog-zh",

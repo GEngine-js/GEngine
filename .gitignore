@@ -1,6 +1,5 @@
 node_modules
 npm-debug.log
-package-lock.json
 public/workers
 *.mp4
 *.flv
