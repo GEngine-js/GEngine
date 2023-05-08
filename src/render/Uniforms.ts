@@ -324,8 +324,8 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		this.type = "mat4-array";
 	}
 	set(): boolean {
-		if (!this.value) return false;
 		this.value = this.getValue();
+		if (!this.value) return false;
 		for (let i = 0; i < this.value.length; i++) {
 			this.setBuffer(this.value[i].toArray(), i * 16);
 		}
