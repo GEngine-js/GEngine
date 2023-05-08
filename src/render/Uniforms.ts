@@ -817,7 +817,8 @@ export enum UniformEnum {
 	DirtectLightShadows = 15,
 	Vec2Array = 16,
 	Vec3Array = 17,
-	Vec4Array = 18
+	Vec4Array = 18,
+	UniformUint = 19
 }
 function setDataToTypeArray(buffer, data, offset) {
 	if (Array.isArray(data)) {

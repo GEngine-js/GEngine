@@ -190,17 +190,17 @@ export default class LightManger {
 				const spotLightWithShadowCount = this.setShadowUniform(
 					"spotLightShadows",
 					this.spotLights,
-					"setSpotLightShadows"
+					UniformEnum.SpotLightShadows
 				);
 				const pointLightWithShadowCount = this.setShadowUniform(
 					"pointLightShadows",
 					this.pointLights,
-					"setPointLightShadows"
+					UniformEnum.PointLightShadows
 				);
 				const directLightWithShadowCount = this.setShadowUniform(
 					"directLightShadows",
 					this.directLights,
-					"setDirtectLightShadows"
+					UniformEnum.DirtectLightShadows
 				);
 				this.lightShaderData.setUniformBuffer("shadow", this.shadowUniformBuffer);
 
@@ -290,7 +290,7 @@ export default class LightManger {
 		return shadowMapTextureArray;
 	}
 
-	setShadowUniform(uniformName: string, lights: Array<Light>, functionName: string) {
+	setShadowUniform(uniformName: string, lights: Array<Light>, uniformType: UniformEnum) {
 		if (lights.length) {
 			const lightWithShadowArray = [];
 			for (let i = 0; i < lights.length; i++) {
@@ -299,11 +299,12 @@ export default class LightManger {
 				lightWithShadowArray.push(light);
 			}
 
-			this.shadowUniformBuffer[functionName](
+			this.shadowUniformBuffer.setUniform(
 				uniformName,
 				() => {
 					return lightWithShadowArray;
 				},
+				uniformType,
 				lightWithShadowArray.length
 			);
 

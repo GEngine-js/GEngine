@@ -2,6 +2,7 @@ import { BufferUsage } from "../core/WebGPUConstant";
 import Matrix4 from "../math/Matrix4";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
+import { UniformEnum } from "../render/Uniforms";
 import PerspectiveCamera from "./PerspectiveCamera";
 
 export default class PointLightShadowCamera extends PerspectiveCamera {
@@ -48,9 +49,13 @@ export default class PointLightShadowCamera extends PerspectiveCamera {
 			type: "read-only-storage",
 			usage: BufferUsage.Storage | BufferUsage.CopyDst
 		});
-		uniformBuffer.setMatrix4("vpMatrix", () => {
-			return this.vpMatrix;
-		});
+		uniformBuffer.setUniform(
+			"vpMatrix",
+			() => {
+				return this.vpMatrix;
+			},
+			UniformEnum.Mat4
+		);
 
 		this.shaderData.setUniformBuffer("pointLightShadowCamera", uniformBuffer);
 		this.shaderData.setDefine("isPointLightShadowMap", true);
