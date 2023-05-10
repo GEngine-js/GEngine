@@ -16,12 +16,12 @@ export class BasicPass extends Pass {
 		this.init(context);
 	}
 	render(frameState: FrameState, camera?: Camera) {
-		const { renderQueue } = frameState;
+		const { renderQueue, lightManger } = frameState;
 
 		renderQueue.sort();
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
+		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
 		renderQueue.debugQueueRender(camera, this.context, this.passRenderEncoder);
 	}
 	private init(context: Context) {

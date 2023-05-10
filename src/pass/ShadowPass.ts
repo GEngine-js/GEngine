@@ -13,6 +13,7 @@ import RenderQueue from "../core/RenderQueue";
 import { PointLight } from "../light/PointLight";
 import { Light } from "../light/Light";
 import { PointLightShadow } from "../light/shadows/PointLightShadow";
+import LightManger from "../core/LightManger";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -21,8 +22,8 @@ export class ShadowPass extends Pass {
 		this.init(context);
 	}
 	render(frameState: FrameState, camera?: Camera) {
-		const { renderQueue, context } = frameState;
-		const lights = context.lightManger.getAllLights();
+		const { renderQueue, context, lightManger } = frameState;
+		const lights = lightManger.getAllLights();
 		if (lights.length === 0) return;
 
 		for (let i = 0; i < lights.length; i++) {
@@ -62,7 +63,7 @@ export class ShadowPass extends Pass {
 						viewportSize.x,
 						viewportSize.y
 					);
-					this.subRender(renderQueue, shadow);
+					this.subRender(renderQueue, shadow, lightManger);
 					super.afterRender();
 				}
 			} else {
@@ -71,16 +72,16 @@ export class ShadowPass extends Pass {
 				shadow.update(light);
 				context.setViewPort(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
 				context.setScissorTest(0, 0, shadow.shadowMapSize.x, shadow.shadowMapSize.y);
-				this.subRender(renderQueue, shadow);
+				this.subRender(renderQueue, shadow, lightManger);
 				super.afterRender();
 			}
 		}
 		// super.afterRender();
-		context.lightManger.updateLightShadow();
+		lightManger.updateLightShadow();
 		context.resetViewPortToFullCanvas();
 	}
 
-	subRender(renderQueue: RenderQueue, shadow: BaseShadow) {
+	subRender(renderQueue: RenderQueue, shadow: BaseShadow, lightManger: LightManger) {
 		renderQueue.sort();
 		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
 		renderQueue.transparentRender(
@@ -88,14 +89,16 @@ export class ShadowPass extends Pass {
 			this.context,
 			this.passRenderEncoder,
 			this.shadowMaterial,
-			CommandSubType.Shadow
+			CommandSubType.Shadow,
+			lightManger
 		);
 		renderQueue.opaqueRender(
 			shadow.camera,
 			this.context,
 			this.passRenderEncoder,
 			this.shadowMaterial,
-			CommandSubType.Shadow
+			CommandSubType.Shadow,
+			lightManger
 		);
 	}
 

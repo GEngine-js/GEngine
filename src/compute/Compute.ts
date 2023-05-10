@@ -1,4 +1,5 @@
 import { Uniforms } from "../core/WebGPUTypes";
+import { ComputeCommand } from "../render/ComputeCommand";
 import DrawCommand from "../render/DrawCommand";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
@@ -12,7 +13,7 @@ export class Compute {
 	public name: string;
 	public dirty: boolean;
 	public uniformBuffer: UniformBuffer;
-	public computeCommand: DrawCommand;
+	public computeCommand: ComputeCommand;
 	public dispatch: { x?: number; y?: number; z?: number };
 	public type: string;
 	private shaderSource: ShaderSource;
@@ -35,7 +36,7 @@ export class Compute {
 	public getCommand() {
 		if (this.dirty) {
 			this.dirty = false;
-			this.computeCommand = new DrawCommand({
+			this.computeCommand = new ComputeCommand({
 				shaderData: this.createShaderData(),
 				dispatch: this.dispatch,
 				shaderSource: this.shaderSource

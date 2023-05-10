@@ -2,8 +2,10 @@ import Camera from "../camera/Camera";
 import { Compute } from "../compute/Compute";
 import { Material } from "../material/Material";
 import { Mesh } from "../mesh/Mesh";
+import { ComputeCommand } from "../render/ComputeCommand";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
+import LightManger from "./LightManger";
 import { CommandSubType } from "./WebGPUConstant";
 export default class RenderQueue {
 	public pre: Array<Mesh>;
@@ -27,13 +29,14 @@ export default class RenderQueue {
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
 		replaceMaterial?: Material,
-		commandSubType?: CommandSubType
+		commandSubType?: CommandSubType,
+		lightManger?: LightManger
 	) {
 		this.opaque.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
 			RenderQueue.excuteCommand(
-				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				mesh.getDrawCommand(replaceMaterial, commandSubType, lightManger),
 				context,
 				passEncoder,
 				camera
@@ -46,13 +49,14 @@ export default class RenderQueue {
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
 		replaceMaterial?: Material,
-		commandSubType?: CommandSubType
+		commandSubType?: CommandSubType,
+		lightManger?: LightManger
 	) {
 		this.transparent.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
 			RenderQueue.excuteCommand(
-				mesh.getDrawCommand(replaceMaterial, commandSubType),
+				mesh.getDrawCommand(replaceMaterial, commandSubType, lightManger),
 				context,
 				passEncoder,
 				camera
@@ -93,16 +97,10 @@ export default class RenderQueue {
 		});
 	}
 	static excuteCommand(command: DrawCommand, context?: Context, passEncoder?: GPURenderPassEncoder, camera?: Camera) {
-		if (command.renderTarget) {
-			const currentRenderPassEncoder = command.renderTarget.beginRenderPassEncoder(context);
-			context.render(command, currentRenderPassEncoder, camera);
-			command.renderTarget.endRenderPassEncoder();
-		} else {
-			context.render(command, passEncoder, camera);
-		}
+		command.render(context, passEncoder, camera);
 	}
-	static excuteCompute(command: DrawCommand, context?: Context, passEncoder?: GPUComputePassEncoder) {
-		context.compute(command, passEncoder);
+	static excuteCompute(command: ComputeCommand, context?: Context, passEncoder?: GPUComputePassEncoder) {
+		command.render(context, passEncoder);
 	}
 	reset() {
 		this.pre = [];

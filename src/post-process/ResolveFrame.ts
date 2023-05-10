@@ -55,7 +55,7 @@ export default class ResolveFrame {
 
 		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context);
 
-		context.render(drawComand, currentRenderPassEncoder);
+		drawComand.render(context, currentRenderPassEncoder);
 
 		this.canvasRenderTarget.endRenderPassEncoder();
 	}

@@ -80,7 +80,6 @@ export default class LightManger {
 			this.spotLights.splice(this.spotLights.indexOf(<SpotLight>light), 1);
 		}
 	}
-
 	checkLightShadowState() {
 		const lights = this.getAllLights();
 		for (let i = 0; i < lights.length; i++) {

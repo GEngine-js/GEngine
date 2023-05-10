@@ -50,7 +50,7 @@ export default class PostEffect implements IClone {
 		this.fullScreenQuad.material.update();
 		const drawComand = this.fullScreenQuad.getDrawCommand();
 		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPassEncoder(context);
-		context.render(drawComand, currentRenderPassEncoder);
+		drawComand.render(context, currentRenderPassEncoder);
 		this.currentRenderTarget.endRenderPassEncoder();
 	}
 	private initDefaultParms() {

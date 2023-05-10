@@ -1,12 +1,8 @@
 import { GPUCanvasCompositingAlphaMode } from "../core/WebGPUTypes";
 import { TextureUsage } from "../core/WebGPUConstant";
 import { ContextOptions } from "../core/WebGPUTypes";
-import DrawCommand from "./DrawCommand.js";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
-import Pipeline from "./Pipeline";
-import Camera from "../camera/Camera";
-import LightManger from "../core/LightManger";
-import { RenderState, ScissorTest, ViewPort } from "./RenderState";
+import { ScissorTest, ViewPort } from "./RenderState";
 
 class Context {
 	public canvas: HTMLCanvasElement;
@@ -27,13 +23,9 @@ class Context {
 
 	public mipmapTools: MipmapGenerator;
 
-	public lightManger: LightManger;
-
 	private _viewPort: ViewPort;
 
 	private _scissorTest: ScissorTest;
-
-	private _openShadow: boolean;
 
 	public get viewPort(): ViewPort {
 		return this._viewPort;
@@ -57,8 +49,6 @@ class Context {
 		this.context = context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
 
 		this.device = undefined;
-		this._openShadow = true;
-		this.lightManger = new LightManger({ openShadow: this._openShadow });
 	}
 
 	public async init(
@@ -143,47 +133,6 @@ class Context {
 			alphaMode: GPUCanvasCompositingAlphaMode.Premultiplied,
 			...presentationContextDescriptor
 		});
-	}
-
-	public render(command: DrawCommand, passEncoder: GPURenderPassEncoder, camera?: Camera): void {
-		const grouplayouts = [];
-		if (command.shaderData) {
-			if (command.modelMatrix) command.shaderData.replaceUniformBufferValue("modelMatrix", command.modelMatrix);
-			command.shaderData.bind(this, passEncoder);
-		}
-		//设置系统
-		if (camera) {
-			camera.shaderData.bind(this, passEncoder);
-			grouplayouts.push(camera.shaderData.groupLayout);
-			if (command.shaderSource) command.shaderSource.setDefines(camera.shaderData.defines);
-		}
-		if (command.light && this.lightManger.lightShaderData) {
-			this.lightManger.lightShaderData.bind(this, passEncoder);
-			grouplayouts.push(this.lightManger.lightShaderData.groupLayout);
-			if (command.shaderSource) command.shaderSource.setDefines(this.lightManger.lightShaderData.defines);
-		}
-		if (command.renderState) command.renderState.bind(passEncoder, this);
-		if (command.vertexBuffer) command.vertexBuffer.bind(this.device, passEncoder);
-
-		if (command.indexBuffer) command.indexBuffer.bind(this.device, passEncoder);
-
-		const pipeline = Pipeline.getRenderPipelineFromCache(
-			this.device,
-			command,
-			grouplayouts.concat(command.shaderData.groupLayout)
-		);
-		pipeline.bind(passEncoder);
-		if (command.indexBuffer) {
-			passEncoder.drawIndexed(command.count || 0, command.instances || 1, 0, 0, 0);
-		} else if (command.count) {
-			passEncoder.draw(command.count, command.instances || 1, 0, 0);
-		}
-	}
-	public compute(command: DrawCommand, passEncoder: GPUComputePassEncoder) {
-		const pipeline = Pipeline.getComputePipelineFromCache(this.device, command, [command.shaderData.groupLayout]);
-		pipeline.bind(passEncoder);
-		const { x, y, z } = command.dispatch;
-		passEncoder.dispatchWorkgroups(x, y, z);
 	}
 }
 

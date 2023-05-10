@@ -6,8 +6,12 @@ import IndexBuffer from "./IndexBuffer";
 import { RenderState } from "./RenderState";
 import { Material } from "../material/Material";
 import Matrix4 from "../math/Matrix4";
+import { Command } from "./Command";
+import Camera from "../camera/Camera";
+import Pipeline from "./Pipeline";
+import Context from "./Context";
 
-class DrawCommand {
+class DrawCommand implements Command {
 	public type?: string;
 
 	public shaderData?: ShaderData;
@@ -26,8 +30,6 @@ class DrawCommand {
 
 	public instances?: number;
 
-	public dispatch?: { x?: number; y?: number; z?: number };
-
 	public shaderSource?: ShaderSource;
 
 	public dirty?: boolean;
@@ -37,6 +39,8 @@ class DrawCommand {
 	public indirectBuffer?: Buffer;
 
 	public modelMatrix?: Matrix4;
+
+	public lightShaderData?: ShaderData;
 
 	constructor(options: DrawCommandProps) {
 		this.type = options.type;
@@ -57,8 +61,6 @@ class DrawCommand {
 
 		this.instances = options.instances;
 
-		this.dispatch = options.dispatch;
-
 		this.shaderSource = options.shaderSource;
 
 		this.dirty = options.dirty;
@@ -66,6 +68,8 @@ class DrawCommand {
 		this.light = options.light;
 
 		this.modelMatrix = options.modelMatrix;
+
+		this.lightShaderData = options.lightShaderData;
 	}
 	public shallowClone(material?: Material) {
 		if (material) {
@@ -79,9 +83,58 @@ class DrawCommand {
 				shaderSource: material.shaderSource,
 				type: "render",
 				light: material.light,
-				modelMatrix: this.modelMatrix
+				modelMatrix: this.modelMatrix,
+				lightShaderData: material.light ? this.lightShaderData : undefined
 			});
 		}
+	}
+	public render(context?: Context, passEncoder?: GPURenderPassEncoder, camera?: Camera): void {
+		const {
+			shaderData,
+			modelMatrix,
+			renderState,
+			vertexBuffer,
+			indexBuffer,
+			lightShaderData,
+			shaderSource,
+			count,
+			instances,
+			renderTarget
+		} = this;
+		const currentPassEncoder = renderTarget?.beginRenderPassEncoder?.(context) ?? passEncoder;
+
+		const { device } = context;
+
+		if (modelMatrix) shaderData?.replaceUniformBufferValue?.("modelMatrix", modelMatrix);
+
+		shaderData?.bind?.(context, currentPassEncoder);
+
+		camera?.shaderData?.bind(context, currentPassEncoder);
+
+		shaderSource?.setDefines?.(camera?.shaderData?.defines);
+
+		lightShaderData?.bind?.(context, currentPassEncoder);
+
+		shaderSource?.setDefines?.(lightShaderData?.defines);
+
+		renderState?.bind?.(currentPassEncoder, context);
+
+		vertexBuffer?.bind?.(device, currentPassEncoder);
+
+		indexBuffer?.bind?.(device, currentPassEncoder);
+
+		const pipeline = Pipeline.getRenderPipelineFromCache(device, this, [
+			shaderData?.groupLayout,
+			lightShaderData?.groupLayout,
+			camera?.shaderData?.groupLayout
+		]);
+		pipeline.bind(currentPassEncoder);
+		if (indexBuffer) {
+			currentPassEncoder.drawIndexed(count || 0, instances || 1, 0, 0, 0);
+		} else if (count) {
+			currentPassEncoder.draw(count, instances || 1, 0, 0);
+		}
+		renderTarget?.endRenderPassEncoder?.();
 	}
 }
 type DrawCommandProps = {
@@ -103,8 +156,6 @@ type DrawCommandProps = {
 
 	instances?: number;
 
-	dispatch?: { x?: number; y?: number; z?: number };
-
 	shaderSource?: ShaderSource;
 
 	dirty?: boolean;
@@ -112,5 +163,7 @@ type DrawCommandProps = {
 	light?: boolean;
 
 	modelMatrix?: Matrix4;
+
+	lightShaderData?: ShaderData;
 };
 export default DrawCommand;

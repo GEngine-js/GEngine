@@ -8,6 +8,7 @@ import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
 import { RenderObjectType } from "../core/WebGPUTypes";
 import createGuid from "../utils/createGuid";
+import LightManger from "../core/LightManger";
 export class Mesh extends RenderObject {
 	[x: string]: any;
 	uid: string;
@@ -57,7 +58,7 @@ export class Mesh extends RenderObject {
 	}
 	beforeRender() {}
 	afterRender() {}
-	public getDrawCommand(overrideMaterial?: Material, commandSubType?: CommandSubType) {
+	public getDrawCommand(overrideMaterial?: Material, commandSubType?: CommandSubType, lightManger?: LightManger) {
 		if (!this.drawCommand || this.material.dirty) {
 			this.material.shaderSource.setDefines(
 				Object.assign(this.material.shaderData.defines, this.geometry.defines)
@@ -73,7 +74,8 @@ export class Mesh extends RenderObject {
 				shaderSource: this.material.shaderSource,
 				type: "render",
 				light: this.material.light,
-				modelMatrix: this.modelMatrix
+				modelMatrix: this.modelMatrix,
+				lightShaderData: this.material.light ? lightManger?.lightShaderData : undefined
 			});
 		}
 		if (overrideMaterial) {

@@ -14,6 +14,7 @@ import { Light } from "./light/Light";
 import Node from "./mesh/Node";
 import Camera from "./camera/Camera";
 import { ViewPort } from "./render/RenderState";
+import LightManger from "./core/LightManger";
 
 export class Scene extends EventDispatcher {
 	camera: PerspectiveCamera;
@@ -29,6 +30,7 @@ export class Scene extends EventDispatcher {
 	private inited: boolean;
 	private primitiveManger: PrimitiveManger;
 	private postEffectCollection: PostEffectCollection;
+	private lightManger: LightManger;
 	constructor(options) {
 		super();
 		this.container =
@@ -47,11 +49,12 @@ export class Scene extends EventDispatcher {
 		this.presentationContextDescriptor = options.presentationContextDescriptor;
 		this.ready = false;
 		this.inited = false;
+		this.lightManger = new LightManger({ openShadow: true });
 	}
 	private async init() {
 		await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor);
 		this.currentRenderPipeline = new ForwardRenderLine(this.context);
-		this.frameState = new FrameState(this.context);
+		this.frameState = new FrameState(this.context, this.lightManger);
 		this.viewport = new ViewPort(0, 0, this.context.presentationSize.width, this.context.presentationSize.height);
 		this.ready = true;
 	}
@@ -63,7 +66,7 @@ export class Scene extends EventDispatcher {
 		) {
 			this.primitiveManger.add(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
-			this.context.lightManger.add(<Light>instance);
+			this.lightManger.add(<Light>instance);
 		} else if (instance.type == RenderObjectType.PostEffect) {
 			this.postEffectCollection.add(<PostEffect>instance);
 		}
@@ -72,7 +75,7 @@ export class Scene extends EventDispatcher {
 		if ([RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh].includes(instance.type)) {
 			this.primitiveManger.remove(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
-			this.context.lightManger.remove(<Light>instance);
+			this.lightManger.remove(<Light>instance);
 		} else if (instance.type == RenderObjectType.PostEffect) {
 			this.postEffectCollection.remove(<PostEffect>instance);
 		}
@@ -112,10 +115,8 @@ export class Scene extends EventDispatcher {
 		if (!this.ready) return;
 		//释放纹理
 		textureCache.releasedTextures();
-		//更新相机
+		//更新FrameState
 		this.frameState.update(camera ?? this.camera);
-		//更新灯光
-		this.context.lightManger.update(this.frameState, camera ?? this.camera);
 		//update primitive and select
 		(node ?? this.primitiveManger).update(this.frameState, camera ?? this.camera);
 		//selct renderPipeline

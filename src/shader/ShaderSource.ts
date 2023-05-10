@@ -53,6 +53,7 @@ export class ShaderSource {
 		}
 	}
 	public setDefines(defines) {
+		if (!defines) return;
 		this.dirty = true;
 		this.defines = Object.assign(this.defines, defines);
 	}

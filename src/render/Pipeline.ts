@@ -1,4 +1,5 @@
 import BindGroupLayout from "./BindGroupLayout";
+import { ComputeCommand } from "./ComputeCommand";
 import DrawCommand from "./DrawCommand";
 import { PipelineLayout } from "./PipelineLayout";
 import { RenderState } from "./RenderState";
@@ -43,7 +44,9 @@ export default class Pipeline {
 		const rsStr = JSON.stringify(renderState);
 		const combineStr = shaderSource.uid.concat(rsStr);
 		const hashId = stringToHash(combineStr);
-		const combineLayouts = groupLayouts.sort((layout1, layout2) => layout1.index - layout2.index);
+		const combineLayouts = groupLayouts
+			?.filter((layout) => layout != undefined)
+			?.sort((layout1, layout2) => layout1.index - layout2.index);
 		let pipeline = renderPipelines.get(hashId);
 		if (!pipeline) {
 			const descriptor = Pipeline.getPipelineDescriptor(
@@ -60,14 +63,13 @@ export default class Pipeline {
 	}
 	static getComputePipelineFromCache(
 		device: GPUDevice,
-		drawComand: DrawCommand,
+		computeCommad: ComputeCommand,
 		groupLayouts: BindGroupLayout[]
 	): Pipeline {
-		const { shaderSource } = drawComand;
+		const { shaderSource } = computeCommad;
 		const hashId = stringToHash(shaderSource.uid);
 		let pipeline = computePipelines.get(hashId);
 		if (!pipeline) {
-			const { shaderSource } = drawComand;
 			pipeline = device.createComputePipeline({
 				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
 					.gpuPipelineLayout,
