@@ -23,7 +23,7 @@ export class SKinMesh extends Mesh {
 	}
 	update(frameState: FrameState, camera?: Camera) {
 		this.uniformMatrixs = [];
-		this.joints.map((joint, index) => {
+		this.joints.map((joint) => {
 			this.uniformMatrixs.push((joint as Node).modelMatrix);
 		});
 		(this.material as PbrMaterial).joints = () => {
@@ -35,7 +35,6 @@ export class SKinMesh extends Mesh {
 		super.update(frameState, camera);
 	}
 }
-const inverseTransformMat4 = new Matrix4();
 export type SkinDataType = {
 	inverseBindMatrices?: Array<Matrix4>;
 	joints?: Array<Node>;

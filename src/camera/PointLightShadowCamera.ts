@@ -9,7 +9,7 @@ export default class PointLightShadowCamera extends PerspectiveCamera {
 	public vpMatrixArray: Array<Matrix4>;
 	public vpMatrixIndexArray: Array<number>;
 
-	constructor(fov: number = 50, aspect: number = 1, near: number = 0.1, far: number = 2000) {
+	constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) {
 		super(fov, aspect, near, far);
 		this.vpMatrixArray = [new Matrix4(), new Matrix4(), new Matrix4(), new Matrix4(), new Matrix4(), new Matrix4()];
 	}

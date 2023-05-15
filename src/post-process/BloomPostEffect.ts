@@ -69,7 +69,7 @@ export default class BloomPostEffect extends PostEffect {
 		this.fullScreenQuad.material = this.compositeMaterial;
 		this.currentRenderTarget = this.renderTargetsHorizontal[0];
 		this.renderMesh(context);
-		//blend
+		// blend
 		this.blendUniforms.baseColorTexture.value = colorTexture;
 		this.fullScreenQuad.material = this.blendMaterial;
 		this.currentRenderTarget = this.blendTarget;
@@ -158,7 +158,6 @@ export default class BloomPostEffect extends PostEffect {
 		return colorAttachment;
 	}
 	private getCompositeMaterial(nMips: number, type): ShaderMaterial {
-		//@ts-nocheck
 		return new ShaderMaterial({
 			type,
 			uniforms: {

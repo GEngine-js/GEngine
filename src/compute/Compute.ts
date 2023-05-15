@@ -1,6 +1,5 @@
 import { Uniforms } from "../core/WebGPUTypes";
 import { ComputeCommand } from "../render/ComputeCommand";
-import DrawCommand from "../render/DrawCommand";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";

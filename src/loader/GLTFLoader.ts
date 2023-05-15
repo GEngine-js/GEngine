@@ -1,23 +1,22 @@
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import PbrMaterial from "../material/PbrMaterial";
+import Color from "../math/Color";
 import Matrix4 from "../math/Matrix4";
+import { Quaternion } from "../math/Quaternion";
+import Vector3 from "../math/Vector3";
 import { Mesh } from "../mesh/Mesh";
+import Node from "../mesh/Node";
+import { SKinMesh } from "../mesh/SKinMesh";
 import { Float32Attribute } from "../render/Attribute";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray, generateTangents } from "../utils/gltfUtils";
+import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray } from "../utils/gltfUtils";
+import { Accessor } from "./gltf/libs/Accessor";
 import { Animation } from "./gltf/libs/Animation";
 import { AnimationChannel } from "./gltf/libs/AnimationChannel";
-import { AnimationSampler } from "./gltf/libs/AnimationSampler";
 import { AnimationChannelTarget } from "./gltf/libs/AnimationChannelTarget";
-import Color from "../math/Color";
-import { Accessor } from "./gltf/libs/Accessor";
-import Node from "../mesh/Node";
-import { SKinMesh } from "../mesh/SKinMesh";
-import { RenderObjectType } from "../core/WebGPUTypes";
-import Vector3 from "../math/Vector3";
-import { Quaternion } from "../math/Quaternion";
-import Matrix3 from "../math/Matrix3";
+import { AnimationSampler } from "./gltf/libs/AnimationSampler";
 
 export type GLTFPrimitive = {
 	vertexCount: number;
@@ -256,7 +255,6 @@ export class GLTF {
 			bufferView.buffer === 0 ? offset + this.glbOffset : offset,
 			(accessor.count - 1) * stride + n
 		);
-
 		if (stride > n) {
 			const TypedArrayConstructor = array.constructor as {
 				new (...args: any): TypedArray;
@@ -312,9 +310,9 @@ export class GLTF {
 		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
 			accessor = this.getAccessor(primitive.attributes.TANGENT);
 			tangents = accessor.getArray();
-			//defines.HAS_TANGENT = true;
+			// defines.HAS_TANGENT = true;
 		} else if (material.normalTexture) {
-			//tangents = generateTangents(indices, positions, normals, uvs!);
+			// tangents = generateTangents(indices, positions, normals, uvs!);
 		}
 		let colors = null;
 		if (primitive.attributes.COLOR_0 !== undefined) {
@@ -463,7 +461,7 @@ export class GLTF {
 	private parseNodeTRS(node: Node, gltfNode: GLTFNodeParms): Node {
 		let { matrix, rotation, translation, scale } = gltfNode;
 		if (matrix) {
-			let tempMatrix4 = new Matrix4(),
+			const tempMatrix4 = new Matrix4(),
 				tempScale = new Vector3(),
 				tempTranslation = new Vector3(),
 				tempRotation = new Quaternion();

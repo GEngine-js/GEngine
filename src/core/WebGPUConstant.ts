@@ -1,11 +1,9 @@
 /** @internal */
-// eslint-disable-next-line import/export
 export enum PredefinedColorSpace {
 	SRGB = "srgb"
 }
 
 /** @internal */
-// eslint-disable-next-line import/export
 export enum PowerPreference {
 	LowPower = "low-power",
 	HighPerformance = "high-performance"

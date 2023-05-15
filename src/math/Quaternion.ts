@@ -1,10 +1,8 @@
-// @ts-nocheck
-import Vector3 from "./Vector3";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
-import Matrix3 from "./Matrix3";
 import Matrix4 from "./Matrix4";
+import Vector3 from "./Vector3";
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
  * @alias Quaternion
@@ -74,10 +72,10 @@ export class Quaternion {
 		} else {
 			// crossVectors( vFrom, vTo ); // inlined to avoid cyclic dependency on Vector3
 
-			this._x = vFrom.y * vTo.z - vFrom.z * vTo.y;
-			this._y = vFrom.z * vTo.x - vFrom.x * vTo.z;
-			this._z = vFrom.x * vTo.y - vFrom.y * vTo.x;
-			this._w = r;
+			this.x = vFrom.y * vTo.z - vFrom.z * vTo.y;
+			this.y = vFrom.z * vTo.x - vFrom.x * vTo.z;
+			this.z = vFrom.x * vTo.y - vFrom.y * vTo.x;
+			this.w = r;
 		}
 
 		return this.normalize();
@@ -134,7 +132,7 @@ export class Quaternion {
 		return Quaternion.equals(this, right);
 	}
 
-	equalsEpsilon(right: Quaternion, epsilon: number = 0): boolean {
+	equalsEpsilon(right: Quaternion, epsilon = 0): boolean {
 		return Quaternion.equalsEpsilon(this, right, epsilon);
 	}
 	toArray(): number[] {
@@ -153,7 +151,7 @@ export class Quaternion {
 		// if (!defined(result)) {
 		//   return
 		// }
-		let result = new Quaternion(x, y, z, w);
+		const result = new Quaternion(x, y, z, w);
 		result.x = x;
 		result.y = y;
 		result.z = z;
@@ -161,69 +159,69 @@ export class Quaternion {
 		return result;
 	}
 
-	static fromRotationMatrix(matrix: Matrix3, result: Quaternion): Quaternion {
-		let root;
-		let x;
-		let y;
-		let z;
-		let w;
+	// static fromRotationMatrix(matrix: Matrix3, result: Quaternion): Quaternion {
+	// 	let root;
+	// 	let x;
+	// 	let y;
+	// 	let z;
+	// 	let w;
 
-		const m00 = matrix[Matrix3.COLUMN0ROW0];
-		const m11 = matrix[Matrix3.COLUMN1ROW1];
-		const m22 = matrix[Matrix3.COLUMN2ROW2];
-		const trace = m00 + m11 + m22;
+	// 	const m00 = matrix[Matrix3.COLUMN0ROW0];
+	// 	const m11 = matrix[Matrix3.COLUMN1ROW1];
+	// 	const m22 = matrix[Matrix3.COLUMN2ROW2];
+	// 	const trace = m00 + m11 + m22;
 
-		if (trace > 0.0) {
-			// |w| > 1/2, may as well choose w > 1/2
-			root = Math.sqrt(trace + 1.0); // 2w
-			w = 0.5 * root;
-			root = 0.5 / root; // 1/(4w)
+	// 	if (trace > 0.0) {
+	// 		// |w| > 1/2, may as well choose w > 1/2
+	// 		root = Math.sqrt(trace + 1.0); // 2w
+	// 		w = 0.5 * root;
+	// 		root = 0.5 / root; // 1/(4w)
 
-			x = (matrix[Matrix3.COLUMN1ROW2] - matrix[Matrix3.COLUMN2ROW1]) * root;
-			y = (matrix[Matrix3.COLUMN2ROW0] - matrix[Matrix3.COLUMN0ROW2]) * root;
-			z = (matrix[Matrix3.COLUMN0ROW1] - matrix[Matrix3.COLUMN1ROW0]) * root;
-		} else {
-			// |w| <= 1/2
-			const next = fromRotationMatrixNext;
+	// 		x = (matrix[Matrix3.COLUMN1ROW2] - matrix[Matrix3.COLUMN2ROW1]) * root;
+	// 		y = (matrix[Matrix3.COLUMN2ROW0] - matrix[Matrix3.COLUMN0ROW2]) * root;
+	// 		z = (matrix[Matrix3.COLUMN0ROW1] - matrix[Matrix3.COLUMN1ROW0]) * root;
+	// 	} else {
+	// 		// |w| <= 1/2
+	// 		const next = fromRotationMatrixNext;
 
-			let i = 0;
-			if (m11 > m00) {
-				i = 1;
-			}
-			if (m22 > m00 && m22 > m11) {
-				i = 2;
-			}
-			const j = next[i];
-			const k = next[j];
+	// 		let i = 0;
+	// 		if (m11 > m00) {
+	// 			i = 1;
+	// 		}
+	// 		if (m22 > m00 && m22 > m11) {
+	// 			i = 2;
+	// 		}
+	// 		const j = next[i];
+	// 		const k = next[j];
 
-			root = Math.sqrt(
-				matrix[Matrix3.getElementIndex(i, i)] -
-					matrix[Matrix3.getElementIndex(j, j)] -
-					matrix[Matrix3.getElementIndex(k, k)] +
-					1.0
-			);
+	// 		root = Math.sqrt(
+	// 			matrix[Matrix3.getElementIndex(i, i)] -
+	// 				matrix[Matrix3.getElementIndex(j, j)] -
+	// 				matrix[Matrix3.getElementIndex(k, k)] +
+	// 				1.0
+	// 		);
 
-			const quat = fromRotationMatrixQuat;
-			quat[i] = 0.5 * root;
-			root = 0.5 / root;
-			w = (matrix[Matrix3.getElementIndex(k, j)] - matrix[Matrix3.getElementIndex(j, k)]) * root;
-			quat[j] = (matrix[Matrix3.getElementIndex(j, i)] + matrix[Matrix3.getElementIndex(i, j)]) * root;
-			quat[k] = (matrix[Matrix3.getElementIndex(k, i)] + matrix[Matrix3.getElementIndex(i, k)]) * root;
+	// 		const quat = fromRotationMatrixQuat;
+	// 		quat[i] = 0.5 * root;
+	// 		root = 0.5 / root;
+	// 		w = (matrix[Matrix3.getElementIndex(k, j)] - matrix[Matrix3.getElementIndex(j, k)]) * root;
+	// 		quat[j] = (matrix[Matrix3.getElementIndex(j, i)] + matrix[Matrix3.getElementIndex(i, j)]) * root;
+	// 		quat[k] = (matrix[Matrix3.getElementIndex(k, i)] + matrix[Matrix3.getElementIndex(i, k)]) * root;
 
-			x = -quat[0];
-			y = -quat[1];
-			z = -quat[2];
-		}
+	// 		x = -quat[0];
+	// 		y = -quat[1];
+	// 		z = -quat[2];
+	// 	}
 
-		if (!defined(result)) {
-			return new Quaternion(x, y, z, w);
-		}
-		result.x = x;
-		result.y = y;
-		result.z = z;
-		result.w = w;
-		return result;
-	}
+	// 	if (!defined(result)) {
+	// 		return new Quaternion(x, y, z, w);
+	// 	}
+	// 	result.x = x;
+	// 	result.y = y;
+	// 	result.z = z;
+	// 	result.w = w;
+	// 	return result;
+	// }
 
 	static clone(quaternion: Quaternion, result: Quaternion): Quaternion {
 		if (!defined(quaternion)) {
@@ -306,7 +304,7 @@ export class Quaternion {
 		return result;
 	}
 
-	static dot(left: Quaternion, right: Quaternion): Quaternion {
+	static dot(left: Quaternion, right: Quaternion): number {
 		return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 	}
 
@@ -377,7 +375,7 @@ export class Quaternion {
 		return Quaternion.add(lerpScratch, result, result);
 	}
 
-	static slerp(start: Quaternion, end: Quaternion, t: number, result: Quaternion): number {
+	static slerp(start: Quaternion, end: Quaternion, t: number, result: Quaternion): Quaternion {
 		let dot = Quaternion.dot(start, end);
 
 		// The angle between start must be acute. Since q and -q represent
@@ -401,22 +399,6 @@ export class Quaternion {
 		return Quaternion.multiplyByScalar(result, 1.0 / Math.sin(theta), result);
 	}
 
-	static computeInnerQuadrangle(q0: Quaternion, q1: Quaternion, q2: Quaternion, result: Quaternion): Quaternion {
-		const qInv = Quaternion.conjugate(q1, squadScratchQuaternion0);
-		Quaternion.multiply(qInv, q2, squadScratchQuaternion1);
-		const cart0 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian0);
-
-		Quaternion.multiply(qInv, q0, squadScratchQuaternion1);
-		const cart1 = Quaternion.log(squadScratchQuaternion1, squadScratchCartesian1);
-
-		Vector3.add(cart0, cart1, cart0);
-		Vector3.multiplyByScalar(cart0, 0.25, cart0);
-		Vector3.negate(cart0, cart0);
-		Quaternion.exp(cart0, squadScratchQuaternion0);
-
-		return Quaternion.multiply(q1, squadScratchQuaternion0, result);
-	}
-
 	static squad(
 		q0: Quaternion,
 		q1: Quaternion,
@@ -429,66 +411,6 @@ export class Quaternion {
 		const slerp1 = Quaternion.slerp(s0, s1, t, squadScratchQuaternion1);
 		return Quaternion.slerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
 	}
-
-	static fastSlerp(start: Quaternion, end: Quaternion, t: number, result: number): Quaternion {
-		let x = Quaternion.dot(start, end);
-
-		let sign;
-		if (x >= 0) {
-			sign = 1.0;
-		} else {
-			sign = -1.0;
-			x = -x;
-		}
-
-		const xm1 = x - 1.0;
-		const d = 1.0 - t;
-		const sqrT = t * t;
-		const sqrD = d * d;
-
-		for (let i = 7; i >= 0; --i) {
-			bT[i] = (u[i] * sqrT - v[i]) * xm1;
-			bD[i] = (u[i] * sqrD - v[i]) * xm1;
-		}
-
-		const cT =
-			sign *
-			t *
-			(1.0 +
-				bT[0] *
-					(1.0 +
-						bT[1] *
-							(1.0 +
-								bT[2] *
-									(1.0 + bT[3] * (1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7]))))))));
-		const cD =
-			d *
-			(1.0 +
-				bD[0] *
-					(1.0 +
-						bD[1] *
-							(1.0 +
-								bD[2] *
-									(1.0 + bD[3] * (1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7]))))))));
-
-		const temp = Quaternion.multiplyByScalar(start, cD, fastSlerpScratchQuaternion);
-		Quaternion.multiplyByScalar(end, cT, result);
-		return Quaternion.add(temp, result, result);
-	}
-
-	static fastSquad(
-		q0: Quaternion,
-		q1: Quaternion,
-		s0: Quaternion,
-		s1: Quaternion,
-		t: number,
-		result: number
-	): Quaternion {
-		const slerp0 = Quaternion.fastSlerp(q0, q1, t, squadScratchQuaternion0);
-		const slerp1 = Quaternion.fastSlerp(s0, s1, t, squadScratchQuaternion1);
-		return Quaternion.fastSlerp(slerp0, slerp1, 2.0 * t * (1.0 - t), result);
-	}
-
 	static equals(left: Quaternion, right: Quaternion): boolean {
 		return (
 			left === right ||
@@ -501,7 +423,7 @@ export class Quaternion {
 		);
 	}
 
-	static equalsEpsilon(left: Quaternion, right: Quaternion, epsilon: number = 0): boolean {
+	static equalsEpsilon(left: Quaternion, right: Quaternion, epsilon = 0): boolean {
 		epsilon = defaultValue(epsilon, 0);
 
 		return (
@@ -513,17 +435,6 @@ export class Quaternion {
 				Math.abs(left.z - right.z) <= epsilon &&
 				Math.abs(left.w - right.w) <= epsilon)
 		);
-	}
-
-	static log(quaternion: Quaternion, result: Vector3): Vector3 {
-		const theta = GMath.acosClamped(quaternion.w);
-		let thetaOverSinTheta = 0.0;
-
-		if (theta !== 0.0) {
-			thetaOverSinTheta = theta / Math.sin(theta);
-		}
-
-		return Vector3.multiplyByScalar(quaternion, thetaOverSinTheta, result);
 	}
 
 	static exp(cartesian: Vector3, result: Quaternion): Quaternion {
@@ -548,40 +459,11 @@ let fromAxisAngleScratch = new Vector3();
 const fromRotationMatrixNext = [1, 2, 0];
 const fromRotationMatrixQuat = new Array(3);
 
-const scratchHPRQuaternion = new Quaternion();
-let scratchHeadingQuaternion = new Quaternion();
-let scratchPitchQuaternion = new Quaternion();
-let scratchRollQuaternion = new Quaternion();
-
-const sampledQuaternionAxis = new Vector3();
-const sampledQuaternionRotation = new Vector3();
-const sampledQuaternionTempQuaternion = new Quaternion();
-const sampledQuaternionQuaternion0 = new Quaternion();
-const sampledQuaternionQuaternion0Conjugate = new Quaternion();
-
 let lerpScratch = new Quaternion();
 
 let slerpEndNegated = new Quaternion();
 let slerpScaledP = new Quaternion();
 let slerpScaledR = new Quaternion();
-
-const fastSlerpScratchQuaternion = new Quaternion();
-// eslint-disable-next-line no-loss-of-precision
-const opmu = 1.90110745351730037;
-const u = new Float32Array(8);
-const v = new Float32Array(8);
-const bT = new Float32Array(8);
-const bD = new Float32Array(8);
-
-for (let i = 0; i < 7; ++i) {
-	const s = i + 1.0;
-	const t = 2.0 * s + 1.0;
-	u[i] = 1.0 / (s * t);
-	v[i] = s / t;
-}
-
-u[7] = opmu / (8.0 * 17.0);
-v[7] = (opmu * 8.0) / 17.0;
 
 const squadScratchCartesian0 = new Vector3();
 const squadScratchCartesian1 = new Vector3();

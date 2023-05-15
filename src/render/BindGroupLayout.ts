@@ -1,15 +1,9 @@
-import { BufferBindingType } from "../core/WebGPUConstant";
 import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
 const layoutCache = new Map();
 class BindGroupLayout {
 	public gpuBindGroupLayout: GPUBindGroupLayout;
 	index: number;
-	private constructor(
-		device: GPUDevice,
-		label: string,
-		public entries: BindGroupLayoutEntry[] = [],
-		index: number = 0
-	) {
+	private constructor(device: GPUDevice, label: string, public entries: BindGroupLayoutEntry[] = [], index = 0) {
 		this.index = index || 0;
 		this.gpuBindGroupLayout = device.createBindGroupLayout({
 			label: label,

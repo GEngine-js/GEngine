@@ -1,19 +1,19 @@
+import Camera from "../camera/Camera";
+import { FrameState } from "../core/FrameState";
+import LightManger from "../core/LightManger";
+import RenderQueue from "../core/RenderQueue";
+import { CommandSubType } from "../core/WebGPUConstant";
+import { Light } from "../light/Light";
+import { PointLight } from "../light/PointLight";
+import { BaseShadow } from "../light/shadows/BaseShadow";
+import { PointLightShadow } from "../light/shadows/PointLightShadow";
+import ShaderMaterial from "../material/ShaderMaterial";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
-import Pass from "./Pass";
 import RenderTarget from "../render/RenderTarget";
-import Camera from "../camera/Camera";
-import { BaseShadow } from "../light/shadows/BaseShadow";
-import { FrameState } from "../core/FrameState";
-import ShaderMaterial from "../material/ShaderMaterial";
-import getVertFrag from "../shader/Shaders";
 import Texture from "../render/Texture";
-import { CommandSubType } from "../core/WebGPUConstant";
-import RenderQueue from "../core/RenderQueue";
-import { PointLight } from "../light/PointLight";
-import { Light } from "../light/Light";
-import { PointLightShadow } from "../light/shadows/PointLightShadow";
-import LightManger from "../core/LightManger";
+import getVertFrag from "../shader/Shaders";
+import Pass from "./Pass";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
@@ -34,7 +34,7 @@ export class ShadowPass extends Pass {
 			// this.beforeRender({ shadow });
 			if (shadow instanceof PointLightShadow && light instanceof PointLight) {
 				for (let i = 0; i < shadow.viewports.length; i++) {
-					//动态buffer暂未调通，先以此种方式解决
+					// 动态buffer暂未调通，先以此种方式解决
 					switch (i) {
 						case 0:
 							this.renderTarget.depthAttachment.op = "clear";
@@ -144,7 +144,7 @@ export class ShadowPass extends Pass {
 			},
 			vert: shadowMapShaderFunction,
 			frag: undefined,
-			light: false //TODO:先true，false有显示bug
+			light: false // TODO:先true，false有显示bug
 		});
 	}
 }

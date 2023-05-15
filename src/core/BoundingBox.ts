@@ -31,6 +31,6 @@ export default class BoundingBox {
 		}
 		return Intersect.INTERSECTING;
 	}
-	update() {}
+	// update() {}
 }
 let intersectScratch = new Vector3();

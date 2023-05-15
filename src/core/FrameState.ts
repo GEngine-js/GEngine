@@ -14,7 +14,7 @@ export class FrameState {
 	public frameNumber: number;
 	public cullingVolume: CullingVolume;
 	public definesDirty: boolean;
-	private _defines: {};
+	private _defines: object;
 	constructor(public context: Context, public lightManger?: LightManger) {
 		this.renderQueue = new RenderQueue();
 		this.geometryMemory = 0;

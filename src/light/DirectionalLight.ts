@@ -1,11 +1,10 @@
 import { LightType } from "../core/WebGPUTypes";
-import Color from "../math/Color";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
 import { DirectionalLightShadow } from "./shadows/DirectionalLightShadow";
 
 export class DirectionalLight extends Light {
-	constructor(color: Vector3, intensity: number, openShadow: Boolean = true) {
+	constructor(color: Vector3, intensity: number, openShadow = true) {
 		super(color, intensity);
 		this.lightType = LightType.DirectionalLight;
 		if (openShadow) this.shadow = new DirectionalLightShadow();
@@ -26,6 +25,6 @@ export class DirectionalLight extends Light {
 		return result.normalize();
 	}
 }
-//uniform
+// uniform
 // direction: {},
 // color: {}

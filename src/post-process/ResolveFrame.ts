@@ -45,7 +45,7 @@ export default class ResolveFrame {
 		if (!this.canvasRenderTarget) this.initRenderTarget(context);
 		// this.material
 		this.material.uniforms.texture.value = colorTexture;
-		//@ts-ignore
+		// @ts-ignore
 		this.canvasRenderTarget.colorAttachments[0].texture = {
 			textureView: context.context.getCurrentTexture().createView()
 		};
@@ -64,7 +64,7 @@ export default class ResolveFrame {
 		const colorAttachment = new Attachment(
 			{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
 			{
-				//@ts-ignore
+				// @ts-ignore
 				texture: {
 					textureView: undefined
 				}

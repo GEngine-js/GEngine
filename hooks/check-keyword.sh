@@ -5,10 +5,10 @@ yellow=$(tput setaf 3)
 blue=$(tput setaf 4)
 reset=$(tput sgr0)
 # echo "${red}red text ${green}green text${reset}"
-echo "${green}开始 commit 前检查...${reset}"
+echo "${green}check before committing...${reset}"
 for FILE in $(git diff --name-only --cached); do
   if [ ! -f $FILE ] || [[ $FILE == *".md"* ]] || [[ $FILE == *".html"* ]] || [[ $FILE == *"hooks"* ]] || [[ $FILE == *"dist"* ]] || [[ $FILE == *"example"* ]]; then
-    echo "${blue}跳过文件" $FILE "=> 已删除或设置不进行检查...${reset}"
+    echo "${blue}skip file " $FILE " => deleted or set not to check... ${reset}"
     continue
   fi
 
@@ -20,10 +20,10 @@ for FILE in $(git diff --name-only --cached); do
   fi
 
   if [ $? -eq 0 ]; then
-    echo "${red}" $FILE "包含 debugger / console.log，请删除后再提交${reset}"
+    echo "${red}" $FILE "contains debugger/console.log, please delete it before submitting ${reset}"
     exit 1
   fi
 
 done
-echo "${green}检查完成✅${reset}"
+echo "${green} check done ✅${reset}"
 exit

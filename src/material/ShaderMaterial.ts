@@ -37,7 +37,7 @@ export default class ShaderMaterial extends Material {
 	}
 	protected createShaderData(mesh?: Mesh) {
 		super.createShaderData(mesh);
-		let result = checkContainFloatType(this.uniforms);
+		const result = checkContainFloatType(this.uniforms);
 		if (result.hasFloat) {
 			this.uniformBuffer = result.hasArraytype
 				? new UniformBuffer({

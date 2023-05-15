@@ -1,7 +1,7 @@
-import { BaseShadow } from "./BaseShadow";
 import PerspectiveCamera from "../../camera/PerspectiveCamera";
-import { SpotLight } from "../SpotLight";
 import Vector2 from "../../math/Vector2";
+import { SpotLight } from "../SpotLight";
+import { BaseShadow } from "./BaseShadow";
 
 export class SpotLightShadow extends BaseShadow {
 	public type: string;

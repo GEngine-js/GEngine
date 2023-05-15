@@ -1,6 +1,5 @@
-import { GPUCanvasCompositingAlphaMode } from "../core/WebGPUTypes";
 import { TextureUsage } from "../core/WebGPUConstant";
-import { ContextOptions } from "../core/WebGPUTypes";
+import { GPUCanvasCompositingAlphaMode, ContextOptions } from "../core/WebGPUTypes";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
 import { ScissorTest, ViewPort } from "./RenderState";
 
@@ -74,7 +73,7 @@ class Context {
 			this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 			this.device.addEventListener("uncapturederror", (error) => {
 				console.error(error);
-				//State.error = true;
+				// State.error = true;
 			});
 			this.mipmapTools = new MipmapGenerator(this.device);
 			this.context.configure({

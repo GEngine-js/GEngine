@@ -1,13 +1,13 @@
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import PlaneGeometry from "../geometry/PlaneGeometry";
 import { Light } from "../light/Light";
 import ShaderMaterial from "../material/ShaderMaterial";
 import { Mesh } from "../mesh/Mesh";
+import { ViewPort } from "../render/RenderState";
 import Sampler from "../render/Sampler";
 import { Scene } from "../Scene";
 import getVertFrag from "../shader/Shaders";
-import { ViewPort } from "../render/RenderState";
-import { RenderObjectType } from "../core/WebGPUTypes";
 
 export class ShadowMapDebugger {
 	private mesh: Mesh;

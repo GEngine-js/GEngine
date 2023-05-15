@@ -1,9 +1,9 @@
-import { ShaderSource } from "../shader/ShaderSource";
-import { Material } from "./Material";
-import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
+import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { UniformEnum } from "../render/Uniforms";
+import { ShaderSource } from "../shader/ShaderSource";
+import { Material } from "./Material";
 export default class ColorMaterial extends Material {
 	constructor() {
 		super();

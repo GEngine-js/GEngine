@@ -1,9 +1,9 @@
-import { Light } from "../Light";
 import Camera from "../../camera/Camera";
 import { TextureFormat, TextureSampleType, TextureUsage } from "../../core/WebGPUConstant";
-import Texture from "../../render/Texture";
 import Vector2 from "../../math/Vector2";
 import Vector4 from "../../math/Vector4";
+import Texture from "../../render/Texture";
+import { Light } from "../Light";
 export class BaseShadow {
 	protected _shadowMapSize: Vector2;
 	protected _camera: Camera;

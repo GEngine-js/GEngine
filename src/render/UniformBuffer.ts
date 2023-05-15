@@ -96,7 +96,7 @@ export default class UniformBuffer {
 		return this.uniformsSize * 4;
 	}
 	get uniformsSize() {
-		//https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+		// https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
 		return Math.ceil(this.byteOffset / 16) * 16;
 	}
 	bind(context: Context) {
@@ -171,7 +171,7 @@ export default class UniformBuffer {
 		this.byteOffset += uniform.byteSize;
 	}
 	private checkUniformOffset(byteSize: number, Align: number): number {
-		//from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
+		// from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
 		// return this.hasDynamicOffset
 		// 	? Math.ceil(byteSize / 256) * 256 - byteSize
 		// 	: Math.ceil(byteSize / Align) * Align - byteSize;

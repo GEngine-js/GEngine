@@ -1,12 +1,12 @@
-import { DepthStencil, RenderState, Target, Primitive } from "../render/RenderState";
-import Sampler from "../render/Sampler";
-import Texture from "../render/Texture";
-import { ShaderSource } from "../shader/ShaderSource";
 import { FrameState } from "../core/FrameState";
+import { CullMode, PrimitiveTopology } from "../core/WebGPUConstant";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
+import { DepthStencil, RenderState, Target, Primitive } from "../render/RenderState";
+import Sampler from "../render/Sampler";
 import ShaderData from "../render/ShaderData";
-import { CullMode, PrimitiveTopology } from "../core/WebGPUConstant";
+import Texture from "../render/Texture";
+import { ShaderSource } from "../shader/ShaderSource";
 export class Material {
 	public shaderData: ShaderData;
 
@@ -49,7 +49,7 @@ export class Material {
 		this.baseSampler = undefined;
 		this._diffuse = new Color(0.0, 0.0, 0.0);
 		this._opacity = 1.0;
-		//Buffer
+		// Buffer
 		this.shaderData = undefined;
 		this.shaderSource = undefined;
 		this.dirty = true;
@@ -60,7 +60,7 @@ export class Material {
 		this.ready = false;
 		this.init();
 	}
-	public set wireframe(value: Boolean) {
+	public set wireframe(value: boolean) {
 		this.renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
 	}
 	public get doubleSided() {
@@ -113,7 +113,7 @@ export class Material {
 		this.ready = true;
 	}
 	private init() {
-		//默认渲染状态
+		// 默认渲染状态
 		const primitive = new Primitive();
 		const target = new Target();
 		const depthStencil = new DepthStencil();

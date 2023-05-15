@@ -30,6 +30,6 @@ export default class PostEffectCollection {
 		this.resolveFrame.material.dirty = value;
 	}
 	private postEffectsSort() {
-		//this._postEffects.sort()
+		// this._postEffects.sort()
 	}
 }

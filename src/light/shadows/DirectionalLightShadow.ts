@@ -1,7 +1,7 @@
-import { BaseShadow } from "./BaseShadow";
 import OrthographicCamera from "../../camera/OrthographicCamera";
-import { DirectionalLight } from "../DirectionalLight";
 import Vector2 from "../../math/Vector2";
+import { DirectionalLight } from "../DirectionalLight";
+import { BaseShadow } from "./BaseShadow";
 
 export class DirectionalLightShadow extends BaseShadow {
 	public type: string;

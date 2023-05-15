@@ -1,10 +1,10 @@
-import Vector3 from "./Vector3";
-import Vector4 from "./Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
 import Matrix3 from "./Matrix3";
 import { Quaternion } from "./Quaternion";
+import Vector3 from "./Vector3";
+import Vector4 from "./Vector4";
 class Matrix4 {
 	public static IDENTITY = Object.freeze(
 		new Matrix4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0)
@@ -66,7 +66,7 @@ class Matrix4 {
 		this[14] = column3Row2;
 		this[15] = column3Row3;
 	}
-	//????
+	// ????
 	clone(result: Matrix4 = new Matrix4()): Matrix4 {
 		return Matrix4.clone(this, result);
 	}
@@ -120,7 +120,7 @@ class Matrix4 {
 
 		return this;
 	}
-	equalsEpsilon(right: Matrix4, epsilon: number = 0): boolean {
+	equalsEpsilon(right: Matrix4, epsilon = 0): boolean {
 		return Matrix4.equalsEpsilon(this, right, epsilon);
 	}
 	lookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix4 {
@@ -714,21 +714,21 @@ class Matrix4 {
 	static getRotation(matrix: Matrix4, result: Quaternion): Quaternion {
 		const scale = Matrix4.getScale(matrix, scaleScratch5);
 
-		let is1 = 1 / scale.x;
-		let is2 = 1 / scale.y;
-		let is3 = 1 / scale.z;
+		const is1 = 1 / scale.x;
+		const is2 = 1 / scale.y;
+		const is3 = 1 / scale.z;
 
-		let sm11 = matrix[0] * is1;
-		let sm12 = matrix[1] * is2;
-		let sm13 = matrix[2] * is3;
-		let sm21 = matrix[4] * is1;
-		let sm22 = matrix[5] * is2;
-		let sm23 = matrix[6] * is3;
-		let sm31 = matrix[8] * is1;
-		let sm32 = matrix[9] * is2;
-		let sm33 = matrix[10] * is3;
+		const sm11 = matrix[0] * is1;
+		const sm12 = matrix[1] * is2;
+		const sm13 = matrix[2] * is3;
+		const sm21 = matrix[4] * is1;
+		const sm22 = matrix[5] * is2;
+		const sm23 = matrix[6] * is3;
+		const sm31 = matrix[8] * is1;
+		const sm32 = matrix[9] * is2;
+		const sm33 = matrix[10] * is3;
 
-		let trace = sm11 + sm22 + sm33;
+		const trace = sm11 + sm22 + sm33;
 		let S = 0;
 
 		if (trace > 0) {
@@ -1414,11 +1414,11 @@ class Matrix4 {
 	}
 
 	static inverseTransformation(matrix: Matrix4, result: Matrix4): Matrix4 {
-		//This function is an optimized version of the below 4 lines.
-		//const rT = Matrix3.transpose(Matrix4.getMatrix3(matrix));
-		//const rTN = Matrix3.negate(rT);
-		//const rTT = Matrix3.multiplyByVector(rTN, Matrix4.getTranslation(matrix));
-		//return Matrix4.fromRotationTranslation(rT, rTT, result);
+		// This function is an optimized version of the below 4 lines.
+		// const rT = Matrix3.transpose(Matrix4.getMatrix3(matrix));
+		// const rTN = Matrix3.negate(rT);
+		// const rTT = Matrix3.multiplyByVector(rTN, Matrix4.getTranslation(matrix));
+		// return Matrix4.fromRotationTranslation(rT, rTT, result);
 
 		const matrix0 = matrix[0];
 		const matrix1 = matrix[1];

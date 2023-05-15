@@ -18,13 +18,7 @@ export class PointLight extends Light {
 		this._shadow = value;
 	}
 
-	constructor(
-		color: Vector3,
-		intensity: number,
-		distance: number = 0,
-		decay: number = 4,
-		openShadow: Boolean = true
-	) {
+	constructor(color: Vector3, intensity: number, distance = 0, decay = 4, openShadow = true) {
 		super(color, intensity);
 		this._distance = distance;
 		this._decay = decay;
@@ -48,7 +42,7 @@ export class PointLight extends Light {
 		return this._decay;
 	}
 }
-//uniform
+// uniform
 // color: {},
 // position: {},
 // decay: {},

@@ -1,5 +1,4 @@
 import Camera from "../camera/Camera";
-import GMath from "../math/Math";
 import Matrix4 from "../math/Matrix4";
 import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";

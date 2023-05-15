@@ -1,15 +1,15 @@
+import Camera from "../camera/Camera";
+import { Material } from "../material/Material";
+import Matrix4 from "../math/Matrix4";
 import { ShaderSource } from "../shader/ShaderSource";
+import { Command } from "./Command";
+import Context from "./Context";
+import IndexBuffer from "./IndexBuffer";
+import Pipeline from "./Pipeline";
+import { RenderState } from "./RenderState";
 import RenderTarget from "./RenderTarget";
 import ShaderData from "./ShaderData";
 import VertextBuffer from "./VertextBuffer";
-import IndexBuffer from "./IndexBuffer";
-import { RenderState } from "./RenderState";
-import { Material } from "../material/Material";
-import Matrix4 from "../math/Matrix4";
-import { Command } from "./Command";
-import Camera from "../camera/Camera";
-import Pipeline from "./Pipeline";
-import Context from "./Context";
 
 class DrawCommand implements Command {
 	public type?: string;

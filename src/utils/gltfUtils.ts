@@ -147,12 +147,12 @@ export function generateTangents(
 		});
 		const uv = triIndices.map((vertexIndex) => {
 			const index = vertexIndex * 2;
-			return new Vector2(uvs![index], uvs![index + 1]);
+			return new Vector2(uvs?.[index], uvs?.[index + 1]);
 		});
 
-		let dv1 = new Vector3();
+		const dv1 = new Vector3();
 		Vector3.subtract(pos[1], pos[0], dv1);
-		let dv2 = new Vector3();
+		const dv2 = new Vector3();
 		Vector3.subtract(pos[2], pos[0], dv2);
 		const duv1 = new Vector2();
 		Vector2.subtract(uv[1], uv[0], duv1);

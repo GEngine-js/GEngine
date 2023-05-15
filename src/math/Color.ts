@@ -1,13 +1,13 @@
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
-//#rgba
+// #rgba
 const rgbaMatcher = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i;
-//#rrggbbaa
+// #rrggbbaa
 const rrggbbaaMatcher = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;
-//rgb(), rgba(), or rgb%()
+// rgb(), rgba(), or rgb%()
 const rgbParenthesesMatcher = /^rgba?\(\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)\s*,\s*([0-9.]+%?)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
-//hsl() or hsla()
+// hsl() or hsla()
 const hslParenthesesMatcher = /^hsla?\(\s*([0-9.]+)\s*,\s*([0-9.]+%)\s*,\s*([0-9.]+%)(?:\s*,\s*([0-9.]+))?\s*\)$/i;
 function hue2rgb(m1, m2, h) {
 	if (h < 0) {
@@ -32,7 +32,7 @@ class Color {
 	green: number;
 	red: number;
 	blue: number;
-	constructor(red: number = 1.0, green: number = 1.0, blue: number = 1.0) {
+	constructor(red = 1.0, green = 1.0, blue = 1.0) {
 		/**
 		 * The red component.
 		 * @type {Number}

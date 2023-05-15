@@ -1,4 +1,3 @@
-import Camera from "../camera/Camera";
 import { LightType } from "../core/WebGPUTypes";
 import Vector3 from "../math/Vector3";
 import { Light } from "./Light";
@@ -97,7 +96,7 @@ export class SpotLight extends Light {
 		this._penumbraCos = Math.cos(this.angle + this.penumbra);
 	}
 }
-//uniform
+// uniform
 // color: {},
 // position: {},
 // direction: {},

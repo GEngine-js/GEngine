@@ -1,5 +1,4 @@
 import { Attribute } from "../render/Attribute";
-import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import GMath from "./Math";
 import Matrix3 from "./Matrix3";
@@ -41,7 +40,7 @@ class Vector2 {
 	equals(right: Vector2): boolean {
 		return Vector2.equals(this, right);
 	}
-	equalsEpsilon(right: Vector2, relativeEpsilon: number = 0, absoluteEpsilon: number = 0): boolean {
+	equalsEpsilon(right: Vector2, relativeEpsilon = 0, absoluteEpsilon = 0): boolean {
 		return Vector2.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
 	}
 
@@ -139,11 +138,11 @@ class Vector2 {
 		result.x = cartesian.x / magnitude;
 		result.y = cartesian.y / magnitude;
 
-		//>>includeStart('debug', pragmas.debug);
+		// >>includeStart('debug', pragmas.debug);
 		if (isNaN(result.x) || isNaN(result.y)) {
 			throw new Error("normalized result is not a number");
 		}
-		//>>includeEnd('debug');
+		// >>includeEnd('debug');
 
 		return result;
 	}
@@ -240,12 +239,7 @@ class Vector2 {
 		return cartesian.x === array[offset] && cartesian.y === array[offset + 1];
 	}
 
-	static equalsEpsilon(
-		left: Vector2,
-		right: Vector2,
-		relativeEpsilon: number = 0,
-		absoluteEpsilon: number = 0
-	): boolean {
+	static equalsEpsilon(left: Vector2, right: Vector2, relativeEpsilon = 0, absoluteEpsilon = 0): boolean {
 		return (
 			left === right ||
 			(defined(left) &&

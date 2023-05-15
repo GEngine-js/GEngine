@@ -1,5 +1,5 @@
-import Geometry from "./Geometry";
 import { Float32Attribute } from "../render/Attribute";
+import Geometry from "./Geometry";
 export default class PlaneGeometry extends Geometry {
 	constructor(public width: number = 10, public height: number = 10) {
 		super({
@@ -11,7 +11,7 @@ export default class PlaneGeometry extends Geometry {
 		this.init();
 	}
 	private init() {
-		//generate pos uv normal so on
+		// generate pos uv normal so on
 		const { indices, normals, uvs, vertices } = this.createGrid(this.width, this.height);
 		this.computeBoundingSphere(vertices);
 		this.setAttribute(new Float32Attribute("position", vertices, 3));
@@ -21,7 +21,7 @@ export default class PlaneGeometry extends Geometry {
 		this.count = indices.length;
 	}
 	public update(frameState) {}
-	private createGrid(width: number = 1, height: number = 1, widthSegments: number = 1, heightSegments: number = 1) {
+	private createGrid(width = 1, height = 1, widthSegments = 1, heightSegments = 1) {
 		const width_half = width / 2;
 		const height_half = height / 2;
 

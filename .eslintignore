@@ -1,0 +1,7 @@
+/build/
+/config/
+/dist/
+/*.js
+/static/
+/node_modules/
+.eslintrc.cjs

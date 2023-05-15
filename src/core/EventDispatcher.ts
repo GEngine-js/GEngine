@@ -1,61 +1,61 @@
 export class EventDispatcher {
-  private _listeners: {};
-  constructor() {}
+	private _listeners: object;
+	constructor() {
+		this._listeners = {};
+	}
 
-  addEventListener(type, listener) {
-    if (this._listeners === undefined) this._listeners = {};
+	addEventListener(type, listener) {
+		if (this._listeners === undefined) this._listeners = {};
 
-    const listeners = this._listeners;
+		const listeners = this._listeners;
 
-    if (listeners[type] === undefined) {
-      listeners[type] = [];
-    }
+		if (listeners[type] === undefined) {
+			listeners[type] = [];
+		}
 
-    if (listeners[type].indexOf(listener) === -1) {
-      listeners[type].push(listener);
-    }
-  }
+		if (listeners[type].indexOf(listener) === -1) {
+			listeners[type].push(listener);
+		}
+	}
 
-  hasEventListener(type, listener) {
-    if (this._listeners === undefined) return false;
+	hasEventListener(type, listener) {
+		if (this._listeners === undefined) return false;
 
-    const listeners = this._listeners;
+		const listeners = this._listeners;
 
-    return (
-      listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1
-    );
-  }
+		return listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1;
+	}
 
-  removeEventListener(type, listener) {
-    if (this._listeners === undefined) return;
+	removeEventListener(type, listener) {
+		if (this._listeners === undefined) return;
 
-    const listeners = this._listeners;
-    const listenerArray = listeners[type];
+		const listeners = this._listeners;
+		const listenerArray = listeners[type];
 
-    if (listenerArray !== undefined) {
-      const index = listenerArray.indexOf(listener);
+		if (listenerArray !== undefined) {
+			const index = listenerArray.indexOf(listener);
 
-      if (index !== -1) {
-        listenerArray.splice(index, 1);
-      }
-    }
-  }
+			if (index !== -1) {
+				listenerArray.splice(index, 1);
+			}
+		}
+	}
 
-  dispatchEvent(event) {
-    if (this._listeners === undefined) return;
+	dispatchEvent(event) {
+		if (this._listeners === undefined) return;
 
-    const listeners = this._listeners;
-    const listenerArray = listeners[event.type];
+		const listeners = this._listeners;
+		const listenerArray = listeners[event.type];
 
-    if (listenerArray !== undefined) {
-      event.target = this;
+		if (listenerArray !== undefined) {
+			event.target = this;
 
-      const array = listenerArray.slice(0);
+			const array = listenerArray.slice(0);
 
-      for (let i = 0, l = array.length; i < l; i++) {
-        array[i].call(this, event);
-      }
-      event.target = null;
-    }
-  }
+			for (let i = 0, l = array.length; i < l; i++) {
+				array[i].call(this, event);
+			}
+			event.target = null;
+		}
+	}
 }

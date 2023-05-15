@@ -25,7 +25,7 @@ export default class QuerySet {
 	}
 	private async getReadBuffer() {
 		const commandEncoder = this.device.createCommandEncoder();
-		//因为查询结果都是Uint64，需要八个字节，NUM_SPHERES数量必须与查询的数量一致
+		// 因为查询结果都是Uint64，需要八个字节，NUM_SPHERES数量必须与查询的数量一致
 		commandEncoder.resolveQuerySet(this.gpuQuerySet, 0, this.nextQueryIndex[0], this.queryBuffer.gpuBuffer, 0);
 		commandEncoder.copyBufferToBuffer(
 			this.queryBuffer.gpuBuffer,
@@ -40,7 +40,7 @@ export default class QuerySet {
 		this.getReadBuffer();
 		await this.readBuffer.gpuBuffer.mapAsync(GPUMapMode.READ);
 		const copyArrayBuffer = this.readBuffer.gpuBuffer.getMappedRange();
-		var array = new BigUint64Array(copyArrayBuffer).slice();
+		const array = new BigUint64Array(copyArrayBuffer).slice();
 		this.readBuffer.gpuBuffer.unmap();
 		return array;
 	}

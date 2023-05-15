@@ -1,6 +1,6 @@
-import Vector2 from "./Vector2";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
+import Vector2 from "./Vector2";
 
 /**
  * A 2x2 matrix, indexable as a column-major order array.
@@ -281,7 +281,7 @@ class Matrix2 {
 		);
 	}
 
-	static equalsEpsilon(left: Matrix2, right: Matrix2, epsilon: number = 0): boolean {
+	static equalsEpsilon(left: Matrix2, right: Matrix2, epsilon = 0): boolean {
 		epsilon = defaultValue(epsilon, 0);
 		return (
 			left === right ||
@@ -306,7 +306,7 @@ class Matrix2 {
 		return Matrix2.equals(this, right);
 	}
 
-	equalsEpsilon(right: Matrix2, epsilon: number = 0): boolean {
+	equalsEpsilon(right: Matrix2, epsilon = 0): boolean {
 		return Matrix2.equalsEpsilon(this, right, epsilon);
 	}
 

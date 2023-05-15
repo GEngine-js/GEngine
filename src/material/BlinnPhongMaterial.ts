@@ -1,13 +1,13 @@
-import { Material } from "./Material";
-import { ShaderSource } from "../shader/ShaderSource";
-import { Mesh } from "../mesh/Mesh";
 import { FrameState } from "../core/FrameState";
-import Color from "../math/Color";
-import UniformBuffer from "../render/UniformBuffer";
-import Texture from "../render/Texture";
-import Sampler from "../render/Sampler";
 import textureCache from "../core/TextureCache";
+import Color from "../math/Color";
+import { Mesh } from "../mesh/Mesh";
+import Sampler from "../render/Sampler";
+import Texture from "../render/Texture";
+import UniformBuffer from "../render/UniformBuffer";
 import { UniformEnum } from "../render/Uniforms";
+import { ShaderSource } from "../shader/ShaderSource";
+import { Material } from "./Material";
 export default class BlinnPhongMaterial extends Material {
 	public specular: Color;
 	public shininess: number;

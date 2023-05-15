@@ -1,6 +1,6 @@
-import Geometry from "./Geometry";
 import { Float32Attribute } from "../render/Attribute";
 import { createBox } from "../utils/GeometryUtils";
+import Geometry from "./Geometry";
 export default class BoxGeometry extends Geometry {
 	constructor(public width: number = 10, public height: number = 10, public depth: number = 10) {
 		super({
@@ -12,7 +12,7 @@ export default class BoxGeometry extends Geometry {
 		this.init();
 	}
 	private init() {
-		//generate pos uv normal so on
+		// generate pos uv normal so on
 		const { positions, normals, uvs } = createBox({
 			dimensions: [this.depth, this.width, this.height]
 		});

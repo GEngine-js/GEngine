@@ -45,10 +45,10 @@ class TextureCache {
 
 		texture.finalDestroy = texture.destroy;
 
-		const that = this;
-		texture.destroy = function () {
+		// const that = this;
+		texture.destroy = () => {
 			if (--cachedTexture.count === 0) {
-				that._texturesToRelease.set(keyword, cachedTexture);
+				this._texturesToRelease.set(keyword, cachedTexture);
 			}
 		};
 

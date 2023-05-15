@@ -8,14 +8,7 @@ export default class OrthographicCamera extends Camera {
 	near: number;
 	far: number;
 	top: number;
-	constructor(
-		left: number = -1,
-		right: number = 1,
-		top: number = 1,
-		bottom: number = -1,
-		near: number = 0.1,
-		far: number = 2000
-	) {
+	constructor(left = -1, right = 1, top = 1, bottom = -1, near = 0.1, far = 2000) {
 		super();
 		this.near = near;
 		this.far = far;

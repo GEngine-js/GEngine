@@ -28,7 +28,7 @@ export default class RenderTarget {
 		this._renderPassDescriptor = this.getRenderPassDescriptor();
 		return this._renderPassDescriptor;
 	}
-	public getColorTexture(index: number = 0): Texture {
+	public getColorTexture(index = 0): Texture {
 		const colAtt = this.colorAttachments[index];
 		if (colAtt) {
 			return colAtt.texture as Texture;
@@ -50,7 +50,7 @@ export default class RenderTarget {
 					colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
 					return {
 						view:
-							//暂时这么写
+							// 暂时这么写
 							colorAttachment.texture.textureView || undefined,
 						resolveTarget:
 							colorAttachment.resolveTarget != undefined

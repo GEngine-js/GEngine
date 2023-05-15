@@ -29,7 +29,7 @@ class BindGroup {
 		});
 	}
 	bind(passEncoder: GPURenderPassEncoder) {
-		//dynamic uniforms must bind multiple times
+		// dynamic uniforms must bind multiple times
 		if (this.dynamic) {
 			const dynamicOffsets = [0];
 			dynamicOffsets[0] = this.offset * this.alignedSize;
@@ -47,7 +47,6 @@ class BindGroup {
 		if (bindGroupCache.has(options.label)) {
 			return bindGroupCache.get(options.label);
 		} else {
-			//@ts-ignore
 			const bindGroup = new BindGroup(options);
 			bindGroupCache.set(options.label, bindGroup);
 			return bindGroup;

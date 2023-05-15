@@ -20,7 +20,7 @@ class Vector3 {
 	y: number;
 	z: number;
 
-	constructor(x: number = 0, y: number = 0, z: number = 0) {
+	constructor(x = 0, y = 0, z = 0) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -86,7 +86,7 @@ class Vector3 {
 	setFromMatrixColumn(m: Matrix3 | Matrix4, index: number): Vector3 {
 		return this.fromArray(m, index * 4);
 	}
-	fromArray(array: Matrix3 | Matrix4, offset: number = 0): Vector3 {
+	fromArray(array: Matrix3 | Matrix4, offset = 0): Vector3 {
 		this.x = array[offset];
 		this.y = array[offset + 1];
 		this.z = array[offset + 2];
@@ -117,7 +117,7 @@ class Vector3 {
 		return this;
 	}
 	applyMatrix3(matrix: Matrix3): Vector3 {
-		let x = this.x,
+		const x = this.x,
 			y = this.y,
 			z = this.z;
 		this.x = x * matrix[0] + y * matrix[3] + z * matrix[6];
@@ -155,7 +155,7 @@ class Vector3 {
 		return Vector3.equals(this, right);
 	}
 
-	equalsEpsilon(right: Vector3, relativeEpsilon: number = 0, absoluteEpsilon: number = 0): boolean {
+	equalsEpsilon(right: Vector3, relativeEpsilon = 0, absoluteEpsilon = 0): boolean {
 		return Vector3.equalsEpsilon(this, right, relativeEpsilon, absoluteEpsilon);
 	}
 
@@ -391,12 +391,7 @@ class Vector3 {
 		return cartesian.x === array[offset] && cartesian.y === array[offset + 1] && cartesian.z === array[offset + 2];
 	}
 
-	static equalsEpsilon(
-		left: Vector3,
-		right: Vector3,
-		relativeEpsilon: number = 0,
-		absoluteEpsilon: number = 0
-	): boolean {
+	static equalsEpsilon(left: Vector3, right: Vector3, relativeEpsilon = 0, absoluteEpsilon = 0): boolean {
 		return (
 			left === right ||
 			(defined(left) &&

@@ -78,7 +78,7 @@ export class MultiSample {
 	count: number;
 	mask: number;
 	alphaToCoverageEnabled: boolean;
-	constructor(count: number = 1, mask: number = 0xffffffff, alphaToCoverageEnabled: boolean = false) {
+	constructor(count = 1, mask = 0xffffffff, alphaToCoverageEnabled = false) {
 		this.count = count;
 		this.mask = mask;
 		this.alphaToCoverageEnabled = alphaToCoverageEnabled;
@@ -97,7 +97,7 @@ export class ScissorTest {
 	width: number;
 	height: number;
 	variable: boolean;
-	constructor(x: number = 0, y: number = 0, width: number = 0, height: number = 0, variable: boolean = true) {
+	constructor(x = 0, y = 0, width = 0, height = 0, variable = true) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -127,15 +127,7 @@ export class ViewPort {
 	minDepth: number;
 	maxDepth: number;
 	variable: boolean;
-	constructor(
-		x: number = 0,
-		y: number = 0,
-		width: number = 0,
-		height: number = 0,
-		minDepth: number = 0,
-		maxDepth: number = 1,
-		variable: boolean = true
-	) {
+	constructor(x = 0, y = 0, width = 0, height = 0, minDepth = 0, maxDepth = 1, variable = true) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -144,7 +136,7 @@ export class ViewPort {
 		this.maxDepth = maxDepth;
 		this.variable = variable;
 	}
-	set(x: number, y: number, width: number, height: number, minDepth: number = 0, maxDepth: number = 1) {
+	set(x: number, y: number, width: number, height: number, minDepth = 0, maxDepth = 1) {
 		if (!this.variable) return;
 		this.x = x;
 		this.y = y;

@@ -8,7 +8,7 @@ export default class VertextBuffer {
 	public stepMode: string;
 	public buffer: Buffer;
 	public attributes: Attributes;
-	public dirty: Boolean;
+	public dirty: boolean;
 	private label: string;
 	constructor(label: string, index?: number, stepMode?: string) {
 		this.index = index || 0;

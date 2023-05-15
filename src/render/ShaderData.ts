@@ -1,13 +1,13 @@
-import { UniformSampler, UniformTexture } from "./Uniforms";
-import BindGroupEntity from "./BindGroupEntity";
-import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
-import BindGroupLayout from "./BindGroupLayout";
-import BindGroup from "./BindGroup";
 import defaultValue from "../utils/defaultValue";
+import BindGroup from "./BindGroup";
+import BindGroupEntity from "./BindGroupEntity";
+import BindGroupLayout from "./BindGroupLayout";
+import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
 import Context from "./Context";
-import UniformBuffer from "./UniformBuffer";
-import Texture from "./Texture";
 import Sampler from "./Sampler";
+import Texture from "./Texture";
+import UniformBuffer from "./UniformBuffer";
+import { UniformSampler, UniformTexture } from "./Uniforms";
 export default class ShaderData {
 	currentBinding: number;
 
@@ -106,7 +106,7 @@ export default class ShaderData {
 			entires: entities,
 			device: device,
 			layout: this.groupLayout,
-			index: groupIndex || 0, //后续改成groupIndex
+			index: groupIndex || 0, // 后续改成groupIndex
 			dynamic,
 			alignedSize,
 			maxOffset

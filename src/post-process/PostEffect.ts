@@ -59,7 +59,7 @@ export default class PostEffect implements IClone {
 			new Float32Attribute("position", [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0], 2)
 		);
 		geometry.count = 6;
-		//rs
+		// rs
 		const primitive = new Primitive();
 		const target = new Target();
 		// target.format=TextureFormat.RGBA8Unorm

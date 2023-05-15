@@ -8,14 +8,7 @@ export default class TorusKnotGeometry extends Geometry {
 	radialSegments: number;
 	p: number;
 	q: number;
-	constructor(
-		radius: number = 1,
-		tube: number = 0.4,
-		tubularSegments: number = 64,
-		radialSegments: number = 8,
-		p: number = 2,
-		q: number = 3
-	) {
+	constructor(radius = 1, tube = 0.4, tubularSegments = 64, radialSegments = 8, p = 2, q = 3) {
 		super({
 			type: "torusKnotGeometry"
 		});
@@ -81,7 +74,7 @@ export default class TorusKnotGeometry extends Geometry {
 			Vector3.add(P2, P1, N);
 			// N.addVectors( P2, P1 );
 			Vector3.cross(T, N, B);
-			//B.crossVectors( T, N );
+			// B.crossVectors( T, N );
 			Vector3.cross(B, T, N);
 			// N.crossVectors( B, T );
 

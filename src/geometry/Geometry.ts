@@ -1,15 +1,14 @@
+import BoundingBox from "../core/BoundingBox";
 import BoundingSphere from "../core/BoundingSphere";
 import { FrameState } from "../core/FrameState";
-import VertextBuffer from "../render/VertextBuffer";
+import { PrimitiveTopology } from "../core/WebGPUConstant";
+import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import { Attribute } from "../render/Attribute";
-import Attributes from "../render/Attributes";
 import IndexBuffer from "../render/IndexBuffer";
+import VertextBuffer from "../render/VertextBuffer";
 import combine from "../utils/combine";
-import { PrimitiveTopology } from "../core/WebGPUConstant";
-import Vector2 from "../math/Vector2";
-import BoundingBox from "../core/BoundingBox";
 export default class Geometry {
 	normals: number[];
 	uvs: number[];

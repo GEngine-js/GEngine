@@ -1,14 +1,13 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
-import { Intersect } from "../core/WebGPUConstant";
+import LightManger from "../core/LightManger";
 import RenderObject from "../core/RenderObject";
-import { CommandSubType } from "../core/WebGPUConstant";
+import { CommandSubType, Intersect } from "../core/WebGPUConstant";
+import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
-import { RenderObjectType } from "../core/WebGPUTypes";
 import createGuid from "../utils/createGuid";
-import LightManger from "../core/LightManger";
 export class Mesh extends RenderObject {
 	[x: string]: any;
 	uid: string;
@@ -32,9 +31,9 @@ export class Mesh extends RenderObject {
 		return this.material.ready;
 	}
 	update(frameState: FrameState, camera?: Camera) {
-		//update matrix
+		// update matrix
 		this.updateMatrix(this?.parent?.modelMatrix);
-		//create
+		// create
 		this.geometry.update(frameState);
 		this.material.update(frameState, this);
 		// update boundingSphere
@@ -47,7 +46,7 @@ export class Mesh extends RenderObject {
 		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
-		//视锥剔除
+		// 视锥剔除
 		if (visibility === Intersect.INTERSECTING || visibility === Intersect.INSIDE) {
 			if (this.material.transparent) {
 				frameState.renderQueue.transparent.push(this);

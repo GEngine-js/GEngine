@@ -15,4 +15,4 @@ export class AmbientLight extends Light {
 		return this._colorAndIntensity;
 	}
 }
-//light.color ).multiplyScalar( light.intensity * scaleFactor );
+// light.color ).multiplyScalar( light.intensity * scaleFactor );
