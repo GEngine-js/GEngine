@@ -6,4 +6,4 @@ public/workers
 *.rar
 *.zip
 *.7z
-.catch
+.catch/**
