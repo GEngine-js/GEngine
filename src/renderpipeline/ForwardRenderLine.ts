@@ -1,10 +1,10 @@
-import Context from "../render/Context";
-import { BasicPass } from "../pass/BasicPass";
-import IBaseRenderLine from "./IBaseRenderLine";
-import { FrameState } from "../core/FrameState";
 import Camera from "../camera/Camera";
+import { FrameState } from "../core/FrameState";
+import { BasicPass } from "../pass/BasicPass";
 import { ShadowPass } from "../pass/ShadowPass";
+import Context from "../render/Context";
 import Texture from "../render/Texture";
+import IBaseRenderLine from "./IBaseRenderLine";
 
 export default class ForwardRenderLine implements IBaseRenderLine {
 	private basicPass: BasicPass;
@@ -28,7 +28,7 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 	render(frameState: FrameState, camera?: Camera) {
 		this.shadowPass.render(frameState, camera);
 
-		this.basicPass.beforeRender();
+		this.basicPass.beforeRender(frameState);
 		this.basicPass.render(frameState, camera);
 		this.basicPass.afterRender();
 	}

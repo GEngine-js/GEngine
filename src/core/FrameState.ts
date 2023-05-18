@@ -1,11 +1,20 @@
-import Context from "../render/Context";
+import { Scene } from "../Scene";
+import Camera from "../camera/Camera";
+import Color from "../math/Color";
 import Pass from "../pass/Pass";
+import Context from "../render/Context";
+import Texture from "../render/Texture";
 import combine from "../utils/combine";
 import CullingVolume from "./CullingVolume";
-import RenderQueue from "./RenderQueue";
-import Camera from "../camera/Camera";
 import LightManger from "./LightManger";
+import RenderQueue from "./RenderQueue";
+
+interface FrameStateOptions {
+	background?: Color | Texture;
+}
+
 export class FrameState {
+	public background: Color | Texture;
 	public pass: Pass;
 	public renderQueue: RenderQueue;
 	public drawCallnums: number;
@@ -15,7 +24,8 @@ export class FrameState {
 	public cullingVolume: CullingVolume;
 	public definesDirty: boolean;
 	private _defines: object;
-	constructor(public context: Context, public lightManger?: LightManger) {
+	constructor(public context: Context, public lightManger?: LightManger, options: FrameStateOptions = {}) {
+		this.background = options.background;
 		this.renderQueue = new RenderQueue();
 		this.geometryMemory = 0;
 		this.textureMemory = 0;
@@ -30,7 +40,9 @@ export class FrameState {
 		this.definesDirty = true;
 		this._defines = combine(value, this._defines, false);
 	}
-	update(camera: Camera) {
+	update(camera: Camera, options: FrameStateOptions = {}) {
+		this.background = options.background;
+
 		this.renderQueue.reset();
 		this?.lightManger?.update?.(this, camera);
 		this.cullingVolume = camera.getCullingVolume();
@@ -39,5 +51,11 @@ export class FrameState {
 
 	resetCullingVolume(camera: Camera) {
 		this.cullingVolume = camera.getCullingVolume();
+	}
+
+	static getFrameStateOptionsByScene(sceneInstance: Scene) {
+		return {
+			background: sceneInstance.background
+		};
 	}
 }

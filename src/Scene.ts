@@ -1,20 +1,22 @@
+import Camera from "./camera/Camera";
 import PerspectiveCamera from "./camera/PerspectiveCamera";
 import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState } from "./core/FrameState";
+import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
+import textureCache from "./core/TextureCache";
+import { Instance, RenderObjectType } from "./core/WebGPUTypes";
+import { Light } from "./light/Light";
+import Color from "./math/Color";
+import { Mesh } from "./mesh/Mesh";
+import Node from "./mesh/Node";
+import PostEffect from "./post-process/PostEffect";
+import PostEffectCollection from "./post-process/PostEffectCollection";
 import Context from "./render/Context";
+import { ViewPort } from "./render/RenderState";
+import Texture from "./render/Texture";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
-import textureCache from "./core/TextureCache";
-import PostEffectCollection from "./post-process/PostEffectCollection";
-import PostEffect from "./post-process/PostEffect";
-import { Instance, RenderObjectType } from "./core/WebGPUTypes";
-import { Mesh } from "./mesh/Mesh";
-import { Light } from "./light/Light";
-import Node from "./mesh/Node";
-import Camera from "./camera/Camera";
-import { ViewPort } from "./render/RenderState";
-import LightManger from "./core/LightManger";
 
 export class Scene extends EventDispatcher {
 	camera: PerspectiveCamera;
@@ -26,6 +28,7 @@ export class Scene extends EventDispatcher {
 	frameState: FrameState;
 	currentRenderPipeline: IBaseRenderLine;
 	viewport: ViewPort;
+	background: Color | Texture;
 	private ready: boolean;
 	private inited: boolean;
 	private primitiveManger: PrimitiveManger;
@@ -50,11 +53,12 @@ export class Scene extends EventDispatcher {
 		this.ready = false;
 		this.inited = false;
 		this.lightManger = new LightManger({ openShadow: true });
+		this.background = options.background;
 	}
 	private async init() {
 		await this.context.init(this.requestAdapter, this.deviceDescriptor, this.presentationContextDescriptor);
 		this.currentRenderPipeline = new ForwardRenderLine(this.context);
-		this.frameState = new FrameState(this.context, this.lightManger);
+		this.frameState = new FrameState(this.context, this.lightManger, FrameState.getFrameStateOptionsByScene(this));
 		this.viewport = new ViewPort(0, 0, this.context.presentationSize.width, this.context.presentationSize.height);
 		this.ready = true;
 	}
@@ -113,15 +117,15 @@ export class Scene extends EventDispatcher {
 	}
 	private update(node?: Node, camera?: Camera) {
 		if (!this.ready) return;
-		//释放纹理
+		// 释放纹理
 		textureCache.releasedTextures();
-		//更新FrameState
-		this.frameState.update(camera ?? this.camera);
-		//update primitive and select
+		// 更新FrameState
+		this.frameState.update(camera ?? this.camera, FrameState.getFrameStateOptionsByScene(this));
+		// update primitive and select
 		(node ?? this.primitiveManger).update(this.frameState, camera ?? this.camera);
-		//selct renderPipeline
+		// selct renderPipeline
 		this.currentRenderPipeline.render(this.frameState, camera ?? this.camera);
-		//后处理
+		// 后处理
 		this.postEffectCollection.render(this.context, this.currentRenderPipeline.getOutputTexture());
 	}
 }
