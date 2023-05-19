@@ -60,10 +60,9 @@
 				});
 				scene.background = {
 					value: new Color().set("#1E1E20"),
-					opacity: 0.5
+					opacity: 0.0
 				};
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-				directionalLight.position.set(1, 1, 1);
+
 				const gltf = await loadGLTF(
 					//'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/VC/glTF/VC.gltf'
 					//"https://raw.githubusercontent.com/shrekshao/minimal-gltf-loader/store-drone-model/glTFs/glTF_version_2/buster_drone/scene.gltf"
