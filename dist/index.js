@@ -874,7 +874,7 @@ class ct {
 					device: this.device,
 					format: this.presentationFormat,
 					usage: a.RenderAttachment,
-					alphaMode: "opaque",
+					alphaMode: "premultiplied",
 					...i
 				}),
 				(this._viewPort = new it(
@@ -9693,7 +9693,7 @@ class pr extends mr {
 		super(t), this.init(t);
 	}
 	beforeRender(t) {
-		super.beforeRender(), this.updateRenderTarget(t);
+		this.updateRenderTarget(t), super.beforeRender();
 	}
 	render(t, e) {
 		const { renderQueue: i, lightManger: r } = t;
@@ -9725,9 +9725,11 @@ class pr extends mr {
 		this.renderTarget = new ur("render", [o], c);
 	}
 	updateRenderTarget(t) {
-		if (t.background instanceof qe) {
-			const e = { r: t.background.red, g: t.background.green, b: t.background.blue, a: 1 };
-			this.renderTarget.colorAttachments[0].value = e;
+		if (t?.background?.value instanceof qe) {
+			const { red: e, green: i, blue: r } = t.background.value,
+				n = t.background?.opacity,
+				s = { r: e, g: i, b: r, a: n ?? 1 };
+			this.renderTarget.colorAttachments[0].value = s;
 		}
 	}
 }
