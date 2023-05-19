@@ -15,8 +15,7 @@
 			}
 
 			html {
-				background: #692a84;
-				background: linear-gradient(316deg, #0e0f2a, #060913);
+				background: linear-gradient(316deg, #43a066, #2450e2);
 				width: 100%;
 				height: 100%;
 			}
@@ -59,7 +58,10 @@
 				const scene = new Scene({
 					container: "app"
 				});
-				scene.background = new Color().set("#1E1E20");
+				scene.background = {
+					value: new Color().set("#1E1E20"),
+					opacity: 0.5
+				};
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 				directionalLight.position.set(1, 1, 1);
 				const gltf = await loadGLTF(

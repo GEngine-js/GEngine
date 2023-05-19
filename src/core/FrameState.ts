@@ -10,11 +10,16 @@ import LightManger from "./LightManger";
 import RenderQueue from "./RenderQueue";
 
 interface FrameStateOptions {
-	background?: Color | Texture;
+	background?: Background;
+}
+
+export interface Background {
+	value: Color | Texture;
+	opacity: number;
 }
 
 export class FrameState {
-	public background: Color | Texture;
+	public background: Background;
 	public pass: Pass;
 	public renderQueue: RenderQueue;
 	public drawCallnums: number;

@@ -1,20 +1,18 @@
 import Camera from "./camera/Camera";
 import PerspectiveCamera from "./camera/PerspectiveCamera";
 import { EventDispatcher } from "./core/EventDispatcher";
-import { FrameState } from "./core/FrameState";
+import { FrameState, Background } from "./core/FrameState";
 import LightManger from "./core/LightManger";
 import PrimitiveManger from "./core/PrimitiveManger";
 import textureCache from "./core/TextureCache";
 import { Instance, RenderObjectType } from "./core/WebGPUTypes";
 import { Light } from "./light/Light";
-import Color from "./math/Color";
 import { Mesh } from "./mesh/Mesh";
 import Node from "./mesh/Node";
 import PostEffect from "./post-process/PostEffect";
 import PostEffectCollection from "./post-process/PostEffectCollection";
 import Context from "./render/Context";
 import { ViewPort } from "./render/RenderState";
-import Texture from "./render/Texture";
 import ForwardRenderLine from "./renderpipeline/ForwardRenderLine";
 import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 
@@ -28,7 +26,7 @@ export class Scene extends EventDispatcher {
 	frameState: FrameState;
 	currentRenderPipeline: IBaseRenderLine;
 	viewport: ViewPort;
-	background: Color | Texture;
+	background: Background;
 	private ready: boolean;
 	private inited: boolean;
 	private primitiveManger: PrimitiveManger;

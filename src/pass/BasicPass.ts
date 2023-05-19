@@ -16,9 +16,10 @@ export class BasicPass extends Pass {
 		this.init(context);
 	}
 
-	beforeRender(frameState) {
-		super.beforeRender();
+	beforeRender(frameState: FrameState) {
 		this.updateRenderTarget(frameState);
+
+		super.beforeRender();
 	}
 
 	render(frameState: FrameState, camera?: Camera) {
@@ -52,13 +53,15 @@ export class BasicPass extends Pass {
 		this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
 	}
 
-	private updateRenderTarget(frameState) {
-		if (frameState.background instanceof Color) {
+	private updateRenderTarget(frameState: FrameState) {
+		if (frameState?.background?.value instanceof Color) {
+			const { red, green, blue } = frameState.background.value;
+			const opacity = frameState.background?.opacity;
 			const clearValue = {
-				r: frameState.background.red,
-				g: frameState.background.green,
-				b: frameState.background.blue,
-				a: 1.0
+				r: red,
+				g: green,
+				b: blue,
+				a: opacity ?? 1.0
 			};
 			this.renderTarget.colorAttachments[0].value = clearValue;
 		}

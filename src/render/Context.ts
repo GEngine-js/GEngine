@@ -80,7 +80,7 @@ class Context {
 				device: this.device,
 				format: this.presentationFormat,
 				usage: TextureUsage.RenderAttachment,
-				alphaMode: "opaque",
+				alphaMode: "premultiplied",
 				...presentationContextDescriptor
 			});
 			this._viewPort = new ViewPort(
