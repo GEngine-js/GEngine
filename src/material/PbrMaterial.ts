@@ -199,5 +199,11 @@ export default class PbrMaterial extends Material {
 			this.shaderData.setUniformBuffer("invsBuffer", invsBuffer);
 		}
 	}
-	destroy() {}
+	destroy() {
+		this?.aoTexture?.destroy();
+		this?.baseTexture?.destroy();
+		this?.emissiveTexture?.destroy();
+		this?.normalTexture?.destroy();
+		this.specularEnvTexture = undefined;
+	}
 }

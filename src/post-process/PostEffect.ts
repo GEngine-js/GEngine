@@ -44,7 +44,9 @@ export default class PostEffect implements IClone {
 	render(context: Context, colorTexture: Texture): Texture {
 		return null;
 	}
-	destroy() {}
+	destroy() {
+		this?.currentRenderTarget?.destroy();
+	}
 	protected renderMesh(context: Context) {
 		this.fullScreenQuad.material.dirty = true;
 		this.fullScreenQuad.material.update();

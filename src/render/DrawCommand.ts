@@ -102,7 +102,7 @@ class DrawCommand implements Command {
 			renderTarget
 		} = this;
 		const currentPassEncoder = renderTarget?.beginRenderPassEncoder?.(context) ?? passEncoder;
-
+		const defines = Object.assign({}, lightShaderData?.defines ?? {}, camera?.shaderData?.defines ?? {});
 		const { device } = context;
 
 		if (modelMatrix) shaderData?.replaceUniformBufferValue?.("modelMatrix", modelMatrix);
@@ -111,17 +111,15 @@ class DrawCommand implements Command {
 
 		camera?.shaderData?.bind(context, currentPassEncoder);
 
-		shaderSource?.setDefines?.(camera?.shaderData?.defines);
-
 		lightShaderData?.bind?.(context, currentPassEncoder);
-
-		shaderSource?.setDefines?.(lightShaderData?.defines);
 
 		renderState?.bind?.(currentPassEncoder, context);
 
 		vertexBuffer?.bind?.(device, currentPassEncoder);
 
 		indexBuffer?.bind?.(device, currentPassEncoder);
+
+		shaderSource?.setDefines?.(defines);
 
 		const pipeline = Pipeline.getRenderPipelineFromCache(device, this, [
 			shaderData?.groupLayout,

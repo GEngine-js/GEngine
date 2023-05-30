@@ -8,12 +8,10 @@
 
 ## build
 
--   `npm run build`
+-   `npm run dev`
 
 ## Usage
 
-    -
-    ```
        <script type="module">
             import {
                 BoxGeometry,
@@ -81,7 +79,6 @@
             };
             init();
         </script>
-        ```
 
 ## feature
 
@@ -108,10 +105,14 @@
     -   [✔] SkyBoxMaterial
 -   [✔] Post-Effect
     -   [✔] BloomPostEffect
+-   [✔] Shadow
+    -   [✔] DirectionalLightShadow
+    -   [✔] PointLightShadow
+    -   [✔] SpotLightShadow
 
 ## Next
 
-1. Skinning and morph target animation
+1. Complete animation
 2. Complete core glTF 2.0
-3. Shadow
-4. Text and Sprite
+3. Text and Sprite
+4. Pick

@@ -67,5 +67,8 @@ export default class BlinnPhongMaterial extends Material {
 			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
 		}
 	}
-	destroy() {}
+	destroy() {
+		this?.baseTexture?.destroy();
+		super.destroy();
+	}
 }

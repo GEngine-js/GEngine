@@ -19,9 +19,9 @@ import IBaseRenderLine from "./renderpipeline/IBaseRenderLine";
 export class Scene extends EventDispatcher {
 	camera: PerspectiveCamera;
 	context: Context;
-	requestAdapter: {};
-	deviceDescriptor: {};
-	presentationContextDescriptor: {};
+	requestAdapter: object;
+	deviceDescriptor: object;
+	presentationContextDescriptor: object;
 	container: HTMLDivElement;
 	frameState: FrameState;
 	currentRenderPipeline: IBaseRenderLine;
