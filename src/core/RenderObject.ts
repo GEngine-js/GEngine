@@ -10,9 +10,9 @@ export default class RenderObject implements IClone {
 	protected _scale: Vector3;
 	protected _quaternion: Quaternion;
 	protected _target: Vector3;
+	private _normalMatrix: Matrix4;
 	modelMatrix: Matrix4;
 	parent: RenderObject;
-	private _normalMatrix: Matrix4;
 	type: RenderObjectType;
 	name: string;
 	constructor() {

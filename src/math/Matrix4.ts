@@ -70,7 +70,10 @@ class Matrix4 {
 	clone(result: Matrix4 = new Matrix4()): Matrix4 {
 		return Matrix4.clone(this, result);
 	}
-
+	set(mat4: Matrix4) {
+		Matrix4.clone(mat4, this);
+		return this;
+	}
 	equals(right: Matrix4): boolean {
 		return Matrix4.equals(this, right);
 	}

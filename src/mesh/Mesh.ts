@@ -13,7 +13,7 @@ export class Mesh extends RenderObject {
 	uid: string;
 	geometry?: Geometry;
 	material?: Material;
-	instances?: number;
+	instanceCount?: number;
 	priority?: number;
 	drawCommand?: DrawCommand;
 	subCommands: { [prop: string]: DrawCommand };
@@ -47,12 +47,11 @@ export class Mesh extends RenderObject {
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		// 视锥剔除
-		if (visibility === Intersect.INTERSECTING || visibility === Intersect.INSIDE) {
-			if (this.material.transparent) {
-				frameState.renderQueue.transparent.push(this);
-			} else {
-				frameState.renderQueue.opaque.push(this);
-			}
+		if (visibility === Intersect.OUTSIDE) return;
+		if (this.material.transparent) {
+			frameState.renderQueue.transparent.push(this);
+		} else {
+			frameState.renderQueue.opaque.push(this);
 		}
 	}
 	beforeRender() {}
@@ -67,7 +66,7 @@ export class Mesh extends RenderObject {
 				vertexBuffer: this.geometry.vertBuffer,
 				indexBuffer: this.geometry.indexBuffer,
 				shaderData: this.material.shaderData,
-				instances: this.instances,
+				instances: this.instanceCount,
 				count: this.geometry.count,
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,

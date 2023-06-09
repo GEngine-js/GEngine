@@ -1,6 +1,6 @@
 import { FrameState } from "../core/FrameState";
 import textureCache from "../core/TextureCache";
-import { BufferBindingType, BufferUsage, CullMode } from "../core/WebGPUConstant";
+import { CullMode } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
@@ -26,10 +26,6 @@ export default class PbrMaterial extends Material {
 	public aoTexture: Texture;
 
 	public aoSampler: Sampler;
-
-	public joints: Function;
-
-	public jointsInv: Function;
 
 	public metalnessRoughnessTexture: Texture;
 
@@ -165,38 +161,6 @@ export default class PbrMaterial extends Material {
 		if (this.specularEnvTexture && this._IBLRender) {
 			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
 			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
-		}
-		if (this.joints) {
-			const skinJointsBuffer = new UniformBuffer({
-				label: "skinJointsBuffer",
-				type: BufferBindingType.ReadOnlyStorage,
-				usage: BufferUsage.Storage | BufferUsage.CopyDst,
-				size: 1500
-			});
-			const invsBuffer = new UniformBuffer({
-				label: "invsBuffer",
-				type: BufferBindingType.ReadOnlyStorage,
-				usage: BufferUsage.Storage | BufferUsage.CopyDst,
-				size: 1500
-			});
-			skinJointsBuffer.setUniform(
-				"joints",
-				() => {
-					return this.joints();
-				},
-				UniformEnum.Mat4Array,
-				this.joints().length
-			);
-			invsBuffer.setUniform(
-				"jointsInv",
-				() => {
-					return this.jointsInv();
-				},
-				UniformEnum.Mat4Array,
-				this.jointsInv().length
-			);
-			this.shaderData.setUniformBuffer("skinJointsBuffer", skinJointsBuffer);
-			this.shaderData.setUniformBuffer("invsBuffer", invsBuffer);
 		}
 	}
 	destroy() {
