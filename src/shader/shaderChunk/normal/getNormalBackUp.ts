@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../../WgslPreprocessor";
 export function getNormal(defines) {
 	return wgslParseDefines`
-      fn getNormal(input:VertInput)->vec3<f32>{
+      fn getNormal(input:FragInput)->vec3<f32>{
         var normal:vec3<f32>;
         #if ${defines.HAS_NORMAL}
             normal= input.normal;

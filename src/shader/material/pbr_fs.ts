@@ -5,35 +5,9 @@ export default function pbr_fs(defines) {
         #include <pbrUtils>
         #include <light>
         #include <brdf>
-        struct MaterialUniform {
-            modelMatrix: mat4x4<f32>,
-            color: vec3<f32>,
-            opacity:f32,
-            normalMatrix: mat4x4<f32>,
-            emissive:vec3<f32>,
-            metallic:f32,
-            roughness:f32,
-            #if ${defines.USE_NORMALTEXTURE}
-                normalTextureScale:vec2<f32>,
-            #endif
-            #if ${defines.USE_AOTEXTURE}
-                occlusionStrength:f32,
-            #endif
-         }
-         struct SystemUniform {
-            projectionMatrix: mat4x4<f32>,
-            viewMatrix: mat4x4<f32>,
-            inverseViewMatrix: mat4x4<f32>,
-            cameraPosition: vec3<f32>,
-        }; 
-        struct VertInput {
-            @builtin(front_facing) frontFacing: bool,
-            @location(0) worldPos:vec3<f32>,
-            @location(1) normal:vec3<f32>,
-            #if ${defines.HAS_UV}
-                @location(2) uv:vec2<f32>
-            #endif
-        }    
+        #include <PbrMaterialStruct>
+        #include <SystemUniform> 
+        #include <FragInput>   
         struct PhysicalMaterial {
             diffuseColor:vec3<f32>,
             roughness:f32,
@@ -116,7 +90,7 @@ export default function pbr_fs(defines) {
             #include <ibl>
         #endif
         @fragment
-        fn main(input:VertInput) -> @location(0) vec4<f32> 
+        fn main(input:FragInput) -> @location(0) vec4<f32> 
         {
             var perceptualRoughness:f32 = materialUniform.roughness;
             var metallic:f32 = materialUniform.metallic;

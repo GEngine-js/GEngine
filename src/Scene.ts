@@ -3,7 +3,7 @@ import PerspectiveCamera from "./camera/PerspectiveCamera";
 import { EventDispatcher } from "./core/EventDispatcher";
 import { FrameState, Background } from "./core/FrameState";
 import LightManger from "./core/LightManger";
-import PrimitiveManger from "./core/PrimitiveManger";
+import MeshManger from "./core/MeshManger";
 import textureCache from "./core/TextureCache";
 import { Instance, RenderObjectType } from "./core/WebGPUTypes";
 import { Light } from "./light/Light";
@@ -29,7 +29,7 @@ export class Scene extends EventDispatcher {
 	background: Background;
 	private ready: boolean;
 	private inited: boolean;
-	private primitiveManger: PrimitiveManger;
+	private meshManger: MeshManger;
 	private postEffectCollection: PostEffectCollection;
 	private lightManger: LightManger;
 	constructor(options) {
@@ -38,7 +38,7 @@ export class Scene extends EventDispatcher {
 			options.container instanceof HTMLDivElement
 				? options.container
 				: document.getElementById(options.container);
-		this.primitiveManger = new PrimitiveManger();
+		this.meshManger = new MeshManger();
 		this.postEffectCollection = new PostEffectCollection();
 		this.context = new Context({
 			canvas: null,
@@ -66,7 +66,7 @@ export class Scene extends EventDispatcher {
 				instance.type
 			)
 		) {
-			this.primitiveManger.add(<Mesh>instance);
+			this.meshManger.add(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
 			this.lightManger.add(<Light>instance);
 		} else if (instance.type == RenderObjectType.PostEffect) {
@@ -75,7 +75,7 @@ export class Scene extends EventDispatcher {
 	}
 	remove(instance: Instance) {
 		if ([RenderObjectType.Node, RenderObjectType.Skybox, RenderObjectType.Mesh].includes(instance.type)) {
-			this.primitiveManger.remove(<Mesh>instance);
+			this.meshManger.remove(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
 			this.lightManger.remove(<Light>instance);
 		} else if (instance.type == RenderObjectType.PostEffect) {
@@ -120,7 +120,7 @@ export class Scene extends EventDispatcher {
 		// 更新FrameState
 		this.frameState.update(camera ?? this.camera, FrameState.getFrameStateOptionsByScene(this));
 		// update primitive and select
-		(node ?? this.primitiveManger).update(this.frameState, camera ?? this.camera);
+		(node ?? this.meshManger).update(this.frameState, camera ?? this.camera);
 		// selct renderPipeline
 		this.currentRenderPipeline.render(this.frameState, camera ?? this.camera);
 		// 后处理

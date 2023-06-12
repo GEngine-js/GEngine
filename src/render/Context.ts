@@ -14,8 +14,6 @@ class Context {
 
 	private adapter: GPUAdapter;
 
-	public commandEncoder: GPUCommandEncoder | null;
-
 	public presentationSize: { width: number; height: number; depth: number };
 
 	public presentationFormat: GPUTextureFormat;

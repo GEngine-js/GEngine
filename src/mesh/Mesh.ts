@@ -25,7 +25,6 @@ export class Mesh extends RenderObject {
 		this.type = RenderObjectType.Mesh;
 		this.uid = createGuid();
 		this.subCommands = {};
-		this.uid = createGuid();
 	}
 	get ready() {
 		return this.material.ready;

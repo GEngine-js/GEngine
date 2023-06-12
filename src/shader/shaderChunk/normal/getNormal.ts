@@ -2,7 +2,7 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 
 export default function getNormal(defines) {
 	return wgslParseDefines`
-  fn getNormal(input:VertInput
+  fn getNormal(input:FragInput
     #if ${defines.USE_NORMALTEXTURE}
     ,normalTexture:texture_2d<f32>,defaultSampler:sampler
     #endif
@@ -18,7 +18,6 @@ export default function getNormal(defines) {
         t = normalize(t - ng * dot(ng, t));
         let b:vec3<f32> = normalize(cross(ng, t));
         let tbn:mat3x3<f32> = mat3x3<f32>(t, b, ng);
-    // TODO: TANGENTS
         #if ${defines.USE_NORMALTEXTURE}
             var n:vec3<f32> = textureSample(normalTexture,defaultSampler, input.uv).rgb;
             n = normalize(tbn * ((2.0 * n - 1.0) * vec3<f32>(materialUniform.normalTextureScale, 1.0)));
