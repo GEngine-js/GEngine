@@ -1,5 +1,6 @@
 import RenderObject from "../core/RenderObject";
 import Matrix4 from "../math/Matrix4";
+import createGuid from "../utils/createGuid";
 
 export class Instance extends RenderObject {
 	public id: string | number;
@@ -9,6 +10,7 @@ export class Instance extends RenderObject {
 		super();
 		this._notUpdateMatrix = false;
 		this.visiblity = false;
+		this.id = createGuid();
 	}
 	setMatrix4(mat4: Matrix4) {
 		this.modelMatrix.set(mat4);

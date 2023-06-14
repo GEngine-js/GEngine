@@ -38,13 +38,13 @@ export class SKinMesh extends Mesh {
 				label: "skinJointsBuffer",
 				type: BufferBindingType.ReadOnlyStorage,
 				usage: BufferUsage.Storage | BufferUsage.CopyDst,
-				size: 1500
+				size: 3000
 			});
 			const invsBuffer = new UniformBuffer({
 				label: "invsBuffer",
 				type: BufferBindingType.ReadOnlyStorage,
 				usage: BufferUsage.Storage | BufferUsage.CopyDst,
-				size: 1500
+				size: 3000
 			});
 			skinJointsBuffer.setUniform(
 				"joints",

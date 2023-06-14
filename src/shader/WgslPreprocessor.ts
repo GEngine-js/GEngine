@@ -29,10 +29,8 @@ export function wgslParseDefines(strings, ...values) {
 				case "elif":
 					if (match.index + match[0].length != frag.length) {
 						throw new Error("#elif must be immediately followed by a template expression (ie: ${value})");
-						break;
 					} else if (!state.elseIsValid) {
 						throw new Error("#elif not preceeded by an #if or #elif");
-						break;
 					}
 					valueConsumed = true;
 					if (state.expression && stateStack.length != depth) {
@@ -43,7 +41,6 @@ export function wgslParseDefines(strings, ...values) {
 				case "else":
 					if (!state.elseIsValid) {
 						throw new Error("#else not preceeded by an #if or #elif");
-						break;
 					}
 					if (state.expression && stateStack.length != depth) {
 						stateStack.push(state);
@@ -53,7 +50,6 @@ export function wgslParseDefines(strings, ...values) {
 				case "endif":
 					if (!stateStack.length) {
 						throw new Error("#endif not preceeded by an #if");
-						break;
 					}
 					const branchState = stateStack.length == depth ? stateStack.pop() : state;
 					state = stateStack.pop();

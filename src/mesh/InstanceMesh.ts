@@ -22,9 +22,9 @@ export class InstanceMesh extends Mesh {
 		// create
 		this.geometry.update(frameState);
 		this.material.update(frameState, this);
-		if (!this.hasAddInstances) this.addUniformsToMaterial();
 		// update instances visiblity
 		this.checkInstancesVisiblity({ frameState, camera });
+		if (!this.hasAddInstances) this.addUniformsToMaterial();
 		this.instanceCount = this.renderInstances.length;
 		if (this.renderInstances.length < 1) return;
 		if (this.material.transparent) {
@@ -77,5 +77,6 @@ export class InstanceMesh extends Mesh {
 		);
 		this.material.shaderData.setUniformBuffer("instanceMatrixsBuffer", instanceMatrixsBuffer);
 		this.material.shaderData.setDefine("USE_INSTANCE", true);
+		this.material.shaderData.setDefine("instanceCount", this?.renderInstances?.length);
 	}
 }

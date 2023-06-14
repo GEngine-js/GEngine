@@ -6,6 +6,7 @@ export default function pbr_vs(defines) {
     #include <VertexInput>
     #include <VertexOutput> 
     #include <skinVertHeader>
+    #include <instanceVertHeader>
     @binding(${defines.pbrBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
     @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
     @vertex
@@ -19,7 +20,8 @@ export default function pbr_vs(defines) {
         var vNormalView:vec3<f32>;
         vNormalView = normalize(materialUniform.normalMatrix * vec4<f32>(input.normal,0.0)).xyz;
         modelMatrix=materialUniform.modelMatrix;   
-        #include <skinVertMain>  
+        #include <skinVertMain>
+        #include <instanceVertMain>  
         output.normal = vNormalView.xyz;
         output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix *modelMatrix* vec4<f32>(input.position, 1.0);
         let modelPos=modelMatrix *vec4<f32>(input.position,1.0);

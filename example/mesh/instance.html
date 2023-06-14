@@ -50,7 +50,9 @@
 				Vector3,
 				Color,
 				OrbitControl,
-				AmbientLight
+				AmbientLight,
+				Instance,
+				InstanceMesh
 			} from "../../dist/index.js";
 			const init = async () => {
 				const scene = new Scene({
@@ -64,7 +66,7 @@
 				control.zoomSpeed = 2.0;
 				control.maxPolarAngle = Math.PI / 2;
 
-				const boxGeometry = new BoxGeometry(10, 10, 10);
+				const boxGeometry = new BoxGeometry(5, 5, 5);
 				const boxMaterial = new ShaderMaterial({
 					type: "custom",
 					uniforms: {
@@ -79,8 +81,13 @@
                             modelMatrix: mat4x4<f32>,
                             color:vec3<f32>,
                         }
+                        struct InstancesUniform {
+                          instanceMatrixs:  array<mat4x4<f32>, ${defines.instanceCount}>,
+                        }
+                       
                         struct VertexInput {
                             //auto Fill
+                            @builtin(instance_index) instanceIdx : u32,
                             @location(${defines.positionLocation}) position: vec3<f32>,       
                             @location(${defines.normalLocation}) normal: vec3<f32>,
                             @location(${defines.uvLocation}) uv: vec2<f32>,
@@ -98,10 +105,12 @@
                         // Guaranteed to be consistent with the ShaderMaterial type
                         @binding(${defines.customBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
                         @binding(${defines.cameraBinding}) @group(1) var<uniform> cameraUniform : CameraUniform;
+                        @binding(${defines.instanceMatrixsBufferBinding}) @group(0)  var<storage, read> instancesUniform: InstancesUniform;
                         @vertex
                         fn main(input:VertexInput) -> VertexOutput {
                             var output : VertexOutput;
-                            output.position = cameraUniform.projectionMatrix * cameraUniform.viewMatrix *matUniform.modelMatrix*vec4<f32>(input.position,1.0);
+                            let modelMatrix:mat4x4<f32>=instancesUniform.instanceMatrixs[input.instanceIdx]; 
+                            output.position = cameraUniform.projectionMatrix * cameraUniform.viewMatrix *modelMatrix*vec4<f32>(input.position,1.0);
                             output.fragPosition = vec4(input.uv,input.uv.x,1.0);
                             return output;
                         }
@@ -125,10 +134,25 @@
                     `;
 					}
 				});
-				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
-				scene.add(boxPrimitive);
+				const instanceMesh = new InstanceMesh(boxGeometry, boxMaterial);
+				const instance1 = new Instance();
+				instance1.position.set(8, 0, 0);
+				const instance2 = new Instance();
+				instance2.position.set(-8, 0, 0);
+				const instance3 = new Instance();
+				instance3.position.set(0, 0, 8);
+				const instance4 = new Instance();
+				instance4.position.set(0, 0, -8);
+				instanceMesh.addInstance(instance1);
+				instanceMesh.addInstance(instance2);
+				instanceMesh.addInstance(instance3);
+				instanceMesh.addInstance(instance4);
+				scene.add(instanceMesh);
 				function animate() {
-					boxPrimitive.rotateX(0.01);
+					instance1.rotateX(0.01);
+					instance2.rotateX(0.01);
+					instance3.rotateX(0.01);
+					instance4.rotateX(0.01);
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();

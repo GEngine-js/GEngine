@@ -3,6 +3,7 @@ import { VertexInput } from "./attribute/VertexInput";
 import { VertexOutput } from "./attribute/VertexOutput";
 import { SystemUniform } from "./common/SystemUniform";
 import environment from "./environment/environment";
+import { instanceVertHeader, instanceVertMain } from "./instance/Instance";
 import light from "./light/light";
 import lightCommon from "./light/lightCommon";
 import { getNormalByNormalTexture, getTBN, getNormal } from "./normal/getNormalBackUp";
@@ -40,6 +41,8 @@ const ShaderChunk = {
 	VertexInput,
 	VertexOutput,
 	PbrMaterialStruct,
-	SystemUniform
+	SystemUniform,
+	instanceVertMain,
+	instanceVertHeader
 };
 export default ShaderChunk;
