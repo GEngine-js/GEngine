@@ -1,5 +1,5 @@
 import { InputStepMode } from "../core/WebGPUConstant";
-import { Attribute } from "./Attribute";
+import { Attribute, InterleavedAttribute } from "./Attribute";
 import Attributes from "./Attributes";
 import Buffer from "./Buffer";
 export default class VertextBuffer {
@@ -26,11 +26,11 @@ export default class VertextBuffer {
 			}
 		];
 	}
-	public setAttribute(attribute: Attribute) {
+	public setAttribute(attribute: Attribute | InterleavedAttribute) {
 		this.attributes.setAttribute(attribute);
 		this.dirty = true;
 	}
-	public getAttribute(name: string): Attribute {
+	public getAttribute(name: string): Attribute | InterleavedAttribute {
 		return this.attributes.getAttribute(name);
 	}
 	public bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {

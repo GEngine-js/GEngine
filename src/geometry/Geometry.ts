@@ -5,7 +5,7 @@ import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
-import { Attribute } from "../render/Attribute";
+import { Attribute, AttributeType, InterleavedFloat32Attribute } from "../render/Attribute";
 import IndexBuffer from "../render/IndexBuffer";
 import VertextBuffer from "../render/VertextBuffer";
 import combine from "../utils/combine";
@@ -50,12 +50,18 @@ export default class Geometry {
 	getAttribute(name: string) {
 		return this.vertBuffer.getAttribute(name);
 	}
-	setAttribute(attribute: Attribute) {
-		if (!this._defines[attribute?.name?.concat("Location")]) {
-			this._defines[attribute?.name?.concat("Location")] = this.locationIndex;
-			this.locationIndex += 1;
+	setAttribute(attribute: Attribute | InterleavedFloat32Attribute) {
+		if (attribute.attributeType === AttributeType.attribute) {
+			this.setLocationIndex((attribute as Attribute).name);
+		} else {
+			(attribute as InterleavedFloat32Attribute)?.names.forEach((name: string) => this.setLocationIndex(name));
 		}
 		this.vertBuffer.setAttribute(attribute);
+	}
+	private setLocationIndex(name: string) {
+		if (this._defines[name?.concat("Location")] || !name) return;
+		this._defines[name?.concat("Location")] = this.locationIndex;
+		this.locationIndex += 1;
 	}
 	containAttribute(name: string): boolean {
 		return this._defines[name?.concat("Location")] != undefined ? true : false;
@@ -66,8 +72,8 @@ export default class Geometry {
 		this.indexBuffer.setIndices(indices);
 	}
 	update(frameState: FrameState) {}
-	computeBoundingSphere(positions) {
-		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), 3);
+	computeBoundingSphere(positions: number[], stride = 3) {
+		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), stride);
 	}
 	/**
 	 * Calculate mesh tangent.

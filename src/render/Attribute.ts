@@ -8,19 +8,23 @@ export class Attribute {
 	public type: string;
 	public format: string;
 	public attributeByteSize: number;
+	public attributeType: AttributeType;
 	public static v3 = new Vector3();
 	public static v2 = new Vector2();
 	constructor(public name: string, public value: Array<number>, public itemSize: number) {
 		this.name = name;
 		this.offset = 0;
 		this.shaderLocation = 0;
+		this.attributeType = AttributeType.attribute;
 	}
-	getGPUAttribute() {
-		return {
-			shaderLocation: this.shaderLocation,
-			format: this.format,
-			offset: this.offset
-		};
+	getGPUAttribute(): Array<GPUAttribute> {
+		return [
+			{
+				shaderLocation: this.shaderLocation,
+				format: this.format,
+				offset: this.offset
+			}
+		];
 	}
 	destroy() {
 		this.value = [];
@@ -99,31 +103,83 @@ export class Attribute {
 		return this;
 	}
 }
+export class InterleavedAttribute {
+	public names: string[];
+	public value: Array<number>;
+	public itemSizes: number[];
+	public format: string;
+	public byteSize: number;
+	public attributeType: AttributeType;
+	constructor(names: string[], value: Array<number>, itemSizes: number[]) {
+		this.names = names;
+		this.itemSizes = itemSizes;
+		this.value = value;
+		this.attributeType = AttributeType.interleavedAttribute;
+	}
+	getGPUAttribute(): Array<GPUAttribute> {
+		const result = [];
+		this.itemSizes.reduce((total, current, index) => {
+			result.push({
+				shaderLocation: index,
+				format: this.format,
+				offset: total * this.byteSize
+			});
+			return (total += current);
+		}, 0);
+		return result;
+	}
+	destroy() {
+		this.value = null;
+		this.names = null;
+		this.itemSizes = null;
+	}
+}
 export class Float32Attribute extends Attribute {
 	constructor(name: string, value: Array<number>, itemSize: number) {
 		super(name, value, itemSize);
-		this.format = getAttributeFormat("float32", itemSize);
-		this.attributeByteSize = Float32Array.BYTES_PER_ELEMENT * itemSize;
+		const { format, totalByteSize } = getAttributeFormat(VertexFormat.Float32, itemSize);
+		this.format = format;
+		this.attributeByteSize = totalByteSize;
 	}
 }
+export class InterleavedFloat32Attribute extends InterleavedAttribute {
+	constructor(names: string[], value: Array<number>, itemSizes: number[]) {
+		super(names, value, itemSizes);
+		this.format = VertexFormat.Float32;
+		this.byteSize = Float32Array.BYTES_PER_ELEMENT;
+	}
+}
+export enum AttributeType {
+	interleavedAttribute = 0,
+	attribute = 1
+}
+export type GPUAttribute = {
+	shaderLocation: number;
+	format: string;
+	offset: number;
+};
 function getAttributeFormat(type: string, itemSize: number) {
 	const key = `${type}x${itemSize}`;
-	let format;
-	switch (key) {
-		case "float32":
-			format = VertexFormat.Float32;
-			break;
-		case "float32x2":
-			format = VertexFormat.Float32x2;
-			break;
-		case "float32x3":
-			format = VertexFormat.Float32x3;
-			break;
-		case "float32x4":
-			format = VertexFormat.Float32x4;
-			break;
-		default:
-			break;
-	}
-	return format;
+	return {
+		[VertexFormat.Float32]: {
+			format: "float32",
+			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
+			byteSize: Float32Array.BYTES_PER_ELEMENT
+		},
+		[VertexFormat.Float32x2]: {
+			format: "float32x2",
+			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
+			byteSize: Float32Array.BYTES_PER_ELEMENT
+		},
+		[VertexFormat.Float32x3]: {
+			format: "float32x3",
+			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
+			byteSize: Float32Array.BYTES_PER_ELEMENT
+		},
+		[VertexFormat.Float32x4]: {
+			format: "float32x4",
+			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
+			byteSize: Float32Array.BYTES_PER_ELEMENT
+		}
+	}[key];
 }

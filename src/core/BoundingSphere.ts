@@ -22,7 +22,7 @@ export default class BoundingSphere {
 	 * @returns {BoundingSphere} The modified result parameter or a new BoundingSphere instance if one was not provided.
 	 */
 	static fromPoints(positions: Vector3[]) {
-		let result = new BoundingSphere();
+		const result = new BoundingSphere();
 
 		if (!defined(positions) || positions.length === 0) {
 			result.center = Vector3.clone(Vector3.ZERO, result.center);
@@ -187,7 +187,7 @@ export default class BoundingSphere {
 	 * const sphere = BoundingSphere.fromVertices(points, center, 5);
 	 *
 	 */
-	static fromVertices(positions: number[], center: Vector3 = Vector3.ZERO, stride: number = 3) {
+	static fromVertices(positions: number[], center: Vector3 = Vector3.ZERO, stride = 3) {
 		const result = new BoundingSphere();
 
 		if (!defined(positions) || positions.length === 0) {
