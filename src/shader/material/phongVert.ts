@@ -1,15 +1,6 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 export default function phongVert(defines) {
-	return `
-      struct VertexOutput {
-            @builtin(position) position: vec4<f32>,
-            @location(0) uv: vec2<f32>,
-            @location(1) view: vec3<f32>, // Vector from vertex to camera.
-            @location(2) worldPos: vec3<f32>,
-            @location(3) color: vec4<f32>,
-            @location(4) normal: vec3<f32>,
-            @location(5) viewPosition: vec3<f32>,
-      };
+	return wgslParseDefines`
       struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,
@@ -19,25 +10,17 @@ export default function phongVert(defines) {
             specular:vec3<f32>,
             shininess:f32,
       }
-      struct SystemUniform {
-            projectionMatrix: mat4x4<f32>,
-            viewMatrix: mat4x4<f32>,
-            inverseViewMatrix: mat4x4<f32>,
-            cameraPosition: vec3<f32>,
-      }; 
-
+      #include <VertexOutput>
+      #include <SystemUniform>
+      #include <VertexInput>
       @binding(${defines.phongBinding}) @group(0) var<uniform> selfUniform : MaterialUniform;
       @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
-
-      struct VertexInput {
-            @location(${defines.positionLocation}) position: vec3<f32>,       
-            @location(${defines.normalLocation}) normal: vec3<f32>,
-            @location(${defines.uvLocation}) uv: vec2<f32>,
-      }
       @vertex
       fn main(input: VertexInput) -> VertexOutput {
             var output: VertexOutput;
-            output.uv = input.uv;
+            #if ${defines.HAS_UV}
+               output.uv = input.uv;
+            #endif 
             let modelPos=selfUniform.modelMatrix *vec4<f32>(input.position,1.0);
             output.worldPos = modelPos.xyz/modelPos.w;
             let vNormalView = selfUniform.normalMatrix * vec4<f32>(input.normal,0.0);

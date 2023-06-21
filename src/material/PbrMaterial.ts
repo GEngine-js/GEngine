@@ -98,14 +98,14 @@ export default class PbrMaterial extends Material {
 			}
 		});
 	}
-	update(frameState: FrameState, mesh: Mesh) {
+	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!textureCache.getTexture("specular")) return;
 		if (!this.shaderData || this.dirty) {
-			this.createShaderData(mesh, frameState);
+			this.createShaderData(mesh);
 		}
 	}
-	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
-		super.createShaderData(mesh);
+	protected createShaderData(mesh?: Mesh) {
+		super.createShaderData();
 		const uniformBuffer = new UniformBuffer({ label: "pbr" });
 		uniformBuffer.setUniform(
 			"modelMatrix",

@@ -30,16 +30,16 @@ export default class BlinnPhongMaterial extends Material {
 		this.baseTexture = undefined;
 		this.baseSampler = undefined;
 	}
-	update(frameState: FrameState, mesh: Mesh) {
+	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
 	}
 	protected createShaderData(mesh?: Mesh) {
-		super.createShaderData(mesh);
+		super.createShaderData();
 		const uniformBuffer = new UniformBuffer({ label: "phong" });
 		uniformBuffer.setUniform(
 			"modelMatrix",
 			() => {
-				return null;
+				return mesh.modelMatrix;
 			},
 			UniformEnum.Mat4
 		);

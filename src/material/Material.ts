@@ -100,14 +100,20 @@ export class Material {
 	public set opacity(v: number) {
 		this._opacity = v;
 	}
-	onBeforeRender() {}
+	onBeforeRender() {
+		// callback
+	}
 
-	onBeforeCompile() {}
+	onBeforeCompile() {
+		// callback
+	}
 	clone(): Material {
 		return null;
 	}
-	update(frameState?: FrameState, mesh?: Mesh) {}
-	protected createShaderData(mesh: Mesh, frameState?: FrameState) {
+	update(frameState?: FrameState, mesh?: Mesh) {
+		// update material
+	}
+	protected createShaderData() {
 		if (this.shaderData) this.shaderData.destroy();
 		this.shaderData = new ShaderData(this.type, 0);
 		this.ready = true;

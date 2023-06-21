@@ -1,3 +1,5 @@
+import { FrameState } from "../core/FrameState";
+import textureCache from "../core/TextureCache";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { UniformEnum } from "../render/Uniforms";
@@ -8,22 +10,24 @@ export class BillboardMaterial extends Material {
 		super();
 		this.type = "billboard";
 	}
+	update(frameState?: FrameState, mesh?: Mesh) {
+		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
+	}
 	protected createShaderData(mesh?: Mesh) {
-		super.createShaderData(mesh);
+		super.createShaderData();
 		const uniformBuffer = new UniformBuffer({ label: "billboard" });
 		uniformBuffer.setUniform(
 			"modelMatrix",
 			() => {
-				return null;
+				return mesh.modelMatrix;
 			},
 			UniformEnum.Mat4
 		);
 		uniformBuffer.setUniform("color", this, UniformEnum.Color);
-		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
 		uniformBuffer.setUniform("rotation", this, UniformEnum.Float);
 		uniformBuffer.setUniform("center", this, UniformEnum.FloatVec2);
-		uniformBuffer.setUniform("specular", this, UniformEnum.Color);
-		this.shaderData.setUniformBuffer("phong", uniformBuffer);
+		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
+		this.shaderData.setUniformBuffer("billboard", uniformBuffer);
 		if (this.baseTexture) {
 			this.shaderData.setDefine("USE_COLORTEXTURE", true);
 			this.shaderData.setTexture("baseColorTexture", this.baseTexture);

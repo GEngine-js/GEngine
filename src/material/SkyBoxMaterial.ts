@@ -28,19 +28,19 @@ export default class SkyBoxMaterial extends Material {
 		this.baseTexture = result.texture;
 		this.baseSampler = result.sampler;
 	}
-	update(frameState: FrameState, mesh: Mesh) {
+	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!this.loadFish) return;
 		if (!this.shaderData) {
 			this.createShaderData(mesh);
 		}
 	}
-	protected createShaderData(mesh: Mesh) {
-		super.createShaderData(mesh);
+	protected createShaderData(mesh?: Mesh) {
+		super.createShaderData();
 		const uniformBuffer = new UniformBuffer({ label: "skybox" });
 		uniformBuffer.setUniform(
 			"modelMatrix",
 			() => {
-				return null;
+				return mesh.modelMatrix;
 			},
 			UniformEnum.Mat4
 		);

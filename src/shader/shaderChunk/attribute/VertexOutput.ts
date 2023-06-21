@@ -6,9 +6,10 @@ export function VertexOutput(defines) {
         @builtin(position) position:vec4<f32>,
         @location(0) worldPos:vec3<f32>,
         @location(1) normal:vec3<f32>,
-        #if ${defines.HAS_UV}
-            @location(2) uv:vec2<f32>
-        #endif
+        @location(2) uv:vec2<f32>,
+        @location(3) view: vec3<f32>, // Vector from vertex to camera.
+        @location(4) color: vec4<f32>,
+        @location(5) viewPosition: vec3<f32>,
     } 
     `;
 }

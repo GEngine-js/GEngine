@@ -19,11 +19,10 @@ export class InstanceMesh extends Mesh {
 		this.hasAddInstances = false;
 	}
 	update(frameState: FrameState, camera?: Camera) {
-		// create
-		this.geometry.update(frameState);
-		this.material.update(frameState, this);
 		// update instances visiblity
 		this.checkInstancesVisiblity({ frameState, camera });
+		this.geometry.update(frameState);
+		this.material.update(frameState, this);
 		if (!this.hasAddInstances) this.addUniformsToMaterial();
 		this.instanceCount = this.renderInstances.length;
 		if (this.renderInstances.length < 1) return;
@@ -45,11 +44,16 @@ export class InstanceMesh extends Mesh {
 	}
 	private checkInstancesVisiblity(options: { frameState: FrameState; camera: Camera }) {
 		const { frameState, camera } = options;
+		const preFrameInstanceCount = this.renderInstances.length;
+		this.renderInstances = [];
 		this.instances.forEach((instance: Instance) => {
 			instance.updateMatrix(this?.parent?.modelMatrix);
 			instance.visiblity = this.getInstanceVisiblity({ instance, frameState, camera });
 			if (instance.visiblity) this.renderInstances.push(instance);
 		});
+		this.material.dirty = this.renderInstances.length === preFrameInstanceCount;
+		// rebuild instanceMatrixsBuffer
+		if (this.material.dirty) this.hasAddInstances = false;
 	}
 	private getInstanceVisiblity(options: { instance: Instance; frameState: FrameState; camera: Camera }): boolean {
 		const { instance, frameState, camera } = options;

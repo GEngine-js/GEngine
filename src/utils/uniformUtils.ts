@@ -1,4 +1,5 @@
 import { IUniform, Uniforms } from "../core/WebGPUTypes";
+import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
 import { UniformEnum } from "../render/Uniforms";
@@ -32,6 +33,7 @@ export function addUniformToShaderData(
 	uniform: IUniform,
 	uniforms: Uniforms,
 	shaderData: ShaderData,
+	mesh?: Mesh,
 	uniformBuffer?: UniformBuffer
 ) {
 	switch (uniform.type) {
@@ -79,6 +81,7 @@ export function addUniformToShaderData(
 				},
 				UniformEnum.FloatVec4
 			);
+			break;
 		case "mat2":
 			uniformBuffer.setUniform(
 				name,
@@ -96,11 +99,16 @@ export function addUniformToShaderData(
 				},
 				UniformEnum.Mat3
 			);
+			break;
 		case "mat4":
 			uniformBuffer.setUniform(
 				name,
 				() => {
-					return uniforms[name].value;
+					return name == "modelMatrix"
+						? mesh?.modelMatrix
+						: name === "normalMatrix"
+						? mesh.normalMatrix
+						: uniforms[name].value;
 				},
 				UniformEnum.Mat4
 			);
@@ -157,6 +165,5 @@ export function addUniformToShaderData(
 			break;
 		default:
 			throw new Error("not match unifrom type");
-			break;
 	}
 }

@@ -91,7 +91,6 @@ class DrawCommand implements Command {
 	public render(context?: Context, passEncoder?: GPURenderPassEncoder, camera?: Camera): void {
 		const {
 			shaderData,
-			modelMatrix,
 			renderState,
 			vertexBuffer,
 			indexBuffer,
@@ -104,8 +103,6 @@ class DrawCommand implements Command {
 		const currentPassEncoder = renderTarget?.beginRenderPassEncoder?.(context) ?? passEncoder;
 		const defines = Object.assign({}, lightShaderData?.defines ?? {}, camera?.shaderData?.defines ?? {});
 		const { device } = context;
-
-		if (modelMatrix) shaderData?.replaceUniformBufferValue?.("modelMatrix", modelMatrix);
 
 		shaderData?.bind?.(context, currentPassEncoder);
 

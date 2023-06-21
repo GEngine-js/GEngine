@@ -1,26 +1,28 @@
-import ShaderChunk from "./shaderChunk/ShaderChunk";
-import phongVert from "./material/phongVert";
-import phongFrag from "./material/phongFrag";
+import { billboard_fs } from "./material/billboard_fs";
+import { billboard_vs } from "./material/billboard_vs";
 import colorFrag from "./material/colorFrag";
 import colorVert from "./material/colorVert";
+import pbr_fs from "./material/pbr_fs";
+import pbr_vs from "./material/pbr_vs";
 import pbrFrag from "./material/pbrFrag";
 import pbrVert from "./material/pbrVert";
-import skyBoxFrag from "./material/skyBoxFrag";
-import skyBoxVert from "./material/skyBoxVert";
+import phongFrag from "./material/phongFrag";
+import phongVert from "./material/phongVert";
 import quadFrag from "./material/quadFrag";
 import quadVert from "./material/quadVert";
-import pbr_vs from "./material/pbr_vs";
-import pbr_fs from "./material/pbr_fs";
+import skyBoxFrag from "./material/skyBoxFrag";
+import skyBoxVert from "./material/skyBoxVert";
+import blendFrag from "./postProcess/blend/blendFrag";
 import Blur from "./postProcess/bloom/Blur";
 import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
-import blendFrag from "./postProcess/blend/blendFrag";
+import ShaderChunk from "./shaderChunk/ShaderChunk";
 import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
 import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
-import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
 import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag";
+import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
 
 function reduceComma(shader) {
-	//对所有的include处理
+	// 对所有的include处理
 	const str = resolveIncludes(shader);
 	return str;
 }
@@ -70,6 +72,10 @@ const shaders = {
 	shadowMap: {
 		vert: shadowMapVert,
 		frag: shadowMapFrag
+	},
+	billboard: {
+		vert: billboard_vs,
+		frag: billboard_fs
 	}
 };
 

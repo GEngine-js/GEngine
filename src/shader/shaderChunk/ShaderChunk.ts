@@ -2,6 +2,7 @@ import { FragInput } from "./attribute/FragInput";
 import { VertexInput } from "./attribute/VertexInput";
 import { VertexOutput } from "./attribute/VertexOutput";
 import { SystemUniform } from "./common/SystemUniform";
+import { TextureAndSamplerDefine } from "./common/TextureAndSamplerDefine";
 import environment from "./environment/environment";
 import { instanceVertHeader, instanceVertMain } from "./instance/Instance";
 import light from "./light/light";
@@ -43,6 +44,7 @@ const ShaderChunk = {
 	PbrMaterialStruct,
 	SystemUniform,
 	instanceVertMain,
-	instanceVertHeader
+	instanceVertHeader,
+	TextureAndSamplerDefine
 };
 export default ShaderChunk;

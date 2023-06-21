@@ -11,18 +11,20 @@ import createGuid from "../utils/createGuid";
 export class Mesh extends RenderObject {
 	[x: string]: any;
 	uid: string;
+	frustumCull: boolean;
+	subCommands: { [prop: string]: DrawCommand };
 	geometry?: Geometry;
 	material?: Material;
 	instanceCount?: number;
 	priority?: number;
 	drawCommand?: DrawCommand;
-	subCommands: { [prop: string]: DrawCommand };
 	distanceToCamera?: number;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
 		this.material = material;
 		this.type = RenderObjectType.Mesh;
+		this.frustumCull = true;
 		this.uid = createGuid();
 		this.subCommands = {};
 	}
@@ -53,12 +55,16 @@ export class Mesh extends RenderObject {
 			frameState.renderQueue.opaque.push(this);
 		}
 	}
-	beforeRender() {}
-	afterRender() {}
+	beforeRender() {
+		// before render
+	}
+	afterRender() {
+		// after render
+	}
 	public getDrawCommand(overrideMaterial?: Material, commandSubType?: CommandSubType, lightManger?: LightManger) {
 		if (!this.drawCommand || this.material.dirty) {
 			this.material.shaderSource.setDefines(
-				Object.assign(this.material.shaderData.defines, this.geometry.defines)
+				Object.assign({}, this.material.shaderData.defines, this.geometry.defines)
 			);
 			if (this.material.dirty) this.material.dirty = false;
 			this.drawCommand = new DrawCommand({
@@ -78,8 +84,7 @@ export class Mesh extends RenderObject {
 		if (overrideMaterial) {
 			if (!this.subCommands[commandSubType]) {
 				const copyMat = overrideMaterial.clone();
-				overrideMaterial.update();
-				copyMat.update();
+				copyMat.update(undefined, this);
 				if (copyMat.dirty) copyMat.dirty = false;
 				this.subCommands[commandSubType] = this.drawCommand.shallowClone(copyMat);
 			}

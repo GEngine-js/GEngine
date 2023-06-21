@@ -16,7 +16,7 @@ export function getNormal(defines) {
 }
 export function getNormalByNormalTexture(defines) {
 	return wgslParseDefines`
-      fn getNormalByNormalTexture(input:VertInput)->vec3<f32>{
+      fn getNormalByNormalTexture(input:FragInput)->vec3<f32>{
         var n:vec3<f32> = textureSample(normalTexture,normalSampler, input.uv).rgb;
         let tbn:mat3x3<f32> =getTBN(input);
         n = normalize(tbn * (2.0 * n - vec3(1.0)));
@@ -27,7 +27,7 @@ export function getNormalByNormalTexture(defines) {
 }
 export function getTBN(defines) {
 	return wgslParseDefines`
-        fn getTBN(input:VertInput)->mat3x3<f32>{
+        fn getTBN(input:FragInput)->mat3x3<f32>{
         #if ${defines.HAS_TANGENT}
             let tbn:mat3x3<f32> = input.tbn;
         #else

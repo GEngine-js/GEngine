@@ -1,17 +1,6 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 export default function phongFrag(defines) {
 	return wgslParseDefines`  
-  struct VertInput {
-      @builtin(position) position: vec4<f32>,
-      @builtin(front_facing) frontFacing: bool,
-      @location(0) uv: vec2<f32>,
-      @location(1) view: vec3<f32>, // Vector from vertex to camera.
-      @location(2) worldPos: vec3<f32>,
-      @location(3) color: vec4<f32>,
-      @location(4) normal: vec3<f32>,
-      @location(5) viewPosition: vec3<f32>,
-    };
-    
     struct MaterialUniform {
       modelMatrix: mat4x4<f32>,
       color: vec3<f32>,
@@ -21,34 +10,14 @@ export default function phongFrag(defines) {
       shininess:f32,
       specular:vec3<f32>,      
    }
-   struct SystemUniform {
-      projectionMatrix: mat4x4<f32>,
-      viewMatrix: mat4x4<f32>,
-      inverseViewMatrix: mat4x4<f32>,
-      cameraPosition: vec3<f32>,
-  }; 
-
-    #if${defines.USE_COLORTEXTURE}
-      @group(0) @binding(${defines.baseColorSamplerBinding}) var baseColorSampler: sampler;
-      @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
-    #endif
-    #if ${defines.USE_NORMALTEXTURE}
-      @group(0) @binding(${defines.normalTextureBinding}) var normalTexture: texture_2d<f32>;
-      @group(0) @binding(${defines.normalSamplerBinding}) var normalSampler: sampler;
-    #endif
+    #include <FragInput>
+    #include <SystemUniform>
+    #include <TextureAndSamplerDefine>
+    #include <light>
     @binding(${defines.phongBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
     @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
-    #if ${defines.USE_NORMALTEXTURE}
-      #include <getTBN>
-      #include <getNormalByNormalTexture>
-    #else
-        #include <getNormal>
-    #endif
-
-    #include <light>
-
     @fragment
-    fn main(input:VertInput) -> @location(0) vec4<f32> {
+    fn main(input:FragInput) -> @location(0) vec4<f32> {
         var totalEmissiveRadiance:vec3<f32> = materialUniform.emissive;
         var color:vec4<f32>;
         #if${defines.USE_COLORTEXTURE}
