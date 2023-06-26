@@ -5,9 +5,6 @@ export default class BillboardGeometry extends Geometry {
 		super({
 			type: "billboardGeometry"
 		});
-		this.defines = {
-			HAS_NORMAL: true
-		};
 		this.init();
 	}
 	private init() {

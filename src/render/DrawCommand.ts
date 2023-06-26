@@ -9,7 +9,7 @@ import Pipeline from "./Pipeline";
 import { RenderState } from "./RenderState";
 import RenderTarget from "./RenderTarget";
 import ShaderData from "./ShaderData";
-import VertextBuffer from "./VertextBuffer";
+import VertexBuffer from "./VertexBuffer";
 
 class DrawCommand implements Command {
 	public type?: string;
@@ -18,7 +18,7 @@ class DrawCommand implements Command {
 
 	public renderTarget?: RenderTarget;
 
-	public vertexBuffer?: VertextBuffer;
+	public vertexBuffers?: Array<VertexBuffer>;
 
 	public indexBuffer?: IndexBuffer;
 
@@ -49,7 +49,7 @@ class DrawCommand implements Command {
 
 		this.renderTarget = options.renderTarget;
 
-		this.vertexBuffer = options.vertexBuffer;
+		this.vertexBuffers = options.vertexBuffers;
 
 		this.indexBuffer = options.indexBuffer;
 
@@ -74,7 +74,7 @@ class DrawCommand implements Command {
 	public shallowClone(material?: Material) {
 		if (material) {
 			return new DrawCommand({
-				vertexBuffer: this.vertexBuffer,
+				vertexBuffers: this.vertexBuffers,
 				indexBuffer: this.indexBuffer,
 				shaderData: material.shaderData,
 				instances: this.instances,
@@ -92,7 +92,7 @@ class DrawCommand implements Command {
 		const {
 			shaderData,
 			renderState,
-			vertexBuffer,
+			vertexBuffers,
 			indexBuffer,
 			lightShaderData,
 			shaderSource,
@@ -112,7 +112,7 @@ class DrawCommand implements Command {
 
 		renderState?.bind?.(currentPassEncoder, context);
 
-		vertexBuffer?.bind?.(device, currentPassEncoder);
+		vertexBuffers?.forEach?.((vertexBuffer: VertexBuffer) => vertexBuffer?.bind?.(device, currentPassEncoder));
 
 		indexBuffer?.bind?.(device, currentPassEncoder);
 
@@ -139,7 +139,7 @@ type DrawCommandProps = {
 
 	renderTarget?: RenderTarget;
 
-	vertexBuffer?: VertextBuffer;
+	vertexBuffers?: Array<VertexBuffer>;
 
 	indexBuffer?: IndexBuffer;
 

@@ -1,13 +1,12 @@
 import BoundingBox from "../core/BoundingBox";
 import BoundingSphere from "../core/BoundingSphere";
 import { FrameState } from "../core/FrameState";
-import { PrimitiveTopology } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
-import { Attribute, AttributeType, InterleavedFloat32Attribute } from "../render/Attribute";
+import { Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import IndexBuffer from "../render/IndexBuffer";
-import VertextBuffer from "../render/VertextBuffer";
+import VertexBuffer from "../render/VertexBuffer";
 import combine from "../utils/combine";
 export default class Geometry {
 	normals: number[];
@@ -18,28 +17,36 @@ export default class Geometry {
 	type: string;
 	dirty: boolean;
 	indexBuffer?: IndexBuffer;
-	vertBuffer: VertextBuffer;
+	defaultVertexBuffer: VertexBuffer;
 	count: number;
 	boundingSphere?: BoundingSphere;
 	boundingBox?: BoundingBox;
 	private _defines: { [prop: string]: boolean | number };
-	private locationIndex?: number;
+	public vertexBuffers: Array<VertexBuffer>;
 	definesDirty: boolean;
-	topology: PrimitiveTopology;
 	get defines() {
-		return this._defines;
+		return Object.assign({}, this._defines, ...this.vertexBuffers.map((vertexBuffer) => vertexBuffer.defines));
 	}
 	set defines(value) {
 		this.definesDirty = true;
 		this._defines = combine(value, this._defines, false);
 	}
-	constructor(options?: any) {
+	get currentLocationIndex(): number {
+		return this?.vertexBuffers?.reduce(
+			(max, current) => (current.locationIndex > max ? (max = current.locationIndex) : max),
+			0
+		);
+	}
+	get vertexBufferCount(): number {
+		return this.vertexBuffers.length;
+	}
+	constructor(options?: { type?: string }) {
 		this.type = options.type || undefined;
 		this.boundingSphere = undefined;
 		this.dirty = false;
 		this.definesDirty = true;
-		this.locationIndex = 0;
-		this.vertBuffer = new VertextBuffer(this.type, 0);
+		this.defaultVertexBuffer = new VertexBuffer(this.type, 0);
+		this.vertexBuffers = [this.defaultVertexBuffer];
 		this._defines = {};
 		this.normals = [];
 		this.uvs = [];
@@ -48,30 +55,19 @@ export default class Geometry {
 		this.tangents = [];
 	}
 	getAttribute(name: string) {
-		return this.vertBuffer.getAttribute(name);
+		return this.defaultVertexBuffer.getAttribute(name);
 	}
 	setAttribute(attribute: Attribute | InterleavedFloat32Attribute) {
-		if (attribute.attributeType === AttributeType.attribute) {
-			this.setLocationIndex((attribute as Attribute).name);
-		} else {
-			(attribute as InterleavedFloat32Attribute)?.names.forEach((name: string) => this.setLocationIndex(name));
-		}
-		this.vertBuffer.setAttribute(attribute);
-	}
-	private setLocationIndex(name: string) {
-		if (this._defines[name?.concat("Location")] || !name) return;
-		this._defines[name?.concat("Location")] = this.locationIndex;
-		this.locationIndex += 1;
-	}
-	containAttribute(name: string): boolean {
-		return this._defines[name?.concat("Location")] != undefined ? true : false;
+		this.defaultVertexBuffer.setAttribute(attribute);
 	}
 	setIndice(indices: Array<number>) {
 		this.indices = indices;
 		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer(this.type + "IndexBuffer");
 		this.indexBuffer.setIndices(indices);
 	}
-	update(frameState: FrameState) {}
+	update(frameState: FrameState) {
+		// todo
+	}
 	computeBoundingSphere(positions: number[], stride = 3) {
 		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), stride);
 	}
@@ -172,7 +168,7 @@ export default class Geometry {
 	}
 	destroy() {
 		this?.indexBuffer.destroy();
-		this.vertBuffer.destroy();
+		this.defaultVertexBuffer.destroy();
 		this.normals = null;
 		this.uvs = null;
 		this.positions = null;

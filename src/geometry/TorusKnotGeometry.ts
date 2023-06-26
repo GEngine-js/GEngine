@@ -23,9 +23,6 @@ export default class TorusKnotGeometry extends Geometry {
 		this.q = q;
 		this.init();
 	}
-	public update(frameState) {
-		const { device } = frameState.context;
-	}
 	private init() {
 		const { normals, uvs, positions, indices } = this.createGeometry();
 		this.computeBoundingSphere(positions);

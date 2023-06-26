@@ -63,6 +63,9 @@ export class Material {
 	public set wireframe(value: boolean) {
 		this.renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;
 	}
+	public set topology(value: PrimitiveTopology) {
+		this.renderState.primitive.topology = value;
+	}
 	public get doubleSided() {
 		return this._doubleSided;
 	}

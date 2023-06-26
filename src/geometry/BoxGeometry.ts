@@ -22,5 +22,4 @@ export default class BoxGeometry extends Geometry {
 		this.setAttribute(new Float32Attribute("uv", uvs, 2));
 		this.count = 36;
 	}
-	public update(frameState) {}
 }

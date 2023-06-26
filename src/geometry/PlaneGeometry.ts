@@ -20,7 +20,6 @@ export default class PlaneGeometry extends Geometry {
 		this.setIndice(indices);
 		this.count = indices.length;
 	}
-	public update(frameState) {}
 	private createGrid(width = 1, height = 1, widthSegments = 1, heightSegments = 1) {
 		const width_half = width / 2;
 		const height_half = height / 2;

@@ -7,9 +7,6 @@ export default class SkyBoxGeometry extends Geometry {
 		});
 		this.init();
 	}
-	public update(frameState) {
-		const { device } = frameState.context;
-	}
 	public init() {
 		const positions = [
 			1.0,

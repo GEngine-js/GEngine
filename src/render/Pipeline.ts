@@ -89,7 +89,7 @@ export default class Pipeline {
 		groupLayouts: BindGroupLayout[],
 		hashId: string
 	): GPURenderPipelineDescriptor {
-		const { vertexBuffer, shaderSource } = drawComand;
+		const { vertexBuffers, shaderSource } = drawComand;
 		const { vert, frag } = shaderSource.createShaderModule(device) as {
 			vert: GPUShaderModule;
 			frag: GPUShaderModule;
@@ -101,7 +101,7 @@ export default class Pipeline {
 			pipelineDec.vertex = {
 				module: vert,
 				entryPoint: shaderSource.vertEntryPoint,
-				buffers: vertexBuffer.getBufferDes() as Iterable<GPUVertexBufferLayout>
+				buffers: vertexBuffers.map((vertexBuffer) => vertexBuffer.getBufferDes())
 			};
 		if (renderState.primitive) pipelineDec.primitive = renderState.primitive.getGPUPrimitiveDec();
 		if (renderState.depthStencil) pipelineDec.depthStencil = renderState.depthStencil.getGPUDepthStencilDec();

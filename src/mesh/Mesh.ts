@@ -48,7 +48,7 @@ export class Mesh extends RenderObject {
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		// 视锥剔除
-		if (visibility === Intersect.OUTSIDE) return;
+		if (visibility === Intersect.OUTSIDE && !this.frustumCull) return;
 		if (this.material.transparent) {
 			frameState.renderQueue.transparent.push(this);
 		} else {
@@ -68,7 +68,7 @@ export class Mesh extends RenderObject {
 			);
 			if (this.material.dirty) this.material.dirty = false;
 			this.drawCommand = new DrawCommand({
-				vertexBuffer: this.geometry.vertBuffer,
+				vertexBuffers: this.geometry.vertexBuffers,
 				indexBuffer: this.geometry.indexBuffer,
 				shaderData: this.material.shaderData,
 				instances: this.instanceCount,

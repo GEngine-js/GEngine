@@ -8,6 +8,8 @@ import pbrFrag from "./material/pbrFrag";
 import pbrVert from "./material/pbrVert";
 import phongFrag from "./material/phongFrag";
 import phongVert from "./material/phongVert";
+import { point_fs } from "./material/point_fs";
+import { point_vs } from "./material/point_vs";
 import quadFrag from "./material/quadFrag";
 import quadVert from "./material/quadVert";
 import skyBoxFrag from "./material/skyBoxFrag";
@@ -76,6 +78,10 @@ const shaders = {
 	billboard: {
 		vert: billboard_vs,
 		frag: billboard_fs
+	},
+	point: {
+		vert: point_vs,
+		frag: point_fs
 	}
 };
 

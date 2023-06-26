@@ -9,6 +9,7 @@ export class Attribute {
 	public format: string;
 	public attributeByteSize: number;
 	public attributeType: AttributeType;
+	public dirty: boolean;
 	public static v3 = new Vector3();
 	public static v2 = new Vector2();
 	constructor(public name: string, public value: Array<number>, public itemSize: number) {
@@ -16,6 +17,7 @@ export class Attribute {
 		this.offset = 0;
 		this.shaderLocation = 0;
 		this.attributeType = AttributeType.attribute;
+		this.dirty = true;
 	}
 	getGPUAttribute(): Array<GPUAttribute> {
 		return [
@@ -110,11 +112,13 @@ export class InterleavedAttribute {
 	public format: string;
 	public byteSize: number;
 	public attributeType: AttributeType;
+	public dirty: boolean;
 	constructor(names: string[], value: Array<number>, itemSizes: number[]) {
 		this.names = names;
 		this.itemSizes = itemSizes;
 		this.value = value;
 		this.attributeType = AttributeType.interleavedAttribute;
+		this.dirty = true;
 	}
 	getGPUAttribute(): Array<GPUAttribute> {
 		const result = [];

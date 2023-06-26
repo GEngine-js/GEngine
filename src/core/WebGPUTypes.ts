@@ -1,5 +1,9 @@
-import BindGroupLayout from "../render/BindGroupLayout";
+import { Light } from "../light/Light";
+import { Mesh } from "../mesh/Mesh";
+import PostEffect from "../post-process/PostEffect";
 import BindGroupEntity from "../render/BindGroupEntity";
+import BindGroupLayout from "../render/BindGroupLayout";
+import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import {
 	BlendFactor,
@@ -13,10 +17,6 @@ import {
 	StencilOperation,
 	TextureFormat
 } from "./WebGPUConstant";
-import Sampler from "../render/Sampler";
-import PostEffect from "../post-process/PostEffect";
-import { Light } from "../light/Light";
-import { Mesh } from "../mesh/Mesh";
 export const GPUCanvasCompositingAlphaMode: {
 	[key: string]: GPUCanvasCompositingAlphaMode;
 } = {
@@ -168,11 +168,11 @@ export type textureSize = {
 };
 export type dimension = "1d" | "2d" | "3d";
 export type bufferLayoutType = {
-	type: string; //"uniform"
-	hasDynamicOffset?: Boolean;
+	type: string; // "uniform"
+	hasDynamicOffset?: boolean;
 	minBindingSize?: number;
 };
-//renderstate
+// renderstate
 export type DepthStencil = {
 	format: TextureFormat;
 	depthWriteEnabled: boolean;

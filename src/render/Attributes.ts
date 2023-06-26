@@ -10,6 +10,17 @@ export default class Attributes {
 		this.offset = 0;
 		this.interleave = false;
 	}
+	get dirty(): boolean {
+		let result = false;
+		this._attributes.forEach((attribute) => (!result ? (result = attribute.dirty) : false));
+		return result;
+	}
+	set dirty(value: boolean) {
+		this._attributes.forEach((attribute) => (attribute.dirty = value));
+	}
+	get values(): Map<string, Attribute | InterleavedAttribute> {
+		return this._attributes;
+	}
 	getAttribute(name): Attribute | InterleavedAttribute {
 		return this._attributes.get(name);
 	}
