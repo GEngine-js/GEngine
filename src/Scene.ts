@@ -87,7 +87,8 @@ export class Scene extends EventDispatcher {
 	}
 	resize(width: number, height: number) {
 		this.context.resize(width, height);
-		this.postEffectCollection.setResolveFrameDirty(true);
+		this?.currentRenderPipeline?.setSize(width, height);
+		this?.postEffectCollection?.setSize(width, height);
 	}
 	async render(node?: Node, camera?: Camera) {
 		if (!this.inited) {
@@ -101,7 +102,9 @@ export class Scene extends EventDispatcher {
 		}
 	}
 
-	afterRender() {}
+	afterRender() {
+		// TODO
+	}
 
 	public setViewPort(x: number, y: number, width: number, height: number): boolean {
 		if (!this.ready) return false;

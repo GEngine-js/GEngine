@@ -1,9 +1,9 @@
+import { UniformFunc, ShaderDefine } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import BindGroup from "./BindGroup";
 import BindGroupEntity from "./BindGroupEntity";
 import BindGroupLayout from "./BindGroupLayout";
 import BindGroupLayoutEntry from "./BindGroupLayoutEntry";
-import Context from "./Context";
 import Sampler from "./Sampler";
 import Texture from "./Texture";
 import UniformBuffer from "./UniformBuffer";
@@ -11,7 +11,7 @@ import { UniformSampler, UniformTexture } from "./Uniforms";
 export default class ShaderData {
 	currentBinding: number;
 
-	defines: { [prop: string]: boolean | number };
+	defines: ShaderDefine;
 
 	defineDirty: boolean;
 
@@ -39,24 +39,24 @@ export default class ShaderData {
 	getUniformBuffer(name: string): UniformBuffer {
 		return this._uniforms.get(name);
 	}
-	setUniformBuffer(name: string, uniformBuffer: UniformBuffer) {
+	setUniformBuffer(name: string, uniformBuffer: UniformBuffer, binding?: number) {
 		if (this._uniforms.get(name)) return;
 		uniformBuffer.binding = this.currentBinding;
-		this.setDefine(name.concat("Binding"), this.currentBinding);
+		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniformBuffer);
 	}
-	setTexture(name: string, value: Function | Texture, binding?: number) {
+	setTexture(name: string, value: UniformFunc | Texture, binding?: number) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformTexture(name, this.currentBinding, value);
-		this.setDefine(name.concat("Binding"), this.currentBinding);
+		const uniform = new UniformTexture(name, binding ?? this.currentBinding, value);
+		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
 	}
-	setSampler(name: string, value: Function | Sampler, binding?: number) {
+	setSampler(name: string, value: UniformFunc | Sampler, binding?: number) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformSampler(name, this.currentBinding, value);
-		this.setDefine(name.concat("Binding"), this.currentBinding);
+		const uniform = new UniformSampler(name, binding ?? this.currentBinding, value);
+		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
 	}
@@ -73,18 +73,17 @@ export default class ShaderData {
 			}
 		}
 	}
-	replaceUniformBufferValue(name: string, value: Function | number | Object) {
+	replaceUniformBufferValue(name: string, value: UniformFunc | number | object) {
 		this._uniforms.forEach((uniform) => {
 			if (uniform?.isUniformBuffer) {
 				uniform.replaceUniformValue(name, value);
 			}
 		});
 	}
-	bind(context: Context, passEncoder: GPURenderPassEncoder) {
-		this.uploadUniform(context);
-		if (!this.groupLayout)
-			this.groupLayout = this.createBindGroupLayout(context.device, this.label, this.layoutIndex);
-		if (!this.bindGroup) this.bindGroup = this.createBindGroup(context.device, this.label, this.groupIndex);
+	bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {
+		this.uploadUniform(device);
+		if (!this.groupLayout) this.groupLayout = this.createBindGroupLayout(device, this.label, this.layoutIndex);
+		if (!this.bindGroup) this.bindGroup = this.createBindGroup(device, this.label, this.groupIndex);
 		this.bindGroup.bind(passEncoder);
 	}
 	destroy() {
@@ -123,9 +122,9 @@ export default class ShaderData {
 		);
 		return groupLayout;
 	}
-	protected uploadUniform(context: Context) {
+	protected uploadUniform(device: GPUDevice) {
 		this._uniforms.forEach((uniform) => {
-			uniform.bind(context);
+			uniform.bind(device);
 		});
 	}
 	private createBindGroupLayoutEntry() {

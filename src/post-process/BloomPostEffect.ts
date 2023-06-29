@@ -76,6 +76,12 @@ export default class BloomPostEffect extends PostEffect {
 		this.renderMesh(context);
 		return this.currentRenderTarget.getColorTexture();
 	}
+	setSize(width: number, height: number): void {
+		this?.renderTargetsHorizontal?.forEach((renderTarget) => renderTarget.setSize(width, height, 1));
+		this?.renderTargetsVertical?.forEach((renderTarget) => renderTarget.setSize(width, height, 1));
+		this?.renderTargetBright?.setSize?.(width, height, 1);
+		this?.blendTarget?.setSize?.(width, height, 1);
+	}
 	private init() {
 		this.renderTargetsHorizontal = [];
 		this.renderTargetsVertical = [];
@@ -185,8 +191,8 @@ export default class BloomPostEffect extends PostEffect {
 				}
 			},
 
-			vert: (defines) => {
-				`
+			vert: () => {
+				return `
               struct VertexInput {
                     @location(0) position: vec2<f32>,       
                }
@@ -205,7 +211,7 @@ export default class BloomPostEffect extends PostEffect {
 			},
 
 			frag: (defines) => {
-				`
+				return `
                 struct FragInput {
                     @location(0) uv: vec2<f32>,
                 };

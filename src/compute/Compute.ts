@@ -25,11 +25,11 @@ export class Compute {
 		this.computeCommand = undefined;
 		this.dispatch = options.dispatch;
 		this.shaderSource = new ShaderSource({
-			type: this.name,
-			custom: true,
+			shaderId: this.name,
 			defines: {},
-			compute: this.computeShader,
-			render: false
+			compute: {
+				computeShader: this.computeShader
+			}
 		});
 	}
 	public getCommand() {
@@ -61,6 +61,7 @@ export class Compute {
 				this.uniforms[uniformsName],
 				this.uniforms,
 				this.shaderData,
+				undefined,
 				this.uniformBuffer
 			);
 		});

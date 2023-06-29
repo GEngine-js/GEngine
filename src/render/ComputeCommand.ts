@@ -1,6 +1,5 @@
 import { ShaderSource } from "../shader/ShaderSource";
 import { Command } from "./Command";
-import Context from "./Context";
 import Pipeline from "./Pipeline";
 import ShaderData from "./ShaderData";
 
@@ -13,8 +12,8 @@ export class ComputeCommand implements Command {
 		this.shaderData = options.shaderData;
 		this.shaderSource = options.shaderSource;
 	}
-	render(context?: Context, passEncoder?: GPUComputePassEncoder): void {
-		const { device } = context;
+	render(params?: ComputeParams): void {
+		const { device, passEncoder } = params;
 		const pipeline = Pipeline.getComputePipelineFromCache(device, this, [this.shaderData.groupLayout]);
 		pipeline.bind(passEncoder);
 		const { x, y, z } = this.dispatch;
@@ -27,4 +26,8 @@ type ComputeCommandType = {
 	shaderSource?: ShaderSource;
 
 	shaderData?: ShaderData;
+};
+type ComputeParams = {
+	device?: GPUDevice;
+	passEncoder?: GPUComputePassEncoder;
 };

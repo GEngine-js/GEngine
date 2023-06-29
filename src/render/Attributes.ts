@@ -1,4 +1,5 @@
-import { Attribute, AttributeType, InterleavedAttribute } from "./Attribute";
+import { Attribute, AttributeType, BufferFloat32Attribute, InterleavedAttribute } from "./Attribute";
+import Buffer from "./Buffer";
 export default class Attributes {
 	public interleave: boolean;
 	private _attributes: Map<string, Attribute | InterleavedAttribute>;
@@ -43,7 +44,7 @@ export default class Attributes {
 		if (this._attributes.has(attribute.names.toString())) return;
 		this._attributes.set(attribute.names.toString(), attribute);
 	}
-	getGPUAttributes() {
+	getGPUAttributesDes() {
 		const result = [];
 		this._attributes.forEach((attribute) => {
 			result.push(...attribute.getGPUAttribute());
@@ -53,9 +54,11 @@ export default class Attributes {
 	getAtrributeValues(): {
 		arrayStride: number;
 		typeArray: Float32Array;
+		buffer?: Buffer;
 	} {
 		const arrayStrides = [];
 		let arrayStride = 0;
+		let buffer = undefined;
 		let values = null;
 		const arrays = [];
 		this._attributes.forEach((attribute: Attribute | InterleavedAttribute) => {
@@ -66,6 +69,7 @@ export default class Attributes {
 			} else {
 				if (!this.interleave) this.interleave = true;
 				values = values ?? attribute.value;
+				buffer = (attribute as BufferFloat32Attribute)?.buffer;
 				arrayStride = (attribute as InterleavedAttribute).itemSizes.reduce(
 					(total, current) => (total += current),
 					0
@@ -78,7 +82,8 @@ export default class Attributes {
 			: this.interleaveTypedArray(Float32Array, arrayStrides, ...arrays);
 		return {
 			arrayStride: arrayStride * typeArray.BYTES_PER_ELEMENT,
-			typeArray
+			typeArray,
+			buffer
 		};
 	}
 	destroy() {

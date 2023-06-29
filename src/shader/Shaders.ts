@@ -25,8 +25,7 @@ import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
 
 function reduceComma(shader) {
 	// 对所有的include处理
-	const str = resolveIncludes(shader);
-	return str;
+	return shader != undefined ? resolveIncludes(shader) : undefined;
 }
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
 let currentDefines = {};
@@ -101,7 +100,7 @@ export default function getVertFrag(type, defines = {}) {
 	const excuteFunc = shaders[type];
 	currentDefines = defines;
 	return {
-		vert: reduceComma(excuteFunc.vert(currentDefines)),
-		frag: reduceComma(excuteFunc.frag(currentDefines))
+		vert: reduceComma(excuteFunc?.vert(currentDefines)),
+		frag: reduceComma(excuteFunc?.frag(currentDefines))
 	};
 }

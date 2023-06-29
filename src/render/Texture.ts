@@ -1,6 +1,7 @@
 import { TextureFormat } from "../core/WebGPUConstant";
 import { WebGPUTextureProps, ImageData } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
+import { MipmapGenerator } from "../utils/MipmapGenerator";
 import Context from "./Context";
 import Sampler from "./Sampler";
 
@@ -11,9 +12,11 @@ export default class Texture {
 	public mipLevelCount?: number;
 	public sampler?: Sampler;
 	public context?: Context;
+	public device?: GPUDevice;
 	public textureProp?: WebGPUTextureProps;
 	public dirty: boolean;
 	public fixedSize: boolean;
+	public static mipmapTools: MipmapGenerator;
 	constructor(textureProp: WebGPUTextureProps) {
 		this.textureProp = Object.assign(
 			{
@@ -43,8 +46,8 @@ export default class Texture {
 			});
 		return this._textureView;
 	}
-	update(context: Context) {
-		if (!this.context) this.context = context;
+	update(device: GPUDevice) {
+		if (!this.device) this.device = device;
 		if (this.dirty) {
 			this.checkNeedCreateTexture();
 			this.dirty = false;
@@ -58,9 +61,10 @@ export default class Texture {
 				}
 			}
 			if (this.textureProp.needMipMap) {
-				this.gpuTexture = context.mipmapTools.generateMipmap(this);
+				if (!Texture.mipmapTools) Texture.mipmapTools = new MipmapGenerator(this.device);
+				this.gpuTexture = Texture.mipmapTools.generateMipmap(this);
 			}
-			if (this.sampler) this.sampler.update(context);
+			if (this.sampler) this.sampler.update(this.device);
 		}
 	}
 	private setData(options: ImageData) {
@@ -80,7 +84,7 @@ export default class Texture {
 			premultipliedAlpha = false
 		} = options;
 		if (source instanceof Texture) {
-			let commandEncoder = this.context.device.createCommandEncoder();
+			let commandEncoder = this.device.createCommandEncoder();
 			commandEncoder.copyTextureToTexture(
 				{
 					texture: <GPUTexture>source.gpuTexture,
@@ -99,10 +103,10 @@ export default class Texture {
 					depthOrArrayLayers: 1
 				}
 			);
-			this.context.device.queue.submit([commandEncoder.finish()]);
+			this.device.queue.submit([commandEncoder.finish()]);
 			commandEncoder = null;
 		} else {
-			this.context.device.queue.copyExternalImageToTexture(
+			this.device.queue.copyExternalImageToTexture(
 				{
 					source,
 					origin: [sourceX, sourceY]
@@ -134,7 +138,7 @@ export default class Texture {
 			throw new Error("number format");
 		}
 		const { width, height, depth } = this.textureProp.size;
-		return this.context.device.createTexture({
+		return this.device.createTexture({
 			label: this.textureProp?.label || "undefined",
 			size: [width, height, depth],
 			dimension: this.textureProp.dimension || "2d",

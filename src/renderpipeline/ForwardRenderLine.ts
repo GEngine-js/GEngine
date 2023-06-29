@@ -12,14 +12,6 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 	constructor(public context: Context) {
 		this.basicPass = new BasicPass(context);
 		this.shadowPass = new ShadowPass(context);
-		// const bloom=new BloomPostEffect({
-		// 	width,
-		// 	height,
-		// 	strength:0.3,
-		// 	radius:0.3,
-		// 	threshold:0.5
-		// });
-		// this.postEffectCollection.add(bloom)
 	}
 	getOutputTexture(): Texture {
 		return this.basicPass.getColorTexture(0);
@@ -31,6 +23,10 @@ export default class ForwardRenderLine implements IBaseRenderLine {
 		this.basicPass.beforeRender(frameState);
 		this.basicPass.render(frameState, camera);
 		this.basicPass.afterRender();
+	}
+	setSize(width: number, height: number) {
+		this.basicPass.setSize(width, height);
+		this.shadowPass.setSize(width, height);
 	}
 	destroy() {
 		this.basicPass = undefined;

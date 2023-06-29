@@ -1,6 +1,7 @@
 import { VertexFormat } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
+import Buffer from "../render/Buffer";
 
 export class Attribute {
 	public offset: number;
@@ -105,6 +106,7 @@ export class Attribute {
 		return this;
 	}
 }
+
 export class InterleavedAttribute {
 	public names: string[];
 	public value: Array<number>;
@@ -151,6 +153,13 @@ export class InterleavedFloat32Attribute extends InterleavedAttribute {
 		super(names, value, itemSizes);
 		this.format = VertexFormat.Float32;
 		this.byteSize = Float32Array.BYTES_PER_ELEMENT;
+	}
+}
+export class BufferFloat32Attribute extends InterleavedFloat32Attribute {
+	public buffer: Buffer;
+	constructor(names: string[], buffer: Buffer, itemSizes: number[]) {
+		super(names, undefined, itemSizes);
+		this.buffer = buffer;
 	}
 }
 export enum AttributeType {

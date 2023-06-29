@@ -1,4 +1,5 @@
 import { ShaderStage } from "../core/WebGPUConstant";
+import { UniformFunc } from "../core/WebGPUTypes";
 import { DirectionalLight } from "../light/DirectionalLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
@@ -10,7 +11,6 @@ import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import defaultValue from "../utils/defaultValue";
-import Context from "./Context";
 import Sampler from "./Sampler";
 import Texture from "./Texture";
 import UniformBuffer from "./UniformBuffer";
@@ -20,13 +20,13 @@ export class Uniform<T> {
 	value: T;
 	offset: number;
 	buffer: Float32Array | Uint16Array | Uint32Array | Uint8Array | Float64Array | UniformBuffer;
-	cb: Function | number | Object;
+	cb: UniformFunc | number | object;
 	byteSize: number;
 	visibility?: number;
 	type?: string;
 	dirty?: boolean;
 
-	constructor(uniformName: string, cb?: Function | number | Object, offset?: number) {
+	constructor(uniformName: string, cb?: UniformFunc | number | object, offset?: number) {
 		this.name = uniformName;
 		this.cb = cb;
 		this.offset = defaultValue(offset, 0);
@@ -57,9 +57,18 @@ export class Uniform<T> {
 				break;
 			default:
 				throw new Error("type is error");
-				break;
 		}
 		return result;
+	}
+	// compare array
+	equals(v) {
+		if ((this._value as Array<number>).length !== v.length) return false;
+		for (let i = 0; i < v.length; i++) {
+			if (v[i] !== this._value[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
 
@@ -69,7 +78,7 @@ export class UniformUint extends Uniform<number> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -96,7 +105,7 @@ export class UniformFloat extends Uniform<number> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -122,7 +131,7 @@ export class UniformFloatVec2 extends Uniform<Vector2> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -135,12 +144,17 @@ export class UniformFloatVec2 extends Uniform<Vector2> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Vector2.equals(v, this._value)) {
+		if (v instanceof Vector2) {
+			if (Vector2.equals(v, this._value)) return false;
 			Vector2.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformFloatVec3 extends Uniform<Vector3> {
@@ -149,7 +163,7 @@ export class UniformFloatVec3 extends Uniform<Vector3> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -162,12 +176,17 @@ export class UniformFloatVec3 extends Uniform<Vector3> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Vector3.equals(v, this._value)) {
+		if (v instanceof Vector3) {
+			if (Vector3.equals(v, this._value)) return false;
 			Vector3.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformFloatVec4 extends Uniform<Vector4> {
@@ -176,7 +195,7 @@ export class UniformFloatVec4 extends Uniform<Vector4> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -189,12 +208,17 @@ export class UniformFloatVec4 extends Uniform<Vector4> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Vector4.equals(v, this._value)) {
+		if (v instanceof Vector4) {
+			if (Vector4.equals(v, this._value)) return false;
 			Vector4.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformColor extends Uniform<Color> {
@@ -203,7 +227,7 @@ export class UniformColor extends Uniform<Color> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -216,12 +240,17 @@ export class UniformColor extends Uniform<Color> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Color.equals(v, this._value)) {
+		if (v instanceof Color) {
+			if (Color.equals(v, this._value)) return false;
 			Color.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 
@@ -231,7 +260,7 @@ export class UniformMat2 extends Uniform<Matrix2> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -244,12 +273,17 @@ export class UniformMat2 extends Uniform<Matrix2> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Matrix2.equals(v, this._value)) {
+		if (v instanceof Matrix2) {
+			if (Matrix2.equals(v, this._value)) return false;
 			Matrix2.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformMat3 extends Uniform<Matrix3> {
@@ -258,7 +292,7 @@ export class UniformMat3 extends Uniform<Matrix3> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -271,12 +305,17 @@ export class UniformMat3 extends Uniform<Matrix3> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Matrix3.equals(v, this._value)) {
+		if (v instanceof Matrix3) {
+			if (Matrix3.equals(v, this._value)) return false;
 			Matrix3.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			if (this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformMat4 extends Uniform<Matrix4> {
@@ -285,7 +324,7 @@ export class UniformMat4 extends Uniform<Matrix4> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number
 	) {
 		super(uniformName, cb, offset);
@@ -298,12 +337,17 @@ export class UniformMat4 extends Uniform<Matrix4> {
 	set(): boolean {
 		if (this.cb != undefined) this.value = this.getValue();
 		const v = this.value;
-		if (!Matrix4.equals(v, this._value)) {
+		if (v instanceof Matrix4) {
+			if (Matrix4.equals(v, this._value)) return false;
 			Matrix4.clone(v, this._value);
 			this.setBuffer(this._value.toArray());
 			return true;
+		} else {
+			// if(this.equals(v)) return false;
+			this._value = v;
+			this.setBuffer(v);
+			return true;
 		}
-		return false;
 	}
 }
 export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
@@ -312,7 +356,7 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number,
 		size = 64
@@ -339,7 +383,7 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -363,7 +407,7 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -392,7 +436,7 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -423,7 +467,7 @@ export class UniformVec4Array extends Uniform<Array<Vector4>> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -453,8 +497,8 @@ export class UniformTexture extends Uniform<Texture> {
 	public name: string;
 	public texture: Texture;
 	public isTexture: boolean;
-	private _texture: Function | Texture;
-	constructor(uniformName: string, binding: number, texture: Function | Texture) {
+	private _texture: UniformFunc | Texture;
+	constructor(uniformName: string, binding: number, texture: UniformFunc | Texture) {
 		super(uniformName);
 		this.binding = binding;
 		this.type = "texture";
@@ -465,9 +509,9 @@ export class UniformTexture extends Uniform<Texture> {
 	get layoutType() {
 		return this.texture?.layoutType || "not yet bind";
 	}
-	bind(context: Context) {
+	bind(device: GPUDevice) {
 		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
-		this.texture.update(context);
+		this.texture.update(device);
 	}
 }
 export class UniformSampler extends Uniform<Sampler> {
@@ -477,8 +521,8 @@ export class UniformSampler extends Uniform<Sampler> {
 	public name: string;
 	public sampler: Sampler;
 	public isSampler: boolean;
-	private _sampler: Function | Sampler;
-	constructor(uniformName: string, binding: number, sampler: Function | Sampler) {
+	private _sampler: UniformFunc | Sampler;
+	constructor(uniformName: string, binding: number, sampler: UniformFunc | Sampler) {
 		super(uniformName);
 		this.name = uniformName;
 		this.binding = binding;
@@ -490,9 +534,9 @@ export class UniformSampler extends Uniform<Sampler> {
 	get layoutType() {
 		return this.sampler?.layoutType || "not yet bind";
 	}
-	bind(context: Context) {
+	bind(device: GPUDevice) {
 		this.sampler = this._sampler instanceof Function ? this._sampler() : this._sampler;
-		this.sampler.update(context);
+		this.sampler.update(device);
 	}
 }
 export class UniformSpotLights extends Uniform<SpotLight> {
@@ -503,7 +547,7 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -569,7 +613,7 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -616,7 +660,7 @@ export class UniformPointLights extends Uniform<PointLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -667,7 +711,7 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -730,7 +774,7 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {
@@ -771,7 +815,7 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		uniformName: string,
 		buffer: Float32Array,
 		byteOffset: number,
-		cb: Function | number | Object,
+		cb: UniformFunc | number | object,
 		offset?: number,
 		count?: number
 	) {

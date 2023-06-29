@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="Atzk/dTch1Tt8qYq/UwLn6aWawymlc3xOKy3xiuwsaj1HBK6eCTBb+EGOnv7LK+oSQ8Fr1l/qykGHhK64mAn+w4AAABjeyJvcmlnaW4iOiJodHRwczovL2hwdWdpcy5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+		/>
+		<title>gltf</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				height: 800px;
+				width: 800px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<canvas id="app"></canvas>
+		</div>
+		<script type="module">
+			import { Model } from "../../dist/index.js";
+			import { mat4, vec3 } from "../lib/esm/index.js";
+			export const positions = [
+				// float4 position, float4 color, float2 uv,
+				1, -1, 1, 1, -1, -1, 1, 1, -1, -1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, -1, -1, -1, 1,
+
+				1, 1, 1, 1, 1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, 1,
+
+				-1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1, 1, -1, 1, -1, 1, -1, 1, 1, 1, 1, 1, -1, 1,
+
+				-1, -1, 1, 1, -1, 1, 1, 1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1,
+
+				1, 1, 1, 1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1,
+
+				1, -1, -1, 1, -1, -1, -1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, 1
+			];
+			const colors = [
+				1, -1, 1, 1, -1, -1, 1, 1, -1, -1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1,
+				1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1, 1, -1, 1,
+				-1, 1, -1, 1, 1, 1, 1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, 1, 1,
+				-1, 1, -1, 1, 1, 1, 1, 1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -1,
+				1, -1, -1, -1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, 1
+			];
+			const init = async () => {
+				const adapter = await navigator.gpu.requestAdapter();
+				const device = await adapter.requestDevice();
+				const canvas = document.getElementById("app");
+				const context = canvas.getContext("webgpu");
+
+				const devicePixelRatio = window.devicePixelRatio || 1;
+				canvas.width = canvas.clientWidth * devicePixelRatio;
+				canvas.height = canvas.clientHeight * devicePixelRatio;
+				const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+				context.configure({
+					device,
+					format: presentationFormat,
+					alphaMode: "premultiplied"
+				});
+				const depthTexture = device.createTexture({
+					size: [canvas.width, canvas.height],
+					format: "depth24plus",
+					usage: GPUTextureUsage.RENDER_ATTACHMENT
+				});
+				const renderPassDescriptor = {
+					colorAttachments: [
+						{
+							view: undefined, // Assigned later
+
+							clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+							loadOp: "clear",
+							storeOp: "store"
+						}
+					],
+					depthStencilAttachment: {
+						view: depthTexture.createView(),
+
+						depthClearValue: 1.0,
+						depthLoadOp: "clear",
+						depthStoreOp: "store"
+					}
+				};
+				const aspect = canvas.width / canvas.height;
+				const projectionMatrix = mat4.perspective([], (2 * Math.PI) / 5, aspect, 1, 100.0);
+				const modelViewProjectionMatrix = mat4.create();
+				const model = new Model({
+					shaderId: "model",
+					frag: `
+                @fragment
+                fn main(@location(0) fragUV: vec2<f32>,@location(1) fragPosition: vec4<f32>) -> @location(0) vec4<f32> {
+                  return fragPosition;
+                }
+              `,
+					vert: `
+                  struct Uniforms {
+                    modelViewProjectionMatrix : mat4x4<f32>,
+                  }
+                  @binding(0) @group(0) var<uniform> uniforms : Uniforms;
+
+                  struct VertexOutput {
+                    @builtin(position) Position : vec4<f32>,
+                    @location(0) fragUV : vec2<f32>,
+                    @location(1) fragPosition: vec4<f32>,
+                  }
+
+                  @vertex
+                  fn main(
+                    @location(0) position : vec4<f32>,
+                    @location(1) uv : vec2<f32>
+                  ) -> VertexOutput {
+                    var output : VertexOutput;
+                    output.Position = uniforms.modelViewProjectionMatrix * position;
+                    output.fragUV = uv;
+                    output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
+                    return output;
+                  }
+               `,
+					vertexBuffers: [
+						{
+							stepMode: "vertex",
+							attributes: {
+								position: { size: 4, value: positions },
+								color: { size: 4, value: colors }
+							}
+						}
+					],
+					uniformBuffers: [
+						{
+							type: "uniform",
+							uniforms: {
+								modelViewProjectionMatrix: {
+									type: "mat4",
+									value: () => {
+										let viewMatrix = mat4.identity([]);
+										mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
+										const now = Date.now() / 1000;
+										mat4.rotate(
+											viewMatrix,
+											viewMatrix,
+											1,
+											vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+										);
+
+										mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+										return modelViewProjectionMatrix;
+									}
+								}
+							}
+						}
+					],
+					renderState: {
+						targets: [
+							{
+								format: presentationFormat
+							}
+						],
+						primitive: {
+							topology: "triangle-list",
+							cullMode: "back"
+						},
+						depthStencil: {
+							depthWriteEnabled: true,
+							depthCompare: "less",
+							format: "depth24plus"
+						}
+					},
+					count: 36,
+					instances: 1
+				});
+
+				function animate() {
+					requestAnimationFrame(animate);
+					renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+					const commandEncoder = device.createCommandEncoder();
+					const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+					model.render({ device, passEncoder });
+					passEncoder.end();
+					device.queue.submit([commandEncoder.finish()]);
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

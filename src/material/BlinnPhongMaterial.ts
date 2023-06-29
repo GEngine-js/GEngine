@@ -18,8 +18,7 @@ export default class BlinnPhongMaterial extends Material {
 		this.type = "phong";
 		this.color = new Color(1.0, 0.0, 0.0);
 		this.shaderSource = new ShaderSource({
-			type: this.type,
-			render: true,
+			shaderId: this.type,
 			defines: {
 				materialPhong: true
 			}

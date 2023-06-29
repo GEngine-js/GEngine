@@ -1,23 +1,27 @@
 import Buffer from "./Buffer";
 const queryIndex = 0;
 export default class QuerySet {
-	gpuQuerySet: GPUQuerySet;
-	queryBuffer: Buffer;
-	nextQueryIndex: Uint32Array;
-	readBuffer: Buffer;
-	constructor(public device: GPUDevice, public querySetDescriptor: GPUQuerySetDescriptor) {
-		this.gpuQuerySet = this.device.createQuerySet(querySetDescriptor);
+	public gpuQuerySet: GPUQuerySet;
+	public queryBuffer: Buffer;
+	public nextQueryIndex: Uint32Array;
+	public readBuffer: Buffer;
+	private device: GPUDevice;
+	constructor(public querySetDescriptor: GPUQuerySetDescriptor) {
 		this.nextQueryIndex = new Uint32Array(1);
+	}
+	public update(device: GPUDevice) {
+		if (!this.device) this.device = device;
+		this.gpuQuerySet = device.createQuerySet(this.querySetDescriptor);
 		this.queryBuffer = Buffer.create(
 			"querySave",
-			this.device,
+			device,
 			GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
 			null,
 			this.querySetDescriptor.count * 8
 		);
 		this.readBuffer = Buffer.create(
 			"queryRead",
-			this.device,
+			device,
 			GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
 			null,
 			this.querySetDescriptor.count * 8

@@ -16,10 +16,16 @@ class Pass {
 	constructor(context: Context) {
 		this.context = context;
 	}
-	render(frameState: FrameState): void {}
+	update(frameState: FrameState): void {
+		// todo;
+	}
+	setSize(width: number, height: number): void {
+		// todo ;
+	}
 	beforeRender(options?: any) {
-		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context);
-		if (this.computeTarget) this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context);
+		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context.device);
+		if (this.computeTarget)
+			this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context.device);
 	}
 	getColorTexture(index = 0): Texture {
 		return this.renderTarget.getColorTexture(index) as Texture;

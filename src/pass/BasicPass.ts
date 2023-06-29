@@ -35,7 +35,7 @@ export class BasicPass extends Pass {
 		this.createRenderTarget(context);
 	}
 	private createRenderTarget(context: Context) {
-		const { width, height, depth } = this.context.presentationSize;
+		const { width, height, depth } = context.presentationSize;
 		const colorTexture = new Texture({
 			label: "basicPassColor",
 			size: { width, height, depth },
@@ -52,7 +52,9 @@ export class BasicPass extends Pass {
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 		this.renderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
 	}
-
+	public setSize(width: number, height: number): void {
+		this.renderTarget.setSize(width, height, 1);
+	}
 	private updateRenderTarget(frameState: FrameState) {
 		if (frameState?.background?.value instanceof Color) {
 			const { red, green, blue } = frameState.background.value;

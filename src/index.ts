@@ -18,6 +18,7 @@ export { default as Axes } from "./mesh/Axes";
 export { default as SkyBox } from "./mesh/SkyBox";
 export { Instance } from "./mesh/Instance";
 export { InstanceMesh } from "./mesh/InstanceMesh";
+export { Model } from "./mesh/Model";
 
 // geometry
 export { default as SphereGeometry } from "./geometry/SphereGeometry";

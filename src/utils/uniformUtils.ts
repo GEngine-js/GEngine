@@ -94,22 +94,22 @@ export function addUniformToShaderData(
 		case "mat3":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				uniforms[name].value instanceof Function
+					? uniforms[name].value
+					: () => {
+							return uniforms[name].value;
+					  },
 				UniformEnum.Mat3
 			);
 			break;
 		case "mat4":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return name == "modelMatrix"
-						? mesh?.modelMatrix
-						: name === "normalMatrix"
-						? mesh.normalMatrix
-						: uniforms[name].value;
-				},
+				name == "modelMatrix"
+					? mesh?.modelMatrix
+					: name === "normalMatrix"
+					? mesh?.normalMatrix
+					: uniforms[name].value,
 				UniformEnum.Mat4
 			);
 			break;

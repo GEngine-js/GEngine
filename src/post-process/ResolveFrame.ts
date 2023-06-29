@@ -41,6 +41,10 @@ export default class ResolveFrame {
 		});
 		this.quadMesh = new Mesh(this.geometry, this.material);
 	}
+	setSize(width: number, height: number) {
+		this.canvasRenderTarget.setSize(width, height);
+		this.material.dirty = true;
+	}
 	render(context: Context, colorTexture?: Texture) {
 		if (!this.canvasRenderTarget) this.initRenderTarget(context);
 		// this.material
@@ -53,9 +57,9 @@ export default class ResolveFrame {
 
 		const drawComand = this.quadMesh.getDrawCommand();
 
-		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context);
+		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context.device);
 
-		drawComand.render(context, currentRenderPassEncoder);
+		drawComand.render({ device: context.device, passEncoder: currentRenderPassEncoder });
 
 		this.canvasRenderTarget.endRenderPassEncoder();
 	}

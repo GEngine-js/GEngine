@@ -25,7 +25,7 @@ export default class VertexBuffer {
 		const result = {
 			arrayStride: this.arrayStride,
 			stepMode: this.stepMode,
-			attributes: this.attributes.getGPUAttributes()
+			attributes: this.attributes.getGPUAttributesDes()
 		};
 		return result;
 	}
@@ -47,13 +47,13 @@ export default class VertexBuffer {
 	public bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {
 		if (this.attributes.dirty) {
 			this.attributes.dirty = false;
-			const { arrayStride, typeArray } = this.attributes.getAtrributeValues();
+			const { arrayStride, typeArray, buffer } = this.attributes.getAtrributeValues();
 			this.arrayStride = arrayStride;
 			if (!this.buffer) {
-				this.buffer = Buffer.createVertexBuffer(this.label, device, typeArray);
+				this.buffer = buffer ?? Buffer.createVertexBuffer(this.label, device, typeArray);
 			} else {
 				// update Buffer
-				this.buffer.setSubData(0, typeArray);
+				if (typeArray) this.buffer.setSubData(0, typeArray);
 			}
 		}
 		passEncoder.setVertexBuffer(this.index, this.buffer.gpuBuffer);

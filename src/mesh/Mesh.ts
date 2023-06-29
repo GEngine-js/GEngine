@@ -75,10 +75,8 @@ export class Mesh extends RenderObject {
 				count: this.geometry.count,
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
-				type: "render",
-				light: this.material.light,
-				modelMatrix: this.modelMatrix,
-				lightShaderData: this.material.light ? lightManger?.lightShaderData : undefined
+				lightShaderData: this.material.light ? lightManger?.lightShaderData : undefined,
+				useLight: this.material.light
 			});
 		}
 		if (overrideMaterial) {

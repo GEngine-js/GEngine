@@ -9,8 +9,8 @@ import {
 	CullMode,
 	PrimitiveTopology
 } from "../core/WebGPUConstant";
+// import { BindRenderState } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
-import Context from "./Context";
 
 export class RenderState {
 	scissorTest: ScissorTest;
@@ -23,29 +23,29 @@ export class RenderState {
 	primitive: Primitive;
 	stencilEnabled: boolean;
 	scissorTestEnabled: boolean;
-	constructor() {
-		this.scissorTest = undefined;
-		this.viewport = undefined;
-		this.depthStencil = undefined;
-		this.blendConstant = undefined;
-		this.stencilReference = 0;
-		this.multisample = undefined;
-		this.primitive = undefined;
+	constructor(params?: RenderStateParams) {
+		this.scissorTest = params?.scissorTest;
+		this.viewport = params?.viewport;
+		this.depthStencil = params?.depthStencil;
+		this.blendConstant = params?.blendConstant;
+		this.stencilReference = params?.stencilReference;
+		this.multisample = params?.multisample;
+		this.primitive = params?.primitive;
 		this.stencilEnabled = false;
 		this.scissorTestEnabled = false;
-		this.targets = undefined;
+		this.targets = params?.targets;
 	}
-	bind(passEncoder: GPURenderPassEncoder, context: Context) {
-		const { viewPort, scissorTest } = context;
+	bind(params: BindRenderState) {
+		const { passEncoder, viewPort, scissorTest } = params;
 		const finalViewport = this.viewport ?? viewPort;
 		const finalScissorTest = this.scissorTest ?? scissorTest;
 		if (this.stencilReference) passEncoder.setStencilReference(this.stencilReference);
-		if (finalViewport.equalsAndUpdateCache(cacheViewPort)) {
+		if ((finalViewport as ViewPort)?.equalsAndUpdateCache(cacheViewPort)) {
 			const { x, y, width, height, minDepth, maxDepth } = finalViewport;
 			passEncoder.setViewport(x, y, width, height, minDepth, maxDepth);
 		}
 		if (this.blendConstant) passEncoder.setBlendConstant(this.blendConstant);
-		if (finalScissorTest.equalsAndUpdateCache(cacheScissorTest)) {
+		if ((finalScissorTest as ScissorTest)?.equalsAndUpdateCache(cacheScissorTest)) {
 			const { x, y, width, height } = finalScissorTest;
 			passEncoder.setScissorRect(x, y, width, height);
 		}
@@ -282,7 +282,7 @@ export class Target {
 }
 const cacheViewPort = new ViewPort();
 const cacheScissorTest = new ScissorTest();
-type DepthStencilProps = {
+export type DepthStencilProps = {
 	format?: TextureFormat;
 	depthWriteEnabled?: boolean;
 	depthCompare?: CompareFunction;
@@ -301,7 +301,7 @@ type DepthStencilProps = {
 	depthBiasSlopeScale?: number;
 	depthBiasClamp?: number;
 };
-type TargetProps = {
+export type TargetProps = {
 	format?: TextureFormat;
 	blendColorOperation?: BlendOperation;
 	blendColorSrcFactor?: BlendFactor;
@@ -310,4 +310,21 @@ type TargetProps = {
 	blendAlphaSrcFactor?: BlendFactor;
 	blendAlphaDstFactor?: BlendFactor;
 	writeMask?: GPUColorWrite;
+};
+export type RenderStateParams = {
+	scissorTest?: ScissorTest;
+	viewport?: ViewPort;
+	targets?: Array<Target>;
+	depthStencil?: DepthStencil;
+	blendConstant?: BlendConstant;
+	stencilReference?: number;
+	multisample?: MultiSample;
+	primitive?: Primitive;
+	stencilEnabled?: boolean;
+	scissorTestEnabled?: boolean;
+};
+export type BindRenderState = {
+	passEncoder: GPURenderPassEncoder;
+	viewPort: ViewPort;
+	scissorTest: ScissorTest;
 };

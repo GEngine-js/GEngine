@@ -97,10 +97,16 @@ export default class RenderQueue {
 		});
 	}
 	static excuteCommand(command: DrawCommand, context?: Context, passEncoder?: GPURenderPassEncoder, camera?: Camera) {
-		command.render(context, passEncoder, camera);
+		command.render({
+			device: context.device,
+			passEncoder,
+			camera,
+			viewPort: context?.viewPort,
+			scissorTest: context?.scissorTest
+		});
 	}
 	static excuteCompute(command: ComputeCommand, context?: Context, passEncoder?: GPUComputePassEncoder) {
-		command.render(context, passEncoder);
+		command.render({ device: context.device, passEncoder });
 	}
 	reset() {
 		this.pre = [];
@@ -116,11 +122,11 @@ export default class RenderQueue {
 	static _compareFromFarToNear(a: Mesh, b: Mesh): number {
 		return a.priority - b.priority || b.distanceToCamera - a.distanceToCamera;
 	}
-	//according to camera distance
+	// according to camera distance
 	static sort<T>(insatnce: T[], from: number, to: number, compareFunc: Function): void {
 		RenderQueue._quickSort(insatnce, from, to, compareFunc);
 	}
-	//from https://github.com/oasis-engine/engine/blob/main/packages/core/src/RenderPipeline/RenderQueue.ts
+	// from https://github.com/oasis-engine/engine/blob/main/packages/core/src/RenderPipeline/RenderQueue.ts
 	private static _quickSort<T>(a: T[], from: number, to: number, compareFunc: Function): void {
 		while (true) {
 			// Insertion sort is faster for short arrays.

@@ -74,8 +74,8 @@ export default class Pipeline {
 				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
 					.gpuPipelineLayout,
 				compute: {
-					module: shaderSource.createShaderModule(device) as GPUShaderModule,
-					entryPoint: shaderSource.computeMain
+					module: shaderSource.getShaderModule(device).compute,
+					entryPoint: shaderSource?.compute?.computeMain || "main"
 				}
 			});
 			computePipelines.set(hashId, pipeline);
@@ -90,17 +90,14 @@ export default class Pipeline {
 		hashId: string
 	): GPURenderPipelineDescriptor {
 		const { vertexBuffers, shaderSource } = drawComand;
-		const { vert, frag } = shaderSource.createShaderModule(device) as {
-			vert: GPUShaderModule;
-			frag: GPUShaderModule;
-		};
+		const { vert, frag } = shaderSource.getShaderModule(device);
 		const pipelineDec = {
 			layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout
 		} as any;
 		if (vert)
 			pipelineDec.vertex = {
 				module: vert,
-				entryPoint: shaderSource.vertEntryPoint,
+				entryPoint: shaderSource?.render?.vertMain || "main",
 				buffers: vertexBuffers.map((vertexBuffer) => vertexBuffer.getBufferDes())
 			};
 		if (renderState.primitive) pipelineDec.primitive = renderState.primitive.getGPUPrimitiveDec();
@@ -109,7 +106,7 @@ export default class Pipeline {
 		if (frag)
 			pipelineDec.fragment = {
 				module: frag,
-				entryPoint: shaderSource.fragEntryPoint,
+				entryPoint: shaderSource?.render?.fragMain || "main",
 				targets: renderState.targets.map((target) => {
 					return target.getGPUTargetDec();
 				})

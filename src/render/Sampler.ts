@@ -1,5 +1,3 @@
-import Context from "./Context";
-
 class Sampler {
 	public gpuSampler: GPUSampler;
 	public layoutType: GPUSamplerBindingLayout;
@@ -30,8 +28,8 @@ class Sampler {
 		);
 		this.layoutType = layoutType;
 	}
-	update(context: Context) {
-		if (!this.gpuSampler) this.gpuSampler = context.device.createSampler(this.descriptor);
+	update(device: GPUDevice) {
+		if (!this.gpuSampler) this.gpuSampler = device.createSampler(this.descriptor);
 	}
 }
 

@@ -18,12 +18,12 @@ export default class ShaderMaterial extends Material {
 		this.type = type;
 		this.shaderMaterialParms = options;
 		this.shaderSource = new ShaderSource({
-			type,
-			frag,
-			vert,
-			custom: true,
-			defines: defaultValue(defines, {}),
-			render: true
+			shaderId: type,
+			render: {
+				fragShader: frag,
+				vertShader: vert
+			},
+			defines: defaultValue(defines, {})
 		});
 		this.uniforms = options.uniforms;
 		this.uniformBuffer = undefined;

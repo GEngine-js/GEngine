@@ -4,4 +4,5 @@ import Texture from "../render/Texture";
 export default interface IBaseRenderLine {
 	render(frameState: FrameState, camera?: Camera): void;
 	getOutputTexture(): Texture;
+	setSize(width: number, height: number): void;
 }

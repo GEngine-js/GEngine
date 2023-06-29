@@ -3,7 +3,6 @@ import { FrameState } from "../core/FrameState";
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
-import { Target } from "../render/RenderState";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
 import Pass from "./Pass";
@@ -20,7 +19,7 @@ export class DeferredPass extends Pass {
 		this.createRenderTarget(context);
 	}
 	private createRenderTarget(context: Context) {
-		const { width, height, depth } = this.context.presentationSize;
+		const { width, height, depth } = context.presentationSize;
 		const positionTexture = new Texture({
 			label: "positionTexture",
 			size: { width, height, depth },
@@ -56,15 +55,15 @@ export class DeferredPass extends Pass {
 			depthAttachment
 		);
 
-		//create targets
-		const positionTarget = new Target({
-			format: TextureFormat.RGBA32Float
-		});
-		const normalTarget = new Target({
-			format: TextureFormat.RGBA32Float
-		});
-		const albedoTarget = new Target({
-			format: TextureFormat.BGRA8Unorm
-		});
+		// create targets
+		// const positionTarget = new Target({
+		// 	format: TextureFormat.RGBA32Float
+		// });
+		// const normalTarget = new Target({
+		// 	format: TextureFormat.RGBA32Float
+		// });
+		// const albedoTarget = new Target({
+		// 	format: TextureFormat.BGRA8Unorm
+		// });
 	}
 }

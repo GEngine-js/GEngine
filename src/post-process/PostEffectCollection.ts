@@ -26,8 +26,9 @@ export default class PostEffectCollection {
 		});
 		this.resolveFrame.render(context, this.currentColorTexture);
 	}
-	setResolveFrameDirty(value: boolean) {
-		this.resolveFrame.material.dirty = value;
+	setSize(width: number, height: number) {
+		this._postEffects.forEach((postEffect) => postEffect.setSize(width, height));
+		this.resolveFrame.setSize(width, height);
 	}
 	private postEffectsSort() {
 		// this._postEffects.sort()

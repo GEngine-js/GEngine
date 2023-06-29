@@ -90,8 +90,7 @@ export default class PbrMaterial extends Material {
 		this._normalScale = new Vector2(1, 1);
 		this._IBLRender = true;
 		this.shaderSource = new ShaderSource({
-			type: this.type,
-			render: true,
+			shaderId: this.type,
 			defines: {
 				materialPbr: true,
 				USE_IBL: this._IBLRender

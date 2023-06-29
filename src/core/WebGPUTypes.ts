@@ -3,8 +3,15 @@ import { Mesh } from "../mesh/Mesh";
 import PostEffect from "../post-process/PostEffect";
 import BindGroupEntity from "../render/BindGroupEntity";
 import BindGroupLayout from "../render/BindGroupLayout";
+import Buffer from "../render/Buffer";
+import IndexBuffer from "../render/IndexBuffer";
+import { RenderState } from "../render/RenderState";
+import RenderTarget from "../render/RenderTarget";
 import Sampler from "../render/Sampler";
+import ShaderData from "../render/ShaderData";
 import Texture from "../render/Texture";
+import VertexBuffer from "../render/VertexBuffer";
+import { ShaderSource } from "../shader/ShaderSource";
 import {
 	BlendFactor,
 	BlendOperation,
@@ -241,10 +248,12 @@ export type RenderStateProps = {
 	stencilEnabled?: boolean;
 };
 export type ViewPort = {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
+	x?: number;
+	y?: number;
+	width?: number;
+	height?: number;
+	minDepth?: number;
+	maxDepth?: number;
 };
 export type ScissorTest = {
 	x: number;
@@ -254,10 +263,10 @@ export type ScissorTest = {
 };
 export type ShaderMaterialParms = {
 	type: string;
-	frag: string | Function;
-	vert: string | Function;
+	frag: string | ShaderFunc;
+	vert: string | ShaderFunc;
 	uniforms: { [uniform: string]: IUniform };
-	defines?: any;
+	defines?: ShaderDefine;
 	light?: boolean;
 };
 export interface IUniform<TValue = any> {
@@ -284,3 +293,157 @@ export enum LightType {
 	AmbientLight = "ambientLight",
 	DirectionalLight = "directionalLight"
 }
+export type ShaderDefine = { [prop: string]: boolean | number };
+
+export type ShaderSourceParams = {
+	shaderId?: string;
+	defines?: ShaderDefine;
+	compute?: computeParams;
+	render?: renderParams;
+};
+export type renderParams = {
+	vertMain?: string;
+	fragMain?: string;
+	fragShader?: string | ShaderFunc;
+	vertShader?: string | ShaderFunc;
+};
+export type computeParams = {
+	computeMain?: string;
+	computeShader?: string | ShaderFunc;
+};
+export interface GPUShaderModuleObject {
+	vert: GPUShaderModule;
+	frag: GPUShaderModule;
+}
+export type ShaderFunc = (defines?: ShaderDefine) => string;
+export type ShaderString = {
+	vert?: string;
+	frag?: string;
+	compute?: string;
+};
+export type ShaderModule = {
+	vert?: GPUShaderModule;
+	frag?: GPUShaderModule;
+	compute?: GPUShaderModule;
+};
+export type UniformFunc = () => any;
+
+export type DrawCommandParams = {
+	shaderData?: ShaderData;
+
+	renderTarget?: RenderTarget;
+
+	vertexBuffers?: Array<VertexBuffer>;
+
+	indexBuffer?: IndexBuffer;
+
+	renderState?: RenderState;
+
+	queryIndex?: number;
+
+	count?: number;
+
+	instances?: number;
+
+	shaderSource?: ShaderSource;
+
+	dirty?: boolean;
+
+	lightShaderData?: ShaderData;
+
+	useLight?: boolean;
+};
+
+export type ModelParams = {
+	shaderId?: string;
+	frag?: string;
+	vert?: string;
+	compute?: string;
+	vertexBuffers?: Array<{
+		uid?: string;
+		stepMode?: string;
+		attributes?: { [prop: string]: AttributeProp };
+	}>;
+	renderState?: RenderStateProp;
+	uniformBuffers?: Array<{
+		uid?: string;
+		type?: string;
+		usage?: number;
+		Uniforms: { [uniform: string]: IUniform<any> };
+	}>;
+	count?: number;
+	instances?: number;
+	indices?: Array<number>;
+	dispatch?: { x?: number; y?: number; z?: number };
+	renderTarget?: RenderTarget;
+};
+export type AttributeProp = {
+	size?: number;
+	value?: [];
+	names?: Array<string>;
+	itemSizes?: [];
+	buffer?: Buffer;
+};
+export type RenderStateProp = {
+	stencilReference: number;
+	blendConstant?: {
+		r: number;
+		g: number;
+		b: number;
+		a: number;
+	};
+	multiSample?: {
+		count: number;
+		mask: number;
+		alphaToCoverageEnabled: boolean;
+	};
+	scissorTest?: {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	};
+	viewPort?: {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		minDepth: number;
+		maxDepth: number;
+	};
+	primitive?: {
+		frontFace: string;
+		cullMode: string;
+		unclippedDepth: boolean;
+		topology: string;
+	};
+	depthStencil?: {
+		format: string;
+		depthWriteEnabled: boolean;
+		depthCompare: string;
+		stencilReadMask: number;
+		stencilWriteMask: number;
+		stencilFrontCompare: string;
+		stencilFrontFailOp: string;
+		stencilFrontDepthFailOp: string;
+		stencilFrontPassOp: string;
+
+		stencilBackCompare: string;
+		stencilBackFailOp: string;
+		stencilBackDepthFailOp: string;
+		stencilBackPassOp: string;
+		depthBias: number;
+		depthBiasSlopeScale: number;
+		depthBiasClamp: number;
+	};
+	targets?: Array<{
+		format?: string;
+		blendColorOperation?: string;
+		blendColorSrcFactor?: string;
+		blendColorDstFactor?: string;
+		blendAlphaOperation?: string;
+		blendAlphaSrcFactor?: string;
+		blendAlphaDstFactor?: string;
+		writeMask: GPUColorWrite;
+	}>;
+};

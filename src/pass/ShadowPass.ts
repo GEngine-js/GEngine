@@ -110,7 +110,9 @@ export class ShadowPass extends Pass {
 		this.setRenderTarget(shadow);
 		super.beforeRender();
 	}
-
+	public setSize(width: number, height: number): void {
+		this.renderTarget.setSize(width, height, 1);
+	}
 	private setRenderTarget(shadow: BaseShadow) {
 		this.renderTarget.depthAttachment.texture = shadow.getShadowMapTexture();
 	}

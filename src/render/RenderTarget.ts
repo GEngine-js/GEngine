@@ -1,28 +1,28 @@
 import { PassType } from "../core/WebGPUTypes";
 import Attachment from "./Attachment";
-import Context from "./Context";
 import QuerySet from "./QuerySet";
 import Texture from "./Texture";
 
 export default class RenderTarget {
-	public context: Context;
+	public device: GPUDevice;
 	private _renderPassDescriptor: GPURenderPassDescriptor;
 	private renderEncoder: GPURenderPassEncoder;
 	private commandEncoder: GPUCommandEncoder | null;
 	private computeEncoder: GPUComputePassEncoder;
-	texture: any;
 	constructor(
 		public type: PassType,
 		public colorAttachments: Attachment[],
 		public depthAttachment?: Attachment,
 		public stencilAttachment?: Attachment,
-		public querySet?: QuerySet
+		public querySet?: QuerySet,
+		public fixedSize?: boolean
 	) {
 		this.renderEncoder = undefined;
 		this.computeEncoder = undefined;
 		this._renderPassDescriptor = undefined;
 		this.commandEncoder = undefined;
-		this.context = undefined;
+		this.device = undefined;
+		this.fixedSize = false;
 	}
 	get renderPassDescriptor() {
 		this._renderPassDescriptor = this.getRenderPassDescriptor();
@@ -42,12 +42,12 @@ export default class RenderTarget {
 		}
 	}
 	private getRenderPassDescriptor(): GPURenderPassDescriptor | null {
-		this.checkSize();
-		this.depthAttachment?.texture?.update(this.context);
+		this.depthAttachment?.texture?.update(this.device);
+		this?.querySet?.update(this.device);
 		return {
 			...(this.colorAttachments && {
 				colorAttachments: this.colorAttachments.map((colorAttachment) => {
-					colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.context);
+					colorAttachment?.texture?.update && colorAttachment?.texture?.update(this.device);
 					return {
 						view:
 							// 暂时这么写
@@ -73,53 +73,41 @@ export default class RenderTarget {
 					// stencilClearValue: this.stencilAttachment?.value || 0,
 					// stencilStoreOp: this.stencilAttachment?.storeOp || "store",
 				} as GPURenderPassDepthStencilAttachment
-			})
+			}),
+			...(this.querySet && { occlusionQuerySet: this.querySet.gpuQuerySet })
 		};
 	}
 
-	public beginRenderPassEncoder(context: Context) {
-		if (!this.context) this.context = context;
-		const { device } = this.context;
-		this.commandEncoder = device.createCommandEncoder();
+	public beginRenderPassEncoder(device: GPUDevice) {
+		if (!this.device) this.device = device;
+		this.commandEncoder = this.device.createCommandEncoder();
 		this.renderEncoder = this.commandEncoder.beginRenderPass(this.renderPassDescriptor);
 		return this.renderEncoder;
 	}
 	public endRenderPassEncoder() {
 		this.renderEncoder?.end();
-		this.context.device.queue.submit([this.commandEncoder.finish()]);
+		this.device.queue.submit([this.commandEncoder.finish()]);
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	public beginComputePassEncoder(context: Context) {
-		if (!this.context) this.context = context;
-		const { device } = this.context;
-		this.commandEncoder = device.createCommandEncoder();
+	public beginComputePassEncoder(device: GPUDevice) {
+		if (!this.device) this.device = device;
+		this.commandEncoder = this.device.createCommandEncoder();
 		this.computeEncoder = this.commandEncoder.beginComputePass();
 		return this.computeEncoder;
 	}
 	public endComputePassEncoder() {
 		this.computeEncoder?.end();
-		this.context.device.queue.submit([this.commandEncoder.finish()]);
+		this.device.queue.submit([this.commandEncoder.finish()]);
 		this.commandEncoder = null;
 		this.renderEncoder = null;
 	}
-	private checkSize() {
-		const { width, height, depth } = this.context.presentationSize;
-		if (this.depthAttachment.texture) {
-			const size = this.depthAttachment?.texture?.textureProp?.size;
-			if (width != size?.width || height != size?.height || depth != size?.depth) {
-				this.depthAttachment.texture.setSize(width, height, depth);
-			}
-		}
-		if (this.colorAttachments) {
-			this.colorAttachments.forEach((colorAttachment) => {
-				if (colorAttachment.texture) {
-					const size = colorAttachment?.texture?.textureProp?.size;
-					if (size && (width != size?.width || height != size?.height || depth != size?.depth))
-						colorAttachment.texture.setSize(width, height, depth);
-				}
-			});
-		}
+	public setSize(width: number, height: number, depth = 1) {
+		if (this.fixedSize) return;
+		this?.depthAttachment?.texture?.setSize?.(width, height, depth);
+		this?.colorAttachments?.forEach?.((colorAttachment) =>
+			colorAttachment?.texture?.setSize?.(width, height, depth)
+		);
 	}
 	destroy() {
 		if (this.colorAttachments) {

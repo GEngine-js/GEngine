@@ -44,6 +44,9 @@ export default class PostEffect implements IClone {
 	render(context: Context, colorTexture: Texture): Texture {
 		return null;
 	}
+	setSize(width: number, height: number): void {
+		// todo ;
+	}
 	destroy() {
 		this?.currentRenderTarget?.destroy();
 	}
@@ -51,8 +54,8 @@ export default class PostEffect implements IClone {
 		this.fullScreenQuad.material.dirty = true;
 		this.fullScreenQuad.material.update();
 		const drawComand = this.fullScreenQuad.getDrawCommand();
-		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPassEncoder(context);
-		drawComand.render(context, currentRenderPassEncoder);
+		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPassEncoder(context.device);
+		drawComand.render({ device: context.device, passEncoder: currentRenderPassEncoder });
 		this.currentRenderTarget.endRenderPassEncoder();
 	}
 	private initDefaultParms() {

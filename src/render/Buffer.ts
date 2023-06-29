@@ -43,19 +43,6 @@ class Buffer {
 	static createUniformBuffer(label: string, device: GPUDevice, size: number, usage?: BufferUsage): Buffer {
 		return new Buffer(label, device, usage, null, size);
 	}
-	static getBufferType(usage) {
-		let result;
-		switch (usage) {
-			case BufferUsage.Uniform:
-				result = "uniform";
-				break;
-			case BufferUsage.Storage:
-				result = "storage";
-				break;
-			default:
-				break;
-		}
-	}
 	// https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
 	public setSubData(offset: number, data: ArrayBufferView, size?: number): void {
 		const srcArrayBuffer = data.buffer;
