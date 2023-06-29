@@ -92,7 +92,7 @@ class DrawCommand implements Command {
 			renderTarget,
 			useLight
 		} = this;
-		const currentPassEncoder = renderTarget?.beginRenderPassEncoder?.(device) ?? passEncoder;
+		const currentPassEncoder = renderTarget?.beginRenderPass?.(device) ?? passEncoder;
 		const defines = Object.assign({}, lightShaderData?.defines ?? {}, camera?.shaderData?.defines ?? {});
 
 		shaderData?.bind?.(device, currentPassEncoder);
@@ -124,7 +124,7 @@ class DrawCommand implements Command {
 		} else if (count) {
 			currentPassEncoder.draw(count, instances || 1, 0, 0);
 		}
-		renderTarget?.endRenderPassEncoder?.();
+		renderTarget?.endRenderPass?.();
 	}
 }
 export default DrawCommand;

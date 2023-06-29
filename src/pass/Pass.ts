@@ -23,7 +23,7 @@ class Pass {
 		// todo ;
 	}
 	beforeRender(options?: any) {
-		this.passRenderEncoder = this.renderTarget.beginRenderPassEncoder(this.context.device);
+		this.passRenderEncoder = this.renderTarget.beginRenderPass(this.context.device);
 		if (this.computeTarget)
 			this.passComputeEncoder = this.computeTarget.beginComputePassEncoder(this.context.device);
 	}
@@ -34,7 +34,7 @@ class Pass {
 		return this.renderTarget.getDepthTexture();
 	}
 	afterRender() {
-		this.renderTarget.endRenderPassEncoder();
+		this.renderTarget.endRenderPass();
 		if (this.computeTarget) this.computeTarget.endComputePassEncoder();
 	}
 }

@@ -51,7 +51,7 @@ export default class RenderTarget {
 					return {
 						view:
 							// 暂时这么写
-							colorAttachment.texture.textureView || undefined,
+							colorAttachment?.textureView?.() ?? colorAttachment.texture.textureView,
 						resolveTarget:
 							colorAttachment.resolveTarget != undefined
 								? colorAttachment.resolveTarget.textureView
@@ -78,13 +78,13 @@ export default class RenderTarget {
 		};
 	}
 
-	public beginRenderPassEncoder(device: GPUDevice) {
+	public beginRenderPass(device: GPUDevice) {
 		if (!this.device) this.device = device;
 		this.commandEncoder = this.device.createCommandEncoder();
 		this.renderEncoder = this.commandEncoder.beginRenderPass(this.renderPassDescriptor);
 		return this.renderEncoder;
 	}
-	public endRenderPassEncoder() {
+	public endRenderPass() {
 		this.renderEncoder?.end();
 		this.device.queue.submit([this.commandEncoder.finish()]);
 		this.commandEncoder = null;

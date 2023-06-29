@@ -9,6 +9,7 @@ export { default as Attachment } from "./render/Attachment";
 export { Attribute } from "./render/Attribute";
 export { default as BindGroup } from "./render/BindGroup";
 export { default as BindGroupEntity } from "./render/BindGroupEntity";
+export { default as RenderTarget } from "./render/RenderTarget";
 // utils
 // helper
 export { ShadowMapDebugger } from "./helper/ShadowMapDebugger";

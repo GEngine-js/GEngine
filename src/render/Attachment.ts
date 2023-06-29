@@ -7,7 +7,7 @@ class Attachment {
 
 	public texture?: Texture;
 	public resolveTarget?: Texture;
-
+	public textureView?: () => GPUTextureView;
 	public readOnly?: boolean;
 
 	constructor(public value: GPUColorDict | GPUColor | number, options?: AttachmentOptions) {

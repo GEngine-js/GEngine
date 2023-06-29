@@ -49,28 +49,24 @@ export default class ResolveFrame {
 		if (!this.canvasRenderTarget) this.initRenderTarget(context);
 		// this.material
 		this.material.uniforms.texture.value = colorTexture;
-		// @ts-ignore
-		this.canvasRenderTarget.colorAttachments[0].texture = {
-			textureView: context.context.getCurrentTexture().createView()
-		};
+
 		this.material.update(undefined, this.quadMesh);
 
 		const drawComand = this.quadMesh.getDrawCommand();
 
-		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPassEncoder(context.device);
+		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPass(context.device);
 
 		drawComand.render({ device: context.device, passEncoder: currentRenderPassEncoder });
 
-		this.canvasRenderTarget.endRenderPassEncoder();
+		this.canvasRenderTarget.endRenderPass();
 	}
 	private initRenderTarget(context: Context) {
 		const { width, height, depth } = context.presentationSize;
 		const colorAttachment = new Attachment(
 			{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
 			{
-				// @ts-ignore
-				texture: {
-					textureView: undefined
+				textureView: () => {
+					return context.context.getCurrentTexture().createView();
 				}
 			}
 		);

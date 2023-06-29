@@ -74,6 +74,7 @@ export interface AttachmentOptions {
 	texture?: Texture;
 	resolveTarget?: Texture;
 	storeOp?: GPUStoreOp;
+	textureView?: () => GPUTextureView;
 }
 
 export type PassType = "render" | "compute";
