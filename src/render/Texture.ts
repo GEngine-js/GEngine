@@ -3,14 +3,12 @@ import { WebGPUTextureProps, ImageData } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
 import Context from "./Context";
-import Sampler from "./Sampler";
 
 export default class Texture {
 	[x: string]: any;
 	private _textureView: GPUTextureView;
 	public gpuTexture?: GPUTexture;
 	public mipLevelCount?: number;
-	public sampler?: Sampler;
 	public context?: Context;
 	public device?: GPUDevice;
 	public textureProp?: WebGPUTextureProps;
@@ -26,7 +24,6 @@ export default class Texture {
 			},
 			textureProp
 		);
-		this.sampler = textureProp.sampler;
 		this.dirty = true;
 		this.fixedSize = textureProp.fixedSize || false;
 	}
@@ -64,7 +61,6 @@ export default class Texture {
 				if (!Texture.mipmapTools) Texture.mipmapTools = new MipmapGenerator(this.device);
 				this.gpuTexture = Texture.mipmapTools.generateMipmap(this);
 			}
-			if (this.sampler) this.sampler.update(this.device);
 		}
 	}
 	private setData(options: ImageData) {

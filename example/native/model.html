@@ -141,6 +141,7 @@
 					vertexBuffers: [
 						{
 							stepMode: "vertex",
+							uid: "vertAttr",
 							attributes: {
 								position: { size: 4, value: positions },
 								color: { size: 4, value: colors }
@@ -150,6 +151,7 @@
 					uniformBuffers: [
 						{
 							type: "uniform",
+							uid: "systemMatrix",
 							uniforms: {
 								modelViewProjectionMatrix: {
 									type: "mat4",

@@ -32,7 +32,6 @@ export default async function CubeTextureLoader(urls) {
 		},
 		format: "rgba8unorm",
 		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-		sampler: baseSampler,
 		data,
 		viewFormats: "cube",
 		mipLevelCount: 6,

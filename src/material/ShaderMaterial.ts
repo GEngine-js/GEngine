@@ -53,7 +53,6 @@ export default class ShaderMaterial extends Material {
 			addUniformToShaderData(
 				uniformsName,
 				this.uniforms[uniformsName],
-				this.uniforms,
 				this.shaderData,
 				mesh,
 				this.uniformBuffer

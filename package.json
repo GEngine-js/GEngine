@@ -1,9 +1,10 @@
 {
-  "name": "GEngine",
+  "name": "gengine",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
+  "keywords": ["webgpu", "gpu", "webgl2", "webgl"], 
   "source": "src/index.ts",
   "scripts": {
     "check-keyword": "bash ./hooks/check-keyword.sh",
@@ -62,6 +63,10 @@
   "engines": {
     "node": ">=14.19.3"
   },
+
+    "publishConfig": {
+      "access": "public"
+    },
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog-zh",

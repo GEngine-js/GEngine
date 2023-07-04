@@ -34,17 +34,17 @@ export default class UniformBuffer {
 	private _uniformStruct: Map<string, Uniform<any>>;
 	private _bufferSize: number;
 	private label: string;
-	byteOffset: number;
-	uniformDirty: boolean;
-	binding: number;
-	visibility: ShaderStage;
-	usage: BufferUsage;
-	buffer: Buffer;
-	dataBuffer: Float32Array;
-	offset: number;
-	maxOffset: number;
-	isUniformBuffer: boolean;
-	name: string;
+	public byteOffset: number;
+	public uniformDirty: boolean;
+	public binding: number;
+	public visibility: ShaderStage;
+	public usage: BufferUsage;
+	public buffer: Buffer;
+	public dataBuffer: Float32Array;
+	public offset: number;
+	public maxOffset: number;
+	public isUniformBuffer: boolean;
+	public name: string;
 	private static UniformType = {
 		[UniformEnum.UniformUint]: UniformUint,
 		[UniformEnum.Float]: UniformFloat,
@@ -67,7 +67,7 @@ export default class UniformBuffer {
 		[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
 		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows
 	};
-	constructor(options: UniformBufferType) {
+	constructor(options: UniformBufferParams) {
 		this.type = defaultValue(options.type, "uniform");
 		this.label = defaultValue(options.label, "");
 		this.name = defaultValue(options.label, "");
@@ -79,6 +79,7 @@ export default class UniformBuffer {
 		this._uniformStruct = new Map();
 		this.uniformDirty = true;
 		this._bufferSize = options.size;
+		this.buffer = options.buffer;
 		this.offset = 0;
 		this.dataBuffer = defaultValue(options.dataBuffer, new Float32Array(defaultValue(this._bufferSize, 400)));
 		this.byteOffset = 0;
@@ -93,11 +94,11 @@ export default class UniformBuffer {
 		};
 	}
 	get bufferSize() {
-		return this.uniformsSize * 4;
+		return this._bufferSize ?? this.uniformsSize * 4;
 	}
 	get uniformsSize() {
 		// https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
-		return Math.ceil(this.byteOffset / 16) * 16;
+		return this._bufferSize != undefined ? this._bufferSize / 4 : Math.ceil(this.byteOffset / 16) * 16;
 	}
 	bind(device: GPUDevice) {
 		this._uniformStruct.forEach((uniform) => {
@@ -161,7 +162,7 @@ export default class UniformBuffer {
 	setUniform(name: string, value: UniformFunc | number | object, uniformType: UniformEnum, count?: number) {
 		if (this._uniformStruct.get(name)) return;
 		const TypeUniform = UniformBuffer.UniformType[uniformType];
-		this.byteOffset += this.checkUniformOffset(this.byteOffset, TypeUniform.align);
+		this.byteOffset += UniformBuffer.checkUniformOffset(this.byteOffset, TypeUniform.align);
 		const uniform =
 			count != undefined
 				? new TypeUniform(name, this.dataBuffer, this.byteOffset, value, 0, count)
@@ -169,7 +170,7 @@ export default class UniformBuffer {
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
 	}
-	private checkUniformOffset(byteSize: number, Align: number): number {
+	static checkUniformOffset(byteSize: number, Align: number): number {
 		// from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
 		// return this.hasDynamicOffset
 		// 	? Math.ceil(byteSize / 256) * 256 - byteSize
@@ -180,7 +181,7 @@ export default class UniformBuffer {
 		this?.buffer?.destroy();
 	}
 }
-type UniformBufferType = {
+type UniformBufferParams = {
 	label: string;
 	type?: string;
 	usage?: BufferUsage;
@@ -190,4 +191,5 @@ type UniformBufferType = {
 	hasDynamicOffset?: boolean;
 	minBindingSize?: number;
 	maxOffset?: number;
+	buffer?: Buffer;
 };

@@ -1,4 +1,4 @@
-import { IUniform, Uniforms } from "../core/WebGPUTypes";
+import { IUniform } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
@@ -31,73 +31,85 @@ export function checkContainFloatType(uniforms) {
 export function addUniformToShaderData(
 	name: string,
 	uniform: IUniform,
-	uniforms: Uniforms,
 	shaderData: ShaderData,
 	mesh?: Mesh,
 	uniformBuffer?: UniformBuffer
 ) {
+	const valueIsFunc = uniform?.value instanceof Function;
 	switch (uniform.type) {
 		case "float":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Float
 			);
 			break;
 		case "vec2":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.FloatVec2
 			);
 			break;
 		case "vec3":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.FloatVec3
 			);
 			break;
 		case "color":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Color
 			);
 			break;
 		case "vec4":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.FloatVec4
 			);
 			break;
 		case "mat2":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Mat2
 			);
 			break;
 		case "mat3":
 			uniformBuffer.setUniform(
 				name,
-				uniforms[name].value instanceof Function
-					? uniforms[name].value
+				valueIsFunc
+					? uniform.value
 					: () => {
-							return uniforms[name].value;
+							return uniform.value;
 					  },
 				UniformEnum.Mat3
 			);
@@ -105,63 +117,85 @@ export function addUniformToShaderData(
 		case "mat4":
 			uniformBuffer.setUniform(
 				name,
-				name == "modelMatrix"
-					? mesh?.modelMatrix
-					: name === "normalMatrix"
-					? mesh?.normalMatrix
-					: uniforms[name].value,
+				valueIsFunc
+					? uniform.value
+					: () =>
+							name == "modelMatrix"
+								? mesh?.modelMatrix
+								: name === "normalMatrix"
+								? mesh?.normalMatrix
+								: uniform.value,
 				UniformEnum.Mat4
 			);
 			break;
 		case "float-array":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.FloatArray,
-				uniforms[name].value.length
+				uniform.value.length
 			);
 			break;
 		case "vec2-array":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Vec2Array,
-				uniforms[name].value.length
+				uniform.value.length
 			);
 			break;
 		case "vec3-array":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Vec3Array,
-				uniforms[name].value.length
+				uniform.value.length
 			);
 			break;
 		case "vec4-array":
 			uniformBuffer.setUniform(
 				name,
-				() => {
-					return uniforms[name].value;
-				},
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
 				UniformEnum.Vec4Array,
-				uniforms[name].value.length
+				uniform.value.length
 			);
 			break;
 		case "texture":
-			shaderData.setTexture(name, () => {
-				return uniforms[name].value;
-			});
+			shaderData.setTexture(
+				name,
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  }
+			);
 			break;
 		case "sampler":
-			shaderData.setSampler(name, () => {
-				return uniforms[name].value;
-			});
+			shaderData.setSampler(
+				name,
+				valueIsFunc
+					? uniform.value
+					: () => {
+							return uniform.value;
+					  },
+				uniform?.binding
+			);
 			break;
 		default:
 			throw new Error("not match unifrom type");

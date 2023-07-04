@@ -2,6 +2,7 @@ import Camera from "../camera/Camera";
 import { DrawCommandParams } from "../core/WebGPUTypes";
 import { Material } from "../material/Material";
 import { ShaderSource } from "../shader/ShaderSource";
+import Buffer from "./Buffer";
 import { Command } from "./Command";
 import Context from "./Context";
 import IndexBuffer from "./IndexBuffer";
@@ -34,6 +35,8 @@ class DrawCommand implements Command {
 	public dirty?: boolean;
 
 	public indirectBuffer?: Buffer;
+
+	public indirectOffset?: number;
 
 	public lightShaderData?: ShaderData;
 
@@ -90,7 +93,10 @@ class DrawCommand implements Command {
 			count,
 			instances,
 			renderTarget,
-			useLight
+			useLight,
+			indirectOffset,
+			indirectBuffer,
+			queryIndex
 		} = this;
 		const currentPassEncoder = renderTarget?.beginRenderPass?.(device) ?? passEncoder;
 		const defines = Object.assign({}, lightShaderData?.defines ?? {}, camera?.shaderData?.defines ?? {});
@@ -118,12 +124,22 @@ class DrawCommand implements Command {
 			lightShaderData?.groupLayout,
 			camera?.shaderData?.groupLayout
 		]);
+		if (queryIndex != undefined) querySet?.beginQuery(currentPassEncoder, queryIndex);
 		pipeline.bind(currentPassEncoder);
 		if (indexBuffer) {
-			currentPassEncoder.drawIndexed(count || 0, instances || 1, 0, 0, 0);
+			if (indirectBuffer) {
+				currentPassEncoder.drawIndexedIndirect(indirectBuffer.gpuBuffer, indirectOffset || 0);
+			} else {
+				currentPassEncoder.drawIndexed(count || 0, instances || 1, 0, 0, 0);
+			}
 		} else if (count) {
-			currentPassEncoder.draw(count, instances || 1, 0, 0);
+			if (indirectBuffer) {
+				currentPassEncoder.drawIndirect(indirectBuffer.gpuBuffer, indirectOffset);
+			} else {
+				currentPassEncoder.draw(count, instances || 1, 0, 0);
+			}
 		}
+		if (queryIndex != undefined) querySet?.endQuery(currentPassEncoder);
 		renderTarget?.endRenderPass?.();
 	}
 }

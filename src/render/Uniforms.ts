@@ -539,6 +539,83 @@ export class UniformSampler extends Uniform<Sampler> {
 		this.sampler.update(device);
 	}
 }
+export type UniformStruct = {
+	[uniform: string]: { type?: string; value?: object | Array<number>; offset?: number };
+};
+export class UniformStructArray extends Uniform<UniformStruct> {
+	static align = 16;
+	static aligns = {
+		["u32"]: 4,
+		["f32"]: 4,
+		["vec2<f32>"]: 8,
+		["vec3<f32>"]: 16,
+		["vec4<f32>"]: 16,
+		["mat2x2<f32>"]: 8,
+		["mat3x3<f32>"]: 16,
+		["mat4x4<f32>"]: 16,
+		["color"]: 16
+	};
+	static byteSizes = {
+		["u32"]: 4,
+		["f32"]: 4,
+		["vec2<f32>"]: 8,
+		["vec3<f32>"]: 12,
+		["vec4<f32>"]: 16,
+		["mat2x2<f32>"]: 16,
+		["mat3x3<f32>"]: 48,
+		["mat4x4<f32>"]: 64,
+		["color"]: 12
+	};
+	byteOffset?: number;
+	sourceBuffer?: Float32Array;
+	structArray?: Array<UniformStruct>;
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: UniformFunc | number | object,
+		offset?: number
+	) {
+		super(uniformName, cb, offset);
+		this.cb = cb;
+		this.type = "struct-array";
+		this.visibility = ShaderStage.Fragment;
+		this.dirty = false;
+		this.byteOffset = byteOffset;
+		this.sourceBuffer = buffer;
+	}
+	set() {
+		//
+		this.structArray = this.getValue();
+		this.byteSize = this.getStructSize();
+		this.buffer = new Float32Array(this.sourceBuffer.buffer, this.byteOffset, this.byteSize / 4);
+		this.setSubData();
+		return true;
+	}
+	private setSubData() {
+		this.structArray.forEach((struct) => {
+			const keys = Object.keys(struct);
+			keys.forEach((key) => {
+				const data = Array.isArray(struct[key]?.value)
+					? struct[key]?.value
+					: (struct[key]?.value as any).toArray();
+				setDataToTypeArray(this.buffer, data, struct[key].offset);
+			});
+		});
+	}
+	private getStructSize() {
+		let byteOffset = 0;
+		this.structArray.forEach((struct) => {
+			const keys = Object.keys(struct);
+			keys.forEach((key) => {
+				byteOffset += UniformBuffer.checkUniformOffset(byteOffset, UniformStructArray.aligns[struct[key].type]);
+				struct[key].offset = byteOffset;
+				this.byteOffset += UniformStructArray.byteSizes[struct[key].type];
+			});
+		});
+		return byteOffset;
+	}
+}
 export class UniformSpotLights extends Uniform<SpotLight> {
 	static align = 16;
 	lights: Array<SpotLight>;

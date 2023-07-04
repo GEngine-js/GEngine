@@ -97,8 +97,8 @@
 					shaderId: "model",
 					frag: `
                 @fragment
-                fn main(@location(0) fragUV: vec2<f32>,@location(1) fragPosition: vec4<f32>) -> @location(0) vec4<f32> {
-                  return fragPosition;
+                fn main(@location(0) fragColor: vec4<f32>,@location(1) fragPosition: vec4<f32>) -> @location(0) vec4<f32> {
+                  return fragColor;
                 }
               `,
 					vert: `
@@ -109,18 +109,18 @@
 
                   struct VertexOutput {
                     @builtin(position) Position : vec4<f32>,
-                    @location(0) fragUV : vec2<f32>,
+                    @location(0) fragColor : vec4<f32>,
                     @location(1) fragPosition: vec4<f32>,
                   }
 
                   @vertex
                   fn main(
                     @location(0) position : vec4<f32>,
-                    @location(1) uv : vec2<f32>
+                    @location(1) color : vec4<f32>
                   ) -> VertexOutput {
                     var output : VertexOutput;
                     output.Position = uniforms.modelViewProjectionMatrix * position;
-                    output.fragUV = uv;
+                    output.fragColor = color;
                     output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
                     return output;
                   }
@@ -128,6 +128,7 @@
 					vertexBuffers: [
 						{
 							stepMode: "vertex",
+							uid: "vertAttr",
 							attributes: {
 								position: { size: 4, value: positions },
 								color: { size: 4, value: colors }
@@ -137,6 +138,7 @@
 					uniformBuffers: [
 						{
 							type: "uniform",
+							uid: "systemMatrix",
 							uniforms: {
 								modelViewProjectionMatrix: {
 									type: "mat4",
@@ -182,7 +184,6 @@
 					requestAnimationFrame(animate);
 					const passEncoder = canvasRenderTarget.beginRenderPass(context.device);
 					model.render({ device: context.device, passEncoder });
-					passEncoder.end();
 					canvasRenderTarget.endRenderPass();
 				}
 				animate();

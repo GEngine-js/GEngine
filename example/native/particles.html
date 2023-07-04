@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="Atzk/dTch1Tt8qYq/UwLn6aWawymlc3xOKy3xiuwsaj1HBK6eCTBb+EGOnv7LK+oSQ8Fr1l/qykGHhK64mAn+w4AAABjeyJvcmlnaW4iOiJodHRwczovL2hwdWdpcy5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+		/>
+		<title>gltf</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				height: 800px;
+				width: 800px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div id="app"></div>
+		</div>
+		<script type="module">
+			import { Model, Context, Texture, RenderTarget, Attachment,Sampler,Buffer } from "../../dist/index.js";
+			import { mat4, vec3 } from "../lib/esm/index.js";
+			   import {import_Shader,export_shader} from "../asset/shader.js"
+			const init = async () => {
+			     let textureWidth = 1;
+			     let textureHeight = 1;
+			     let numMipLevels = 1;
+			     let texture;
+			     const computeModels=[];
+				const context = new Context({
+					canvas: null,
+					container: document.getElementById("app"),
+					pixelRatio: 1
+				});
+				const { canvas, presentationFormat } = context;
+				await context.init();
+			     const buffer_a=Buffer.create('buffer_a',context.device,GPUBufferUsage.STORAGE,null,textureWidth * textureHeight * 4);
+			     const buffer_b=Buffer.create('buffer_b',context.device,GPUBufferUsage.STORAGE,null,textureWidth * textureHeight * 4);
+				const { width, height, depth } = context.presentationSize;
+			     /**********************RenderTarget***************************/
+			     {
+				const colorAttachment = new Attachment(
+					{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
+					{
+						textureView: () => {
+							return context.context.getCurrentTexture().createView();
+						}
+					}
+				);
+			     const response = await fetch(new URL('../textures/Di-3d.png', import.meta.url).toString());
+			     const imageBitmap = await createImageBitmap(await response.blob());
+			     const vertexData = [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0,];
+				const depthTexture = new Texture({
+					label: "resolveDepth",
+					size: { width, height, depth },
+					format: "depth24plus",
+					usage: GPUTextureUsage.RENDER_ATTACHMENT
+				});
+				const depthAttachment = new Attachment(1.0, { texture: depthTexture });
+				const canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
+			     }
+			     /*******************************Texture*******************************/
+			     {
+			         const response = await fetch(
+			           new URL('../../../assets/img/webgpu.png', import.meta.url).toString()
+			         );
+			         const imageBitmap = await createImageBitmap(await response.blob());
+
+			         // Calculate number of mip levels required to generate the probability map
+			         while (
+			           textureWidth < imageBitmap.width ||
+			           textureHeight < imageBitmap.height
+			         ) {
+			           textureWidth *= 2;
+			           textureHeight *= 2;
+			           numMipLevels++;
+			         }
+			       texture=new Texture({
+			           size: {
+			             width: imageBitmap.width,
+			             height: imageBitmap.height,
+			             depth: 1
+			           },
+			           mipLevelCount:numMipLevels,
+			           format: "rgba8unorm",
+			           usage:GPUTextureUsage.TEXTURE_BINDING |
+			                 GPUTextureUsage.STORAGE_BINDING |
+			                 GPUTextureUsage.COPY_DST |
+			                 GPUTextureUsage.RENDER_ATTACHMENT,,
+			           data:{
+			             source: imageBitmap,
+			             width: imageBitmap.width,
+			             height: imageBitmap.height,
+			           },
+			       })
+			       const sampler=new Sampler({
+			           magFilter: "linear",
+			           minFilter: "linear",
+			           // addressModeU: "repeat",
+			           // addressModeV: "repeat"
+			       })
+			     }
+
+				const aspect = canvas.width / canvas.height;
+				const projectionMatrix = mat4.perspective([], (2 * Math.PI) / 5, aspect, 1, 100.0);
+				const modelViewProjectionMatrix = mat4.create();
+			     const renderModel = new Model({
+					shaderId: "model",
+					vert: `
+			             var<private> rand_seed : vec2<f32>;
+
+			             fn init_rand(invocation_id : u32, seed : vec4<f32>) {
+			               rand_seed = seed.xz;
+			               rand_seed = fract(rand_seed * cos(35.456+f32(invocation_id) * seed.yw));
+			               rand_seed = fract(rand_seed * cos(41.235+f32(invocation_id) * seed.xw));
+			             }
+
+			             fn rand() -> f32 {
+			               rand_seed.x = fract(cos(dot(rand_seed, vec2<f32>(23.14077926, 232.61690225))) * 136.8168);
+			               rand_seed.y = fract(cos(dot(rand_seed, vec2<f32>(54.47856553, 345.84153136))) * 534.7645);
+			               return rand_seed.y;
+			             }
+
+			             ////////////////////////////////////////////////////////////////////////////////
+			             // Vertex shader
+			             ////////////////////////////////////////////////////////////////////////////////
+			             struct RenderParams {
+			               modelViewProjectionMatrix : mat4x4<f32>,
+			               right : vec3<f32>,
+			               up : vec3<f32>
+			             }
+			             @binding(0) @group(0) var<uniform> render_params : RenderParams;
+
+			             struct VertexInput {
+			               @location(0) position : vec3<f32>,
+			               @location(1) color : vec4<f32>,
+			               @location(2) quad_pos : vec2<f32>, // -1..+1
+			             }
+
+			             struct VertexOutput {
+			               @builtin(position) position : vec4<f32>,
+			               @location(0) color : vec4<f32>,
+			               @location(1) quad_pos : vec2<f32>, // -1..+1
+			             }
+
+			             @vertex
+			             fn vs_main(in : VertexInput) -> VertexOutput {
+			               var quad_pos = mat2x3<f32>(render_params.right, render_params.up) * in.quad_pos;
+			               var position = in.position + quad_pos * 0.01;
+			               var out : VertexOutput;
+			               out.position = render_params.modelViewProjectionMatrix * vec4<f32>(position, 1.0);
+			               out.color = in.color;
+			               out.quad_pos = in.quad_pos;
+			               return out;
+			             }
+
+			           `,
+					frag: `
+			             struct VertexOutput {
+			               @builtin(position) position : vec4<f32>,
+			               @location(0) color : vec4<f32>,
+			               @location(1) quad_pos : vec2<f32>, // -1..+1
+			             }
+			             @fragment
+			             fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
+			               var color = in.color;
+			               // Apply a circular particle alpha mask
+			               color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
+			               return color;
+			             }
+			            `,
+					vertexBuffers: [
+			        {
+			           stepMode: "instance",
+							uid:'instanceAttr',
+							attributes: {
+			             position: { size: 3, value: positions },
+			             color: { size: 4, value: positions },
+							}
+			         },
+						{
+							stepMode: "vertex",
+							uid:'vertAttr',
+							attributes: {
+			             position: { size: 2, value: vertexData },
+							}
+						}
+					],
+					uniformBuffers: [
+						{
+							type: "uniform",
+							uid:'systemMatrix',
+							uniforms: {
+								modelViewProjectionMatrix: {
+									type: "mat4",
+									value: () => {
+										let viewMatrix = mat4.identity([]);
+										mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
+										const now = Date.now() / 1000;
+										mat4.rotate(viewMatrix,viewMatrix,1,vec3.fromValues(Math.sin(now), Math.cos(now), 0));
+										mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+										return modelViewProjectionMatrix;
+									}
+								}
+							  },
+			             right:{},
+			             up:{},
+
+						}
+					],
+					renderState: {
+						targets: [
+			           {
+			               format: presentationFormat,
+			               blend: {
+			                 color: {
+			                   srcFactor: 'src-alpha',
+			                   dstFactor: 'one',
+			                   operation: 'add',
+			                 },
+			                 alpha: {
+			                   srcFactor: 'zero',
+			                   dstFactor: 'one',
+			                   operation: 'add',
+			                 },
+			               },
+			           },
+						],
+						primitive: {
+							topology: "triangle-list",
+							cullMode: "back"
+						},
+						depthStencil: {
+							depthWriteEnabled: true,
+							depthCompare: "less",
+							format: "depth24plus"
+						}
+					},
+					count: 6,
+					instances: 1
+				});
+			     const simulateModel=new Model({
+			       compute:shader,
+			         uniformBuffers:[
+			           {
+			             type: "uniform",
+							  uid:'SimulationParams',
+			             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+			             uniforms:{
+			               seed:{type:'vec4',value:textureWidth},
+			               deltaTime:{type:'u32',value:textureWidth},
+			             }
+			           },//根据uniforms创建uniformBuffer
+			           {
+			             type: "uniform",
+							  uid:'particle',
+			             usage:GPUBufferUsage.STORAGE,
+			             uniforms:{
+			               position:{type:'vec3',value:[0,0,0,]},
+			               lifetime:{type:'f32',value:0},
+			               color:{type:'vec4',value:[0,0,0,0]},
+			               velocity:{type:'vec3',value:[0,0,0]},
+			             }
+			           },
+			         ],
+			         uniformTextureAndSampler:{
+			             tex_in:{type:'texture',value:texture},
+			         },
+			         dispatch:{x:Math.ceil(levelWidth / 64),y:levelWidth}
+			     })
+			     for (let level = 0; level < numMipLevels; level++) {
+			       const levelWidth = textureWidth >> level;
+			       const levelHeight = textureHeight >> level;
+			       const shader =level == 0? import_Shader:export_shader;
+			       const compueModel=new Model({
+			         shaderId:'compute_'+level,
+			         compute:shader,
+			         uniformBuffers:[
+			           {
+			             type: "uniform",
+							  uid:'ubo',
+			             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+			             uniforms:{
+			               ubo:{type:'u32',value:textureWidth},
+			             }
+			           },//根据uniforms创建uniformBuffer
+			           {
+			             type: "uniform",
+							  uid:'buf_in',
+			             buffer:level & 1 ? buffer_a : buffer_b,
+			           },
+			           {
+			             type: "uniform",
+							  uid:'buf_out',
+			             buffer:level & 1 ? buffer_a : buffer_b,
+			           }
+			         ],
+			         uniformTextureAndSampler:{
+			             tex_in:{type:'texture',value:texture},
+			         },
+			         dispatch:{x:Math.ceil(levelWidth / 64),y:levelWidth}
+			       });
+			       computeModels.push(compueModel);
+			     }
+				function animate() {
+					requestAnimationFrame(animate);
+					const passEncoder = canvasRenderTarget.beginRenderPass(context.device);
+					model.render({ device: context.device, passEncoder });
+					canvasRenderTarget.endRenderPass();
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

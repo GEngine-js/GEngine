@@ -59,7 +59,6 @@ export class Compute {
 			addUniformToShaderData(
 				uniformsName,
 				this.uniforms[uniformsName],
-				this.uniforms,
 				this.shaderData,
 				undefined,
 				this.uniformBuffer

@@ -48,7 +48,7 @@ export default class QuerySet {
 		this.readBuffer.gpuBuffer.unmap();
 		return array;
 	}
-	beginQuery(renderPass: GPURenderPassEncoder) {
+	beginQuery(renderPass: GPURenderPassEncoder, queryIndex: number) {
 		renderPass.beginOcclusionQuery(queryIndex);
 	}
 	endQuery(renderPass: GPURenderPassEncoder) {

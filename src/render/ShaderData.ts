@@ -39,6 +39,12 @@ export default class ShaderData {
 	getUniformBuffer(name: string): UniformBuffer {
 		return this._uniforms.get(name);
 	}
+	getTexture(name: string): Texture {
+		return this._uniforms.get(name);
+	}
+	getSampler(name: string): Sampler {
+		return this._uniforms.get(name);
+	}
 	setUniformBuffer(name: string, uniformBuffer: UniformBuffer, binding?: number) {
 		if (this._uniforms.get(name)) return;
 		uniformBuffer.binding = this.currentBinding;

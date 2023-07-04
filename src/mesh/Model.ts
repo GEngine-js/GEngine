@@ -7,7 +7,7 @@ import {
 	PrimitiveTopology
 } from "../core/WebGPUConstant";
 import { ModelParams } from "../core/WebGPUTypes";
-import { Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
+import { BufferFloat32Attribute, Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import { ComputeCommand } from "../render/ComputeCommand";
 import DrawCommand from "../render/DrawCommand";
 import IndexBuffer from "../render/IndexBuffer";
@@ -23,6 +23,7 @@ import {
 	ViewPort
 } from "../render/RenderState";
 import ShaderData from "../render/ShaderData";
+import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
 import VertexBuffer from "../render/VertexBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
@@ -32,11 +33,12 @@ export class Model {
 	public modelParams: ModelParams;
 	public command: DrawCommand | ComputeCommand;
 	public renderType: string;
-	private vertexBuffers: Array<VertexBuffer>;
+	private vertexBuffers: Map<string, VertexBuffer>;
 	private shaderData: ShaderData;
 	constructor(params: ModelParams) {
 		this.modelParams = params;
 		this.renderType = this.modelParams.compute != undefined ? "compute" : "render";
+		this.vertexBuffers = new Map();
 	}
 	render(params: renderModelParams) {
 		const { device, passEncoder } = params;
@@ -54,22 +56,33 @@ export class Model {
 			});
 		}
 	}
-	public getVertexBufferByUid(uid: string) {
-		//
-		// return this.vertexBuffers.find(uid=>uid==)
+	public getVertexBufferByUid(uid: string): VertexBuffer {
+		return this.vertexBuffers.get(uid);
 	}
-	public getUniformBufferByUid(uid: string) {
-		//
+	public getUniformBufferByUid(uid: string): UniformBuffer {
+		return this.shaderData.getUniformBuffer(uid);
+	}
+	public getTextureByName(name: string): Texture {
+		return this.shaderData.getTexture(name);
+	}
+	public getSamplerByName(name: string) {
+		return this.shaderData.getSampler(name);
+	}
+	public destroy() {
+		this?.vertexBuffers.clear();
+		this?.shaderData.destroy();
+		this.command = null;
+		this.modelParams = null;
 	}
 	private createDrawCommand() {
 		const { count, instances } = this.modelParams;
-		this.vertexBuffers = this.createVertexBuffer();
+		const vertexBuffers = this.createVertexBuffer();
 		this.shaderData = this.createShaderData();
 		const indexBuffer = this.createIndexBuffer();
 		const shaderSource = this.createShaderSource();
 		const renderState = this.createRenderState();
 		return new DrawCommand({
-			vertexBuffers: this.vertexBuffers,
+			vertexBuffers,
 			shaderData: this.shaderData,
 			indexBuffer,
 			shaderSource,
@@ -93,18 +106,21 @@ export class Model {
 		let locationIndex = 0;
 		return (
 			vertexBuffers?.map((vertexBufferObject, index) => {
-				const { attributes, stepMode } = vertexBufferObject;
+				const { attributes, stepMode, uid } = vertexBufferObject;
 				const vertexBuffer = new VertexBuffer(shaderId, index, locationIndex, <InputStepMode>stepMode);
 				const attributeKeys = Object.keys(attributes);
 				attributeKeys.forEach((key: string) => {
-					const { size, value, names, itemSizes } = attributes[key];
+					const { size, value, names, itemSizes, buffer } = attributes[key];
 					vertexBuffer.setAttribute(
 						names?.length > 0
-							? new InterleavedFloat32Attribute(names, value, itemSizes)
+							? buffer
+								? new BufferFloat32Attribute(names, buffer, itemSizes)
+								: new InterleavedFloat32Attribute(names, value, itemSizes)
 							: new Float32Attribute(key, value, size)
 					);
 				});
 				locationIndex += attributeKeys.length - 1;
+				this.vertexBuffers.set(uid, vertexBuffer);
 				return vertexBuffer;
 			}) || []
 		);
@@ -123,11 +139,12 @@ export class Model {
 		});
 	}
 	private createShaderData() {
-		const { shaderId, uniformBuffers } = this.modelParams;
+		const { shaderId, uniformBuffers, uniformTextureAndSampler } = this.modelParams;
 		const shaderData = new ShaderData(shaderId);
-		uniformBuffers.forEach((uniformBuffer) =>
-			this.createUniformBufferAndTexture(uniformBuffer, shaderData, shaderId)
-		);
+		// fill uniformBuffer
+		uniformBuffers.forEach((uniformBuffer) => this.createUniformBuffer(uniformBuffer, shaderData, shaderId));
+		// fill texture and sampler
+		this.addUniformToShaderData(uniformTextureAndSampler, shaderData, undefined);
 		return shaderData;
 	}
 	private createRenderState() {
@@ -179,28 +196,37 @@ export class Model {
 
 		return indexBuffer;
 	}
-	private createUniformBufferAndTexture(uniformBufferParams, shaderData: ShaderData, shaderId: string) {
-		const { type = "uniform", usage = BufferUsage.Uniform | BufferUsage.CopyDst, uniforms } = uniformBufferParams;
+	private createUniformBuffer(uniformBufferParams, shaderData: ShaderData, shaderId: string) {
+		const {
+			type = "uniform",
+			usage = BufferUsage.Uniform | BufferUsage.CopyDst,
+			uniforms,
+			uid,
+			binding,
+			buffer,
+			bufferSize
+		} = uniformBufferParams;
 		const uniformBuffer = new UniformBuffer({
 			label: shaderId + "_UniformBuffer",
 			type: <BufferBindingType>type,
-			usage: <BufferUsage>usage
+			usage: <BufferUsage>usage,
+			binding,
+			buffer,
+			size: buffer?.size ?? bufferSize
 		});
-		shaderData.setUniformBuffer(shaderId, uniformBuffer);
+		shaderData.setUniformBuffer(uid, uniformBuffer);
 
+		if (!buffer) this.addUniformToShaderData(uniforms, shaderData, uniformBuffer);
+	}
+	private addUniformToShaderData(uniforms, shaderData: ShaderData, uniformBuffer: UniformBuffer) {
+		if (!uniforms) return;
 		const uniformsNames = Object.getOwnPropertyNames(uniforms);
 		uniformsNames.map((uniformsName) => {
-			addUniformToShaderData(
-				uniformsName,
-				uniforms[uniformsName],
-				uniforms,
-				shaderData,
-				undefined,
-				uniformBuffer
-			);
+			addUniformToShaderData(uniformsName, uniforms[uniformsName], shaderData, undefined, uniformBuffer);
 		});
 	}
 }
+
 export type renderModelParams = {
 	device: GPUDevice;
 	passEncoder: GPURenderPassEncoder | GPUComputePassEncoder;

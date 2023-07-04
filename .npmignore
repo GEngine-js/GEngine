@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+public/workers
+example
+*.mp4
+*.flv
+*.rar
+*.zip
+*.7z
+.catch/**

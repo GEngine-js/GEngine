@@ -273,6 +273,7 @@ export type ShaderMaterialParms = {
 export interface IUniform<TValue = any> {
 	type: string;
 	value: TValue;
+	binding?: number;
 }
 export type Uniforms = { [uniform: string]: IUniform };
 export type Instance = Mesh | PostEffect | Light;
@@ -360,23 +361,32 @@ export type ModelParams = {
 	frag?: string;
 	vert?: string;
 	compute?: string;
-	vertexBuffers?: Array<{
-		uid?: string;
-		stepMode?: string;
-		attributes?: { [prop: string]: AttributeProp };
-	}>;
+	vertexBuffers?: Array<VertexBufferProp>;
+	uniformTextureAndSampler?: {
+		[uniform: string]: IUniform<any>;
+	};
+	uniformBuffers?: Array<UniformBufferProp>;
 	renderState?: RenderStateProp;
-	uniformBuffers?: Array<{
-		uid?: string;
-		type?: string;
-		usage?: number;
-		Uniforms: { [uniform: string]: IUniform<any> };
-	}>;
 	count?: number;
 	instances?: number;
 	indices?: Array<number>;
+	draw?: DrawParmas;
 	dispatch?: { x?: number; y?: number; z?: number };
 	renderTarget?: RenderTarget;
+};
+export type VertexBufferProp = {
+	uid?: string;
+	stepMode?: string;
+	attributes?: { [prop: string]: AttributeProp };
+};
+export type UniformBufferProp = {
+	uid?: string;
+	type?: string;
+	usage?: number;
+	binding?: number;
+	buffer?: Buffer;
+	bufferSize?: number;
+	uniforms?: { [uniform: string]: IUniform<any> };
 };
 export type AttributeProp = {
 	size?: number;
@@ -447,4 +457,12 @@ export type RenderStateProp = {
 		blendAlphaDstFactor?: string;
 		writeMask: GPUColorWrite;
 	}>;
+};
+export type DrawParmas = {
+	count?: number; // The number of indices to draw./The number of vertices to draw.
+	instanceCount?: number; // The number of instances to draw.
+	firstIndex?: number; // Offset into the index buffer, in indices, begin drawing
+	firstVertex?: number; // Offset into the vertex buffers, in vertices, to begin drawing from.
+	baseVertex?: number; //  Added to each index value before indexing into the vertex buffers.
+	firstInstance?: number; // First instance to draw.
 };
