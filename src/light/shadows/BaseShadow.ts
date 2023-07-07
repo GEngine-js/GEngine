@@ -7,6 +7,7 @@ import { Light } from "../Light";
 export class BaseShadow {
 	protected _shadowMapSize: Vector2;
 	protected _camera: Camera;
+	protected _cameraArray: Array<Camera>;
 	protected _shadowMap: Texture;
 	public type: string;
 	public _viewports: Array<Vector4>;
@@ -15,9 +16,10 @@ export class BaseShadow {
 	public viewPortDirty: boolean;
 	public vpMatrixDirty: boolean;
 
-	constructor(shadowMapSize: Vector2, camera: Camera) {
+	constructor(shadowMapSize: Vector2, camera: Camera | Array<Camera>) {
 		this._shadowMapSize = shadowMapSize;
-		this._camera = camera;
+		this._camera = Array.isArray(camera) ? undefined : camera;
+		this._cameraArray = Array.isArray(camera) ? camera : undefined;
 		this.viewPortDirty = true;
 		this.vpMatrixDirty = true;
 
@@ -26,6 +28,10 @@ export class BaseShadow {
 
 	get camera() {
 		return this._camera;
+	}
+
+	get cameraArray() {
+		return this._cameraArray;
 	}
 
 	get shadowMapSize() {
