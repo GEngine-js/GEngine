@@ -314,9 +314,12 @@ export class GLTF {
 		} else if (material.normalTexture) {
 			// tangents = generateTangents(indices, positions, normals, uvs!);
 		}
-		let colors = null;
+		let colors = null,
+			colorSize = 3;
 		if (primitive.attributes.COLOR_0 !== undefined) {
-			colors = this.accessors[primitive.attributes.COLOR_0];
+			accessor = this.accessors[primitive.attributes.COLOR_0];
+			colors = accessor.getArray();
+			colorSize = accessor.type;
 			defines.HAS_COLOR = true;
 		}
 		let joints = null;
@@ -334,7 +337,7 @@ export class GLTF {
 		if (indices) geo.setIndice(Array.from(indices));
 		if (positions) geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
-		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), 3));
+		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), colorSize));
 		if (uvs) geo.setAttribute(new Float32Attribute("uv", Array.from(uvs), 2));
 		if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
 		if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
