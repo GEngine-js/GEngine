@@ -21,6 +21,7 @@ export class ShaderSource {
 		this.defines = options.defines || {};
 		this.render = options.render;
 		this.compute = options.compute;
+		this.dirty = true;
 	}
 	get uid() {
 		this._uid = this.shaderId.concat(JSON.stringify(this.defines));

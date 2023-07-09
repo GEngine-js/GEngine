@@ -20,8 +20,11 @@ import {
 	CullMode,
 	FrontFace,
 	IndexFormat,
+	InputStepMode,
 	PrimitiveTopology,
+	ShaderStage,
 	StencilOperation,
+	StorageTextureAccess,
 	TextureFormat
 } from "./WebGPUConstant";
 export const GPUCanvasCompositingAlphaMode: {
@@ -168,6 +171,8 @@ export type WebGPUTextureProps = {
 	needMipMap?: boolean;
 
 	dataIsTexture?: boolean;
+
+	access?: StorageTextureAccess;
 };
 export type textureSize = {
 	width: number;
@@ -274,6 +279,8 @@ export interface IUniform<TValue = any> {
 	type: string;
 	value: TValue;
 	binding?: number;
+	visibility?: number;
+	textureView?: GPUTextureView;
 }
 export type Uniforms = { [uniform: string]: IUniform };
 export type Instance = Mesh | PostEffect | Light;
@@ -377,6 +384,7 @@ export type ModelParams = {
 export type VertexBufferProp = {
 	uid?: string;
 	stepMode?: string;
+	arrayStride?: number;
 	attributes?: { [prop: string]: AttributeProp };
 };
 export type UniformBufferProp = {
@@ -386,6 +394,7 @@ export type UniformBufferProp = {
 	binding?: number;
 	buffer?: Buffer;
 	bufferSize?: number;
+	visiblity?: ShaderStage;
 	uniforms?: { [uniform: string]: IUniform<any> };
 };
 export type AttributeProp = {
@@ -465,4 +474,37 @@ export type DrawParmas = {
 	firstVertex?: number; // Offset into the vertex buffers, in vertices, to begin drawing from.
 	baseVertex?: number; //  Added to each index value before indexing into the vertex buffers.
 	firstInstance?: number; // First instance to draw.
+};
+export type UniformStruct = {
+	[uniform: string]: { type?: string; value?: object | Array<number>; offset?: number };
+};
+export enum UniformEnum {
+	Float = "f32",
+	FloatVec2 = "vec2<f32>",
+	FloatVec3 = "vec3<f32>",
+	FloatVec4 = "vec4<f32>",
+	FloatArray = "array<f32>",
+	Mat2 = "mat2x2<f32>",
+	Mat3 = "mat3x3<f32>",
+	Mat4 = "mat4x4<f32>",
+	Color = "color",
+	Mat4Array = "array<mat4x4<f32>>",
+	Vec2Array = "array<vec2<f32>>",
+	Vec3Array = "array<vec3<f32>>",
+	Vec4Array = "array<vec4<f32>>",
+	UniformUint = "u32",
+	PointLights = "pointLights",
+	PointLightShadows = "pointLightShadows",
+	SpotLights = "spotLights",
+	SpotLightShadows = "spotLightShadows",
+	DirtectLights = "dirtectLights",
+	DirtectLightShadows = "dirtectLightShadows",
+	UniformStructArray = "StructArray"
+}
+export type VertexBufferParams = {
+	label: string;
+	index?: number;
+	locationIndex?: number;
+	stepMode?: InputStepMode;
+	arrayStride?: number;
 };

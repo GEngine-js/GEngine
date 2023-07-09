@@ -14,6 +14,7 @@ export class ComputeCommand implements Command {
 	}
 	render(params?: ComputeParams): void {
 		const { device, passEncoder } = params;
+		this.shaderData?.bind?.(device, passEncoder);
 		const pipeline = Pipeline.getComputePipelineFromCache(device, this, [this.shaderData.groupLayout]);
 		pipeline.bind(passEncoder);
 		const { x, y, z } = this.dispatch;

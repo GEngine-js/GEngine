@@ -1,8 +1,8 @@
 import { BufferUsage } from "../core/WebGPUConstant";
+import { UniformEnum } from "../core/WebGPUTypes";
 import Matrix4 from "../math/Matrix4";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import PerspectiveCamera from "./PerspectiveCamera";
 
 export default class PointLightShadowCamera extends PerspectiveCamera {

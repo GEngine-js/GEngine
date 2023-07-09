@@ -1,12 +1,11 @@
 import CullingVolume from "../core/CullingVolume";
 import RenderObject from "../core/RenderObject";
-import { RenderObjectType } from "../core/WebGPUTypes";
+import { RenderObjectType, UniformEnum } from "../core/WebGPUTypes";
 import Matrix4 from "../math/Matrix4";
 import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 
 export default class Camera extends RenderObject {
 	private _viewMatrix: Matrix4;

@@ -5,9 +5,9 @@ export default class Attributes {
 	private _attributes: Map<string, Attribute | InterleavedAttribute>;
 	private shaderLocation: number;
 	private offset: number;
-	constructor() {
+	constructor(shaderLocation = 0) {
 		this._attributes = new Map();
-		this.shaderLocation = 0;
+		this.shaderLocation = shaderLocation;
 		this.offset = 0;
 		this.interleave = false;
 	}

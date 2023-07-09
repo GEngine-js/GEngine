@@ -28,7 +28,7 @@ class BindGroup {
 			}))
 		});
 	}
-	bind(passEncoder: GPURenderPassEncoder) {
+	bind(passEncoder: GPURenderPassEncoder | GPUComputePassEncoder) {
 		// dynamic uniforms must bind multiple times
 		if (this.dynamic) {
 			const dynamicOffsets = [0];

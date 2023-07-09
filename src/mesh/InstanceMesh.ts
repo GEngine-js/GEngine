@@ -1,10 +1,10 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import { BufferBindingType, BufferUsage, Intersect } from "../core/WebGPUConstant";
+import { UniformEnum } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { Instance } from "./Instance";
 import { Mesh } from "./Mesh";
 

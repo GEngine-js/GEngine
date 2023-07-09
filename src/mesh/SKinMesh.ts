@@ -1,12 +1,11 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import { BufferBindingType, BufferUsage } from "../core/WebGPUConstant";
-import { RenderObjectType } from "../core/WebGPUTypes";
+import { RenderObjectType, UniformEnum } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import Matrix4 from "../math/Matrix4";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { Mesh } from "./Mesh";
 import Node from "./Node";
 

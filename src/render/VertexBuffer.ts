@@ -1,4 +1,5 @@
 import { InputStepMode } from "../core/WebGPUConstant";
+import { VertexBufferParams } from "../core/WebGPUTypes";
 import { Attribute, AttributeType, InterleavedAttribute, InterleavedFloat32Attribute } from "./Attribute";
 import Attributes from "./Attributes";
 import Buffer from "./Buffer";
@@ -12,12 +13,15 @@ export default class VertexBuffer {
 	public defines: { [prop: string]: boolean | number };
 	public locationIndex: number;
 	private label: string;
-	constructor(label: string, index?: number, locationIndex = 0, stepMode = InputStepMode.Vertex) {
+	//
+	constructor(params: VertexBufferParams) {
+		const { label, index, locationIndex = 0, stepMode = InputStepMode.Vertex, arrayStride } = params;
 		this.index = index || 0;
-		this.attributes = new Attributes();
+		this.attributes = new Attributes(locationIndex);
 		this.stepMode = stepMode;
 		this.dirty = true;
 		this.label = label?.concat(`_${index}_VertexBuffer`);
+		this.arrayStride = arrayStride;
 		this.defines = {};
 		this.locationIndex = locationIndex;
 	}
@@ -48,7 +52,7 @@ export default class VertexBuffer {
 		if (this.attributes.dirty) {
 			this.attributes.dirty = false;
 			const { arrayStride, typeArray, buffer } = this.attributes.getAtrributeValues();
-			this.arrayStride = arrayStride;
+			if (this.arrayStride === undefined) this.arrayStride = arrayStride;
 			if (!this.buffer) {
 				this.buffer = buffer ?? Buffer.createVertexBuffer(this.label, device, typeArray);
 			} else {

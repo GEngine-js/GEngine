@@ -1,4 +1,4 @@
-import { TextureFormat } from "../core/WebGPUConstant";
+import { StorageTextureAccess, TextureFormat } from "../core/WebGPUConstant";
 import { WebGPUTextureProps, ImageData } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
@@ -34,6 +34,14 @@ export default class Texture {
 			sampleType: defaultValue(sampleType, "float"),
 			viewDimension: defaultValue(viewFormats, "2d"),
 			multisampled: sampleCount && sampleCount > 1 ? true : false
+		};
+	}
+	get storageTextureLayoutType() {
+		const { access = StorageTextureAccess.WriteOnly, viewFormats, format } = this.textureProp;
+		return {
+			viewDimension: defaultValue(viewFormats, "2d"),
+			access,
+			format
 		};
 	}
 	get textureView() {

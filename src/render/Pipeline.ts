@@ -70,7 +70,7 @@ export default class Pipeline {
 		const hashId = stringToHash(shaderSource.uid);
 		let pipeline = computePipelines.get(hashId);
 		if (!pipeline) {
-			pipeline = device.createComputePipeline({
+			pipeline = new Pipeline("compute", device, {
 				layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId.toString(), groupLayouts)
 					.gpuPipelineLayout,
 				compute: {

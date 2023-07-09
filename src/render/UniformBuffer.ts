@@ -1,5 +1,5 @@
 import { BufferUsage, ShaderStage } from "../core/WebGPUConstant";
-import { UniformFunc } from "../core/WebGPUTypes";
+import { UniformFunc, UniformEnum } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import Buffer from "./Buffer";
 
@@ -25,7 +25,7 @@ import {
 	UniformVec2Array,
 	UniformVec3Array,
 	UniformVec4Array,
-	UniformEnum
+	UniformStructArray
 } from "./Uniforms";
 export default class UniformBuffer {
 	public type: string;
@@ -65,7 +65,8 @@ export default class UniformBuffer {
 		[UniformEnum.DirtectLights]: UniformDirtectLights,
 		[UniformEnum.PointLightShadows]: UniformPointLightShadows,
 		[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
-		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows
+		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows,
+		[UniformEnum.UniformStructArray]: UniformStructArray
 	};
 	constructor(options: UniformBufferParams) {
 		this.type = defaultValue(options.type, "uniform");
@@ -74,7 +75,7 @@ export default class UniformBuffer {
 		this.hasDynamicOffset = options.hasDynamicOffset ?? false;
 		this.minBindingSize = options.minBindingSize ?? 0;
 		this.binding = options.binding ?? 0;
-		this.visibility = ShaderStage.Fragment | ShaderStage.Vertex;
+		this.visibility = defaultValue(options.visibility, ShaderStage.Fragment | ShaderStage.Vertex);
 		this.usage = defaultValue(options.usage, BufferUsage.Uniform | BufferUsage.CopyDst);
 		this._uniformStruct = new Map();
 		this.uniformDirty = true;
@@ -165,7 +166,7 @@ export default class UniformBuffer {
 		this.byteOffset += UniformBuffer.checkUniformOffset(this.byteOffset, TypeUniform.align);
 		const uniform =
 			count != undefined
-				? new TypeUniform(name, this.dataBuffer, this.byteOffset, value, 0, count)
+				? new TypeUniform(name, this.dataBuffer, this.byteOffset, value, count)
 				: new TypeUniform(name, this.dataBuffer, this.byteOffset, value);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
@@ -192,4 +193,5 @@ type UniformBufferParams = {
 	minBindingSize?: number;
 	maxOffset?: number;
 	buffer?: Buffer;
+	visibility?: ShaderStage;
 };

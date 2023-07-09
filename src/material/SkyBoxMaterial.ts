@@ -1,10 +1,10 @@
 import { FrameState } from "../core/FrameState";
 import textureCache from "../core/TextureCache";
 import { CompareFunction } from "../core/WebGPUConstant";
+import { UniformEnum } from "../core/WebGPUTypes";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 export default class SkyBoxMaterial extends Material {

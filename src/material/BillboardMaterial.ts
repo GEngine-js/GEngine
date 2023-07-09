@@ -1,8 +1,8 @@
 import { FrameState } from "../core/FrameState";
 import textureCache from "../core/TextureCache";
+import { UniformEnum } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { Material } from "./Material";
 
 export class BillboardMaterial extends Material {

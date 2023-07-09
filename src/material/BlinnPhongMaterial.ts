@@ -1,11 +1,11 @@
 import { FrameState } from "../core/FrameState";
 import textureCache from "../core/TextureCache";
+import { UniformEnum } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 export default class BlinnPhongMaterial extends Material {

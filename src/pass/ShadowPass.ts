@@ -142,7 +142,7 @@ export class ShadowPass extends Pass {
 		this.shadowMaterial = new ShaderMaterial({
 			type: "shadowMaterial",
 			uniforms: {
-				modelMatrix: { type: "mat4", value: null }
+				modelMatrix: { type: "mat4x4<f32>", value: null }
 			},
 			vert: shadowMapShaderFunction,
 			frag: undefined,

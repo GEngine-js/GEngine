@@ -1,12 +1,12 @@
 import { FrameState } from "../core/FrameState";
 import textureCache from "../core/TextureCache";
 import { CullMode } from "../core/WebGPUConstant";
+import { UniformEnum } from "../core/WebGPUTypes";
 import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 

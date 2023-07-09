@@ -176,11 +176,11 @@ export default class BloomPostEffect extends PostEffect {
 					type: "sampler",
 					value: this.defaultSampler
 				},
-				bloomStrength: { type: "float", value: this.strength },
-				bloomRadius: { type: "float", value: this.radius },
-				bloomFactors: { type: "float-array", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
+				bloomStrength: { type: "f32", value: this.strength },
+				bloomRadius: { type: "f32", value: this.radius },
+				bloomFactors: { type: "array<f32>", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
 				bloomTintColors: {
-					type: "vec3-array",
+					type: "array<f32>",
 					value: [
 						new Vector3(1, 1, 1),
 						new Vector3(1, 1, 1),
@@ -255,7 +255,7 @@ export default class BloomPostEffect extends PostEffect {
 			type,
 			uniforms: {
 				tDiffuse: { type: "texture", value: null },
-				direction: { type: "vec2", value: new Vector2(0.0, 0.0) },
+				direction: { type: "vec2<f32>", value: new Vector2(0.0, 0.0) },
 				tSampler: {
 					type: "sampler",
 					value: this.defaultSampler

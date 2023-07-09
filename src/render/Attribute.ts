@@ -127,7 +127,7 @@ export class InterleavedAttribute {
 		this.itemSizes.reduce((total, current, index) => {
 			result.push({
 				shaderLocation: index,
-				format: `${this.format}x${current}`,
+				format: current == 1 ? `${this.format}` : `${this.format}x${current}`,
 				offset: total * this.byteSize
 			});
 			return (total += current);

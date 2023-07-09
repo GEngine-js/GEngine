@@ -1,5 +1,5 @@
 import { ShaderStage } from "../core/WebGPUConstant";
-import { UniformFunc } from "../core/WebGPUTypes";
+import { UniformFunc, UniformEnum, UniformStruct } from "../core/WebGPUTypes";
 import { DirectionalLight } from "../light/DirectionalLight";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
@@ -19,10 +19,9 @@ export class Uniform<T> {
 	name: string;
 	value: T;
 	offset: number;
-	buffer: Float32Array | Uint16Array | Uint32Array | Uint8Array | Float64Array | UniformBuffer;
+	buffer: Float32Array | Uint16Array | Uint32Array | Uint8Array | Float64Array;
 	cb: UniformFunc | number | object;
 	byteSize: number;
-	visibility?: number;
 	type?: string;
 	dirty?: boolean;
 
@@ -30,7 +29,6 @@ export class Uniform<T> {
 		this.name = uniformName;
 		this.cb = cb;
 		this.offset = defaultValue(offset, 0);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
 		this.type = "number";
 	}
 	setBuffer(array: Array<number>, offset = 0) {
@@ -357,13 +355,10 @@ export class UniformMatrix4Array extends Uniform<Array<Matrix4>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
-		count?: number,
-		size = 64
+		count?: number
 	) {
-		super(uniformName, cb, offset);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
-		this.byteSize = count * size;
+		super(uniformName, cb, 0);
+		this.byteSize = count * 64;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "mat4-array";
 	}
@@ -384,11 +379,9 @@ export class UniformFloatArray extends Uniform<Array<number>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		super(uniformName, cb, 0);
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, count);
 		this.byteSize = 4 * count;
 		this.type = "float-array";
@@ -408,11 +401,9 @@ export class UniformVec2Array extends Uniform<Array<Vector2>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		super(uniformName, cb, 0);
 		this.byteSize = count * 8;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "vec2-array";
@@ -437,11 +428,9 @@ export class UniformVec3Array extends Uniform<Array<Vector3>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		super(uniformName, cb, 0);
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "vec3-array";
@@ -468,11 +457,9 @@ export class UniformVec4Array extends Uniform<Array<Vector4>> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
-		this.visibility = ShaderStage.Vertex | ShaderStage.Fragment;
+		super(uniformName, cb, 0);
 		this.byteSize = count * 16;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "vec4-array";
@@ -497,19 +484,32 @@ export class UniformTexture extends Uniform<Texture> {
 	public name: string;
 	public texture: Texture;
 	public isTexture: boolean;
+	public textureView?: GPUTextureView;
 	private _texture: UniformFunc | Texture;
-	constructor(uniformName: string, binding: number, texture: UniformFunc | Texture) {
-		super(uniformName);
+	constructor(
+		uniformName: string,
+		binding: number,
+		texture: UniformFunc | Texture,
+		type?: string,
+		visibility?: ShaderStage,
+		textureView?: GPUTextureView
+	) {
+		super(uniformName, undefined, 0);
 		this.binding = binding;
-		this.type = "texture";
+		this.visibility = defaultValue(visibility, ShaderStage.Vertex | ShaderStage.Fragment);
+		this.textureView = textureView;
+		this.type = type ?? "texture";
 		this.isTexture = true;
-		this.visibility = ShaderStage.Fragment;
 		this._texture = texture;
 	}
 	get layoutType() {
 		return this.texture?.layoutType || "not yet bind";
 	}
+	get storageTextureLayoutType() {
+		return this.texture?.storageTextureLayoutType || "not yet bind";
+	}
 	bind(device: GPUDevice) {
+		if (!this._texture) return;
 		this.texture = this._texture instanceof Function ? this._texture() : this._texture;
 		this.texture.update(device);
 	}
@@ -522,13 +522,13 @@ export class UniformSampler extends Uniform<Sampler> {
 	public sampler: Sampler;
 	public isSampler: boolean;
 	private _sampler: UniformFunc | Sampler;
-	constructor(uniformName: string, binding: number, sampler: UniformFunc | Sampler) {
-		super(uniformName);
+	constructor(uniformName: string, binding: number, sampler: UniformFunc | Sampler, visibility?: ShaderStage) {
+		super(uniformName, undefined, 0);
+		this.visibility = defaultValue(visibility, ShaderStage.Vertex | ShaderStage.Fragment);
 		this.name = uniformName;
 		this.binding = binding;
 		this.type = "sampler";
 		this.isSampler = true;
-		this.visibility = ShaderStage.Fragment;
 		this._sampler = sampler;
 	}
 	get layoutType() {
@@ -539,32 +539,29 @@ export class UniformSampler extends Uniform<Sampler> {
 		this.sampler.update(device);
 	}
 }
-export type UniformStruct = {
-	[uniform: string]: { type?: string; value?: object | Array<number>; offset?: number };
-};
 export class UniformStructArray extends Uniform<UniformStruct> {
 	static align = 16;
 	static aligns = {
-		["u32"]: 4,
-		["f32"]: 4,
-		["vec2<f32>"]: 8,
-		["vec3<f32>"]: 16,
-		["vec4<f32>"]: 16,
-		["mat2x2<f32>"]: 8,
-		["mat3x3<f32>"]: 16,
-		["mat4x4<f32>"]: 16,
-		["color"]: 16
+		[UniformEnum.UniformUint]: 4,
+		[UniformEnum.Float]: 4,
+		[UniformEnum.FloatVec2]: 8,
+		[UniformEnum.FloatVec3]: 16,
+		[UniformEnum.FloatVec4]: 16,
+		[UniformEnum.Mat2]: 8,
+		[UniformEnum.Mat3]: 16,
+		[UniformEnum.Mat4]: 16,
+		[UniformEnum.Color]: 16
 	};
 	static byteSizes = {
-		["u32"]: 4,
-		["f32"]: 4,
-		["vec2<f32>"]: 8,
-		["vec3<f32>"]: 12,
-		["vec4<f32>"]: 16,
-		["mat2x2<f32>"]: 16,
-		["mat3x3<f32>"]: 48,
-		["mat4x4<f32>"]: 64,
-		["color"]: 12
+		[UniformEnum.UniformUint]: 4,
+		[UniformEnum.Float]: 4,
+		[UniformEnum.FloatVec2]: 8,
+		[UniformEnum.FloatVec3]: 12,
+		[UniformEnum.FloatVec4]: 16,
+		[UniformEnum.Mat2]: 16,
+		[UniformEnum.Mat3]: 48,
+		[UniformEnum.Mat4]: 64,
+		[UniformEnum.Color]: 12
 	};
 	byteOffset?: number;
 	sourceBuffer?: Float32Array;
@@ -579,7 +576,6 @@ export class UniformStructArray extends Uniform<UniformStruct> {
 		super(uniformName, cb, offset);
 		this.cb = cb;
 		this.type = "struct-array";
-		this.visibility = ShaderStage.Fragment;
 		this.dirty = false;
 		this.byteOffset = byteOffset;
 		this.sourceBuffer = buffer;
@@ -625,15 +621,13 @@ export class UniformSpotLights extends Uniform<SpotLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		this.cb = cb;
 		this.byteSize = count * 64;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotsLight";
-		this.visibility = ShaderStage.Fragment;
 		this.dirty = false;
 	}
 	set() {
@@ -691,16 +685,14 @@ export class UniformSpotLightShadows extends Uniform<SpotLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformSpotLightShadows.uniformSize;
 		this.byteSize = count * this._subDataSize * bytesPerElement;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "spotLightShadows";
-		this.visibility = ShaderStage.Fragment;
 		this._nearValue = null;
 		this._farValue = null;
 	}
@@ -738,14 +730,12 @@ export class UniformPointLights extends Uniform<PointLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "pointsLight";
-		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
 		this.lights = this.getValue();
@@ -789,16 +779,14 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformPointLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "pointLightShadows";
-		this.visibility = ShaderStage.Fragment;
 		this._nearValue = null;
 		this._farValue = null;
 	}
@@ -852,15 +840,13 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		this.cb = cb;
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "dirtectLights";
-		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
 		this.lights = this.getValue();
@@ -893,16 +879,14 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		buffer: Float32Array,
 		byteOffset: number,
 		cb: UniformFunc | number | object,
-		offset?: number,
 		count?: number
 	) {
-		super(uniformName, cb, offset);
+		super(uniformName, cb, 0);
 		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
 		this._subDataSize = UniformDirtectLightShadows.uniformSize;
 		this.byteSize = count * bytesPerElement * this._subDataSize;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "dirtectLightShadows";
-		this.visibility = ShaderStage.Fragment;
 	}
 	set() {
 		this.lights = this.getValue();
@@ -918,28 +902,6 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 			this.dirty = setDataToTypeArray(this.buffer, directionalLight.shadow.camera.vpMatrix.toArray(), offset + 0); // byteOffset=16;
 		}
 	}
-}
-export enum UniformEnum {
-	Float = 0,
-	FloatVec2 = 1,
-	FloatVec3 = 2,
-	FloatVec4 = 3,
-	FloatArray = 4,
-	Mat2 = 5,
-	Mat3 = 6,
-	Mat4 = 7,
-	Color = 8,
-	Mat4Array = 9,
-	PointLights = 10,
-	PointLightShadows = 11,
-	SpotLights = 12,
-	SpotLightShadows = 13,
-	DirtectLights = 14,
-	DirtectLightShadows = 15,
-	Vec2Array = 16,
-	Vec3Array = 17,
-	Vec4Array = 18,
-	UniformUint = 19
 }
 function setDataToTypeArray(buffer, data, offset) {
 	if (Array.isArray(data)) {

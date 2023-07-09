@@ -154,7 +154,7 @@
 							uid: "systemMatrix",
 							uniforms: {
 								modelViewProjectionMatrix: {
-									type: "mat4",
+									type: "mat4x4<f32>",
 									value: () => {
 										let viewMatrix = mat4.identity([]);
 										mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));

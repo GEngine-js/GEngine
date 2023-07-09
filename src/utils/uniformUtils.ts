@@ -1,9 +1,8 @@
-import { IUniform } from "../core/WebGPUTypes";
+import { IUniform, UniformEnum } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import ShaderData from "../render/ShaderData";
 import UniformBuffer from "../render/UniformBuffer";
-import { UniformEnum } from "../render/Uniforms";
-const uniformArrayNames = ["float-array", "vec2-array", "vec3-array", "vec4-array"];
+const uniformArrayNames = ["array<f32>", "array<vec2<f32>>", "array<vec3<f32>>", "array<vec4<f32>>"];
 export function checkContainFloatType(uniforms) {
 	let result = 0;
 	let hasArraytype = false;
@@ -37,7 +36,7 @@ export function addUniformToShaderData(
 ) {
 	const valueIsFunc = uniform?.value instanceof Function;
 	switch (uniform.type) {
-		case "float":
+		case "f32":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -48,7 +47,7 @@ export function addUniformToShaderData(
 				UniformEnum.Float
 			);
 			break;
-		case "vec2":
+		case "vec2<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -59,7 +58,7 @@ export function addUniformToShaderData(
 				UniformEnum.FloatVec2
 			);
 			break;
-		case "vec3":
+		case "vec3<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -81,7 +80,7 @@ export function addUniformToShaderData(
 				UniformEnum.Color
 			);
 			break;
-		case "vec4":
+		case "vec4<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -92,7 +91,7 @@ export function addUniformToShaderData(
 				UniformEnum.FloatVec4
 			);
 			break;
-		case "mat2":
+		case "mat2x2<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -103,7 +102,7 @@ export function addUniformToShaderData(
 				UniformEnum.Mat2
 			);
 			break;
-		case "mat3":
+		case "mat3x3<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -114,7 +113,7 @@ export function addUniformToShaderData(
 				UniformEnum.Mat3
 			);
 			break;
-		case "mat4":
+		case "mat4x4<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -128,7 +127,7 @@ export function addUniformToShaderData(
 				UniformEnum.Mat4
 			);
 			break;
-		case "float-array":
+		case "array<f32>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -140,7 +139,7 @@ export function addUniformToShaderData(
 				uniform.value.length
 			);
 			break;
-		case "vec2-array":
+		case "array<vec2<f32>>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -152,7 +151,7 @@ export function addUniformToShaderData(
 				uniform.value.length
 			);
 			break;
-		case "vec3-array":
+		case "array<vec3<f32>>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -164,7 +163,7 @@ export function addUniformToShaderData(
 				uniform.value.length
 			);
 			break;
-		case "vec4-array":
+		case "array<vec4<f32>>":
 			uniformBuffer.setUniform(
 				name,
 				valueIsFunc
@@ -177,13 +176,18 @@ export function addUniformToShaderData(
 			);
 			break;
 		case "texture":
+		case "storageTexture":
 			shaderData.setTexture(
 				name,
 				valueIsFunc
 					? uniform.value
 					: () => {
 							return uniform.value;
-					  }
+					  },
+				uniform?.binding,
+				uniform?.type,
+				uniform?.visibility,
+				uniform?.textureView
 			);
 			break;
 		case "sampler":
@@ -194,7 +198,8 @@ export function addUniformToShaderData(
 					: () => {
 							return uniform.value;
 					  },
-				uniform?.binding
+				uniform?.binding,
+				uniform?.visibility
 			);
 			break;
 		default:

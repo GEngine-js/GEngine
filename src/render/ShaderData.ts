@@ -1,3 +1,4 @@
+import { ShaderStage } from "../core/WebGPUConstant";
 import { UniformFunc, ShaderDefine } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import BindGroup from "./BindGroup";
@@ -52,16 +53,23 @@ export default class ShaderData {
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniformBuffer);
 	}
-	setTexture(name: string, value: UniformFunc | Texture, binding?: number) {
+	setTexture(
+		name: string,
+		value: UniformFunc | Texture,
+		binding?: number,
+		type?: string,
+		visibility?: ShaderStage,
+		textureView?: GPUTextureView
+	) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformTexture(name, binding ?? this.currentBinding, value);
+		const uniform = new UniformTexture(name, binding ?? this.currentBinding, value, type, visibility, textureView);
 		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
 	}
-	setSampler(name: string, value: UniformFunc | Sampler, binding?: number) {
+	setSampler(name: string, value: UniformFunc | Sampler, binding?: number, visibility?: ShaderStage) {
 		if (this._uniforms.get(name)) return;
-		const uniform = new UniformSampler(name, binding ?? this.currentBinding, value);
+		const uniform = new UniformSampler(name, binding ?? this.currentBinding, value, visibility);
 		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
@@ -86,7 +94,7 @@ export default class ShaderData {
 			}
 		});
 	}
-	bind(device: GPUDevice, passEncoder: GPURenderPassEncoder) {
+	bind(device: GPUDevice, passEncoder: GPURenderPassEncoder | GPUComputePassEncoder) {
 		this.uploadUniform(device);
 		if (!this.groupLayout) this.groupLayout = this.createBindGroupLayout(device, this.label, this.layoutIndex);
 		if (!this.bindGroup) this.bindGroup = this.createBindGroup(device, this.label, this.groupIndex);
@@ -179,7 +187,8 @@ export default class ShaderData {
 			layoutEntity = new BindGroupLayoutEntry({
 				binding: uniform.binding,
 				visibility: uniform.visibility,
-				texture: uniform.layoutType
+				texture: uniform.type == "texture" ? uniform.layoutType : undefined,
+				storageTexture: uniform.type == "storageTexture" ? uniform.storageTextureLayoutType : undefined
 			});
 		} else if (uniform.isSampler) {
 			layoutEntity = new BindGroupLayoutEntry({
@@ -204,7 +213,7 @@ export default class ShaderData {
 		} else if (uniform.isTexture) {
 			groupEntity = new BindGroupEntity({
 				binding: uniform.binding,
-				resource: uniform.texture.textureView
+				resource: uniform?.textureView ?? uniform.texture.textureView
 			});
 		} else if (uniform.isSampler) {
 			groupEntity = new BindGroupEntity({

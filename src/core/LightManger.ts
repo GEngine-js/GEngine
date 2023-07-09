@@ -1,9 +1,16 @@
+import Camera from "../camera/Camera";
+import { LightMangerOptions, LightType, UniformEnum } from "../core/WebGPUTypes";
 import { AmbientLight } from "../light/AmbientLight";
 import { DirectionalLight } from "../light/DirectionalLight";
+import { Light } from "../light/Light";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
-import { FrameState } from "./FrameState";
+import Vector3 from "../math/Vector3";
+import Sampler from "../render/Sampler";
 import ShaderData from "../render/ShaderData";
+import Texture from "../render/Texture";
+import UniformBuffer from "../render/UniformBuffer";
+import { FrameState } from "./FrameState";
 import {
 	TextureUsage,
 	BufferUsage,
@@ -14,14 +21,6 @@ import {
 	TextureViewDimension,
 	BufferBindingType
 } from "./WebGPUConstant";
-import UniformBuffer from "../render/UniformBuffer";
-import Camera from "../camera/Camera";
-import { Light } from "../light/Light";
-import Vector3 from "../math/Vector3";
-import { LightMangerOptions, LightType } from "../core/WebGPUTypes";
-import Texture from "../render/Texture";
-import Sampler from "../render/Sampler";
-import { UniformEnum } from "../render/Uniforms";
 
 export default class LightManger {
 	lightUniformBuffer: UniformBuffer;
@@ -127,7 +126,7 @@ export default class LightManger {
 				UniformEnum.FloatVec4
 			);
 		if (this.spotLights.length) {
-			//初始化聚光灯
+			// 初始化聚光灯
 			this.lightUniformBuffer.setUniform(
 				"spotLights",
 				() => {
@@ -138,7 +137,7 @@ export default class LightManger {
 			);
 		}
 		if (this.pointLights.length) {
-			//点光源
+			// 点光源
 			this.lightUniformBuffer.setUniform(
 				"pointLights",
 				() => {
@@ -149,7 +148,7 @@ export default class LightManger {
 			);
 		}
 		if (this.directLights.length) {
-			//方向光
+			// 方向光
 			this.lightUniformBuffer.setUniform(
 				"directLights",
 				() => {
@@ -175,17 +174,17 @@ export default class LightManger {
 				)
 					break shadowShaderData;
 
-				//define
+				// define
 				this.lightShaderData.setDefine("openShadow", this.openShadow);
 
-				//shadowUniformBuffer
+				// shadowUniformBuffer
 				this.shadowUniformBuffer = new UniformBuffer({
 					label: "shadow",
 					type: BufferBindingType.ReadOnlyStorage,
 					usage: BufferUsage.Storage | BufferUsage.CopyDst
 				});
 
-				//matrix,near,far...
+				// matrix,near,far...
 				const spotLightWithShadowCount = this.setShadowUniform(
 					"spotLightShadows",
 					this.spotLights,
@@ -207,7 +206,7 @@ export default class LightManger {
 				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightWithShadowCount);
 				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightWithShadowCount);
 
-				//texture,sample
+				// texture,sample
 				if (spotLightShadowMapTextureArray !== undefined) {
 					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
 						console.warn("spotLightShadowMap align has problem");

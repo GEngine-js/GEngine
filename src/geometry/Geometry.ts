@@ -45,7 +45,10 @@ export default class Geometry {
 		this.boundingSphere = undefined;
 		this.dirty = false;
 		this.definesDirty = true;
-		this.defaultVertexBuffer = new VertexBuffer(this.type, 0);
+		this.defaultVertexBuffer = new VertexBuffer({
+			label: this.type,
+			index: 0
+		});
 		this.vertexBuffers = [this.defaultVertexBuffer];
 		this._defines = {};
 		this.normals = [];

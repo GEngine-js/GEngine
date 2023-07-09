@@ -106,8 +106,14 @@ export class Model {
 		let locationIndex = 0;
 		return (
 			vertexBuffers?.map((vertexBufferObject, index) => {
-				const { attributes, stepMode, uid } = vertexBufferObject;
-				const vertexBuffer = new VertexBuffer(shaderId, index, locationIndex, <InputStepMode>stepMode);
+				const { attributes, stepMode, uid, arrayStride } = vertexBufferObject;
+				const vertexBuffer = new VertexBuffer({
+					label: shaderId,
+					index,
+					locationIndex,
+					stepMode: <InputStepMode>stepMode,
+					arrayStride
+				});
 				const attributeKeys = Object.keys(attributes);
 				attributeKeys.forEach((key: string) => {
 					const { size, value, names, itemSizes, buffer } = attributes[key];
@@ -118,8 +124,9 @@ export class Model {
 								: new InterleavedFloat32Attribute(names, value, itemSizes)
 							: new Float32Attribute(key, value, size)
 					);
+					const count = names?.length > 0 ? names?.length : 1;
+					locationIndex += count;
 				});
-				locationIndex += attributeKeys.length - 1;
 				this.vertexBuffers.set(uid, vertexBuffer);
 				return vertexBuffer;
 			}) || []
@@ -204,18 +211,19 @@ export class Model {
 			uid,
 			binding,
 			buffer,
-			bufferSize
+			bufferSize,
+			visibility
 		} = uniformBufferParams;
 		const uniformBuffer = new UniformBuffer({
-			label: shaderId + "_UniformBuffer",
+			label: uid + "_UniformBuffer",
 			type: <BufferBindingType>type,
 			usage: <BufferUsage>usage,
 			binding,
 			buffer,
+			visibility,
 			size: buffer?.size ?? bufferSize
 		});
 		shaderData.setUniformBuffer(uid, uniformBuffer);
-
 		if (!buffer) this.addUniformToShaderData(uniforms, shaderData, uniformBuffer);
 	}
 	private addUniformToShaderData(uniforms, shaderData: ShaderData, uniformBuffer: UniformBuffer) {
