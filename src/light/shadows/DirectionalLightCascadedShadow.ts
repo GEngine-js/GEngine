@@ -5,7 +5,7 @@ import { CascadedShadow, defaultCascadedShadowOptions } from "./CascadedShadow";
 
 export class DirectionalLightCascadedShadow extends CascadedShadow {
 	public type: string;
-	constructor(options?: { cascadeNumber: number; cascadeMode: string; lightInstance: DirectionalLight }) {
+	constructor(options: { cascadeNumber?: number; cascadeMode?: string; lightInstance: DirectionalLight }) {
 		const shadowOptions = Object.assign({}, defaultCascadedShadowOptions, options);
 
 		const cascadedShadowOptions = DirectionalLightCascadedShadow._getCascadedShadowOptions(
@@ -19,7 +19,11 @@ export class DirectionalLightCascadedShadow extends CascadedShadow {
 	}
 
 	public update(light: DirectionalLight) {
-		this.updateMatrices(light);
+		this._sceneAvtiveCamera = light._getSceneActiveCamera();
+		if (this.breaks.length == 0) this.getBreaks();
+		this.updateCascadeFrustumArray();
+		this.updateSubCameraMatrixByFrustum();
+		// this.updateMatrices(light);
 	}
 
 	updateMatrices(light: DirectionalLight) {

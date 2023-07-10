@@ -1,3 +1,4 @@
+import BoundingSphere from "../../core/BoundingSphere";
 import Matrix4 from "../../math/Matrix4";
 import Vector3 from "../../math/Vector3";
 
@@ -6,6 +7,8 @@ export class CascadedFrustum {
 		near: Vector3[];
 		far: Vector3[];
 	};
+	boundingSphere: BoundingSphere;
+
 	constructor() {
 		this.vertices = {
 			near: [new Vector3(), new Vector3(), new Vector3(), new Vector3()],
@@ -87,5 +90,9 @@ export class CascadedFrustum {
 				}
 			}
 		}
+	}
+
+	updateBoundingSphere() {
+		this.boundingSphere = BoundingSphere.fromPoints([...this.vertices.near, ...this.vertices.far]);
 	}
 }

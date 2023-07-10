@@ -14,8 +14,8 @@ export default class Camera extends RenderObject {
 	cullingVolume: CullingVolume;
 	projectMatrixDirty: boolean;
 	shaderData: ShaderData;
-	near: number;
-	far: number;
+	_near: number;
+	_far: number;
 	constructor() {
 		super();
 		this._viewMatrix = undefined;
@@ -26,6 +26,25 @@ export default class Camera extends RenderObject {
 		this.projectMatrixDirty = true;
 		this.createShaderData();
 	}
+
+	set near(value: number) {
+		this._near = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get near() {
+		return this._near;
+	}
+
+	set far(value: number) {
+		this._far = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get far() {
+		return this._far;
+	}
+
 	get viewMatrix() {
 		this.updateMatrix();
 		Matrix4.inverse(this.modelMatrix, this._viewMatrix);

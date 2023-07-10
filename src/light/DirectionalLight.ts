@@ -2,14 +2,18 @@ import { LightType } from "../core/WebGPUTypes";
 import Vector3 from "../math/Vector3";
 import { Scene } from "../Scene";
 import { Light } from "./Light";
+import { DirectionalLightCascadedShadow } from "./shadows/DirectionalLightCascadedShadow";
 import { DirectionalLightShadow } from "./shadows/DirectionalLightShadow";
 
 export class DirectionalLight extends Light {
 	_scene: Scene;
-	constructor(color: Vector3, intensity: number, openShadow = true) {
+	constructor(color: Vector3, intensity: number, openShadow = true, shadowOptions = { openCSM: true }) {
 		super(color, intensity);
 		this.lightType = LightType.DirectionalLight;
-		if (openShadow) this.shadow = new DirectionalLightShadow();
+		if (openShadow)
+			this.shadow = shadowOptions.openCSM
+				? new DirectionalLightCascadedShadow({ lightInstance: this })
+				: new DirectionalLightShadow();
 	}
 
 	get dirtectDirty() {

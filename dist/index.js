@@ -9267,6 +9267,20 @@ class Yi extends nr {
 			(this.projectMatrixDirty = !0),
 			this.createShaderData();
 	}
+	set near(value) {
+		this._near = value;
+		this.projectMatrixDirty = true;
+	}
+	get near() {
+		return this._near;
+	}
+	set far(value) {
+		this._far = value;
+		this.projectMatrixDirty = true;
+	}
+	get far() {
+		return this._far;
+	}
 	get viewMatrix() {
 		return this.updateMatrix(), xt.inverse(this.modelMatrix, this._viewMatrix), this._viewMatrix;
 	}
@@ -9352,6 +9366,34 @@ class Wi extends Yi {
 	}
 	set fov(e) {
 		(this.projectMatrixDirty = !0), (this._fov = e);
+	}
+	set left(value) {
+		this._left = value;
+		this.projectMatrixDirty = true;
+	}
+	get left() {
+		return this._left;
+	}
+	set right(value) {
+		this._right = value;
+		this.projectMatrixDirty = true;
+	}
+	get right() {
+		return this._right;
+	}
+	set top(value) {
+		this._top = value;
+		this.projectMatrixDirty = true;
+	}
+	get top() {
+		return this._top;
+	}
+	set bottom(value) {
+		this._bottom = value;
+		this.projectMatrixDirty = true;
+	}
+	get bottom() {
+		return this._bottom;
 	}
 	updateCameraParms() {
 		(this.top = this.near * Math.tan(0.5 * Pe.RADIANS_PER_DEGREE * this.fov)),
