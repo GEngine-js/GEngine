@@ -56,6 +56,14 @@ export class Model {
 			});
 		}
 	}
+	compute(params: renderModelParams) {
+		const { device, passEncoder } = params;
+		if (!this.command) this.command = this.createComputeCommand();
+		(this.command as ComputeCommand).render({
+			device,
+			passEncoder: <GPUComputePassEncoder>passEncoder
+		});
+	}
 	public getVertexBufferByUid(uid: string): VertexBuffer {
 		return this.vertexBuffers.get(uid);
 	}

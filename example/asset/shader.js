@@ -1,6 +1,6 @@
 export const import_Shader = `
 struct UBO {
-  width : u32,
+  width : f32,
 }
 struct Buffer {
   weights : array<f32>,
@@ -9,18 +9,17 @@ struct Buffer {
 @binding(1) @group(0) var<storage, read_write> buf_in : Buffer;
 @binding(2) @group(0) var<storage, read_write> buf_out : Buffer;
 @binding(3) @group(0) var tex_in : texture_2d<f32>;
-@binding(4) @group(0) var tex_out : texture_storage_2d<rgba8unorm, write>;
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) coord : vec3<u32>) {
   _ = &buf_in;
-  let offset = coord.x + coord.y * ubo.width;
+  let offset = coord.x + coord.y * u32(ubo.width);
   buf_out.weights[offset] = textureLoad(tex_in, vec2<i32>(coord.xy), 0).w;
 }
 `;
 
 export const export_shader = `
 struct UBO {
-  width : u32,
+  width : f32,
 }
 struct Buffer {
   weights : array<f32>,
@@ -28,18 +27,17 @@ struct Buffer {
 @binding(0) @group(0) var<uniform> ubo : UBO;
 @binding(1) @group(0) var<storage, read_write> buf_in : Buffer;
 @binding(2) @group(0) var<storage, read_write> buf_out : Buffer;
-@binding(3) @group(0) var tex_in : texture_2d<f32>;
-@binding(4) @group(0) var tex_out : texture_storage_2d<rgba8unorm, write>;
+@binding(3) @group(0) var tex_out : texture_storage_2d<rgba8unorm, write>;
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) coord : vec3<u32>) {
   if (all(coord.xy < vec2<u32>(textureDimensions(tex_out)))) {
-    let dst_offset = coord.x    + coord.y    * ubo.width;
-    let src_offset = coord.x*2u + coord.y*2u * ubo.width;
+    let dst_offset = coord.x    + coord.y    * u32(ubo.width);
+    let src_offset = coord.x*2u + coord.y*2u * u32(ubo.width);
 
     let a = buf_in.weights[src_offset + 0u];
     let b = buf_in.weights[src_offset + 1u];
-    let c = buf_in.weights[src_offset + 0u + ubo.width];
-    let d = buf_in.weights[src_offset + 1u + ubo.width];
+    let c = buf_in.weights[src_offset + 0u + u32(ubo.width)];
+    let d = buf_in.weights[src_offset + 1u + u32(ubo.width)];
     let sum = dot(vec4<f32>(a, b, c, d), vec4<f32>(1.0));
 
     buf_out.weights[dst_offset] = sum / 4.0;
@@ -87,18 +85,17 @@ fn main(in : VertexInput) -> VertexOutput {
 
 `;
 export const renderFrag = `
-struct VertexOutput {
-  @builtin(position) position : vec4<f32>,
-  @location(0) color : vec4<f32>,
-  @location(1) quad_pos : vec2<f32>, // -1..+1
-}
-@fragment
-fn main(in : VertexOutput) -> @location(0) vec4<f32> {
-  var color = in.color;
-  // Apply a circular particle alpha mask
-  color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
-  return vec4<f32>(1.0,0.0,0.0,1.0);
-}
+  struct VertexOutput {
+    @location(0) color : vec4<f32>,
+    @location(1) quad_pos : vec2<f32>, // -1..+1
+  }
+  @fragment
+  fn main(in : VertexOutput) -> @location(0) vec4<f32> {
+    var color = in.color;
+    // Apply a circular particle alpha mask
+    color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
+    return color;
+  }
 `;
 export const simulateShader = `
 var<private> rand_seed : vec2<f32>;

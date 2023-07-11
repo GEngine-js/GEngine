@@ -20,6 +20,7 @@ export { default as SkyBox } from "./mesh/SkyBox";
 export { Instance } from "./mesh/Instance";
 export { InstanceMesh } from "./mesh/InstanceMesh";
 export { Model } from "./mesh/Model";
+export { Sprite } from "./mesh/Sprite";
 
 // geometry
 export { default as SphereGeometry } from "./geometry/SphereGeometry";

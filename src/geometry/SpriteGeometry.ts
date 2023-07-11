@@ -1,9 +1,9 @@
 import { InterleavedFloat32Attribute } from "../render/Attribute";
 import Geometry from "./Geometry";
-export default class BillboardGeometry extends Geometry {
+export class SpriteGeometry extends Geometry {
 	constructor() {
 		super({
-			type: "billboardGeometry"
+			type: "spriteGeometry"
 		});
 		this.init();
 	}

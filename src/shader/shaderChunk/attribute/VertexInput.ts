@@ -3,8 +3,10 @@ import { wgslParseDefines } from "../../WgslPreprocessor";
 export function VertexInput(defines) {
 	return wgslParseDefines`
         struct VertexInput {
-            @location(${defines.positionLocation}) position: vec3<f32>,       
-            @location(${defines.normalLocation}) normal: vec3<f32>,
+            @location(${defines.positionLocation}) position: vec3<f32>,   
+            #if${defines.HAS_NORMAL}  
+                @location(${defines.normalLocation}) normal: vec3<f32>,
+            #endif
             #if${defines.HAS_COLOR} 
                 @location(${defines.colorLocation}) color: vec3<f32>,
             #endif

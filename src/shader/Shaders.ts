@@ -1,5 +1,3 @@
-import { billboard_fs } from "./material/billboard_fs";
-import { billboard_vs } from "./material/billboard_vs";
 import colorFrag from "./material/colorFrag";
 import colorVert from "./material/colorVert";
 import pbr_fs from "./material/pbr_fs";
@@ -14,6 +12,8 @@ import quadFrag from "./material/quadFrag";
 import quadVert from "./material/quadVert";
 import skyBoxFrag from "./material/skyBoxFrag";
 import skyBoxVert from "./material/skyBoxVert";
+import { sprite_fs } from "./material/sprite_fs";
+import { sprite_vs } from "./material/sprite_vs";
 import blendFrag from "./postProcess/blend/blendFrag";
 import Blur from "./postProcess/bloom/Blur";
 import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
@@ -74,9 +74,9 @@ const shaders = {
 		vert: shadowMapVert,
 		frag: shadowMapFrag
 	},
-	billboard: {
-		vert: billboard_vs,
-		frag: billboard_fs
+	sprite: {
+		vert: sprite_vs,
+		frag: sprite_fs
 	},
 	point: {
 		vert: point_vs,

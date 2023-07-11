@@ -27,7 +27,7 @@
 
 			#app {
 				height: 800px;
-				width: 800px;
+				width: 1200px;
 			}
 		</style>
 	</head>
@@ -56,7 +56,7 @@
 					0;
 				const response = await fetch(new URL("../textures/webgpu.png", import.meta.url).toString());
 				const imageBitmap = await createImageBitmap(await response.blob());
-				const vertexData = [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0];
+				const vertexData = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0];
 				const context = new Context({
 					canvas: null,
 					container: document.getElementById("app"),
@@ -64,24 +64,48 @@
 				});
 				const { canvas, presentationFormat } = context;
 				await context.init();
-				const buffer_a = Buffer.create(
+				/*******************************Texture*******************************/
+				// Calculate number of mip levels required to generate the probability map
+				while (textureWidth < imageBitmap.width || textureHeight < imageBitmap.height) {
+					textureWidth *= 2;
+					textureHeight *= 2;
+					numMipLevels++;
+				}
+				texture = new Texture({
+					size: {
+						width: imageBitmap.width,
+						height: imageBitmap.height,
+						depth: 1
+					},
+					mipLevelCount: numMipLevels,
+					format: "rgba8unorm",
+					usage:
+						GPUTextureUsage.TEXTURE_BINDING |
+						GPUTextureUsage.STORAGE_BINDING |
+						GPUTextureUsage.COPY_DST |
+						GPUTextureUsage.RENDER_ATTACHMENT,
+					data: {
+						source: imageBitmap,
+						width: imageBitmap.width,
+						height: imageBitmap.height
+					}
+				});
+				texture.update(context.device);
+
+				const buffer_a = Buffer.createStorageBuffer(
 					"buffer_a",
 					context.device,
-					GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-					null,
 					textureWidth * textureHeight * 4
 				);
-				const buffer_b = Buffer.create(
+				const buffer_b = Buffer.createStorageBuffer(
 					"buffer_b",
 					context.device,
-					GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-					null,
 					textureWidth * textureHeight * 4
 				);
 				const particlesBuffer = Buffer.create(
 					"particlesBuffer",
 					context.device,
-					GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+					GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
 					null,
 					numParticles * particleInstanceByteSize
 				);
@@ -89,7 +113,7 @@
 				/**********************RenderTarget***************************/
 
 				const colorAttachment = new Attachment(
-					{ r: 0.0, g: 0.0, b: 0.0, a: 0 },
+					{ r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 					{
 						textureView: () => {
 							return context.context.getCurrentTexture().createView();
@@ -104,37 +128,6 @@
 				});
 				const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 				const canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
-
-				/*******************************Texture*******************************/
-				{
-					// Calculate number of mip levels required to generate the probability map
-					while (textureWidth < imageBitmap.width || textureHeight < imageBitmap.height) {
-						textureWidth *= 2;
-						textureHeight *= 2;
-						numMipLevels++;
-					}
-					texture = new Texture({
-						size: {
-							width: imageBitmap.width,
-							height: imageBitmap.height,
-							depth: 1
-						},
-						mipLevelCount: numMipLevels,
-						format: "rgba8unorm",
-						usage:
-							GPUTextureUsage.TEXTURE_BINDING |
-							GPUTextureUsage.STORAGE_BINDING |
-							GPUTextureUsage.COPY_DST |
-							GPUTextureUsage.RENDER_ATTACHMENT,
-						data: {
-							source: imageBitmap,
-							width: imageBitmap.width,
-							height: imageBitmap.height
-						}
-					});
-					texture.update(context.device);
-				}
-
 				const aspect = canvas.width / canvas.height;
 				const projection = mat4.perspective((2 * Math.PI) / 5, aspect, 1, 100.0);
 				const view = mat4.create();
@@ -177,18 +170,18 @@
 									value: () => {
 										return mvp;
 									}
-								}
-							},
-							right: {
-								type: "vec3",
-								value: () => {
-									return [view[0], view[4], view[8]];
-								}
-							},
-							up: {
-								type: "vec3",
-								value: () => {
-									return [view[1], view[5], view[9]];
+								},
+								right: {
+									type: "vec3<f32>",
+									value: () => {
+										return [view[0], view[4], view[8]];
+									}
+								},
+								up: {
+									type: "vec3<f32>",
+									value: () => {
+										return [view[1], view[5], view[9]];
+									}
 								}
 							}
 						}
@@ -212,11 +205,10 @@
 							}
 						],
 						primitive: {
-							topology: "triangle-list",
-							cullMode: "back"
+							topology: "triangle-list"
 						},
 						depthStencil: {
-							depthWriteEnabled: true,
+							depthWriteEnabled: false,
 							depthCompare: "less",
 							format: "depth24plus"
 						}
@@ -224,6 +216,63 @@
 					count: 6,
 					instances: numParticles
 				});
+				const commandEncoder = context.device.createCommandEncoder();
+				for (let level = 0; level < numMipLevels; level++) {
+					const levelWidth = textureWidth >> level;
+					const levelHeight = textureHeight >> level;
+					const shader = level == 0 ? import_Shader : export_shader;
+					const compueModel = new Model({
+						shaderId: "compute_" + level,
+						compute: shader,
+						uniformBuffers: [
+							{
+								type: "uniform",
+								uid: "ubo",
+								visibility: GPUShaderStage.COMPUTE,
+								binding: 0,
+								uniforms: {
+									ubo: {
+										type: "f32",
+										value: textureWidth
+									}
+								}
+							}, //根据uniforms创建uniformBuffer
+							{
+								type: "storage",
+								uid: "buf_in",
+								binding: 1,
+								visibility: GPUShaderStage.COMPUTE,
+								buffer: level & 1 ? buffer_a : buffer_b // buffer为数据源
+							},
+							{
+								type: "storage",
+								uid: "buf_out",
+								binding: 2,
+								visibility: GPUShaderStage.COMPUTE,
+								buffer: level & 1 ? buffer_b : buffer_a
+							}
+						],
+						uniformTextureAndSampler: {
+							tex_in_out: {
+								type: level === 0 ? "texture" : "storageTexture",
+								value: texture,
+								visibility: GPUShaderStage.COMPUTE,
+								binding: 3,
+								textureView: texture.gpuTexture.createView({
+									format: "rgba8unorm",
+									dimension: "2d",
+									baseMipLevel: level,
+									mipLevelCount: 1
+								})
+							}
+						},
+						dispatch: { x: Math.ceil(levelWidth / 64), y: levelWidth }
+					});
+					const passEncoder = commandEncoder.beginComputePass();
+					compueModel.render({ device: context.device, passEncoder });
+					passEncoder.end();
+				}
+				context.device.queue.submit([commandEncoder.finish()]);
 				const simulateModel = new Model({
 					shaderId: "simulate",
 					compute: simulateShader,
@@ -252,8 +301,7 @@
 							type: "storage",
 							uid: "particle",
 							visibility: GPUShaderStage.COMPUTE,
-							buffer: particlesBuffer,
-							bufferSize: particlesBuffer
+							buffer: particlesBuffer
 						}
 					],
 					uniformTextureAndSampler: {
@@ -265,64 +313,6 @@
 					},
 					dispatch: { x: Math.ceil(numParticles / 64) }
 				});
-				for (let level = 0; level < numMipLevels; level++) {
-					const levelWidth = textureWidth >> level;
-					const levelHeight = textureHeight >> level;
-					const shader = level == 0 ? import_Shader : export_shader;
-					const compueModel = new Model({
-						shaderId: "compute_" + level,
-						compute: shader,
-						uniformBuffers: [
-							{
-								type: "uniform",
-								uid: "ubo",
-								usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-								visibility: GPUShaderStage.COMPUTE,
-								binding: 0,
-								uniforms: {
-									ubo: { type: "f32", value: textureWidth }
-								}
-							}, //根据uniforms创建uniformBuffer
-							{
-								type: "storage",
-								uid: "buf_in",
-								binding: 1,
-								visibility: GPUShaderStage.COMPUTE,
-								buffer: level & 1 ? buffer_a : buffer_b
-							},
-							{
-								type: "storage",
-								uid: "buf_out",
-								binding: 2,
-								visibility: GPUShaderStage.COMPUTE,
-								buffer: level & 1 ? buffer_b : buffer_a
-							}
-						],
-						uniformTextureAndSampler: {
-							tex_in: {
-								type: "texture",
-								value: texture,
-								visibility: GPUShaderStage.COMPUTE,
-								binding: 3
-							},
-							tex_out: {
-								type: "storageTexture",
-								value: texture,
-								visibility: GPUShaderStage.COMPUTE,
-								binding: 4,
-								textureView: texture.gpuTexture.createView({
-									format: "rgba8unorm",
-									dimension: "2d",
-									baseMipLevel: level,
-									mipLevelCount: 1
-								})
-							}
-						},
-						dispatch: { x: Math.ceil(levelWidth / 64), y: levelWidth }
-					});
-					computeModels.push(compueModel);
-				}
-				computeModels.push(simulateModel);
 				const updateMatrix = () => {
 					mat4.identity(view);
 					mat4.translate(view, vec3.fromValues(0, 0, -3), view);
@@ -337,10 +327,9 @@
 				const excuteCompute = () => {
 					const commandEncoder = context.device.createCommandEncoder();
 					const passEncoder = commandEncoder.beginComputePass();
-					computeModels.forEach((compute) => {
-						compute.render({ device: context.device, passEncoder });
-					});
+					simulateModel.render({ device: context.device, passEncoder });
 					passEncoder.end();
+					context.device.queue.submit([commandEncoder.finish()]);
 				};
 				function animate() {
 					requestAnimationFrame(animate);
@@ -348,7 +337,6 @@
 					excuteCompute();
 					excuteRender();
 				}
-
 				animate();
 			};
 			init();

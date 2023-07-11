@@ -40,7 +40,6 @@ export class MipmapGenerator {
             `
 				});
 			}
-
 			pipeline = this.device.createRenderPipeline({
 				layout: "auto",
 				vertex: {

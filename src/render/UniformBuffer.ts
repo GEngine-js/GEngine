@@ -1,4 +1,4 @@
-import { BufferUsage, ShaderStage } from "../core/WebGPUConstant";
+import { BufferBindingType, BufferUsage, ShaderStage } from "../core/WebGPUConstant";
 import { UniformFunc, UniformEnum } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import Buffer from "./Buffer";
@@ -110,7 +110,11 @@ export default class UniformBuffer {
 		if (this.uniformDirty) {
 			this.uniformDirty = false;
 			if (!this.buffer) this.buffer = Buffer.createUniformBuffer(this.label, device, this.bufferSize, this.usage);
-			this.buffer.setSubData(0, this.dataBuffer.slice(0, defaultValue(this?.bufferSize / 4, this.uniformsSize)));
+			if (this.type != BufferBindingType.Storage)
+				this.buffer.setSubData(
+					0,
+					this.dataBuffer.slice(0, defaultValue(this?.bufferSize / 4, this.uniformsSize))
+				);
 		}
 	}
 	public getUniformBufferStruct() {

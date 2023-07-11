@@ -5,9 +5,9 @@ import Texture from "./Texture";
 
 export default class RenderTarget {
 	public device: GPUDevice;
+	public commandEncoder: GPUCommandEncoder | null;
 	private _renderPassDescriptor: GPURenderPassDescriptor;
 	private renderEncoder: GPURenderPassEncoder;
-	private commandEncoder: GPUCommandEncoder | null;
 	private computeEncoder: GPUComputePassEncoder;
 	constructor(
 		public type: PassType,

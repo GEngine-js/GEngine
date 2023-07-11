@@ -48,7 +48,7 @@ export class Mesh extends RenderObject {
 
 		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		// 视锥剔除
-		if (visibility === Intersect.OUTSIDE && !this.frustumCull) return;
+		if (visibility === Intersect.OUTSIDE || !this.frustumCull) return;
 		if (this.material.transparent) {
 			frameState.renderQueue.transparent.push(this);
 		} else {

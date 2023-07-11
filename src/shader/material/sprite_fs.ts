@@ -1,5 +1,8 @@
-export function billboard_fs(defines) {
-	return `
+import { wgslParseDefines } from "../WgslPreprocessor";
+
+export function sprite_fs(defines) {
+	return wgslParseDefines`
+  #include <VertexOutput>
   struct SelfUniform {
     modelMatrix: mat4x4<f32>,
     color:vec3<f32>,
@@ -7,7 +10,7 @@ export function billboard_fs(defines) {
     center:vec2<f32>,
     opacity:f32,
   }
-  @binding(${defines.billboardBinding}) @group(0) var<uniform> selfUniform : SelfUniform;
+  @binding(${defines.spriteBinding}) @group(0) var<uniform> selfUniform : SelfUniform;
   #if${defines.USE_COLORTEXTURE}
     @group(0) @binding(${defines.baseColorSamplerBinding}) var baseColorSampler: sampler;
     @group(0) @binding(${defines.baseColorTextureBinding}) var baseColorTexture: texture_2d<f32>;
