@@ -31,16 +31,14 @@
 			}
 
 			#app {
-				height: 800px;
-				width: 800px;
+				width: 100%;
+				height: 100%;
 			}
 		</style>
 	</head>
 
 	<body>
-		<div>
-			<canvas id="app"></canvas>
-		</div>
+		<canvas id="app"></canvas>
 		<script type="module">
 			import { Model } from "../../dist/index.js";
 			import { mat4, vec3 } from "../lib/esm/index.js";
@@ -90,7 +88,7 @@
 						{
 							view: undefined, // Assigned later
 
-							clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+							clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 							loadOp: "clear",
 							storeOp: "store"
 						}

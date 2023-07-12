@@ -8,34 +8,29 @@
 			* {
 				box-sizing: border-box;
 			}
-
 			html {
 				background: #692a84;
 				background: linear-gradient(316deg, #0e0f2a, #060913);
-				width: 100%;
 				height: 100%;
+				width: 100%;
 			}
-
 			body {
 				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 				overflow: hidden;
-				width: 100%;
 				height: 100%;
+				width: 100%;
 				margin: 0;
 				padding: 0;
 			}
-
 			#app {
-				height: 800px;
-				width: 1200px;
+				height: 100%;
+				width: 100%;
 			}
 		</style>
 	</head>
 
 	<body>
-		<div>
-			<div id="app"></div>
-		</div>
+		<div id="app"></div>
 		<script type="module">
 			import { Model, Context, Texture, RenderTarget, Attachment, Sampler, Buffer } from "../../dist/index.js";
 			import { mat4, vec3 } from "../lib/wgpu-matrix/wgpu-matrix.module.js";
@@ -216,6 +211,46 @@
 					count: 6,
 					instances: numParticles
 				});
+				const simulateModel = new Model({
+					shaderId: "simulate",
+					compute: simulateShader,
+					uniformBuffers: [
+						{
+							type: "uniform",
+							uid: "SimulationParams",
+							usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+							visibility: GPUShaderStage.COMPUTE,
+							uniforms: {
+								seed: {
+									type: "vec4<f32>",
+									value: () => {
+										return [
+											Math.random() * 100,
+											Math.random() * 100, // seed.xy
+											1 + Math.random(),
+											1 + Math.random()
+										];
+									}
+								},
+								deltaTime: { type: "f32", value: 0.04 }
+							}
+						}, //根据uniforms创建uniformBuffer
+						{
+							type: "storage",
+							uid: "particle",
+							visibility: GPUShaderStage.COMPUTE,
+							buffer: particlesBuffer
+						}
+					],
+					uniformTextureAndSampler: {
+						tex_in: {
+							type: "texture",
+							value: texture,
+							visibility: GPUShaderStage.COMPUTE
+						}
+					},
+					dispatch: { x: Math.ceil(numParticles / 64) }
+				});
 				const commandEncoder = context.device.createCommandEncoder();
 				for (let level = 0; level < numMipLevels; level++) {
 					const levelWidth = textureWidth >> level;
@@ -273,46 +308,6 @@
 					passEncoder.end();
 				}
 				context.device.queue.submit([commandEncoder.finish()]);
-				const simulateModel = new Model({
-					shaderId: "simulate",
-					compute: simulateShader,
-					uniformBuffers: [
-						{
-							type: "uniform",
-							uid: "SimulationParams",
-							usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-							visibility: GPUShaderStage.COMPUTE,
-							uniforms: {
-								seed: {
-									type: "vec4<f32>",
-									value: () => {
-										return [
-											Math.random() * 100,
-											Math.random() * 100, // seed.xy
-											1 + Math.random(),
-											1 + Math.random()
-										];
-									}
-								},
-								deltaTime: { type: "f32", value: 0.04 }
-							}
-						}, //根据uniforms创建uniformBuffer
-						{
-							type: "storage",
-							uid: "particle",
-							visibility: GPUShaderStage.COMPUTE,
-							buffer: particlesBuffer
-						}
-					],
-					uniformTextureAndSampler: {
-						tex_in: {
-							type: "texture",
-							value: texture,
-							visibility: GPUShaderStage.COMPUTE
-						}
-					},
-					dispatch: { x: Math.ceil(numParticles / 64) }
-				});
 				const updateMatrix = () => {
 					mat4.identity(view);
 					mat4.translate(view, vec3.fromValues(0, 0, -3), view);

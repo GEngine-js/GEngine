@@ -4,15 +4,16 @@
 
 ## install
 
--   `npm install`
+-   `npm i @gengine-js/gengine`
 
 ## build
 
--   `npm run dev`
+-   `npm install`
+
+-   `npm run build`
 
 ## Usage
 
-    ```
        <script type="module">
             import {
                 Mesh,PerspectiveCamera,Scene,
@@ -66,7 +67,6 @@
             };
             init();
         </script>
-    ```
 
 ## Native
 
@@ -188,12 +188,6 @@
     		init();
         </script>
 
-  <script type="module">
-    	
-</script>
-
-```
-
 ## feature
 
 -   [✔] Camera
@@ -230,4 +224,3 @@
 2. Complete core glTF 2.0
 3. Text and Sprite
 4. Pick
-```
