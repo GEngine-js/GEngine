@@ -1,6 +1,7 @@
 import OrthographicCamera from "../../camera/OrthographicCamera";
 import Vector2 from "../../math/Vector2";
 import { DirectionalLight } from "../DirectionalLight";
+import { Light } from "../Light";
 import { CascadedShadow, defaultCascadedShadowOptions } from "./CascadedShadow";
 
 export class DirectionalLightCascadedShadow extends CascadedShadow {
@@ -16,22 +17,12 @@ export class DirectionalLightCascadedShadow extends CascadedShadow {
 		);
 		super(cascadedShadowOptions);
 		this.type = "directionalLightCascadedShadow";
+		super.init();
 	}
 
-	public update(light: DirectionalLight) {
-		this._sceneAvtiveCamera = light._getSceneActiveCamera();
-		if (this.breaks.length == 0) this.getBreaks();
+	public update(light: Light) {
 		this.updateCascadeFrustumArray();
-		this.updateSubCameraMatrixByFrustum();
-		// this.updateMatrices(light);
-	}
-
-	updateMatrices(light: DirectionalLight) {
-		this.camera.position.copy(light.position);
-		const { x, y, z } = light.target;
-		this.camera.lookAt(x, y, z);
-		this.camera.updateMatrix();
-		this.vpMatrixDirty = true;
+		this.updateCameraMatrixBySubFrustum();
 	}
 
 	static _getCascadedShadowOptions(

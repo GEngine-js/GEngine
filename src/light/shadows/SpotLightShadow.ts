@@ -9,6 +9,7 @@ export class SpotLightShadow extends BaseShadow {
 		const camera = new PerspectiveCamera(60, 1, 0.1, 500);
 		super(new Vector2(1024, 1024), camera);
 		this.type = "spotLightShadow";
+		super.init();
 	}
 
 	public update(light: SpotLight) {

@@ -5,6 +5,7 @@ import { DirectionalLight } from "../light/DirectionalLight";
 import { Light } from "../light/Light";
 import { PointLight } from "../light/PointLight";
 import { SpotLight } from "../light/SpotLight";
+import { DirectionalLightCascadedShadow } from "../light/shadows/DirectionalLightCascadedShadow";
 import Vector3 from "../math/Vector3";
 import Sampler from "../render/Sampler";
 import ShaderData from "../render/ShaderData";
@@ -60,6 +61,8 @@ export default class LightManger {
 		if (light.lightType == LightType.AmbientLight) {
 			this.ambientLight = <AmbientLight>light;
 		} else if (light.lightType == LightType.DirectionalLight) {
+			if (light instanceof DirectionalLight && light.shadow instanceof DirectionalLightCascadedShadow)
+				light.shadow.initSetting(light);
 			this.directLights.push(<DirectionalLight>light);
 		} else if (light.lightType == LightType.PointLight) {
 			this.pointLights.push(<PointLight>light);
@@ -284,6 +287,7 @@ export default class LightManger {
 		if (shadowMapSources.length <= 0) return undefined;
 
 		const shadowMapTextureArray = new Texture({
+			label: `${shadowMapSources[0].source?.textureProp?.label}TextureArray`,
 			size: {
 				width: shadowMapSources[0].width,
 				height: shadowMapSources[0].height,

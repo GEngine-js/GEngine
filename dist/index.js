@@ -9451,7 +9451,7 @@ class Ki {
 	getShadowMapTexture() {
 		return this._shadowMap;
 	}
-	_init() {
+	init() {
 		this._initShadowMapTexture();
 	}
 	_initShadowMapTexture() {

@@ -62,7 +62,8 @@
 				loadTexture,
 				OrbitControl,
 				PlaneGeometry,
-				AmbientLight
+				AmbientLight,
+				ShadowMapDebugger
 			} from "../../dist/index.js";
 
 			const init = async () => {
@@ -90,9 +91,7 @@
 				];
 				const skybox = new SkyBox(environmentUrls);
 
-				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0, true, {
-					openCSM: false
-				});
+				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
 				directionalLight.position.set(30, 40, -8);
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
@@ -127,6 +126,7 @@
 				scene.add(skybox);
 				scene.add(ambientLight);
 				scene.add(directionalLight);
+				const shadowMapDebuggerInstance = new ShadowMapDebugger(directionalLight, scene);
 
 				var radiu = 40;
 				var i = 0;

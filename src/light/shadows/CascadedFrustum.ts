@@ -76,6 +76,7 @@ export class CascadedFrustum {
 				}
 			} else {
 				for (let j = 0; j < 4; j++) {
+					cascadeSubFrustum.vertices.near[j].set(0, 0, 0);
 					cascadeSubFrustum.vertices.near[j].lerp(this.vertices.far[j], breaks[i - 1]);
 				}
 			}
@@ -86,6 +87,7 @@ export class CascadedFrustum {
 				}
 			} else {
 				for (let j = 0; j < 4; j++) {
+					cascadeSubFrustum.vertices.far[j].set(0, 0, 0);
 					cascadeSubFrustum.vertices.far[j].lerp(this.vertices.far[j], breaks[i]);
 				}
 			}

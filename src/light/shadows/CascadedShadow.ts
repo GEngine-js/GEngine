@@ -1,9 +1,9 @@
 import Camera from "../../camera/Camera";
 import OrthographicCamera from "../../camera/OrthographicCamera";
-import BoundingSphere from "../../core/BoundingSphere";
 import GMath from "../../math/Math";
 import Vector2 from "../../math/Vector2";
 import Vector3 from "../../math/Vector3";
+import Vector4 from "../../math/Vector4";
 import { DirectionalLight } from "../DirectionalLight";
 import { BaseShadow } from "./BaseShadow";
 import { CascadedFrustum } from "./CascadedFrustum";
@@ -38,22 +38,47 @@ export class CascadedShadow extends BaseShadow {
 		this.sceneActiveCameraFrustum = new CascadedFrustum();
 		this.cascadeSubFrustumArray = [];
 		this.breaks = [];
+		this._viewports = [];
+		this.viewportSize = shadowMapSize;
+		this.currentViewportIndex = 0;
+		this._camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
 	}
 
 	set cascadeNumber(value: number) {
 		this._cascadeNumber = value;
-		this.getBreaks();
+		this.updateSetting();
+		this._lightInstance.shadowDirty = true;
 	}
 
 	get cascadeNumber() {
 		return this._cascadeNumber;
 	}
 
-	init() {
-		this._sceneAvtiveCamera = this._lightInstance._getSceneActiveCamera();
+	initSetting(light: DirectionalLight) {
+		this._sceneAvtiveCamera = light._getSceneActiveCamera();
+		this.updateSetting();
+	}
+
+	updateSetting() {
 		this.getBreaks();
-		this.updateCascadeFrustumArray();
-		this.updateSubCameraMatrixByFrustum();
+		this.updateViewports();
+	}
+
+	updateViewports() {
+		this._viewports.length = 0;
+		for (let i = 0; i < this.breaks.length; i++) {
+			this._viewports.push(new Vector4(i, 0, 1 / this.breaks.length, 1));
+		}
+		this.updateShadowMapTextureSize();
+	}
+
+	updateShadowMapTextureSize() {
+		this.getShadowMapTexture().setSize(
+			this._viewports.length * this.viewportSize.x,
+			this.viewportSize.y,
+			undefined,
+			true
+		);
 	}
 
 	updateSubCameraMatrixByFrustum() {
@@ -81,6 +106,31 @@ export class CascadedShadow extends BaseShadow {
 			shadowCam.updateMatrix();
 			shadowCam.updateProjectionMatrix();
 		}
+	}
+
+	updateCameraMatrixBySubFrustum() {
+		const frustums = this.cascadeSubFrustumArray;
+		const shadowCam = this.camera;
+		const subFrustum = frustums[this.currentViewportIndex];
+		subFrustum.updateBoundingSphere();
+		const center = subFrustum.boundingSphere.center;
+		const radius = subFrustum.boundingSphere.radius;
+		const halfShadowMapSize = this.shadowMapSize.x / 2;
+		const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
+
+		if (shadowCam instanceof OrthographicCamera) {
+			const position = new Vector3();
+			Vector3.multiplyByScalar(this._lightInstance.directional, radius + shadowCam.near, position);
+			Vector3.subtract(center, position, position);
+			shadowCam.position.copy(position);
+			shadowCam.lookAt(center.x, center.y, center.z);
+			shadowCam.left = -borderRadius;
+			shadowCam.right = borderRadius;
+			shadowCam.top = borderRadius;
+			shadowCam.bottom = -borderRadius;
+		}
+		shadowCam.updateMatrix();
+		shadowCam.updateProjectionMatrix();
 	}
 
 	updateCascadeFrustumArray() {

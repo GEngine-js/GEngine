@@ -22,8 +22,6 @@ export class BaseShadow {
 		this._cameraArray = Array.isArray(camera) ? camera : undefined;
 		this.viewPortDirty = true;
 		this.vpMatrixDirty = true;
-
-		this._init();
 	}
 
 	get camera() {
@@ -46,7 +44,7 @@ export class BaseShadow {
 		return this._shadowMap;
 	}
 
-	protected _init() {
+	init() {
 		this._initShadowMapTexture();
 	}
 
@@ -56,6 +54,7 @@ export class BaseShadow {
 
 	protected _createShadowMapTexture() {
 		this._shadowMap = new Texture({
+			label: `${this.type}Map`,
 			size: {
 				width: this._shadowMapSize.x,
 				height: this._shadowMapSize.y,
@@ -68,5 +67,5 @@ export class BaseShadow {
 		});
 	}
 
-	public update(light: Light) {}
+	public update(light) {}
 }
