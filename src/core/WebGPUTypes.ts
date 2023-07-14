@@ -47,6 +47,7 @@ export interface ContextOptions {
 	container?: HTMLDivElement;
 	context?: GPUCanvasContext;
 	pixelRatio?: number;
+	useGLSL?: boolean;
 }
 
 export interface LightMangerOptions {
@@ -309,6 +310,7 @@ export type ShaderSourceParams = {
 	defines?: ShaderDefine;
 	compute?: computeParams;
 	render?: renderParams;
+	language?: ShaderLanguage;
 };
 export type renderParams = {
 	vertMain?: string;
@@ -508,3 +510,12 @@ export type VertexBufferParams = {
 	stepMode?: InputStepMode;
 	arrayStride?: number;
 };
+export enum ShaderLanguage {
+	WGSL = "wgsl",
+	GLSL = "glsl"
+}
+export enum ShaderMainStage {
+	VERT = "vertex",
+	FRAG = "fragment",
+	COMPUTE = "compute"
+}

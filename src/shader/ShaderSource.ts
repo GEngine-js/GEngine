@@ -5,22 +5,27 @@ import {
 	renderParams,
 	ShaderModule,
 	ShaderSourceParams,
-	ShaderFunc
+	ShaderFunc,
+	ShaderLanguage,
+	ShaderMainStage
 } from "../core/WebGPUTypes";
 import getVertFrag from "./Shaders";
 export class ShaderSource {
 	public compute: computeParams;
+	public static glslang;
 	public render: renderParams;
 	public shaderId: string;
 	public dirty: boolean;
 	public defines?: ShaderDefine;
 	private _uid: string;
 	private _shaderModule: ShaderModule;
+	private _shaderLanguage: ShaderLanguage;
 	constructor(options: ShaderSourceParams) {
 		this.shaderId = options.shaderId;
 		this.defines = options.defines || {};
 		this.render = options.render;
 		this.compute = options.compute;
+		this._shaderLanguage = options.language;
 		this.dirty = true;
 	}
 	get uid() {
@@ -35,9 +40,22 @@ export class ShaderSource {
 	public getShaderModule(device: GPUDevice): ShaderModule {
 		if (this.dirty) {
 			const { vert, frag, compute } = this.getShaderStr() || {};
-			const vertGPUModule = vert ? device.createShaderModule({ code: vert }) : undefined;
-			const fragGPUModule = frag ? device.createShaderModule({ code: frag }) : undefined;
-			const computeGPUModule = compute ? device.createShaderModule({ code: compute }) : undefined;
+			const isGLSL = this._shaderLanguage == ShaderLanguage.GLSL;
+			const vertGPUModule = vert
+				? device.createShaderModule({
+						code: isGLSL ? ShaderSource?.glslang.compileGLSL(vert, ShaderMainStage.VERT) : vert
+				  })
+				: undefined;
+			const fragGPUModule = frag
+				? device.createShaderModule({
+						code: isGLSL ? ShaderSource?.glslang.compileGLSL(frag, ShaderMainStage.FRAG) : frag
+				  })
+				: undefined;
+			const computeGPUModule = compute
+				? device.createShaderModule({
+						code: isGLSL ? ShaderSource?.glslang.compileGLSL(compute, ShaderMainStage.COMPUTE) : compute
+				  })
+				: undefined;
 			this._shaderModule = {
 				vert: vertGPUModule,
 				frag: fragGPUModule,

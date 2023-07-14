@@ -1,5 +1,7 @@
 import { TextureUsage } from "../core/WebGPUConstant";
 import { GPUCanvasCompositingAlphaMode, ContextOptions } from "../core/WebGPUTypes";
+import { ShaderSource } from "../shader/ShaderSource";
+import { loadGlslangModule } from "../utils/loadGlslangModule";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
 import { ScissorTest, ViewPort } from "./RenderState";
 
@@ -24,6 +26,8 @@ class Context {
 
 	private _scissorTest: ScissorTest;
 
+	private _useGLSL: boolean; // will glsl shaders be used
+
 	public get viewPort(): ViewPort {
 		return this._viewPort;
 	}
@@ -31,7 +35,7 @@ class Context {
 	public get scissorTest(): ScissorTest {
 		return this._scissorTest;
 	}
-	constructor({ canvas, container, context, pixelRatio }: ContextOptions = {}) {
+	constructor({ canvas, container, context, pixelRatio, useGLSL = false }: ContextOptions) {
 		if (!container.clientWidth || !container.clientHeight) throw new Error("container width or height illegality");
 		this.canvas = canvas || document.createElement("canvas");
 		// this.canvas.style.display = "block";
@@ -44,7 +48,7 @@ class Context {
 		this.canvas.style.height = container.clientHeight + "px";
 		container.appendChild(this.canvas);
 		this.context = context || (this.canvas.getContext("webgpu") as GPUCanvasContext);
-
+		this._useGLSL = useGLSL;
 		this.device = undefined;
 	}
 
@@ -73,6 +77,7 @@ class Context {
 				console.error(error);
 				// State.error = true;
 			});
+			if (this._useGLSL) ShaderSource.glslang = await loadGlslangModule();
 			this.mipmapTools = new MipmapGenerator(this.device);
 			this.context.configure({
 				device: this.device,
