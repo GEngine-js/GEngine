@@ -45,7 +45,15 @@ export function toIndices(array: TypedArray): Uint16Array | Uint32Array {
 	if (array instanceof Float32Array) {
 		toArray = new Uint32Array(array.length);
 	} else {
-		toArray = new Uint16Array(array.length);
+		let max = 0;
+		for (let i = 0; i < array.length; i++) {
+			max = max < array[i] ? array[i] : max;
+		}
+		if (max < 65536) {
+			toArray = new Uint16Array(array.length);
+		} else {
+			toArray = new Uint32Array(array.length);
+		}
 	}
 	array.forEach((element, index) => {
 		toArray[index] = element;

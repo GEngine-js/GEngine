@@ -334,7 +334,7 @@ export class GLTF {
 			weights = accessor.getArray();
 		}
 		const geo = new Geometry({ type: "pbrGeomtry" });
-		if (indices) geo.setIndice(Array.from(indices));
+		if (indices) geo.setIndice(indices);
 		if (positions) geo.setAttribute(new Float32Attribute("position", Array.from(positions), 3));
 		if (normals) geo.setAttribute(new Float32Attribute("normal", Array.from(normals), 3));
 		if (colors) geo.setAttribute(new Float32Attribute("color", Array.from(colors), colorSize));
