@@ -160,6 +160,9 @@ export default class UniformBuffer {
 		if (!uniform) return;
 		uniform.cb = value;
 	}
+	getUniformByName(name: string) {
+		return this._uniformStruct.get(name);
+	}
 	// uniformBuffer.setVec3Array('test',()=>{return [new Vector3(1,0,0),new Vector3(1,0.8,0.5)]},2);
 	// uniformBuffer.setFloatArray('test1',()=>{return [0.5,0.5,1.0]},3);
 	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
@@ -174,6 +177,12 @@ export default class UniformBuffer {
 				: new TypeUniform(name, this.dataBuffer, this.byteOffset, value);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
+	}
+	setUniformsFromUniformBuffer(uniformBuffer: UniformBuffer) {
+		this._uniformStruct.forEach((value, key) => {
+			const uniform = uniformBuffer.getUniformByName(key);
+			if (uniform) this._uniformStruct.set(key, uniform);
+		});
 	}
 	static checkUniformOffset(byteSize: number, Align: number): number {
 		// from https://gpuweb.github.io/gpuweb/wgsl/#address-space-layout-constraints
