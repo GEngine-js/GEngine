@@ -15,6 +15,7 @@ export class BaseShadow {
 	public currentViewportIndex: number;
 	public viewPortDirty: boolean;
 	public vpMatrixDirty: boolean;
+	isCascadedShadow: boolean;
 
 	constructor(shadowMapSize: Vector2, camera: Camera | Array<Camera>) {
 		this._shadowMapSize = shadowMapSize;

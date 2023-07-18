@@ -1,4 +1,5 @@
 import OrthographicCamera from "../../camera/OrthographicCamera";
+import Matrix4 from "../../math/Matrix4";
 import Vector2 from "../../math/Vector2";
 import { DirectionalLight } from "../DirectionalLight";
 import { Light } from "../Light";
@@ -6,6 +7,9 @@ import { CascadedShadow, defaultCascadedShadowOptions } from "./CascadedShadow";
 
 export class DirectionalLightCascadedShadow extends CascadedShadow {
 	public type: string;
+	isCascadedShadow: boolean;
+	vpMatrixArrayDirty: boolean;
+
 	constructor(options: { cascadeNumber?: number; cascadeMode?: string; lightInstance: DirectionalLight }) {
 		const shadowOptions = Object.assign({}, defaultCascadedShadowOptions, options);
 
@@ -23,20 +27,21 @@ export class DirectionalLightCascadedShadow extends CascadedShadow {
 	public update(light: Light) {
 		this.updateCascadeFrustumArray();
 		this.updateCameraMatrixBySubFrustum();
+		if (this.currentViewportIndex == this.vpMatrixArray.length - 1) this.vpMatrixArrayDirty = true;
 	}
 
 	static _getCascadedShadowOptions(
-		cameraNumber: number,
+		cascadeNumber: number,
 		shadowMapSize: Vector2,
 		lightInstance: DirectionalLight,
 		cascadeMode: string
 	) {
-		const cameraArray = [];
-		for (let i = 0; i < cameraNumber; i++) {
-			cameraArray.push(new OrthographicCamera(-50, 50, 50, -50, 0, 100));
+		const vpMatrixArray = [];
+		for (let i = 0; i < cascadeNumber; i++) {
+			vpMatrixArray.push(new Matrix4());
 		}
 		return {
-			cameraArray,
+			vpMatrixArray,
 			shadowMapSize,
 			lightInstance,
 			cascadeMode

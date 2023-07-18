@@ -60,6 +60,13 @@ export class CascadedFrustum {
 		return this.vertices;
 	}
 
+	getBreakVSArray(breaks: number[], breakVSArray: number[]) {
+		breakVSArray.length = 0;
+		for (let i = 0; i < breaks.length; i++) {
+			breakVSArray[i] = -1 * breaks[i] * this.vertices.far[0].z;
+		}
+	}
+
 	splitedByBreaks(breaks: number[], target: CascadedFrustum[]) {
 		while (breaks.length > target.length) {
 			target.push(new CascadedFrustum());

@@ -1,6 +1,7 @@
 import Camera from "../../camera/Camera";
 import OrthographicCamera from "../../camera/OrthographicCamera";
 import GMath from "../../math/Math";
+import Matrix4 from "../../math/Matrix4";
 import Vector2 from "../../math/Vector2";
 import Vector3 from "../../math/Vector3";
 import Vector4 from "../../math/Vector4";
@@ -19,29 +20,33 @@ const maxFar = 10000;
 export class CascadedShadow extends BaseShadow {
 	sceneActiveCameraFrustum: CascadedFrustum;
 	cascadeSubFrustumArray: Array<CascadedFrustum>;
-	subCameraArray: Array<Camera>;
+	vpMatrixArray: Array<Matrix4>;
 	breaks: Array<number>;
+	breakVSArray: Array<number>;
 	cascadeMode: string;
 	_cascadeNumber: number;
 	_lightInstance: DirectionalLight;
 	_sceneAvtiveCamera: Camera;
+	isCascadedShadow: boolean;
 
 	static atlasBorderSize = 4;
 
 	constructor(options: CascadedShadowOptions) {
-		const { shadowMapSize, cameraArray, lightInstance, cascadeMode } = options;
-		super(shadowMapSize, cameraArray);
-		this._cascadeNumber = cameraArray.length;
-		this.subCameraArray = cameraArray;
+		const { shadowMapSize, vpMatrixArray, lightInstance, cascadeMode } = options;
+		const camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
+		super(shadowMapSize, camera);
+		this.isCascadedShadow = true;
+		this._cascadeNumber = vpMatrixArray.length;
+		this.vpMatrixArray = vpMatrixArray;
 		this.cascadeMode = cascadeMode;
 		this._lightInstance = lightInstance;
 		this.sceneActiveCameraFrustum = new CascadedFrustum();
 		this.cascadeSubFrustumArray = [];
 		this.breaks = [];
+		this.breakVSArray = [];
 		this._viewports = [];
 		this.viewportSize = shadowMapSize;
 		this.currentViewportIndex = 0;
-		this._camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
 	}
 
 	set cascadeNumber(value: number) {
@@ -66,6 +71,7 @@ export class CascadedShadow extends BaseShadow {
 
 	updateViewports() {
 		this._viewports.length = 0;
+		this.viewPortDirty = true;
 		for (let i = 0; i < this.breaks.length; i++) {
 			this._viewports.push(new Vector4(i, 0, 1 / this.breaks.length, 1));
 		}
@@ -81,33 +87,6 @@ export class CascadedShadow extends BaseShadow {
 		);
 	}
 
-	updateSubCameraMatrixByFrustum() {
-		const frustums = this.cascadeSubFrustumArray;
-		for (let i = 0; i < frustums.length; i++) {
-			const shadowCam = this.subCameraArray[i];
-			const subFrustum = frustums[i];
-			subFrustum.updateBoundingSphere();
-			const center = subFrustum.boundingSphere.center;
-			const radius = subFrustum.boundingSphere.radius;
-			const halfShadowMapSize = this.shadowMapSize.x / 2;
-			const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
-
-			if (shadowCam instanceof OrthographicCamera) {
-				const position = new Vector3();
-				Vector3.multiplyByScalar(this._lightInstance.directional, radius + shadowCam.near, position);
-				Vector3.subtract(center, position, position);
-				shadowCam.position.copy(position);
-				shadowCam.lookAt(center.x, center.y, center.z);
-				shadowCam.left = -borderRadius;
-				shadowCam.right = borderRadius;
-				shadowCam.top = borderRadius;
-				shadowCam.bottom = -borderRadius;
-			}
-			shadowCam.updateMatrix();
-			shadowCam.updateProjectionMatrix();
-		}
-	}
-
 	updateCameraMatrixBySubFrustum() {
 		const frustums = this.cascadeSubFrustumArray;
 		const shadowCam = this.camera;
@@ -115,8 +94,8 @@ export class CascadedShadow extends BaseShadow {
 		subFrustum.updateBoundingSphere();
 		const center = subFrustum.boundingSphere.center;
 		const radius = subFrustum.boundingSphere.radius;
-		const halfShadowMapSize = this.shadowMapSize.x / 2;
-		const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
+		// const halfShadowMapSize = this.shadowMapSize.x / 2;
+		// const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
 
 		if (shadowCam instanceof OrthographicCamera) {
 			const position = new Vector3();
@@ -124,13 +103,13 @@ export class CascadedShadow extends BaseShadow {
 			Vector3.subtract(center, position, position);
 			shadowCam.position.copy(position);
 			shadowCam.lookAt(center.x, center.y, center.z);
-			shadowCam.left = -borderRadius;
-			shadowCam.right = borderRadius;
-			shadowCam.top = borderRadius;
-			shadowCam.bottom = -borderRadius;
+			shadowCam.left = -radius;
+			shadowCam.right = radius;
+			shadowCam.top = radius;
+			shadowCam.bottom = -radius;
+			shadowCam.far = radius * 2.0 + shadowCam.near;
 		}
-		shadowCam.updateMatrix();
-		shadowCam.updateProjectionMatrix();
+		Matrix4.clone(shadowCam.vpMatrix, this.vpMatrixArray[this.currentViewportIndex]);
 	}
 
 	updateCascadeFrustumArray() {
@@ -138,6 +117,7 @@ export class CascadedShadow extends BaseShadow {
 		camera.updateProjectionMatrix();
 		this.sceneActiveCameraFrustum.setFromProjectionMatrix(camera.projectionMatrix, maxFar);
 		this.sceneActiveCameraFrustum.splitedByBreaks(this.breaks, this.cascadeSubFrustumArray);
+		this.sceneActiveCameraFrustum.getBreakVSArray(this.breaks, this.breakVSArray);
 	}
 
 	getBreaks() {
@@ -189,7 +169,7 @@ export class CascadedShadow extends BaseShadow {
 }
 
 export interface CascadedShadowOptions {
-	cameraArray: Camera[];
+	vpMatrixArray: Matrix4[];
 	shadowMapSize: Vector2;
 	lightInstance: DirectionalLight;
 	cascadeMode: string;

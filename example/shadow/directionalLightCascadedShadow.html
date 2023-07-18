@@ -63,7 +63,9 @@
 				OrbitControl,
 				PlaneGeometry,
 				AmbientLight,
-				ShadowMapDebugger
+				ShadowMapDebugger,
+				InstanceMesh,
+				Instance
 			} from "../../dist/index.js";
 
 			const init = async () => {
@@ -71,7 +73,7 @@
 					container: "app"
 				});
 
-				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
+				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1500);
 				camera.position.set(-40, 60, -40);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
@@ -92,13 +94,7 @@
 				const skybox = new SkyBox(environmentUrls);
 
 				const directionalLight = new DirectionalLight(new Vector3(1.0, 1.0, 1.0), 1.0);
-				directionalLight.position.set(30, 40, -8);
-
-				const boxGeometry = new BoxGeometry(10, 10, 10);
-				const boxMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
-				boxMaterial.color = new Color(1.0, 0.0, 0.0);
-				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
-				boxPrimitive.position.set(-30, 5, 3);
+				directionalLight.position.set(30, 40, 38);
 
 				const torusKnotGeometry = new TorusKnotGeometry(10, 3, 200, 32);
 				const torusKnotMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
@@ -106,28 +102,35 @@
 				const torusKnotPrimitive = new Mesh(torusKnotGeometry, torusKnotMaterial);
 				torusKnotPrimitive.position.set(10, 20, -20);
 
-				const sphereGeometry = new SphereGeometry(3);
-				const sphereMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#222222"), 150);
-				sphereMaterial.color = new Color(0.0, 1.0, 0.0);
-				const spherePrimitive = new Mesh(sphereGeometry, sphereMaterial);
-				spherePrimitive.position.set(20, 10, 20);
-
-				const groundGeometry = new PlaneGeometry(100, 100);
+				const groundSize = 1000;
+				const groundGeometry = new PlaneGeometry(groundSize, groundSize);
 				const groundMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#111111"), 150);
 				groundMaterial.color = new Color(0.78, 0.85, 0.86);
 				const ground = new Mesh(groundGeometry, groundMaterial);
 				ground.rotateX(Math.PI / 2);
 
-				scene.add(boxPrimitive);
-				scene.add(boxPrimitive);
-				scene.add(torusKnotPrimitive);
-				scene.add(spherePrimitive);
+				function addInstanceToScene(groundSize, totalNum, baseMesh) {
+					for (let i = 0; i < totalNum; i++) {
+						const instance = new Instance();
+						const x = (Math.random() - 0.5) * groundSize;
+						const y = Math.random() * groundSize * 0.25 + 1;
+						const z = (Math.random() - 0.5) * groundSize;
+						instance.position.set(x, y, z);
+						instance.rotateX(Math.random());
+						baseMesh.addInstance(instance);
+					}
+					scene.add(baseMesh);
+				}
+				const instanceMeshOfTorusKnot = new InstanceMesh(torusKnotGeometry, torusKnotMaterial);
+				addInstanceToScene(groundSize, 10, instanceMeshOfTorusKnot);
+
+				// scene.add(torusKnotPrimitive);
 				scene.add(ground);
 				scene.add(skybox);
 				scene.add(ambientLight);
 				scene.add(directionalLight);
 				const shadowMapDebuggerInstance = new ShadowMapDebugger(directionalLight, scene);
-
+				shadowMapDebuggerInstance.setSize(1024, 256);
 				var radiu = 40;
 				var i = 0;
 				function animate() {
@@ -136,7 +139,7 @@
 					var x = Math.sin(rad) * radiu;
 					var z = Math.cos(rad) * radiu;
 					directionalLight.position = new Vector3(x, 40, z);
-					torusKnotPrimitive.rotateX(0.01);
+
 					requestAnimationFrame(animate);
 					control.update();
 					scene.render();

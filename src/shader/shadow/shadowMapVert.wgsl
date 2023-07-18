@@ -13,6 +13,7 @@ struct SystemUniform {
    inverseViewMatrix : mat4x4 <f32>,
    cameraPosition : vec3 <f32>,
 };
+#include <instanceVertHeader>
 
 #if IS_POINTLIGHT_SHADOWMAP
    struct PointLightUniform {
@@ -29,9 +30,12 @@ struct SystemUniform {
 fn main(input : VertexInput) -> VertexOutput {
    var output : VertexOutput;
    #if IS_POINTLIGHT_SHADOWMAP
-      output.position = pointLightUniform.vpMatrix * selfUniform.modelMatrix * vec4 <f32> (input.position, 1.0);
+      var modelMatrix:mat4x4<f32>;
+      modelMatrix = selfUniform.modelMatrix;
+      #include <instanceVertMain>;
+      output.position = pointLightUniform.vpMatrix * modelMatrix * vec4<f32>(input.position,1.0);
    #else
-      output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * selfUniform.modelMatrix * vec4 <f32> (input.position, 1.0);
+      output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelMatrix * vec4<f32>(input.position,1.0);
    #endif
    return output;
 }
