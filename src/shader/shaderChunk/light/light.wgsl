@@ -284,12 +284,12 @@ struct Geometry {
                 shadowCameraVPMatrix: mat4x4<f32>,
             }
         #endif
-        #if ${defines.directLightCascadedShadowMapsCount}
-        struct DirectLightCascadedShadow {
-            shadowCameraVPMatrixArray: array<mat4x4<f32>, 4>,
-            shadowCameraViewportArray: array<vec4<f32>, 4>,
-            cascadedBreakVSArray: array<f32, 4>
-        }
+        #if USE_DIRECTLIGHT_CASCADEDSHADOWMAP
+            struct DirectLightCascadedShadow {
+                shadowCameraVPMatrixArray: array<mat4x4<f32>, 4>,
+                shadowCameraViewportArray: array<vec4<f32>, 4>,
+                cascadedBreakVSArray: array<f32, 4>
+            }
         #endif
         struct ShadowUniforms{
             #if USE_SPOTLIGHT_SHADOWMAP

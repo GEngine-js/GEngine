@@ -1,4 +1,7 @@
 struct VertexInput {
+   #if USE_INSTANCE
+      @builtin(instance_index) instanceIdx : u32,
+   #endif
    @location(positionLocation) position : vec3 <f32>,
 };
 struct VertexOutput {

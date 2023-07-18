@@ -87,6 +87,7 @@ export class Mesh extends RenderObject {
 			if (!this.subCommands[commandSubType]) {
 				const copyMat = overrideMaterial.clone();
 				copyMat.update(undefined, this);
+				copyMat.shaderSource.setDefines(Object.assign({}, this.material.shaderData.defines));
 				if (copyMat.dirty) copyMat.dirty = false;
 				this.subCommands[commandSubType] = this.drawCommand.shallowClone(copyMat);
 			}

@@ -74,7 +74,7 @@
 				});
 
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1500);
-				camera.position.set(-40, 60, -40);
+				camera.position.set(-400, 600, -400);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -113,7 +113,7 @@
 					for (let i = 0; i < totalNum; i++) {
 						const instance = new Instance();
 						const x = (Math.random() - 0.5) * groundSize;
-						const y = Math.random() * groundSize * 0.25 + 1;
+						const y = Math.random() * groundSize * 0.25 + 5;
 						const z = (Math.random() - 0.5) * groundSize;
 						instance.position.set(x, y, z);
 						instance.rotateX(Math.random());
@@ -129,8 +129,8 @@
 				scene.add(skybox);
 				scene.add(ambientLight);
 				scene.add(directionalLight);
-				const shadowMapDebuggerInstance = new ShadowMapDebugger(directionalLight, scene);
-				shadowMapDebuggerInstance.setSize(1024, 256);
+				// const shadowMapDebuggerInstance = new ShadowMapDebugger(directionalLight, scene);
+				// shadowMapDebuggerInstance.setSize(1024, 256);
 				var radiu = 40;
 				var i = 0;
 				function animate() {
