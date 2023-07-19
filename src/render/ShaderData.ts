@@ -87,12 +87,9 @@ export default class ShaderData {
 			}
 		}
 	}
-	replaceUniformBufferValue(name: string, value: UniformFunc | number | object) {
-		this._uniforms.forEach((uniform) => {
-			if (uniform?.isUniformBuffer) {
-				uniform.replaceUniformValue(name, value);
-			}
-		});
+	setUniformBufferValue(uniformBuffer: UniformBuffer) {
+		const distUbo = this._uniforms.get(uniformBuffer.name);
+		distUbo.setUniformsFromUniformBuffer(uniformBuffer);
 	}
 	bind(device: GPUDevice, passEncoder: GPURenderPassEncoder | GPUComputePassEncoder) {
 		this.uploadUniform(device);

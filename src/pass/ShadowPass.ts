@@ -140,10 +140,15 @@ export class ShadowPass extends Pass {
 		};
 
 		this.shadowMaterial = new ShaderMaterial({
-			type: "shadowMaterial",
-			uniforms: {
-				modelMatrix: { type: "mat4x4<f32>", value: null }
-			},
+			shaderId: "shadowMaterial",
+			uniformBuffers: [
+				{
+					uid: "shadow",
+					uniforms: {
+						modelMatrix: { type: "mat4x4<f32>", value: null }
+					}
+				}
+			],
 			vert: shadowMapShaderFunction,
 			frag: undefined,
 			light: false // TODO:先true，false有显示bug

@@ -22,10 +22,10 @@ export default class ResolveFrame {
 		this.geometry.count = 6;
 		const shader = getVertFrag("resolve", { positionLocation: 0 });
 		this.material = new ShaderMaterial({
-			type: "resolve",
+			shaderId: "resolve",
 			frag: shader.frag,
 			vert: shader.vert,
-			uniforms: {
+			uniformTextureAndSampler: {
 				texture: {
 					type: "texture",
 					value: undefined
@@ -48,7 +48,7 @@ export default class ResolveFrame {
 	render(context: Context, colorTexture?: Texture) {
 		if (!this.canvasRenderTarget) this.initRenderTarget(context);
 		// this.material
-		this.material.uniforms.texture.value = colorTexture;
+		this.material.shaderMaterialParms.uniformTextureAndSampler.texture.value = colorTexture;
 
 		this.material.update(undefined, this.quadMesh);
 

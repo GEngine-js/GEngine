@@ -5,20 +5,19 @@ import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import defaultValue from "../utils/defaultValue";
-import { addUniformToShaderData, checkContainFloatType } from "../utils/uniformUtils";
+import { addUniformToShaderData } from "../utils/uniformUtils";
 import { Material } from "./Material";
 
 export default class ShaderMaterial extends Material {
 	uniforms: Uniforms;
-	uniformBuffer: UniformBuffer;
-	private shaderMaterialParms: ShaderMaterialParms;
+	public shaderMaterialParms: ShaderMaterialParms;
 	constructor(options: ShaderMaterialParms) {
 		super();
-		const { type, frag, vert, defines, light } = options;
-		this.type = type;
+		const { type, frag, vert, defines, light, shaderId } = options;
+		this.type = shaderId ?? type;
 		this.shaderMaterialParms = options;
 		this.shaderSource = new ShaderSource({
-			shaderId: type,
+			shaderId: shaderId ?? type,
 			render: {
 				fragShader: frag,
 				vertShader: vert
@@ -26,7 +25,6 @@ export default class ShaderMaterial extends Material {
 			defines: defaultValue(defines, {})
 		});
 		this.uniforms = options.uniforms;
-		this.uniformBuffer = undefined;
 		this.light = light || false;
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
@@ -36,27 +34,43 @@ export default class ShaderMaterial extends Material {
 		return new ShaderMaterial(this.shaderMaterialParms);
 	}
 	protected createShaderData(mesh?: Mesh) {
+		const { uniformBuffers, uniformTextureAndSampler } = this.shaderMaterialParms;
 		super.createShaderData();
-		const result = checkContainFloatType(this.uniforms);
-		if (result.hasFloat) {
-			this.uniformBuffer = result.hasArraytype
-				? new UniformBuffer({
-						label: this.type + "UniformBuffer",
-						type: BufferBindingType.ReadOnlyStorage,
-						usage: BufferUsage.Storage | BufferUsage.CopyDst
-				  })
-				: new UniformBuffer({ label: this.type + "UniformBuffer" });
-			this.shaderData.setUniformBuffer(this.type, this.uniformBuffer);
-		}
-		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
+		const shaderData = this.shaderData;
+		// fill uniformBuffer
+		uniformBuffers?.forEach?.((uniformBuffer) => this.createUniformBuffer(uniformBuffer, mesh));
+		// fill texture and sampler
+		if (uniformTextureAndSampler) this.addUniformToShaderData(uniformTextureAndSampler);
+		return shaderData;
+	}
+	private createUniformBuffer(uniformBufferParams, mesh: Mesh) {
+		const {
+			type = "uniform",
+			usage = BufferUsage.Uniform | BufferUsage.CopyDst,
+			uniforms,
+			uid,
+			binding,
+			buffer,
+			bufferSize,
+			visibility
+		} = uniformBufferParams;
+		const uniformBuffer = new UniformBuffer({
+			label: uid,
+			type: <BufferBindingType>type,
+			usage: <BufferUsage>usage,
+			binding,
+			buffer,
+			visibility,
+			size: buffer?.size ?? bufferSize
+		});
+		this.shaderData.setUniformBuffer(uid, uniformBuffer);
+		if (!buffer) this.addUniformToShaderData(uniforms, uniformBuffer, mesh);
+	}
+	private addUniformToShaderData(uniforms, uniformBuffer?: UniformBuffer, mesh?: Mesh) {
+		if (!uniforms) return;
+		const uniformsNames = Object.getOwnPropertyNames(uniforms);
 		uniformsNames.map((uniformsName) => {
-			addUniformToShaderData(
-				uniformsName,
-				this.uniforms[uniformsName],
-				this.shaderData,
-				mesh,
-				this.uniformBuffer
-			);
+			addUniformToShaderData(uniformsName, uniforms[uniformsName], this.shaderData, mesh, uniformBuffer);
 		});
 	}
 }

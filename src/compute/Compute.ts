@@ -1,36 +1,45 @@
-import { Uniforms } from "../core/WebGPUTypes";
+import { BufferBindingType, BufferUsage } from "../core/WebGPUConstant";
+import { IUniform, ShaderDefine, UniformBufferProp } from "../core/WebGPUTypes";
 import { ComputeCommand } from "../render/ComputeCommand";
 import ShaderData from "../render/ShaderData";
+import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
-import { addUniformToShaderData, checkContainFloatType } from "../utils/uniformUtils";
+import { addUniformToShaderData } from "../utils/uniformUtils";
 
 export class Compute {
 	public shaderData: ShaderData;
-	public uniforms: Uniforms;
-	public computeShader: string;
-	public name: string;
+	public uid: string;
 	public dirty: boolean;
-	public uniformBuffer: UniformBuffer;
 	public computeCommand: ComputeCommand;
 	public dispatch: { x?: number; y?: number; z?: number };
 	public type: string;
 	private shaderSource: ShaderSource;
-	constructor(options: computeProps) {
+	private computeProps: ComputeProps;
+	constructor(options: ComputeProps) {
 		this.type = "compute";
-		this.name = options.name;
-		this.computeShader = options.computeShader;
-		this.uniforms = options.uniforms;
+		this.uid = options.uid;
+		this.computeProps = options;
 		this.dirty = true;
 		this.computeCommand = undefined;
 		this.dispatch = options.dispatch;
 		this.shaderSource = new ShaderSource({
-			shaderId: this.name,
-			defines: {},
+			shaderId: this.uid,
+			defines: this.computeProps.defines ?? {},
 			compute: {
-				computeShader: this.computeShader
+				computeShader: this.computeProps.shader,
+				computeMain: this.computeProps?.shaderMain ?? "main"
 			}
 		});
+	}
+	public getUniformBufferByUid(uid: string): UniformBuffer {
+		return this.shaderData.getUniformBuffer(uid);
+	}
+	public getTextureByName(name: string): Texture {
+		return this.shaderData.getTexture(name);
+	}
+	public getSamplerByName(name: string) {
+		return this.shaderData.getSampler(name);
 	}
 	public getCommand() {
 		if (this.dirty) {
@@ -45,31 +54,55 @@ export class Compute {
 	}
 	public destroy() {
 		if (this.shaderData) this.shaderData?.destroy();
-		if (this.uniformBuffer) this.uniformBuffer?.destroy();
 	}
-	private createShaderData(): ShaderData {
-		this.destroy();
-		this.shaderData = new ShaderData(this.name, 0);
-		if (checkContainFloatType(this.uniforms)) {
-			this.uniformBuffer = new UniformBuffer({ label: this.name });
-			this.shaderData.setUniformBuffer(this.name, this.uniformBuffer);
-		}
-		const uniformsNames = Object.getOwnPropertyNames(this.uniforms);
-		uniformsNames.map((uniformsName) => {
-			addUniformToShaderData(
-				uniformsName,
-				this.uniforms[uniformsName],
-				this.shaderData,
-				undefined,
-				this.uniformBuffer
-			);
+	protected createShaderData() {
+		const { uniformBuffers, uniformTextureAndSampler } = this.computeProps;
+		const shaderData = this.shaderData;
+		// fill uniformBuffer
+		uniformBuffers?.forEach?.((uniformBuffer) => this.createUniformBuffer(uniformBuffer));
+		// fill texture and sampler
+		if (uniformTextureAndSampler) this.addUniformToShaderData(uniformTextureAndSampler);
+		return shaderData;
+	}
+	private createUniformBuffer(uniformBufferParams) {
+		const {
+			type = "uniform",
+			usage = BufferUsage.Uniform | BufferUsage.CopyDst,
+			uniforms,
+			uid,
+			binding,
+			buffer,
+			bufferSize,
+			visibility
+		} = uniformBufferParams;
+		const uniformBuffer = new UniformBuffer({
+			label: uid,
+			type: <BufferBindingType>type,
+			usage: <BufferUsage>usage,
+			binding,
+			buffer,
+			visibility,
+			size: buffer?.size ?? bufferSize
 		});
-		return this.shaderData;
+		this.shaderData.setUniformBuffer(uid, uniformBuffer);
+		if (!buffer) this.addUniformToShaderData(uniforms, uniformBuffer);
+	}
+	private addUniformToShaderData(uniforms, uniformBuffer?: UniformBuffer) {
+		if (!uniforms) return;
+		const uniformsNames = Object.getOwnPropertyNames(uniforms);
+		uniformsNames.map((uniformsName) => {
+			addUniformToShaderData(uniformsName, uniforms[uniformsName], this.shaderData, undefined, uniformBuffer);
+		});
 	}
 }
-type computeProps = {
-	uniforms: Uniforms;
-	computeShader: string;
-	name: string;
+type ComputeProps = {
+	uniformBuffers?: Array<UniformBufferProp>;
+	uniformTextureAndSampler?: {
+		[uniform: string]: IUniform<any>;
+	};
+	shader?: string;
+	shaderMain?: string;
+	uid?: string;
+	defines?: ShaderDefine;
 	dispatch: { x?: number; y?: number; z?: number };
 };

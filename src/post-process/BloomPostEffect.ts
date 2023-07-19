@@ -1,5 +1,5 @@
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
-import { Uniforms } from "../core/WebGPUTypes";
+import { UniformBufferProp, Uniforms } from "../core/WebGPUTypes";
 import ShaderMaterial from "../material/ShaderMaterial";
 import Color from "../math/Color";
 import Vector2 from "../math/Vector2";
@@ -22,11 +22,12 @@ export default class BloomPostEffect extends PostEffect {
 	nMips: number;
 	renderTargetBright: RenderTarget;
 	materialHighPassFilter: ShaderMaterial;
-	highPassUniforms: Uniforms;
+	highPassUniformBuffer: UniformBufferProp;
+	highPassUniformTextureAndSampler: Uniforms;
 	compositeMaterial: ShaderMaterial;
 	separableBlurMaterials: ShaderMaterial[];
 	separableBlurYMaterials: ShaderMaterial[];
-	blendUniforms: Uniforms;
+	blendUniformTextureAndSampler: Uniforms;
 	blendMaterial: ShaderMaterial;
 	blendTarget: RenderTarget;
 
@@ -43,7 +44,7 @@ export default class BloomPostEffect extends PostEffect {
 	render(context: Context, colorTexture: Texture): Texture {
 		// 1. Extract Bright Areas
 		this.currentRenderTarget = this.renderTargetBright;
-		this.highPassUniforms.tDiffuse.value = colorTexture;
+		this.highPassUniformTextureAndSampler.tDiffuse.value = colorTexture;
 		this.fullScreenQuad.material = this.materialHighPassFilter;
 		this.renderMesh(context);
 		// 2. Blur All the mips progressively
@@ -70,7 +71,7 @@ export default class BloomPostEffect extends PostEffect {
 		this.currentRenderTarget = this.renderTargetsHorizontal[0];
 		this.renderMesh(context);
 		// blend
-		this.blendUniforms.baseColorTexture.value = colorTexture;
+		this.blendUniformTextureAndSampler.baseColorTexture.value = colorTexture;
 		this.fullScreenQuad.material = this.blendMaterial;
 		this.currentRenderTarget = this.blendTarget;
 		this.renderMesh(context);
@@ -100,21 +101,26 @@ export default class BloomPostEffect extends PostEffect {
 			resy = Math.round(resy / 2);
 		}
 		// luminosity high pass material
-		this.highPassUniforms = {
+		this.highPassUniformBuffer = {
+			uniforms: {
+				luminosityThreshol: { type: "float", value: this.threshold },
+				smoothWidth: { type: "float", value: 0.01 },
+				defaultColor: { type: "color", value: new Color(0.0, 0, 0) },
+				defaultOpacity: { type: "float", value: 1.0 }
+			}
+		};
+		this.highPassUniformTextureAndSampler = {
 			tDiffuse: { type: "texture", value: null },
 			tSampler: {
 				type: "sampler",
 				value: this.defaultSampler
-			},
-			luminosityThreshol: { type: "float", value: this.threshold },
-			smoothWidth: { type: "float", value: 0.01 },
-			defaultColor: { type: "color", value: new Color(0.0, 0, 0) },
-			defaultOpacity: { type: "float", value: 1.0 }
+			}
 		};
 		const shader = getVertFrag("luminosityHigh", { positionLocation: 0 });
 		this.materialHighPassFilter = new ShaderMaterial({
-			type: "bloom",
-			uniforms: this.highPassUniforms,
+			shaderId: "bloom",
+			uniformBuffers: [this.highPassUniformBuffer],
+			uniformTextureAndSampler: this.highPassUniformTextureAndSampler,
 			vert: shader.vert,
 			frag: shader.frag
 		});
@@ -136,7 +142,7 @@ export default class BloomPostEffect extends PostEffect {
 		// Composite material
 		this.compositeMaterial = this.getCompositeMaterial(this.nMips, "compositeMaterial");
 		this.compositeMaterial.renderState = this.renderState;
-		this.blendUniforms = {
+		this.blendUniformTextureAndSampler = {
 			tDiffuse: { type: "texture", value: this.renderTargetsHorizontal[0].getColorTexture() },
 			baseColorTexture: { type: "texture", value: null },
 			tSampler: {
@@ -146,8 +152,8 @@ export default class BloomPostEffect extends PostEffect {
 		};
 		const blendShader = getVertFrag("blend", { positionLocation: 0 });
 		this.blendMaterial = new ShaderMaterial({
-			type: "postBlend",
-			uniforms: this.blendUniforms,
+			shaderId: "postBlend",
+			uniformTextureAndSampler: this.blendUniformTextureAndSampler,
 			vert: blendShader.vert,
 			frag: blendShader.frag
 		});
@@ -165,8 +171,8 @@ export default class BloomPostEffect extends PostEffect {
 	}
 	private getCompositeMaterial(nMips: number, type): ShaderMaterial {
 		return new ShaderMaterial({
-			type,
-			uniforms: {
+			shaderId: type,
+			uniformTextureAndSampler: {
 				blurTexture1: { type: "texture", value: this.renderTargetsVertical[0].getColorTexture() },
 				blurTexture2: { type: "texture", value: this.renderTargetsVertical[1].getColorTexture() },
 				blurTexture3: { type: "texture", value: this.renderTargetsVertical[2].getColorTexture() },
@@ -175,21 +181,28 @@ export default class BloomPostEffect extends PostEffect {
 				tSampler: {
 					type: "sampler",
 					value: this.defaultSampler
-				},
-				bloomStrength: { type: "f32", value: this.strength },
-				bloomRadius: { type: "f32", value: this.radius },
-				bloomFactors: { type: "array<f32>", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
-				bloomTintColors: {
-					type: "array<f32>",
-					value: [
-						new Vector3(1, 1, 1),
-						new Vector3(1, 1, 1),
-						new Vector3(1, 1, 1),
-						new Vector3(1, 1, 1),
-						new Vector3(1, 1, 1)
-					]
 				}
 			},
+			uniformBuffers: [
+				{
+					uid: type,
+					uniforms: {
+						bloomStrength: { type: "f32", value: this.strength },
+						bloomRadius: { type: "f32", value: this.radius },
+						bloomFactors: { type: "array<f32>", value: [1.0, 0.8, 0.6, 0.4, 0.2] },
+						bloomTintColors: {
+							type: "array<f32>",
+							value: [
+								new Vector3(1, 1, 1),
+								new Vector3(1, 1, 1),
+								new Vector3(1, 1, 1),
+								new Vector3(1, 1, 1),
+								new Vector3(1, 1, 1)
+							]
+						}
+					}
+				}
+			],
 
 			vert: () => {
 				return `
@@ -252,18 +265,23 @@ export default class BloomPostEffect extends PostEffect {
 			positionLocation: 0
 		});
 		const mat = new ShaderMaterial({
-			type,
-			uniforms: {
+			shaderId: type,
+			uniformBuffers: [
+				{
+					uid: type,
+					uniforms: {
+						direction: { type: "vec2<f32>", value: new Vector2(0.0, 0.0) }
+					}
+				}
+			],
+			uniformTextureAndSampler: {
 				tDiffuse: { type: "texture", value: null },
-				direction: { type: "vec2<f32>", value: new Vector2(0.0, 0.0) },
 				tSampler: {
 					type: "sampler",
 					value: this.defaultSampler
 				}
 			},
-
 			vert: shader.vert,
-
 			frag: shader.frag
 		});
 		mat.renderState = this.renderState;

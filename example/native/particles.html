@@ -304,7 +304,7 @@
 						dispatch: { x: Math.ceil(levelWidth / 64), y: levelWidth }
 					});
 					const passEncoder = commandEncoder.beginComputePass();
-					compueModel.render({ device: context.device, passEncoder });
+					compueModel.compute({ device: context.device, passEncoder });
 					passEncoder.end();
 				}
 				context.device.queue.submit([commandEncoder.finish()]);
@@ -322,7 +322,7 @@
 				const excuteCompute = () => {
 					const commandEncoder = context.device.createCommandEncoder();
 					const passEncoder = commandEncoder.beginComputePass();
-					simulateModel.render({ device: context.device, passEncoder });
+					simulateModel.compute({ device: context.device, passEncoder });
 					passEncoder.end();
 					context.device.queue.submit([commandEncoder.finish()]);
 				};

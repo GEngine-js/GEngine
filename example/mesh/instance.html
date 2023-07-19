@@ -64,17 +64,18 @@
 
 				const boxGeometry = new BoxGeometry(5, 5, 5);
 				const boxMaterial = new ShaderMaterial({
-					type: "custom",
-					uniforms: {
-						//must set;      auto Fill
-						modelMatrix: { type: "mat4x4<f32>", value: null },
-
-						color: { type: "color", value: new Color(0.2, 0.8, 0.6) }
-					},
+					shaderId: "instance",
+					uniformBuffers: [
+						{
+							uid: "instance",
+							uniforms: {
+								color: { type: "color", value: new Color(0.2, 0.8, 0.6) }
+							}
+						}
+					],
 					vert: (defines) => {
 						return `
                         struct MaterialUniform {
-                            modelMatrix: mat4x4<f32>,
                             color:vec3<f32>,
                         }
                         struct InstancesUniform {
@@ -99,7 +100,6 @@
                             cameraPosition: vec3<f32>,
                         }; 
                         // Guaranteed to be consistent with the ShaderMaterial type
-                        @binding(${defines.customBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
                         @binding(${defines.cameraBinding}) @group(1) var<uniform> cameraUniform : CameraUniform;
                         @binding(${defines.instanceMatrixsBufferBinding}) @group(0)  var<storage, read> instancesUniform: InstancesUniform;
                         @vertex
@@ -119,10 +119,9 @@
 												@location(0) fragPosition: vec4<f32>,
 										}
 										struct MaterialUniform {
-												modelMatrix: mat4x4<f32>,
 												color:vec3<f32>,
 										}
-										@binding(${defines.customBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
+										@binding(${defines.instanceBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
 										@fragment
 										fn main(input:VertexOutput) -> @location(0) vec4<f32> {
 												return vec4(input.fragPosition.xyz*matUniform.color,1.0);

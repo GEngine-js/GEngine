@@ -269,10 +269,15 @@ export type ScissorTest = {
 	height: number;
 };
 export type ShaderMaterialParms = {
-	type: string;
-	frag: string | ShaderFunc;
-	vert: string | ShaderFunc;
-	uniforms: { [uniform: string]: IUniform };
+	type?: string;
+	shaderId?: string;
+	frag?: string | ShaderFunc;
+	vert?: string | ShaderFunc;
+	uniforms?: { [uniform: string]: IUniform };
+	uniformBuffers?: Array<UniformBufferProp>;
+	uniformTextureAndSampler?: {
+		[uniform: string]: IUniform<any>;
+	};
 	defines?: ShaderDefine;
 	light?: boolean;
 };
@@ -367,9 +372,9 @@ export type DrawCommandParams = {
 
 export type ModelParams = {
 	shaderId?: string;
-	frag?: string;
-	vert?: string;
-	compute?: string;
+	frag?: string | ShaderFunc;
+	vert?: string | ShaderFunc;
+	compute?: string | ShaderFunc;
 	vertexBuffers?: Array<VertexBufferProp>;
 	uniformTextureAndSampler?: {
 		[uniform: string]: IUniform<any>;

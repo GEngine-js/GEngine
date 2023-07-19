@@ -66,13 +66,17 @@
 
 				const boxGeometry = new BoxGeometry(10, 10, 10);
 				const boxMaterial = new ShaderMaterial({
-					type: "custom",
-					uniforms: {
-						//must set;      auto Fill
-						modelMatrix: { type: "mat4x4<f32>", value: null },
-
-						color: { type: "color", value: new Color(0.2, 0.8, 0.6) }
-					},
+					shaderId: "custom",
+					uniformBuffers: [
+						{
+							uid: "custom",
+							uniforms: {
+								//must set;      auto Fill
+								modelMatrix: { type: "mat4x4<f32>", value: null },
+								color: { type: "color", value: new Color(0.2, 0.8, 0.6) }
+							}
+						}
+					],
 					vert: (defines) => {
 						return `
                         struct MaterialUniform {

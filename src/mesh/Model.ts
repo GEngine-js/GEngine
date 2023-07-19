@@ -40,23 +40,15 @@ export class Model {
 		this.renderType = this.modelParams.compute != undefined ? "compute" : "render";
 		this.vertexBuffers = new Map();
 	}
-	render(params: renderModelParams) {
+	render(params: RenderModelParams) {
 		const { device, passEncoder } = params;
-		if (!this.command)
-			this.command = this.renderType === "render" ? this.createDrawCommand() : this.createComputeCommand();
-		if (this.renderType === "render") {
-			(this.command as DrawCommand).render({
-				device,
-				passEncoder: <GPURenderPassEncoder>passEncoder
-			});
-		} else {
-			(this.command as ComputeCommand).render({
-				device,
-				passEncoder: <GPUComputePassEncoder>passEncoder
-			});
-		}
+		if (!this.command) this.command = this.createDrawCommand();
+		(this.command as DrawCommand).render({
+			device,
+			passEncoder: <GPURenderPassEncoder>passEncoder
+		});
 	}
-	compute(params: renderModelParams) {
+	compute(params: ComputeModelParams) {
 		const { device, passEncoder } = params;
 		if (!this.command) this.command = this.createComputeCommand();
 		(this.command as ComputeCommand).render({
@@ -243,7 +235,11 @@ export class Model {
 	}
 }
 
-export type renderModelParams = {
+export type RenderModelParams = {
 	device: GPUDevice;
-	passEncoder: GPURenderPassEncoder | GPUComputePassEncoder;
+	passEncoder: GPURenderPassEncoder;
+};
+export type ComputeModelParams = {
+	device: GPUDevice;
+	passEncoder: GPUComputePassEncoder;
 };

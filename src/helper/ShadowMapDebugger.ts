@@ -29,7 +29,7 @@ export class ShadowMapDebugger {
 
 		this.mesh = this._createShadowMapMesh();
 		const shadowMap = this.light.shadow.getShadowMapTexture();
-		this.material.uniforms.texture.value = shadowMap;
+		this.material.shaderMaterialParms.uniformTextureAndSampler.texture.value = shadowMap;
 		this.mesh.type = RenderObjectType.Debug;
 		this.scene.add(this.mesh);
 	}
@@ -40,10 +40,10 @@ export class ShadowMapDebugger {
 		});
 		this.geometry = new PlaneGeometry(2, 2);
 		this.material = new ShaderMaterial({
-			type: "shadowMapDebugger",
+			shaderId: "shadowMapDebugger",
 			frag: shader.frag,
 			vert: shader.vert,
-			uniforms: {
+			uniformTextureAndSampler: {
 				texture: {
 					type: "texture",
 					value: undefined
