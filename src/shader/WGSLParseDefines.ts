@@ -1,7 +1,20 @@
 const preprocessorSymbols = /#([^\s]*)(\s*)/gm;
-// Template literal tag that handles simple preprocessor symbols for WGSL
-// shaders. Supports #if/elif/else/endif statements.
-export function wgslParseDefines(strings, ...values) {
+const defineRexg = /\b[0-9A-Z_]+\b/g;
+export function WGSLParseDefines(shader, defines) {
+	// filter "&&","||"
+	const rexgDefines = shader.match(defineRexg)?.filter((define) => !["&&", "||"].includes(define));
+	const normalizeDefines = rexgDefines.map((define) => defines[define]);
+	let currentShaderStr = shader;
+	const shaderStrs = rexgDefines?.map((define) => {
+		const length = currentShaderStr.indexOf(define);
+		const sliceStr = currentShaderStr.slice(0, length);
+		currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
+		return sliceStr;
+	});
+	if (shaderStrs.length) shaderStrs.push(currentShaderStr);
+	return shaderStrs.length > 0 ? ParseDefines(shaderStrs, normalizeDefines) : shader;
+}
+function ParseDefines(strings, values) {
 	const stateStack = [];
 	let state = { frag: "", elseIsValid: false, expression: true };
 	let depth = 1;
@@ -11,7 +24,6 @@ export function wgslParseDefines(strings, ...values) {
 
 		let lastIndex = 0;
 		let valueConsumed = false;
-
 		for (const match of matchedSymbols) {
 			state.frag += frag.substring(lastIndex, match.index);
 
@@ -78,10 +90,41 @@ export function wgslParseDefines(strings, ...values) {
 			state.frag += values[i];
 		}
 	}
-
 	if (stateStack.length) {
 		throw new Error("Mismatched #if/#endif count");
 	}
-
 	return state.frag;
+}
+function ParseDefinesConst(shader: string, defines) {
+	if (!defines) return shader;
+	let result = shader;
+	const constDefineKeys = Object.keys(defines)?.filter?.((key) => key != key.toUpperCase());
+	constDefineKeys?.forEach?.((key: string) => {
+		result = result.replaceAll(key, defines[key]);
+	});
+	return result;
+}
+function getNormalizeDefines(rexgDefines, defines) {
+	return rexgDefines.map((define) => {
+		if (define.includes("&&") || define.includes("||")) {
+			let result;
+			if (define.includes("&&")) {
+				const splitDefines = define.split("&&");
+				result =
+					splitDefines.reduce((total, current) => {
+						total += defines[current];
+					}, 0) === splitDefines.length;
+			} else {
+				const splitDefines = define.split("||");
+				result = !(
+					splitDefines.reduce((total, current) => {
+						total += defines[current];
+					}, 0) === splitDefines.length
+				);
+			}
+			return result;
+		} else {
+			return defines[define];
+		}
+	});
 }
