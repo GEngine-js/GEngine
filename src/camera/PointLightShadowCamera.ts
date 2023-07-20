@@ -59,6 +59,7 @@ export default class PointLightShadowCamera extends PerspectiveCamera {
 
 		this.shaderData.setUniformBuffer("pointLightShadowCamera", uniformBuffer);
 		this.shaderData.setDefine("isPointLightShadowMap", true);
+		this.shaderData.setDefine("IS_POINTLIGHT_SHADOWMAP", true);
 	}
 
 	updateVpMatrixArrayAndIndex(index: number) {

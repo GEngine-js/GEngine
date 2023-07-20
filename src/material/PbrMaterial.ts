@@ -93,7 +93,8 @@ export default class PbrMaterial extends Material {
 			shaderId: this.type,
 			defines: {
 				materialPbr: true,
-				USE_IBL: this._IBLRender
+				USE_IBL: this._IBLRender,
+				MATERIAL_PBR: true
 			}
 		});
 	}

@@ -117,6 +117,11 @@ export default class LightManger {
 		this.lightShaderData.setDefine("pointLightsCount", this.pointLights.length);
 		this.lightShaderData.setDefine("dirtectLightsCount", this.directLights.length);
 		this.lightShaderData.setDefine("ambientLightCount", 1);
+
+		this.lightShaderData.setDefine("USE_SPOTLIGHT", this.spotLights.length);
+		this.lightShaderData.setDefine("USE_POINTLIGHT", this.pointLights.length);
+		this.lightShaderData.setDefine("USE_DIRTECTLIGHT", this.directLights.length);
+		this.lightShaderData.setDefine("USE_AMBIENTLIGHT", 1);
 		if (this.ambientLight)
 			this.lightUniformBuffer.setUniform(
 				"ambientLight",
@@ -176,6 +181,7 @@ export default class LightManger {
 
 				// define
 				this.lightShaderData.setDefine("openShadow", this.openShadow);
+				this.lightShaderData.setDefine("OPEN_SHADOW", this.openShadow);
 
 				// shadowUniformBuffer
 				this.shadowUniformBuffer = new UniformBuffer({
@@ -206,6 +212,9 @@ export default class LightManger {
 				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightWithShadowCount);
 				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightWithShadowCount);
 
+				this.lightShaderData.setDefine("USE_SPOTLIGHT_SHADOWMAP", spotLightWithShadowCount);
+				this.lightShaderData.setDefine("USE_POINTLIGHT_SHADOWMAP", pointLightWithShadowCount);
+				this.lightShaderData.setDefine("USE_DIRECTLIGHT_SHADOWMAP", directLightWithShadowCount);
 				// texture,sample
 				if (spotLightShadowMapTextureArray !== undefined) {
 					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)

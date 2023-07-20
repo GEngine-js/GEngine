@@ -3,7 +3,7 @@ import { ShaderDefine } from "../core/WebGPUTypes";
 const preprocessorSymbols = /#([^\s]*)(\s*)/gm;
 const defineRexg = /\b[0-9A-Z_&&||]+\b/g;
 const isNumeric = (n) => !isNaN(n);
-export function WGSLParseDefines(shader: string, defines: ShaderDefine) {
+export function WGSLParseDefines(shader: string, defines: ShaderDefine): string {
 	// parse shader inner const define
 	const notDefineConstShader = ParseDefinesConst(shader, defines);
 	// filter "&&","||",number
@@ -17,7 +17,7 @@ export function WGSLParseDefines(shader: string, defines: ShaderDefine) {
 	// parse conditional macro definition
 	return shaderStrs.length > 0 ? ParseDefines(shaderStrs, normalizeDefines) : shader;
 }
-function ParseDefines(strings, values) {
+function ParseDefines(strings: Array<string>, values: Array<boolean | number>): string {
 	const stateStack = [];
 	let state = { frag: "", elseIsValid: false, expression: true };
 	let depth = 1;
