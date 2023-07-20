@@ -85,9 +85,9 @@
                         }
                         struct VertexInput {
                             //auto Fill
-                            @location(${defines.positionLocation}) position: vec3<f32>,       
-                            @location(${defines.normalLocation}) normal: vec3<f32>,
-                            @location(${defines.uvLocation}) uv: vec2<f32>,
+                            @location(positionLocation) position: vec3<f32>,       
+                            @location(normalLocation) normal: vec3<f32>,
+                            @location(uvLocation) uv: vec2<f32>,
                         }
                         struct VertexOutput {
                             @builtin(position) position : vec4<f32>,
@@ -100,8 +100,8 @@
                             cameraPosition: vec3<f32>,
                         }; 
                         // Guaranteed to be consistent with the ShaderMaterial type
-                        @binding(${defines.customBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
-                        @binding(${defines.cameraBinding}) @group(1) var<uniform> cameraUniform : CameraUniform;
+                        @binding(customBinding) @group(0) var<uniform> matUniform : MaterialUniform;
+                        @binding(cameraBinding) @group(1) var<uniform> cameraUniform : CameraUniform;
                         @vertex
                         fn main(input:VertexInput) -> VertexOutput {
                             var output : VertexOutput;
@@ -121,7 +121,7 @@
 												modelMatrix: mat4x4<f32>,
 												color:vec3<f32>,
 										}
-										@binding(${defines.customBinding}) @group(0) var<uniform> matUniform : MaterialUniform;
+										@binding(customBinding) @group(0) var<uniform> matUniform : MaterialUniform;
 										@fragment
 										fn main(input:VertexOutput) -> @location(0) vec4<f32> {
 												return vec4(input.fragPosition.xyz*matUniform.color,1.0);
