@@ -1,17 +1,20 @@
+import { ShaderDefine } from "../core/WebGPUTypes";
+
 const preprocessorSymbols = /#([^\s]*)(\s*)/gm;
-const defineRexg = /\b[0-9A-Z_]+\b/g;
-export function WGSLParseDefines(shader, defines) {
-	// filter "&&","||"
-	const rexgDefines = shader.match(defineRexg)?.filter((define) => !["&&", "||"].includes(define));
-	const normalizeDefines = rexgDefines.map((define) => defines[define]);
-	let currentShaderStr = shader;
-	const shaderStrs = rexgDefines?.map((define) => {
-		const length = currentShaderStr.indexOf(define);
-		const sliceStr = currentShaderStr.slice(0, length);
-		currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
-		return sliceStr;
-	});
-	if (shaderStrs.length) shaderStrs.push(currentShaderStr);
+const defineRexg = /\b[0-9A-Z_&&||]+\b/g;
+const isNumeric = (n) => !isNaN(n);
+export function WGSLParseDefines(shader: string, defines: ShaderDefine) {
+	// parse shader inner const define
+	const notDefineConstShader = ParseDefinesConst(shader, defines);
+	// filter "&&","||",number
+	const rexgDefines = notDefineConstShader
+		.match(defineRexg)
+		?.filter((define) => !["&&", "||"].includes(define) && !isNumeric(define) && define != "");
+	// normallize defines
+	const normalizeDefines = getNormalizeDefines(rexgDefines, defines);
+	// split Shader
+	const shaderStrs = splitShaderStrsByDefine(notDefineConstShader, rexgDefines);
+	// parse conditional macro definition
 	return shaderStrs.length > 0 ? ParseDefines(shaderStrs, normalizeDefines) : shader;
 }
 function ParseDefines(strings, values) {
@@ -95,36 +98,46 @@ function ParseDefines(strings, values) {
 	}
 	return state.frag;
 }
-function ParseDefinesConst(shader: string, defines) {
-	if (!defines) return shader;
-	let result = shader;
+function ParseDefinesConst(sourceShader: string, defines) {
+	if (!defines) return sourceShader;
+	let result = sourceShader;
 	const constDefineKeys = Object.keys(defines)?.filter?.((key) => key != key.toUpperCase());
 	constDefineKeys?.forEach?.((key: string) => {
 		result = result.replaceAll(key, defines[key]);
 	});
 	return result;
 }
-function getNormalizeDefines(rexgDefines, defines) {
-	return rexgDefines.map((define) => {
-		if (define.includes("&&") || define.includes("||")) {
-			let result;
+function getNormalizeDefines(rexgDefines: Array<string>, defines: ShaderDefine) {
+	return rexgDefines?.map?.((define) => {
+		if (define?.includes("&&") || define?.includes("||")) {
 			if (define.includes("&&")) {
 				const splitDefines = define.split("&&");
-				result =
-					splitDefines.reduce((total, current) => {
-						total += defines[current];
-					}, 0) === splitDefines.length;
-			} else {
-				const splitDefines = define.split("||");
-				result = !(
-					splitDefines.reduce((total, current) => {
-						total += defines[current];
-					}, 0) === splitDefines.length
-				);
+				return getAndDefineValue(splitDefines, defines);
 			}
-			return result;
-		} else {
-			return defines[define];
+			const splitDefines = define.split("||");
+			return !getOrDefineValue(splitDefines, defines);
 		}
+		return defines[define];
 	});
+}
+function getAndDefineValue(splitDefines: Array<string>, defines: ShaderDefine): boolean {
+	let total = 0;
+	splitDefines?.forEach?.((defineKey) => (total += Number(defines[defineKey]) > 1 ? 1 : Number(defines[defineKey])));
+	return total === splitDefines.length;
+}
+function getOrDefineValue(splitDefines: Array<string>, defines: ShaderDefine): boolean {
+	let total = 0;
+	splitDefines?.forEach?.((defineKey) => (total += Number(defines[defineKey]) > 1 ? 1 : Number(defines[defineKey])));
+	return total === 0;
+}
+function splitShaderStrsByDefine(shader: string, defines: Array<string>): Array<string> {
+	let currentShaderStr = shader;
+	const shaderStrs = defines?.map((define) => {
+		const length = currentShaderStr.indexOf(define);
+		const sliceStr = currentShaderStr.slice(0, length);
+		currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
+		return sliceStr;
+	});
+	if (shaderStrs.length) shaderStrs.push(currentShaderStr);
+	return shaderStrs;
 }
