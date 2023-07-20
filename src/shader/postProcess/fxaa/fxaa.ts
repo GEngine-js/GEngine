@@ -1,5 +1,4 @@
-export default function FXAA(defines) {
-	return `
+export default `
   #ifndef FXAA_REDUCE_MIN
         #define FXAA_REDUCE_MIN   (1.0/ 128.0)
     #endif
@@ -61,4 +60,3 @@ export default function FXAA(defines) {
     }
 
   `;
-}

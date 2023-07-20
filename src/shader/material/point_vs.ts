@@ -1,7 +1,4 @@
-import { wgslParseDefines } from "../WgslPreprocessor";
-
-export function point_vs(defines) {
-	return wgslParseDefines`
+export const point_vs = `
     #include <PointVertOutput>
     #include <SystemUniform>
     #include <PointVertInput>
@@ -11,19 +8,19 @@ export function point_vs(defines) {
       size:f32,
       opacity:f32,
     }
-    @binding(${defines.pointBinding}) @group(0) var<uniform> selfUniform : SelfUniform;
-    @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+    @binding(pointBinding) @group(0) var<uniform> selfUniform : SelfUniform;
+    @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
     @vertex
       fn main(input: PointVertInput) -> PointVertOutput {
       var output:PointVertOutput;
       let mvPosition:vec4<f32>= ystemUniform.viewMatrix *selfUniform.modelMatrix*vec4<f32>(0.0,0.0,0.0, 1.0 );
-      #if ${defines.HAS_UV}
+      #if HAS_UV
           output.uv=input.uv;
       #endif
-      #if ${defines.HAS_COLOR}
+      #if HAS_COLOR
           output.color=input.color;
       #endif
-      #if ${defines.HAS_SIZE}
+      #if HAS_SIZE
           output.size=input.size;
       #endif
       vec2 alignedPosition = input.position.xy* selfUniform.size;
@@ -32,4 +29,3 @@ export function point_vs(defines) {
       return output;
       }
    `;
-}

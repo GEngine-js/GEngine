@@ -1,6 +1,4 @@
-import { wgslParseDefines } from "../WgslPreprocessor";
-export function sprite_vs(defines) {
-	return wgslParseDefines`
+export const sprite_vs = `
 
   #include <VertexInput>
   #include <VertexOutput>
@@ -12,13 +10,13 @@ export function sprite_vs(defines) {
     center:vec2<f32>,
     opacity:f32,
   }
-  @binding(${defines.spriteBinding}) @group(0) var<uniform> selfUniform : SelfUniform;
-  @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+  @binding(spriteBinding) @group(0) var<uniform> selfUniform : SelfUniform;
+  @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
   @vertex
   fn main(input: VertexInput) -> VertexOutput {
       var output:VertexOutput;
       var mvPosition:vec4<f32>= systemUniform.viewMatrix *selfUniform.modelMatrix*vec4<f32>(0.0,0.0,0.0,1.0);
-      #if ${defines.HAS_UV}
+      #if HAS_UV
         output.uv=input.uv;
       #endif
       var scale:vec2<f32>;
@@ -34,4 +32,3 @@ export function sprite_vs(defines) {
       return output;
   }
   `;
-}

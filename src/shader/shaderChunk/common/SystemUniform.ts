@@ -1,7 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-
-export function SystemUniform(defines) {
-	return wgslParseDefines`
+export const SystemUniform = `
       struct SystemUniform {
           projectionMatrix: mat4x4<f32>,
           viewMatrix: mat4x4<f32>,
@@ -9,4 +6,3 @@ export function SystemUniform(defines) {
           cameraPosition: vec3<f32>,
       }; 
   `;
-}

@@ -1,14 +1,7 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-
-export default function pbrUtils(defines) {
-  return wgslParseDefines`
-    const PI:f32= 3.141592653589793;
-    const PI2:f32= 6.283185307179586;
-    const PI_HALF:f32= 1.5707963267948966;
-    const RECIPROCAL_PI:f32= 0.3183098861837907;
-    const RECIPROCAL_PI2:f32= 0.15915494309189535;
-    const EPSILON:f32= 1e-6;
-
+export default `
+    const pi:f32= 3.141592653589793;
+    
+    const reciprocal_pi:f32= 0.3183098861837907;
     fn pow2(x:f32 )->f32 {
         return x*x;
     }
@@ -33,7 +26,7 @@ export default function pbrUtils(defines) {
         let b:f32 = 78.233;
         let c:f32 = 43758.5453;
         let dt:f32 = dot( uv.xy, vec2<f32>( a, b ) );
-        let sn:f32 = dt % PI;
+        let sn:f32 = dt % pi;
         return fract( sin( sn ) * c );
     }
     fn transformDirection( dir:vec3<f32>, matrix:mat4x4<f32> )->vec3<f32> {
@@ -84,4 +77,3 @@ export default function pbrUtils(defines) {
         return LinearTosRGB( value );
     }
     `;
-}

@@ -22,6 +22,7 @@ import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
 import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
 import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag";
 import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
+import { WGSLParseDefines } from "./WGSLParseDefines";
 
 function reduceComma(shader) {
 	// 对所有的include处理
@@ -89,18 +90,18 @@ function resolveIncludes(string) {
 }
 
 function includeReplacer(match, include) {
-	const excute = ShaderChunk[include];
-	if (excute === undefined) {
+	const partShader = ShaderChunk[include];
+	if (partShader === undefined) {
 		throw new Error(`Can not resolve #include <${include}>`);
 	}
-	const result = excute(currentDefines);
+	const result = WGSLParseDefines(partShader, currentDefines);
 	return resolveIncludes(result);
 }
 export default function getVertFrag(type, defines = {}) {
-	const excuteFunc = shaders[type];
+	const shader = shaders[type];
 	currentDefines = defines;
 	return {
-		vert: reduceComma(excuteFunc?.vert(currentDefines)),
-		frag: reduceComma(excuteFunc?.frag(currentDefines))
+		vert: shader?.vert ? reduceComma(WGSLParseDefines(shader.vert, currentDefines)) : undefined,
+		frag: shader?.frag ? reduceComma(WGSLParseDefines(shader.frag, currentDefines)) : undefined
 	};
 }

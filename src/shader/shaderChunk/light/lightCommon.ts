@@ -1,6 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-export default function lightCommon(defines) {
-	return wgslParseDefines`
+export default `
     struct ReflectedLight {
         directDiffuse:vec3<f32>,
         directSpecular:vec3<f32>,
@@ -11,7 +9,7 @@ export default function lightCommon(defines) {
         position: vec3<f32>,
         normal: vec3<f32>,
         viewDir: vec3<f32>,
-        #if ${defines.USE_CLEARCOAT}
+        #if USE_CLEARCOAT
             vec3 clearcoatNormal;
         #endif
     };
@@ -48,4 +46,3 @@ export default function lightCommon(defines) {
         return normalize( ( vec4<f32>( dir, 0.0 ) * matrix ).xyz );
     }
  `;
-}

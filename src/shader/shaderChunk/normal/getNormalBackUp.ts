@@ -1,9 +1,7 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-export function getNormal(defines) {
-	return wgslParseDefines`
+export const getNormal = `
       fn getNormal(input:FragInput)->vec3<f32>{
         var normal:vec3<f32>;
-        #if ${defines.HAS_NORMAL}
+        #if HAS_NORMAL
             normal= input.normal;
         #else
           let pos_dx = dpdx(input.worldPos);
@@ -13,9 +11,7 @@ export function getNormal(defines) {
         return normal*(f32(input.frontFacing) * 2.0 - 1.0);
       }
     `;
-}
-export function getNormalByNormalTexture(defines) {
-	return wgslParseDefines`
+export const getNormalByNormalTexture = `
       fn getNormalByNormalTexture(input:FragInput)->vec3<f32>{
         var n:vec3<f32> = textureSample(normalTexture,normalSampler, input.uv).rgb;
         let tbn:mat3x3<f32> =getTBN(input);
@@ -24,11 +20,9 @@ export function getNormalByNormalTexture(defines) {
         return n;
       }
     `;
-}
-export function getTBN(defines) {
-	return wgslParseDefines`
+export const getTBN = `
         fn getTBN(input:FragInput)->mat3x3<f32>{
-        #if ${defines.HAS_TANGENT}
+        #if HAS_TANGENT
             let tbn:mat3x3<f32> = input.tbn;
         #else
             let normal:vec3<f32> =normalize(input.normal);
@@ -53,4 +47,3 @@ export function getTBN(defines) {
         return tbn;
       }
   `;
-}

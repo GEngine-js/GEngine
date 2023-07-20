@@ -1,5 +1,4 @@
-export default function LuminosityHigh(defines) {
-	return `
+export default `
     struct LuminosityUniforms{
         luminosityThreshold:f32,
         smoothWidth:f32,
@@ -28,4 +27,3 @@ export default function LuminosityHigh(defines) {
        return mix( outputColor, texel, alpha );
     }
     `;
-}

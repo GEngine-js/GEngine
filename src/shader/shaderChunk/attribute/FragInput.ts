@@ -1,7 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-
-export function FragInput(defines) {
-	return wgslParseDefines`
+export const FragInput = `
     struct FragInput {
       @builtin(front_facing) frontFacing: bool,
       @location(0) worldPos:vec3<f32>,
@@ -12,4 +9,3 @@ export function FragInput(defines) {
       @location(5) viewPosition: vec3<f32>,
   } 
   `;
-}

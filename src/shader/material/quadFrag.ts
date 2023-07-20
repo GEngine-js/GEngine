@@ -1,5 +1,4 @@
-export default function quadFrag(defines) {
-	return `
+export default `
     @group(0) @binding(1) var baseSampler: sampler;
     @group(0) @binding(0) var colorTexture: texture_2d<f32>;
     struct VertexOutput {
@@ -11,4 +10,3 @@ export default function quadFrag(defines) {
       return textureSample(colorTexture, baseSampler, vec2<f32>(input.uv.x,1.0-input.uv.y));
     }
     `;
-}

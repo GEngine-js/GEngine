@@ -1,5 +1,4 @@
-export default function blendFrag(defines) {
-	return `
+export default `
     struct FragInput {
         @location(0) uv: vec2<f32>,
     };
@@ -13,4 +12,3 @@ export default function blendFrag(defines) {
       return baseColor+postColor;
     }   
     `;
-}

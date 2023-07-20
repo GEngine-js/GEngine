@@ -1,7 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-
-export function VertexOutput(defines) {
-	return wgslParseDefines`
+export const VertexOutput = `
     struct VertexOutput {
         @builtin(position) position:vec4<f32>,
         @location(0) worldPos:vec3<f32>,
@@ -12,4 +9,3 @@ export function VertexOutput(defines) {
         @location(5) viewPosition: vec3<f32>,
     } 
     `;
-}

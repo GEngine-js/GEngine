@@ -1,6 +1,4 @@
-import { wgslParseDefines } from "../WgslPreprocessor";
-export default function phongVert(defines) {
-	return wgslParseDefines`
+export default `
       struct MaterialUniform {
             modelMatrix: mat4x4<f32>,
             color: vec3<f32>,
@@ -13,12 +11,12 @@ export default function phongVert(defines) {
       #include <VertexOutput>
       #include <SystemUniform>
       #include <VertexInput>
-      @binding(${defines.phongBinding}) @group(0) var<uniform> selfUniform : MaterialUniform;
-      @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+      @binding(phongBinding) @group(0) var<uniform> selfUniform : MaterialUniform;
+      @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
       @vertex
       fn main(input: VertexInput) -> VertexOutput {
             var output: VertexOutput;
-            #if ${defines.HAS_UV}
+            #if HAS_UV
                output.uv = input.uv;
             #endif 
             let modelPos=selfUniform.modelMatrix *vec4<f32>(input.position,1.0);
@@ -31,4 +29,3 @@ export default function phongVert(defines) {
             output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelPos;
             return output;
       }`;
-}

@@ -1,5 +1,4 @@
-export default function blinn_phong(defines) {
-	return `
+export default `
        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->vec3<f32>{
         var color=vec3<f32>(0.0,0.0,0.0);
         var direction:vec3<f32> = worldPos - pointLight.position;
@@ -46,4 +45,3 @@ export default function blinn_phong(defines) {
         return color;
        }
     `;
-}

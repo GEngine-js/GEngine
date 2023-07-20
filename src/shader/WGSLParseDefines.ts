@@ -4,18 +4,19 @@ const preprocessorSymbols = /#([^\s]*)(\s*)/gm;
 const defineRexg = /\b[0-9A-Z_&&||]+\b/g;
 const isNumeric = (n) => !isNaN(n);
 export function WGSLParseDefines(shader: string, defines: ShaderDefine): string {
+	if (!shader) return undefined;
 	// parse shader inner const define
 	const notDefineConstShader = ParseDefinesConst(shader, defines);
 	// filter "&&","||",number
 	const rexgDefines = notDefineConstShader
 		.match(defineRexg)
-		?.filter((define) => !["&&", "||"].includes(define) && !isNumeric(define) && define != "");
+		?.filter((define) => !["&&", "||", "_"].includes(define) && !isNumeric(define) && define != "");
 	// normallize defines
 	const normalizeDefines = getNormalizeDefines(rexgDefines, defines);
 	// split Shader
 	const shaderStrs = splitShaderStrsByDefine(notDefineConstShader, rexgDefines);
 	// parse conditional macro definition
-	return shaderStrs.length > 0 ? ParseDefines(shaderStrs, normalizeDefines) : shader;
+	return shaderStrs.length > 0 ? ParseDefines(shaderStrs, normalizeDefines) : notDefineConstShader;
 }
 function ParseDefines(strings: Array<string>, values: Array<boolean | number>): string {
 	const stateStack = [];
@@ -132,12 +133,13 @@ function getOrDefineValue(splitDefines: Array<string>, defines: ShaderDefine): b
 }
 function splitShaderStrsByDefine(shader: string, defines: Array<string>): Array<string> {
 	let currentShaderStr = shader;
-	const shaderStrs = defines?.map((define) => {
-		const length = currentShaderStr.indexOf(define);
-		const sliceStr = currentShaderStr.slice(0, length);
-		currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
-		return sliceStr;
-	});
-	if (shaderStrs.length) shaderStrs.push(currentShaderStr);
+	const shaderStrs =
+		defines?.map((define) => {
+			const length = currentShaderStr.indexOf(define);
+			const sliceStr = currentShaderStr.slice(0, length);
+			currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
+			return sliceStr;
+		}) || [];
+	if (shaderStrs?.length) shaderStrs.push(currentShaderStr);
 	return shaderStrs;
 }

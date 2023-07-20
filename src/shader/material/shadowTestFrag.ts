@@ -1,5 +1,4 @@
-export default function shadowTestFrag(defines) {
-	return `
+export default `
     @group(0) @binding(1) var shadowSampler: sampler;
     // @group(0) @binding(1) var shadowMap: texture_depth_2d;
     @group(0) @binding(0) var shadowMap: texture_depth_2d_array;
@@ -23,4 +22,3 @@ export default function shadowTestFrag(defines) {
       // return color;
     }
     `;
-}

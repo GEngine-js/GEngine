@@ -1,5 +1,4 @@
-export default function skyBoxVert(defines) {
-	return `
+export default `
    struct SystemUniform {
        projectionMatrix: mat4x4<f32>,
        viewMatrix: mat4x4<f32>,
@@ -9,10 +8,10 @@ export default function skyBoxVert(defines) {
    struct MaterialUniform {
     modelMatrix: mat4x4<f32>,
  }
-   @binding(${defines.skyboxBinding}) @group(0) var<uniform> selfUniform : MaterialUniform;
-   @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+   @binding(skyboxBinding) @group(0) var<uniform> selfUniform : MaterialUniform;
+   @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
      struct VertexInput {
-       @location(${defines.positionLocation}) position : vec3<f32>,
+       @location(positionLocation) position : vec3<f32>,
      };
      struct VertexOutput {
        @builtin(position) position : vec4<f32>,
@@ -30,4 +29,3 @@ export default function skyBoxVert(defines) {
        return output;
      }
    `;
-}

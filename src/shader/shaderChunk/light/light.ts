@@ -1,6 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-export default function light(defines) {
-	return wgslParseDefines` 
+export default ` 
     struct ReflectedLight {
         ambient: vec3<f32>,
         directDiffuse:vec3<f32>,
@@ -19,12 +17,12 @@ export default function light(defines) {
         normal: vec3<f32>,
         viewDir: vec3<f32>,
         dotNV:f32,
-        #if ${defines.USE_CLEARCOAT}
+        #if USE_CLEARCOAT
             vec3 clearcoatNormal;
         #endif
     };
 
-    #if ${defines.spotLightsCount > 0}
+    #if USE_SPOTLIGHT
         struct SpotLight {
             position: vec3<f32>,
             distance: f32,
@@ -34,7 +32,7 @@ export default function light(defines) {
             penumbraCos: f32,
             decay: f32,
         };
-        fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
+        fn getSpotLightInfo(spotLight:SpotLight,worldPos:vec3<f32>,shininess:f32,n:vec3<f32>,v:vec3<f32>)->ReflectedLight{
                 var direction:vec3<f32> = spotLight.position - worldPos;
                 var lightColor:ReflectedLight;
                 let lightDistance:f32 = length(direction);
@@ -43,10 +41,10 @@ export default function light(defines) {
                 let decay:f32 = clamp(1.0 - pow(lightDistance/spotLight.distance, spotLight.decay), 0.0, 1.0);
                 let spotEffect:f32 = smoothstep( spotLight.penumbraCos, spotLight.coneCos, angleCos );
                 let decayTotal:f32 = decay * spotEffect;
-                let d:f32 = max( dot( N, direction ), 0.0 )  * decayTotal;
+                let d:f32 = max( dot( n, direction ), 0.0 )  * decayTotal;
                 lightColor.directDiffuse= spotLight.color * d;
-                let halfDir:vec3<f32> = normalize( V + direction );
-                let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
+                let halfDir:vec3<f32> = normalize( v + direction );
+                let s:f32 = pow( clamp( dot( n, halfDir ), 0.0, 1.0 ), shininess ) * decayTotal;
                 lightColor.directSpecular= spotLight.color * s;
                 return lightColor;
         }
@@ -67,25 +65,25 @@ export default function light(defines) {
 
     #endif 
 
-    #if ${defines.pointLightsCount > 0}
+    #if USE_POINTLIGHT
         struct PointLight {
             position: vec3<f32>,
             distance: f32,
             color: vec3<f32>,
             decay: f32,
         };
-        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
+        fn getPointLightInfo(pointLight:PointLight,worldPos:vec3<f32>,shininess:f32,n:vec3<f32>,v:vec3<f32>)->ReflectedLight{
             var lightColor:ReflectedLight;
             var direction:vec3<f32> = worldPos - pointLight.position;
             let dist:f32 = length( direction );
             direction = normalize(direction);
             let decay = clamp(1.0 - pow(dist / pointLight.distance, pointLight.decay), 0.0, 1.0);
     
-            let d =  max( dot( N, -direction ), 0.0 ) * decay;
+            let d =  max( dot( n, -direction ), 0.0 ) * decay;
             lightColor.directDiffuse = pointLight.color * d;
     
-            let halfDir:vec3<f32> = normalize( V - direction );
-            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess )  * decay;
+            let halfDir:vec3<f32> = normalize( v - direction );
+            let s:f32 = pow( clamp( dot( n, halfDir ), 0.0, 1.0 ), shininess )  * decay;
             lightColor.directSpecular = pointLight.color * s;
             return lightColor;
         }
@@ -99,18 +97,18 @@ export default function light(defines) {
             return incidentLight;
         }
     #endif
-    #if ${defines.dirtectLightsCount > 0}
+    #if USE_DIRTECTLIGHT
         struct DirectionalLight {
             direction: vec3<f32>,
             color: vec3<f32>,
         };
-        fn getDirectLightInfo(directionalLight:DirectionalLight,shininess:f32,N:vec3<f32>,V:vec3<f32>)->ReflectedLight{
+        fn getDirectLightInfo(directionalLight:DirectionalLight,shininess:f32,n:vec3<f32>,v:vec3<f32>)->ReflectedLight{
             var lightColor:ReflectedLight;
-            let d:f32 = max(dot(N, -directionalLight.direction), 0.0);
+            let d:f32 = max(dot(n, -directionalLight.direction), 0.0);
             lightColor.directDiffuse += directionalLight.color * d;
     
-            let halfDir:vec3<f32> = normalize( V - directionalLight.direction );
-            let s:f32 = pow( clamp( dot( N, halfDir ), 0.0, 1.0 ), shininess );
+            let halfDir:vec3<f32> = normalize( v - directionalLight.direction );
+            let s:f32 = pow( clamp( dot( n, halfDir ), 0.0, 1.0 ), shininess );
             lightColor.directSpecular += directionalLight.color * s;
             return lightColor;
         }
@@ -122,7 +120,7 @@ export default function light(defines) {
         }
     #endif
 
-    #if ${defines.openShadow} 
+    #if OPEN_SHADOW 
         struct LightInfo {
             direction: vec3<f32>,
             viewport: vec4<f32>,
@@ -193,34 +191,32 @@ export default function light(defines) {
         }
     #endif
 
-    #if ${
-		defines.ambientLightCount || defines.spotLightsCount || defines.pointLightsCount || defines.dirtectLightsCount
-	}
+    #if USE_AMBIENTLIGHT||USE_SPOTLIGHT||USE_POINTLIGHT||USE_DIRTECTLIGHT
         struct LightUniforms{
-            #if ${defines.ambientLightCount}
+            #if USE_AMBIENTLIGHT
                 ambient:vec4<f32>,
             #endif
-            #if ${defines.spotLightsCount}
-                spotLights:array<SpotLight,${defines.spotLightsCount}>,
+            #if USE_SPOTLIGHT
+                spotLights:array<SpotLight,spotLightsCount>,
             #endif
-            #if ${defines.pointLightsCount}
-                pointLights:array<PointLight,${defines.pointLightsCount}>,
+            #if USE_POINTLIGHT
+                pointLights:array<PointLight,pointLightsCount>,
             #endif
-            #if ${defines.dirtectLightsCount}
-                dirtectLights:array<DirectionalLight,${defines.dirtectLightsCount}>,
+            #if USE_DIRTECTLIGHT
+                dirtectLights:array<DirectionalLight,dirtectLightsCount>,
             #endif
         }
-        @group(2) @binding(${defines.lightBinding}) var<storage, read> lightUniforms: LightUniforms;
+        @group(2) @binding(lightBinding) var<storage, read> lightUniforms: LightUniforms;
 
-        #if ${defines.openShadow}
-            #if ${defines.spotLightShadowMapsCount}
+        #if OPEN_SHADOW
+            #if USE_SPOTLIGHT_SHADOWMAP
                 struct SpotLightShadow {
                     shadowCameraVPMatrix: mat4x4<f32>,
                     shadowCameraNear: f32,
                     shadowCameraFar: f32
                 }
             #endif
-            #if ${defines.pointLightShadowMapsCount}
+            #if USE_POINTLIGHT_SHADOWMAP
                 struct PointLightShadow {
                     shadowCameraVPMatrixArray: array<mat4x4<f32>, 6>,
                     shadowCameraViewportArray: array<vec4<f32>, 6>,
@@ -231,62 +227,56 @@ export default function light(defines) {
                     // shadowCameraViewportArray: array<vec4<f32>, 6>,
                 }
             #endif
-            #if ${defines.directLightShadowMapsCount}
+            #if USE_DIRECTLIGHT_SHADOWMAP
                 struct DirectLightShadow {
                     shadowCameraVPMatrix: mat4x4<f32>,
                 }
             #endif
             struct ShadowUniforms{
-                #if ${defines.spotLightShadowMapsCount}
-                    spotLightShadows:array<SpotLightShadow,${defines.spotLightShadowMapsCount}>,
+                #if USE_SPOTLIGHT_SHADOWMAP
+                    spotLightShadows:array<SpotLightShadow,spotLightShadowMapsCount>,
                 #endif
-                #if ${defines.pointLightShadowMapsCount}
-                    pointLightShadows:array<PointLightShadow,${defines.pointLightShadowMapsCount}>,
+                #if USE_POINTLIGHT_SHADOWMAP
+                    pointLightShadows:array<PointLightShadow,pointLightShadowMapsCount>,
                 #endif
-                #if ${defines.directLightShadowMapsCount}
-                    directLightShadows:array<DirectLightShadow,${defines.directLightShadowMapsCount}>,
+                #if USE_DIRECTLIGHT_SHADOWMAP
+                    directLightShadows:array<DirectLightShadow,directLightShadowMapsCount>,
                 #endif
             }
-            @group(2) @binding(${defines.shadowBinding}) var<storage, read> shadowUniforms: ShadowUniforms;
+            @group(2) @binding(shadowBinding) var<storage, read> shadowUniforms: ShadowUniforms;
 
-            #if ${defines.spotLightShadowMapTextureArrayBinding}
-                @group(2) @binding(${
-					defines.spotLightShadowMapTextureArrayBinding
-				}) var spotLightShadowMapTextureArray: texture_depth_2d_array;
+            #if SPOTLIGHT_SHADOWMAP_TEXTUREARRAY
+                @group(2) @binding(spotLightShadowMapTextureArrayBinding) var spotLightShadowMapTextureArray: texture_depth_2d_array;
             #endif
-            #if ${defines.pointLightShadowMapTextureArrayBinding}
-                @group(2) @binding(${
-					defines.pointLightShadowMapTextureArrayBinding
-				}) var pointLightShadowMapTextureArray: texture_depth_2d_array;
+            #if POINTLIGHT_SHADOWMAP_TEXTUREARRAY
+                @group(2) @binding(pointLightShadowMapTextureArrayBinding) var pointLightShadowMapTextureArray: texture_depth_2d_array;
             #endif
-            #if ${defines.directLightShadowMapTextureArrayBinding}
-                @group(2) @binding(${
-					defines.directLightShadowMapTextureArrayBinding
-				}) var directLightShadowMapTextureArray: texture_depth_2d_array;
+            #if DIRECTLIGHT_SHADOWMAP_TEXTUREARRAY
+                @group(2) @binding(directLightShadowMapTextureArrayBinding) var directLightShadowMapTextureArray: texture_depth_2d_array;
             #endif
-            @group(2) @binding(${defines.shadowSamplerBinding}) var shadowSampler: sampler_comparison;
+            @group(2) @binding(shadowSamplerBinding) var shadowSampler: sampler_comparison;
         #endif
 
     #endif
-    #if ${defines.materialPhong}
+    #if MATERIAL_PHONG
         fn parseLights(geometry:Geometry,shininess:f32)->ReflectedLight {
-    #elif ${defines.materialPbr}
+    #elif MATERIAL_PBR
         fn parseLights(geometry:Geometry,material:PhysicalMaterial)->ReflectedLight{
     #endif
         var reflectedLight:ReflectedLight;
         var shadowValue:f32 = 1.0;
-        #if ${defines.ambientLightCount > 0}
+        #if USE_AMBIENTLIGHT
             //处理环境光
             var ambientColor:vec3<f32> = lightUniforms.ambient.xyz * lightUniforms.ambient.w;
             reflectedLight.ambient += ambientColor;
         #endif
 
-        #if ${defines.spotLightsCount > 0}
+        #if USE_SPOTLIGHT
             //处理聚光灯
             var spotLight:SpotLight;
-            for (var k = 0u; k < ${defines.spotLightsCount}; k = k + 1u) {
+            for (var k = 0u; k < spotLightsCount; k = k + 1u) {
                 spotLight= lightUniforms.spotLights[k];
-                #if ${defines.materialPhong && defines.openShadow && defines.spotLightShadowMapsCount}
+                #if MATERIAL_PHONG&&OPEN_SHADOW&&USE_SPOTLIGHT_SHADOWMAP
                     if k < textureNumLayers(spotLightShadowMapTextureArray) {
                         var spotLightShadow:SpotLightShadow = shadowUniforms.spotLightShadows[k];
                         var lightPos: vec4<f32> = spotLightShadow.shadowCameraVPMatrix * vec4<f32>(geometry.position,1.0);
@@ -298,9 +288,9 @@ export default function light(defines) {
                     }
                     spotLight.color *= shadowValue;
                 #endif
-                #if ${defines.materialPhong}
+                #if MATERIAL_PHONG
                     let spReflectedLight=getSpotLightInfo(spotLight,geometry.position,shininess,geometry.normal,geometry.viewDir);
-                #elif ${defines.materialPbr}
+                #elif MATERIAL_PBR
                     let incidentLight=getSpotLightIncidentLight(spotLight,geometry);
                     let spReflectedLight=direct_Physical(incidentLight, geometry, material);
                 #endif
@@ -309,12 +299,12 @@ export default function light(defines) {
                 reflectedLight.directSpecular+=spReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.pointLightsCount > 0}
+        #if USE_POINTLIGHT
             //处理点光源
             var pointLight:PointLight;
-            for (var j = 0u; j < ${defines.pointLightsCount};j = j + 1u) {
+            for (var j = 0u; j < pointLightsCount;j = j + 1u) {
                 pointLight = lightUniforms.pointLights[j];
-                #if ${defines.materialPhong && defines.openShadow && defines.pointLightShadowMapsCount}
+                #if MATERIAL_PHONG&&OPEN_SHADOW&&USE_POINTLIGHT_SHADOWMAP
                     if j < textureNumLayers(pointLightShadowMapTextureArray) {
                         var pointLightShadow:PointLightShadow = shadowUniforms.pointLightShadows[j];
                         var lightInfo:LightInfo;
@@ -334,9 +324,9 @@ export default function light(defines) {
                     }
                     pointLight.color *= shadowValue;
                 #endif
-                #if ${defines.materialPhong}
+                #if MATERIAL_PHONG
                     let poiReflectedLight=getPointLightInfo(pointLight,geometry.position,shininess,geometry.normal,geometry.viewDir);
-                #elif ${defines.materialPbr}
+                #elif MATERIAL_PBR
                    let incidentLight=getPointLightIncidentLight(pointLight,geometry);
                    let poiReflectedLight=direct_Physical(incidentLight, geometry, material);
                 #endif
@@ -345,12 +335,12 @@ export default function light(defines) {
                 reflectedLight.directSpecular+=poiReflectedLight.directSpecular;
             }
         #endif
-        #if ${defines.dirtectLightsCount > 0}
+        #if USE_DIRTECTLIGHT
             //处理方向光
             var directionalLight:DirectionalLight;
-            for (var i= 0u; i <${defines.dirtectLightsCount}; i = i + 1u) {
+            for (var i= 0u; i <dirtectLightsCount; i = i + 1u) {
                 directionalLight = lightUniforms.dirtectLights[i];
-                #if ${defines.materialPhong && defines.openShadow && defines.directLightShadowMapsCount}
+                #if MATERIAL_PHONG&&OPEN_SHADOW&&USE_DIRECTLIGHT_SHADOWMAP
                     if i < textureNumLayers(directLightShadowMapTextureArray) {
                         var directLightShadow:DirectLightShadow = shadowUniforms.directLightShadows[i];
                         var lightPos: vec4<f32> = directLightShadow.shadowCameraVPMatrix * vec4<f32>(geometry.position,1.0);
@@ -362,9 +352,9 @@ export default function light(defines) {
                     directionalLight.color *= shadowValue;
                 #endif
             
-                #if ${defines.materialPhong}
+                #if MATERIAL_PHONG
                     let dirReflectedLight=getDirectLightInfo(directionalLight,shininess,geometry.normal,geometry.viewDir);
-                #elif ${defines.materialPbr}
+                #elif MATERIAL_PBR
                     let incidentLight=getDirectionalDirectLightIncidentLight(directionalLight,geometry);
                     let dirReflectedLight=direct_Physical(incidentLight, geometry, material);
                 #endif
@@ -375,4 +365,3 @@ export default function light(defines) {
         #endif
         return reflectedLight;
     }`;
-}

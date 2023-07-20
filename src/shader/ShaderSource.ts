@@ -10,6 +10,7 @@ import {
 	ShaderMainStage
 } from "../core/WebGPUTypes";
 import getVertFrag from "./Shaders";
+import { WGSLParseDefines } from "./WGSLParseDefines";
 export class ShaderSource {
 	public compute: computeParams;
 	public static glslang;
@@ -76,10 +77,15 @@ export class ShaderSource {
 		const { computeShader } = this.compute || {};
 		const source = getVertFrag(this.shaderId, this.defines);
 		const vert =
-			source?.vert ?? (vertShader instanceof Function ? (<ShaderFunc>vertShader)(this.defines) : vertShader);
+			source?.vert ??
+			WGSLParseDefines(vertShader instanceof Function ? (<ShaderFunc>vertShader)() : vertShader, this.defines);
 		const frag =
-			source?.frag ?? (fragShader instanceof Function ? (<ShaderFunc>fragShader)(this.defines) : fragShader);
-		const compute = computeShader instanceof Function ? (computeShader as ShaderFunc)(this.defines) : computeShader;
+			source?.frag ??
+			WGSLParseDefines(fragShader instanceof Function ? (<ShaderFunc>fragShader)() : fragShader, this.defines);
+		const compute = WGSLParseDefines(
+			computeShader instanceof Function ? (computeShader as ShaderFunc)() : computeShader,
+			this.defines
+		);
 		return {
 			vert,
 			frag,

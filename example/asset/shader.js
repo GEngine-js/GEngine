@@ -1,11 +1,11 @@
 export const import_Shader = `
-struct UBO {
+struct Uniform_Buffer {
   width : f32,
 }
 struct Buffer {
   weights : array<f32>,
 }
-@binding(0) @group(0) var<uniform> ubo : UBO;
+@binding(0) @group(0) var<uniform> ubo : Uniform_Buffer;
 @binding(1) @group(0) var<storage, read_write> buf_in : Buffer;
 @binding(2) @group(0) var<storage, read_write> buf_out : Buffer;
 @binding(3) @group(0) var tex_in : texture_2d<f32>;
@@ -18,13 +18,13 @@ fn main(@builtin(global_invocation_id) coord : vec3<u32>) {
 `;
 
 export const export_shader = `
-struct UBO {
+struct Uniform_Buffer {
   width : f32,
 }
 struct Buffer {
   weights : array<f32>,
 }
-@binding(0) @group(0) var<uniform> ubo : UBO;
+@binding(0) @group(0) var<uniform> ubo : Uniform_Buffer;
 @binding(1) @group(0) var<storage, read_write> buf_in : Buffer;
 @binding(2) @group(0) var<storage, read_write> buf_out : Buffer;
 @binding(3) @group(0) var tex_out : texture_storage_2d<rgba8unorm, write>;

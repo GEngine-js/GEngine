@@ -20,10 +20,10 @@ export default function pbrFunction(defines) {
             let dotNV:f32 = saturate( dot( normal, viewDir ) );
             let dotNH:f32 = saturate( dot( normal, halfDir ) );
             let dotVH:f32 = saturate( dot( viewDir, halfDir ) );
-            let F:vec3<f32> = mix( F_Schlick( f0, f90, dotVH ), iridescenceFresnel, iridescence );
-            let V:f32 = V_GGX_SmithCorrelated( alpha, dotNL, dotNV );
-            let D:f32 = D_GGX( alpha, dotNH );
-            return F * ( V * D );
+            let f:vec3<f32> = mix( F_Schlick( f0, f90, dotVH ), iridescenceFresnel, iridescence );
+            let v:f32 = V_GGX_SmithCorrelated( alpha, dotNL, dotNV );
+            let d:f32 = D_ggx(alpha, dotNH );
+            return f * ( v * d );
         }
     #endif
 
@@ -33,7 +33,7 @@ export default function pbrFunction(defines) {
             let invAlpha:f32 = 1.0 / alpha;
             let cos2h:f32 = dotNH * dotNH;
             let sin2h:f32 = max( 1.0 - cos2h, 0.0078125 );
-            return ( 2.0 + invAlpha ) * pow( sin2h, invAlpha * 0.5 ) / ( 2.0 * PI );
+            return ( 2.0 + invAlpha ) * pow( sin2h, invAlpha * 0.5 ) / ( 2.0 * pi );
         }
         fn V_Neubelt( dotNV:f32, dotNL:f32 )->f32 {
             return saturate( 1.0 / ( 4.0 * ( dotNL + dotNV - dotNL * dotNV ) ) );
@@ -43,9 +43,9 @@ export default function pbrFunction(defines) {
             let dotNL:f32 = saturate( dot( normal, lightDir ) );
             let dotNV:f32 = saturate( dot( normal, viewDir ) );
             let dotNH:f32 = saturate( dot( normal, halfDir ) );
-            let D:f32 = D_Charlie( sheenRoughness, dotNH );
-            let V:f32 = V_Neubelt( dotNV, dotNL );
-            return sheenColor * ( D * V );
+            let d:f32 = D_Charlie( sheenRoughness, dotNH );
+            let v:f32 = V_Neubelt( dotNV, dotNL );
+            return sheenColor * ( d * v );
         }
     #endif
 
@@ -63,13 +63,13 @@ export default function pbrFunction(defines) {
         fn IorToFresnel0(transmittedIor:f32, incidentIor:f32 )->f32 {
             return pow2Vector( ( transmittedIor - incidentIor ) / ( transmittedIor + incidentIor ));
         }
-        fn evalSensitivity(OPD:f32,shift:vec3<f32> )->vec3<f32> {
-            let phase:f32 = 2.0 * PI * OPD * 1.0e-9;
+        fn evalSensitivity(opd:f32,shift:vec3<f32> )->vec3<f32> {
+            let phase:f32 = 2.0 * pi * opd * 1.0e-9;
             let val:vec3<f32> = vec3<f32>( 5.4856e-13, 4.4201e-13, 5.2481e-13 );
             let pos:vec3<f32> = vec3<f32>( 1.6810e+06, 1.7953e+06, 2.2084e+06 );
             let vart:vec3<f32> = vec3<f32>( 4.3278e+09, 9.3046e+09, 6.6121e+09 );
-            let xyz:vec3<f32> = val * sqrt( 2.0 * PI * vart ) * cos( pos * phase + shift ) * exp( - pow2( phase ) * vart );
-            xyz.x += 9.7470e-14 * sqrt( 2.0 * PI * 4.5282e+09 ) * cos( 2.2399e+06 * phase + shift[ 0 ] ) * exp( - 4.5282e+09 * pow2( phase ) );
+            let xyz:vec3<f32> = val * sqrt( 2.0 * pi * vart ) * cos( pos * phase + shift ) * exp( - pow2( phase ) * vart );
+            xyz.x += 9.7470e-14 * sqrt( 2.0 * pi * 4.5282e+09 ) * cos( 2.2399e+06 * phase + shift[ 0 ] ) * exp( - 4.5282e+09 * pow2( phase ) );
             xyz /= 1.0685e-7;
             let rgb:vec3<f32> = XYZ_TO_REC709 * xyz;
             return rgb;
@@ -88,15 +88,15 @@ export default function pbrFunction(defines) {
             let R21:f32 = R12;
             let T121:f32 = 1.0 - R12;
             let phi12:f32 = 0.0;
-            if ( iridescenceIOR < outsideIOR ) phi12 = PI;
-            let phi21:f32 = PI - phi12;
+            if ( iridescenceIOR < outsideIOR ) phi12 = pi;
+            let phi21:f32 = pi - phi12;
             let baseIOR:vec3<f32> = Fresnel0ToIor( clamp( baseF0, 0.0, 0.9999 ) );
             let R1:vec3<f32> = IorToFresnel0( baseIOR, iridescenceIOR );
             let R23:vec3<f32> = F_Schlick( R1, 1.0, cosTheta2 );
             let phi23:vec3<f32> = vec3<f32>( 0.0 );
-            if ( baseIOR[ 0 ] < iridescenceIOR ) phi23[ 0 ] = PI;
-            if ( baseIOR[ 1 ] < iridescenceIOR ) phi23[ 1 ] = PI;
-            if ( baseIOR[ 2 ] < iridescenceIOR ) phi23[ 2 ] = PI;
+            if ( baseIOR[ 0 ] < iridescenceIOR ) phi23[ 0 ] = pi;
+            if ( baseIOR[ 1 ] < iridescenceIOR ) phi23[ 1 ] = pi;
+            if ( baseIOR[ 2 ] < iridescenceIOR ) phi23[ 2 ] = pi;
             let OPD:f32 = 2.0 * iridescenceIOR * thinFilmThickness * cosTheta2;
             let phi:vec3<f32> = vec3<f32>( phi21 ) + phi23;
             let R123:vec3<f32> = clamp( R12 * R23, 1e-5, 0.9999 );
@@ -124,8 +124,8 @@ export default function pbrFunction(defines) {
         let b:f32=select(1.97 * r2 - 3.27 * roughness + 0.72,44.0 * r2 - 23.7 * roughness + 3.26, roughness < 0.25);
         //let b:f32 = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;
         //let DG:f32 = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );
-        let DG:f32 = exp( a * dotNV + b ) + select(0.1 * ( roughness - 0.25 ),0.0,roughness < 0.25);
-        return saturate( DG * RECIPROCAL_PI );
+        let dg:f32 = exp( a * dotNV + b ) + select(0.1 * ( roughness - 0.25 ),0.0,roughness < 0.25);
+        return saturate( dg * reciprocal_pi );
     }
     fn DFGApprox( specularColor:vec3<f32>, roughness:f32,dotNV:f32 )->vec3<f32> {
         const c0:vec4<f32> = vec4<f32>( - 1, - 0.0275, - 0.572, 0.022 );
@@ -265,7 +265,7 @@ export default function pbrFunction(defines) {
        #if ${defines.USE_CLEARCOAT}
            let dotNLcc:f32 = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );
            let ccIrradiance:vec3<f32> = dotNLcc * directLight.color;
-           clearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
+           clearcoatSpecular += ccIrradiance * BRDF_ggx( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );
        #endif
 
        #if ${defines.USE_SHEEN}
@@ -275,7 +275,7 @@ export default function pbrFunction(defines) {
        #if ${defines.USE_IRIDESCENCE}
            reflectedLight.directSpecular = irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );
        #else
-           reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
+           reflectedLight.directSpecular = irradiance * BRDF_ggx( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );
        #endif
        reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
        return reflectedLight;
@@ -297,7 +297,7 @@ export default function pbrFunction(defines) {
        #endif
        var singleScattering:vec3<f32>;
        var multiScattering:vec3<f32>;
-       let cosineWeightedIrradiance:vec3<f32> = irradiance * RECIPROCAL_PI;
+       let cosineWeightedIrradiance:vec3<f32> = irradiance * reciprocal_pi;
        var tempMultiAndSingleScatter:MultiAndSingleScatter;
        #if ${defines.USE_IRIDESCENCE}
              tempMultiAndSingleScatter=computeMultiscatteringIridescence( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );

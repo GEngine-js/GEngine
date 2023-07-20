@@ -1,7 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-
-export default function pbrStruct(defines) {
-  return wgslParseDefines`
+export default `
         struct MaterialUniform{
 
             modelMatrix: mat4x4<f32>,
@@ -18,25 +15,25 @@ export default function pbrStruct(defines) {
     
             metalness:f32,
     
-            #if ${defines.TONE_MAPPING}
+            #if TONE_MAPPING
                 toneMappingExposure:f32,
             #endif
            
-            #if ${defines.SPECULAR}
+            #if SPECULAR
     
                  specularColor:vec3<f32>,
     
                  specularIntensity:f32,
             #endif
             
-            #if ${defines.USE_SHEEN}
+            #if USE_SHEEN
     
                 sheenColor:vec3<f32>,
     
                 sheenRoughness:f32,
             #endif
 
-            #if ${defines.USE_TRANSMISSION}
+            #if USE_TRANSMISSION
     
                 attenuationColor:vec3<f32>,
     
@@ -50,7 +47,7 @@ export default function pbrStruct(defines) {
                 
             #endif
 
-            #if ${defines.USE_SKINNING}
+            #if USE_SKINNING
     
                 bindMatrix:mat4x4<f32>,
     
@@ -59,17 +56,17 @@ export default function pbrStruct(defines) {
                 boneTextureSize:u32,
             #endif
 
-            #if ${defines.USE_NORMALTEXTURE}
+            #if USE_NORMALTEXTURE
                  normalScale:vec2<f32>,
             #endif
     
-            #if ${defines.IOR}
+            #if IOR
                 ior:f32,
             #endif
     
-            #if ${defines.USE_CLEARCOAT}
+            #if USE_CLEARCOAT
     
-                #if ${defines.USE_CLEARCOAT_NORMALTEXTURE}
+                #if USE_CLEARCOAT_NORMALTEXTURE
                     clearcoatNormalScale:vec2<f32>,
                 #endif
     
@@ -78,7 +75,7 @@ export default function pbrStruct(defines) {
                  clearcoatRoughness:f32,
             #endif
     
-            #if ${defines.USE_IRIDESCENCE}
+            #if USE_IRIDESCENCE
                 iridescence:f32,
     
                 iridescenceIOR:f32,
@@ -89,36 +86,36 @@ export default function pbrStruct(defines) {
     
             #endif
 
-            #if ${defines.USE_AOTEXTURE}
+            #if USE_AOTEXTURE
                  aoTextureIntensity:f32,
             #endif
 
-            #if ${defines.USE_LIGHTTEXTURE}
+            #if USE_LIGHTTEXTURE
                  lightTextureIntensity:f32,
             #endif
     
-            #if ${defines.USE_ENVTEXTURE}
+            #if USE_ENVTEXTURE
                 envTextureIntensity:f32,
     
                 flipEnvTexture:f32,
             #endif
 
-            #if ${defines.USE_BUMPTEXTURE}
+            #if USE_BUMPTEXTURE
                 bumpScale:f32;
             #endif
 
-            #if ${defines.USE_DISPLACEMENTTEXTURE}
+            #if USE_DISPLACEMENTTEXTURE
     
                 displacementScale:f32,
     
                 displacementBias:f32,
             #endif
             
-            #if ${defines.USE_MORPHTARGETS}
+            #if USE_MORPHTARGETS
     
                 morphTargetBaseInfluence:f32,
     
-                #if ${defines.MORPHTARGETS_TEXTURE} 
+                #if MORPHTARGETS_TEXTURE
     
                     morphTargetsTextureSize:vec2<u32>,
     
@@ -132,4 +129,3 @@ export default function pbrStruct(defines) {
         }
 
    `;
-}

@@ -1,5 +1,4 @@
-export default function shadowMapDebuggerFrag(defines) {
-	return `
+export default `
     @group(0) @binding(1) var shadowSampler: sampler;
     @group(0) @binding(0) var shadowMap: texture_depth_2d;
     
@@ -26,4 +25,3 @@ export default function shadowMapDebuggerFrag(defines) {
 
     }
     `;
-}

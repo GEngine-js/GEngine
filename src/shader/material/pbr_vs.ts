@@ -1,19 +1,17 @@
-import { wgslParseDefines } from "../WgslPreprocessor";
-export default function pbr_vs(defines) {
-	return wgslParseDefines`
+export default `
     #include <PbrMaterialStruct>
     #include <SystemUniform>
     #include <VertexInput>
     #include <VertexOutput> 
     #include <skinVertHeader>
     #include <instanceVertHeader>
-    @binding(${defines.pbrBinding}) @group(0) var<uniform> materialUniform : MaterialUniform;
-    @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+    @binding(pbrBinding) @group(0) var<uniform> materialUniform : MaterialUniform;
+    @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
     @vertex
     fn main(input: VertexInput)-> VertexOutput
    {
         var output: VertexOutput;
-        #if ${defines.HAS_UV}
+        #if HAS_UV
             output.uv = input.uv;
         #endif
         var modelMatrix:mat4x4<f32>;
@@ -29,4 +27,3 @@ export default function pbr_vs(defines) {
         return output;   
    }
    `;
-}

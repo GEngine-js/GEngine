@@ -236,12 +236,12 @@ export default class BloomPostEffect extends PostEffect {
                 }  
                 @group(0) @binding(0)  var<storage, read> bloomUniforms : BloomUniforms;
 
-                @group(0) @binding(${defines.blurTexture1Binding}) var blurTexture1: texture_2d<f32>;
-                @group(0) @binding(${defines.blurTexture2Binding}) var blurTexture2: texture_2d<f32>;
-                @group(0) @binding(${defines.blurTexture3Binding}) var blurTexture3: texture_2d<f32>;
-                @group(0) @binding(${defines.blurTexture4Binding}) var blurTexture4: texture_2d<f32>;
-                @group(0) @binding(${defines.blurTexture5Binding}) var blurTexture5: texture_2d<f32>;
-                @group(0) @binding(${defines.tSamplerBinding}}) var tSampler: sampler;
+                @group(0) @binding(blurTexture1Binding) var blurTexture1: texture_2d<f32>;
+                @group(0) @binding(blurTexture2Binding) var blurTexture2: texture_2d<f32>;
+                @group(0) @binding(blurTexture3Binding) var blurTexture3: texture_2d<f32>;
+                @group(0) @binding(blurTexture4Binding) var blurTexture4: texture_2d<f32>;
+                @group(0) @binding(blurTexture5Binding) var blurTexture5: texture_2d<f32>;
+                @group(0) @binding(tSamplerBinding) var tSampler: sampler;
 
 				fn lerpBloomFactor(factor:f32)->f32 {
 					let mirrorFactor:f32 = 1.2 - factor;
@@ -260,8 +260,8 @@ export default class BloomPostEffect extends PostEffect {
 	}
 	private getSeperableBlurMaterial(kernelRadius, type) {
 		const shader = getVertFrag("blur", {
-			KERNEL_RADIUS: kernelRadius,
-			SIGMA: kernelRadius,
+			kernelRadius: kernelRadius,
+			sigmaConst: kernelRadius,
 			positionLocation: 0
 		});
 		const mat = new ShaderMaterial({

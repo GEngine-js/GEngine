@@ -220,12 +220,14 @@ export default class LightManger {
 					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
 						console.warn("spotLightShadowMap align has problem");
 					this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
+					this.lightShaderData.setDefine("SPOTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = spotLightShadowMapTextureArray
 				}
 				if (pointLightShadowMapTextureArray !== undefined) {
 					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightWithShadowCount)
 						console.warn("pointLightShadowMap align has problem");
 					this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
+					this.lightShaderData.setDefine("POINTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = pointLightShadowMapTextureArray;
 				}
 				if (directLightShadowMapTextureArray !== undefined) {
@@ -235,6 +237,7 @@ export default class LightManger {
 						"directLightShadowMapTextureArray",
 						directLightShadowMapTextureArray
 					);
+					this.lightShaderData.setDefine("DIRECTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = directLightShadowMapTextureArray
 				}
 				this.lightShaderData.setSampler(

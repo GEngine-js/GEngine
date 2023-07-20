@@ -1,5 +1,4 @@
-export default function phongFunction(defines) {
-  return `
+export default `
     fn G_BlinnPhong_Implicit( )->f32 {
 
         // geometry term is (n dot l)(n dot v) / 4(n dot l)(n dot v)
@@ -8,7 +7,7 @@ export default function phongFunction(defines) {
     }
     fn D_BlinnPhong( shininess:f32, dotNH:f32 )->f32 {
 
-        return RECIPROCAL_PI * ( shininess * 0.5 + 1.0 ) * pow(dotNH, shininess);
+        return reciprocal_pi * ( shininess * 0.5 + 1.0 ) * pow(dotNH, shininess);
 
     }
     fn BRDF_BlinnPhong( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, specularColor:vec3<f32>, shininess:f32 )->vec3<f32> {
@@ -43,4 +42,3 @@ export default function phongFunction(defines) {
         return reflectedLight;
     }
     `;
-}

@@ -1,13 +1,11 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-export default function brdf(defines) {
-	return wgslParseDefines`
-        #if ${defines.USE_SHEEN}
+export default `
+        #if USE_SHEEN
                 fn D_Charlie( roughness:f32,dotNH:f32 )->f32 {
                     let alpha:f32 = pow2( roughness );
                     let invAlpha:f32 = 1.0 / alpha;
                     let cos2h:f32 = dotNH * dotNH;
                     let sin2h:f32 = max( 1.0 - cos2h, 0.0078125 );
-                    return ( 2.0 + invAlpha ) * pow( sin2h, invAlpha * 0.5 ) / ( 2.0 * PI );
+                    return ( 2.0 + invAlpha ) * pow( sin2h, invAlpha * 0.5 ) / ( 2.0 * pi );
                 }
                 fn V_Neubelt( dotNV:f32, dotNL:f32 )->f32 {
                     return saturate( 1.0 / ( 4.0 * ( dotNL + dotNV - dotNL * dotNV ) ) );
@@ -24,7 +22,7 @@ export default function brdf(defines) {
         #endif
         fn BRDF_Lambert(diffuseColor:vec3<f32>)->vec3<f32> {
 
-            return RECIPROCAL_PI * diffuseColor;
+            return reciprocal_pi * diffuseColor;
 
         } // validated
 
@@ -57,16 +55,16 @@ export default function brdf(defines) {
             return 0.5 / max((gv + gl), 0.000000001 );
 
         }
-        fn D_GGX( alpha:f32, dotNH:f32 )->f32 {
+        fn D_ggx( alpha:f32, dotNH:f32 )->f32 {
 
             let a2:f32 = pow2( alpha );
 
             let denom:f32 = pow2( dotNH ) * ( a2 - 1.0 ) + 1.0; // avoid alpha = 0 with dotNH = 1
 
-            return RECIPROCAL_PI * a2 / pow2( denom );
+            return reciprocal_pi * a2 / pow2( denom );
 
         }
-        fn BRDF_GGX( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, f0:vec3<f32>,  roughness:f32 )->vec3<f32> {
+        fn BRDF_ggx( lightDir:vec3<f32>, viewDir:vec3<f32>, normal:vec3<f32>, f0:vec3<f32>,  roughness:f32 )->vec3<f32> {
 
             let alpha:f32 = pow2( roughness ); // UE4's roughness
 
@@ -77,22 +75,21 @@ export default function brdf(defines) {
             let dotNH:f32 = saturate( dot( normal, halfDir ) );
             let dotVH:f32 = saturate( dot( lightDir, halfDir ) );
 
-            let F = F_Schlick( f0,  dotVH );
+            let f = F_Schlick( f0,  dotVH );
 
-            let V = V_GGX_SmithCorrelated( alpha, dotNL, dotNV );
+            let v = V_GGX_SmithCorrelated( alpha, dotNL, dotNV );
 
-            let D = D_GGX( alpha, dotNH );
+            let d = D_ggx( alpha, dotNH );
 
-            return F * ( V * D );
+            return f * ( v * d );
 
         }
         fn direct_Physical( directLight:IncidentLight, geometry:Geometry,material:PhysicalMaterial)->ReflectedLight {
             var reflectedLight:ReflectedLight;
             let dotNL:f32 = saturate(dot( geometry.normal,geometry.viewDir));
             let irradiance:vec3<f32> = dotNL * directLight.color*3.1415926;
-            reflectedLight.directSpecular = irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.roughness );
+            reflectedLight.directSpecular = irradiance * BRDF_ggx( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.roughness );
             reflectedLight.directDiffuse = irradiance * BRDF_Lambert( material.diffuseColor );
             return reflectedLight;
         }
   `;
-}

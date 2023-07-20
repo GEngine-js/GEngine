@@ -1,6 +1,4 @@
-import { wgslParseDefines } from "../../WgslPreprocessor";
-export default function ibl(defines) {
-	return wgslParseDefines`
+export default `
   fn getLightProbeRadiance( viewDir:vec3<f32>,normal:vec3<f32>, roughness:f32 )->vec3<f32>{
     var reflectVec:vec3<f32> = reflect( -viewDir, normal );
     reflectVec.x = -reflectVec.x; // TextureCube is left-hand,so x need inverse
@@ -37,7 +35,7 @@ export default function ibl(defines) {
   fn indirectDiffuse_Physical(geometry:Geometry, material:PhysicalMaterial )->ReflectedLight {
       var reflectedLight:ReflectedLight;
       var irradiance:vec3<f32> = lightUniforms.ambient.xyz*lightUniforms.ambient.w;
-      irradiance *= PI;
+      irradiance *= pi;
       reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
       return reflectedLight;
   }
@@ -51,4 +49,3 @@ export default function ibl(defines) {
       return reflectedLight;
     }
   `;
-}

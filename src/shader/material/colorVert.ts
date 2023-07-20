@@ -1,8 +1,7 @@
-export default function colorVert(defines) {
-	return `
+export default `
    struct VertexInput {
-        @location(${defines.positionLocation}) position: vec3<f32>,       
-        @location(${defines.colorLocation}) color: vec4<f32>,
+        @location(positionLocation) position: vec3<f32>,       
+        @location(colorLocation) color: vec4<f32>,
    }
    struct VertexOutput {
         @builtin(position) position: vec4<f32>,
@@ -17,8 +16,8 @@ export default function colorVert(defines) {
       inverseViewMatrix: mat4x4<f32>,
       cameraPosition: vec3<f32>,
    }; 
-   @binding(${defines.colorBinding}) @group(0) var<uniform> selfUniform : SelfUniform;
-   @binding(${defines.cameraBinding}) @group(1) var<uniform> systemUniform : SystemUniform;
+   @binding(colorBinding) @group(0) var<uniform> selfUniform : SelfUniform;
+   @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
    @vertex
    fn main(input: VertexInput) -> VertexOutput {
     var output:VertexOutput;
@@ -27,4 +26,3 @@ export default function colorVert(defines) {
     return output;
    }
    `;
-}
