@@ -3,7 +3,7 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "declaration": false,
-    "declarationDir": "types",
+    // "declarationDir": "types",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
@@ -23,7 +23,7 @@
 , "src/shader/material/pbrFrag.ts"  ],
   "exclude": [
     "node_modules",
-    "pblic",
+    "public",
     "dist",
     "example",
     "**/*.spec.ts"

@@ -1,4 +1,5 @@
-import colorFrag from "./material/colorFrag";
+// import colorFrag from "./material/colorFrag";
+import colorFrag from "./material/colorFrag.wgsl";
 import colorVert from "./material/colorVert";
 import pbr_fs from "./material/pbr_fs";
 import pbr_vs from "./material/pbr_vs";
