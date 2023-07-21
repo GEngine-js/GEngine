@@ -32,10 +32,10 @@ struct SystemUniform {
 @vertex
 fn main(input : VertexInput) -> VertexOutput {
    var output : VertexOutput;
+   var modelMatrix:mat4x4<f32>;
+   modelMatrix = selfUniform.modelMatrix;
+   #include <instanceVertMain>
    #if IS_POINTLIGHT_SHADOWMAP
-      var modelMatrix:mat4x4<f32>;
-      modelMatrix = selfUniform.modelMatrix;
-      #include <instanceVertMain>;
       output.position = pointLightUniform.vpMatrix * modelMatrix * vec4<f32>(input.position,1.0);
    #else
       output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelMatrix * vec4<f32>(input.position,1.0);

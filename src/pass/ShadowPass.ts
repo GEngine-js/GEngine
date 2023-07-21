@@ -126,20 +126,8 @@ export class ShadowPass extends Pass {
 	}
 
 	private createShadowMaterial() {
-		const shadowMapShaderFunction = (defines = {}) => {
-			const finalDefines = Object.assign(
-				{
-					selfBinding: 0,
-					cameraBinding: 0,
-					positionLocation: 0
-				},
-				defines
-			);
-			return getVertFrag("shadowMap", finalDefines).vert;
-		};
-
 		this.shadowMaterial = new ShaderMaterial({
-			shaderId: "shadowMaterial",
+			shaderId: "shadowMap",
 			uniformBuffers: [
 				{
 					uid: "shadow",
@@ -148,8 +136,11 @@ export class ShadowPass extends Pass {
 					}
 				}
 			],
-			vert: shadowMapShaderFunction,
-			frag: undefined,
+			defines: {
+				selfBinding: 0,
+				cameraBinding: 0,
+				positionLocation: 0
+			},
 			light: false // TODO:先true，false有显示bug
 		});
 	}
