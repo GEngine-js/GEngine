@@ -190,8 +190,10 @@
 							format: "depth24plus"
 						}
 					},
-					count: 36,
-					instances: 1
+					draw: {
+						count: 36,
+						instanceCount: 1
+					}
 				});
 				const model1 = new Model({
 					shaderId: "model",
@@ -289,8 +291,10 @@
 							format: "depth24plus"
 						}
 					},
-					count: 36,
-					instances: 1
+					draw: {
+						count: 36,
+						instanceCount: 1
+					}
 				});
 
 				function animate() {

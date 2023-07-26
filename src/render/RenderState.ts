@@ -9,6 +9,7 @@ import {
 	CullMode,
 	PrimitiveTopology
 } from "../core/WebGPUConstant";
+import { DepthStencilProps, ScissorTestProps, TargetProps, ViewPortProps } from "../core/WebGPUTypes";
 // import { BindRenderState } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 
@@ -110,6 +111,10 @@ export class ScissorTest {
 		this.width = width;
 		this.height = height;
 	}
+	static fromScissorTestProps(scissorTest: ScissorTestProps) {
+		const { x = 0, y = 0, width = 0, height = 0, variable = true } = scissorTest;
+		return new ScissorTest(x, y, width, height, variable);
+	}
 	equalsAndUpdateCache(scissorTest: ScissorTest): boolean {
 		const { x, y, width, height } = scissorTest;
 		if (this.x != x || this.y != y || this.width != width || this.height != height) {
@@ -144,6 +149,10 @@ export class ViewPort {
 		this.height = height;
 		this.minDepth = minDepth;
 		this.maxDepth = maxDepth;
+	}
+	static fromViewPortProps(viewPort: ViewPortProps) {
+		const { x = 0, y = 0, width = 0, height = 0, minDepth = 0, maxDepth = 1, variable = true } = viewPort;
+		return new ViewPort(x, y, width, height, minDepth, maxDepth, variable);
 	}
 	equalsAndUpdateCache(viewPort: ViewPort): boolean {
 		const { x, y, width, height, minDepth, maxDepth } = viewPort;
@@ -205,14 +214,14 @@ export class DepthStencil {
 		this.depthCompare = defaultValue(options?.depthCompare, CompareFunction.Less);
 		this.stencilReadMask = defaultValue(options?.stencilReadMask, 0xffffffff);
 		this.stencilWriteMask = defaultValue(options?.stencilWriteMask, 0xffffffff);
-		this.stencilFrontCompare = defaultValue(options?.stencilFrontCompare, CompareFunction.Always);
-		this.stencilFrontFailOp = defaultValue(options?.stencilFrontFailOp, StencilOperation.Keep);
-		this.stencilFrontDepthFailOp = defaultValue(options?.stencilFrontDepthFailOp, StencilOperation.Keep);
-		this.stencilFrontPassOp = defaultValue(options?.stencilFrontPassOp, StencilOperation.Keep);
-		this.stencilBackCompare = defaultValue(options?.stencilBackCompare, CompareFunction.Always);
-		this.stencilBackFailOp = defaultValue(options?.stencilBackFailOp, StencilOperation.Keep);
-		this.stencilBackDepthFailOp = defaultValue(options?.stencilBackDepthFailOp, StencilOperation.Keep);
-		this.stencilBackPassOp = defaultValue(options?.stencilBackPassOp, StencilOperation.Keep);
+		this.stencilFrontCompare = defaultValue(options?.stencilFront?.compare, CompareFunction.Always);
+		this.stencilFrontFailOp = defaultValue(options?.stencilFront?.failOp, StencilOperation.Keep);
+		this.stencilFrontDepthFailOp = defaultValue(options?.stencilFront?.depthFailOp, StencilOperation.Keep);
+		this.stencilFrontPassOp = defaultValue(options?.stencilFront?.passOp, StencilOperation.Keep);
+		this.stencilBackCompare = defaultValue(options?.stencilBack?.compare, CompareFunction.Always);
+		this.stencilBackFailOp = defaultValue(options?.stencilBack?.failOp, StencilOperation.Keep);
+		this.stencilBackDepthFailOp = defaultValue(options?.stencilBack?.depthFailOp, StencilOperation.Keep);
+		this.stencilBackPassOp = defaultValue(options?.stencilBack?.passOp, StencilOperation.Keep);
 		this.depthBias = defaultValue(options?.depthBias, 0);
 		this.depthBiasSlopeScale = defaultValue(options?.depthBiasSlopeScale, 0);
 		this.depthBiasClamp = defaultValue(options?.depthBiasClamp, 0);
@@ -253,12 +262,12 @@ export class Target {
 	writeMask: GPUColorWrite;
 	constructor(options?: TargetProps) {
 		this.format = defaultValue(options?.format, TextureFormat.BGRA8Unorm);
-		this.blendColorOperation = defaultValue(options?.blendColorOperation, BlendOperation.Add);
-		this.blendColorSrcFactor = defaultValue(options?.blendColorSrcFactor, BlendFactor?.SrcAlpha);
-		this.blendColorDstFactor = defaultValue(options?.blendColorDstFactor, BlendFactor.OneMinusSrcAlpha);
-		this.blendAlphaOperation = defaultValue(options?.blendAlphaOperation, BlendOperation.Add);
-		this.blendAlphaSrcFactor = defaultValue(options?.blendAlphaSrcFactor, BlendFactor.One);
-		this.blendAlphaDstFactor = defaultValue(options?.blendAlphaDstFactor, BlendFactor.One);
+		this.blendColorOperation = defaultValue(options?.blend?.color?.operation, BlendOperation.Add);
+		this.blendColorSrcFactor = defaultValue(options?.blend?.color?.srcFactor, BlendFactor?.SrcAlpha);
+		this.blendColorDstFactor = defaultValue(options?.blend?.color?.dstFactor, BlendFactor.OneMinusSrcAlpha);
+		this.blendAlphaOperation = defaultValue(options?.blend?.alpha?.operation, BlendOperation.Add);
+		this.blendAlphaSrcFactor = defaultValue(options?.blend?.alpha?.srcFactor, BlendFactor.One);
+		this.blendAlphaDstFactor = defaultValue(options?.blend?.alpha?.dstFactor, BlendFactor.One);
 		this.writeMask = defaultValue(options?.writeMask, GPUColorWrite.All);
 	}
 	getGPUTargetDec() {
@@ -282,35 +291,6 @@ export class Target {
 }
 const cacheViewPort = new ViewPort();
 const cacheScissorTest = new ScissorTest();
-export type DepthStencilProps = {
-	format?: TextureFormat;
-	depthWriteEnabled?: boolean;
-	depthCompare?: CompareFunction;
-	stencilReadMask?: number;
-	stencilWriteMask?: number;
-	stencilFrontCompare?: CompareFunction;
-	stencilFrontFailOp?: StencilOperation;
-	stencilFrontDepthFailOp?: StencilOperation;
-	stencilFrontPassOp?: StencilOperation;
-
-	stencilBackCompare?: CompareFunction;
-	stencilBackFailOp?: StencilOperation;
-	stencilBackDepthFailOp?: StencilOperation;
-	stencilBackPassOp?: StencilOperation;
-	depthBias?: number;
-	depthBiasSlopeScale?: number;
-	depthBiasClamp?: number;
-};
-export type TargetProps = {
-	format?: TextureFormat;
-	blendColorOperation?: BlendOperation;
-	blendColorSrcFactor?: BlendFactor;
-	blendColorDstFactor?: BlendFactor;
-	blendAlphaOperation?: BlendOperation;
-	blendAlphaSrcFactor?: BlendFactor;
-	blendAlphaDstFactor?: BlendFactor;
-	writeMask?: GPUColorWrite;
-};
 export type RenderStateParams = {
 	scissorTest?: ScissorTest;
 	viewport?: ViewPort;
