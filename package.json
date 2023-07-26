@@ -1,93 +1,105 @@
 {
-  "name": "@gengine-js/gengine",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "main": "dist/index.js",
-  "keywords": ["webgpu", "gpu", "webgl2", "webgl"], 
-  "source": "src/index.ts",
-  "scripts": {
-    "check-keyword": "bash ./hooks/check-keyword.sh",
-    "commit": "git cz",
-    "prepare": "husky install",
-    "pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md|html|ts)\"",
-    "pre-build": "node hooks/checkDependency.js",
-    "install:npm": "npm install --registry=https://registry.npmmirror.com",
-    "install:yarn": "yarn install --registry=https://registry.npmmirror.com",
-    "build": "npm run pre-build && cross-env BUILD=production rollup -c",
-    "dev": "npm run pre-build && cross-env BUILD=development rollup -c -w",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src"
-  },
-  "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.2",
-    "commitizen": "^4.3.0",
-    "cz-conventional-changelog": "^3.3.0",
-    "cz-conventional-changelog-zh": "0.0.2",
-    "eslint": "^8.40.0",
-    "husky": "^8.0.3",
-    "prettier": "^2.8.3",
-    "pretty-quick": "^3.1.3",
-    "rollup": "3.10.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-typescript2": "^0.31.1",
-    "typescript": "^4.8.4"
-  },
-  "dependencies": {
-    "@rollup/plugin-commonjs": "^23.0.2",
-    "@types/gl-matrix": "^2.4.5",
-    "@typescript-eslint/eslint-plugin": "^5.59.5",
-    "@typescript-eslint/parser": "^5.59.5",
-    "@webgpu/glslang": "0.0.15",
-    "@webgpu/types": "0.1.20",
-    "cross-env": "^7.0.3",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-unused-imports": "^2.0.0",
-    "glob": "^8.0.3",
-    "mersenne-twister": "^1.1.0",
-    "prettier-eslint": "^15.0.1",
-    "primitive-geometry": "^2.9.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hpugis/GEngine.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/hpugis/GEngine/issues"
-  },
-  "homepage": "https://github.com/hpugis/GEngine/blob/main/README.md",
-  "engines": {
-    "node": ">=14.19.3"
-  },
-
-    "publishConfig": {
-      "access": "public"
-    },
-  "config": {
-    "commitizen": {
-      "path": "node_modules/cz-conventional-changelog-zh",
-      "types": {
-        "merge": {
-          "description": "合并分支",
-          "title": "Merge"
-        },
-        "demo": {
-          "description": "新增演示demo,或修改",
-          "title": "Demo"
-        },
-        "release": {
-          "description": "发布版本",
-          "title": "Release"
-        },
-        "WIP": {
-          "description": "进行中的功能, 属于未完成的情况",
-          "title": "WIP"
-        }
-      }
-    }
-  }
+	"name": "@gengine-js/gengine",
+	"version": "1.0.0",
+	"description": "A rendering engine based on webgpu",
+	"type": "module",
+	"source": "src/index.ts",
+	"main": "dist/index.js",
+	"keywords": [
+		"webgpu",
+		"gpu",
+		"webgl2",
+		"webgl"
+	],
+	"files": [
+		"dist",
+		"package.json",
+		"README.md"
+	],
+	"homepage": "https://github.com/hpugis/GEngine/blob/main/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hpugis/GEngine.git"
+	},
+	"bugs": {
+		"url": "https://github.com/hpugis/GEngine/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"browserslist": [
+		"last 1 version",
+		"> 1%",
+		"not dead"
+	],
+	"author": "",
+	"scripts": {
+		"check-keyword": "bash ./hooks/check-keyword.sh",
+		"commit": "git cz",
+		"prepare": "husky install",
+		"pretty-quick": "pretty-quick --staged --pattern \"**/*.*(js|md|html|ts)\"",
+		"pre-build": "node hooks/checkDependency.js",
+		"install:npm": "npm install --registry=https://registry.npmmirror.com",
+		"install:yarn": "yarn install --registry=https://registry.npmmirror.com",
+		"build": "npm run pre-build && cross-env BUILD=production rollup -c",
+		"dev": "npm run pre-build && cross-env BUILD=development rollup -c -w",
+		"lint": "eslint --ext .js,.jsx,.ts,.tsx ./src"
+	},
+	"devDependencies": {
+		"@rollup/plugin-terser": "^0.4.2",
+		"commitizen": "^4.3.0",
+		"cz-conventional-changelog": "^3.3.0",
+		"cz-conventional-changelog-zh": "0.0.2",
+		"eslint": "^8.40.0",
+		"husky": "^8.0.3",
+		"prettier": "^2.8.3",
+		"pretty-quick": "^3.1.3",
+		"rollup": "3.10.0",
+		"rollup-plugin-node-resolve": "^5.2.0",
+		"rollup-plugin-replace": "^2.2.0",
+		"rollup-plugin-typescript2": "^0.31.1",
+		"rollup-plugin-wgsl": "^1.0.1",
+		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"@rollup/plugin-commonjs": "^23.0.2",
+		"@types/gl-matrix": "^2.4.5",
+		"@typescript-eslint/eslint-plugin": "^5.59.5",
+		"@typescript-eslint/parser": "^5.59.5",
+		"@webgpu/glslang": "0.0.15",
+		"@webgpu/types": "0.1.20",
+		"cross-env": "^7.0.3",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-import": "^2.27.5",
+		"eslint-plugin-prettier": "^4.2.1",
+		"eslint-plugin-unused-imports": "^2.0.0",
+		"glob": "^8.0.3",
+		"mersenne-twister": "^1.1.0",
+		"prettier-eslint": "^15.0.1",
+		"primitive-geometry": "^2.9.0"
+	},
+	"config": {
+		"commitizen": {
+			"path": "node_modules/cz-conventional-changelog-zh",
+			"types": {
+				"merge": {
+					"description": "合并分支",
+					"title": "Merge"
+				},
+				"demo": {
+					"description": "新增演示demo,或修改",
+					"title": "Demo"
+				},
+				"release": {
+					"description": "发布版本",
+					"title": "Release"
+				},
+				"WIP": {
+					"description": "进行中的功能, 属于未完成的情况",
+					"title": "WIP"
+				}
+			}
+		}
+	},
+	"license": "ISC"
 }
