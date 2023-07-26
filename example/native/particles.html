@@ -208,8 +208,10 @@
 							format: "depth24plus"
 						}
 					},
-					count: 6,
-					instances: numParticles
+					draw: {
+						count: 6,
+						instanceCount: numParticles
+					}
 				});
 				const simulateModel = new Model({
 					shaderId: "simulate",

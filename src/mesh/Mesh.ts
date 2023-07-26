@@ -71,8 +71,10 @@ export class Mesh extends RenderObject {
 				vertexBuffers: this.geometry.vertexBuffers,
 				indexBuffer: this.geometry.indexBuffer,
 				shaderData: this.material.shaderData,
-				instances: this.instanceCount,
-				count: this.geometry.count,
+				drawParams: {
+					count: this.geometry.count,
+					instanceCount: this.instanceCount
+				},
 				renderState: this.material.renderState,
 				shaderSource: this.material.shaderSource,
 				lightShaderData: this.material.light ? lightManger?.lightShaderData : undefined,

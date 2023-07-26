@@ -77,8 +77,7 @@
 							}
 						}
 					],
-					vert: (defines) => {
-						return `
+					vert: `
                         struct MaterialUniform {
                             modelMatrix: mat4x4<f32>,
                             color:vec3<f32>,
@@ -109,10 +108,8 @@
                             output.fragPosition = vec4(input.uv,input.uv.x,1.0);
                             return output;
                         }
-                        `;
-					},
-					frag: (defines) => {
-						return `
+                        `,
+					frag: `
 										struct VertexOutput {
 												@builtin(position) position : vec4<f32>,
 												@location(0) fragPosition: vec4<f32>,
@@ -126,8 +123,7 @@
 										fn main(input:VertexOutput) -> @location(0) vec4<f32> {
 												return vec4(input.fragPosition.xyz*matUniform.color,1.0);
 										}  
-                    `;
-					}
+                    `
 				});
 				const boxPrimitive = new Mesh(boxGeometry, boxMaterial);
 				scene.add(boxPrimitive);

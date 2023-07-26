@@ -6,7 +6,7 @@ import {
 	InputStepMode,
 	PrimitiveTopology
 } from "../core/WebGPUConstant";
-import { ModelParams } from "../core/WebGPUTypes";
+import { ComputeModelParams, ModelParams, RenderModelParams } from "../core/WebGPUTypes";
 import { BufferFloat32Attribute, Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import { ComputeCommand } from "../render/ComputeCommand";
 import DrawCommand from "../render/DrawCommand";
@@ -14,7 +14,6 @@ import IndexBuffer from "../render/IndexBuffer";
 import {
 	BlendConstant,
 	DepthStencil,
-	DepthStencilProps,
 	MultiSample,
 	Primitive,
 	RenderState,
@@ -40,15 +39,17 @@ export class Model {
 		this.renderType = this.modelParams.compute != undefined ? "compute" : "render";
 		this.vertexBuffers = new Map();
 	}
-	render(params: RenderModelParams) {
-		const { device, passEncoder } = params;
+	public render(params: RenderModelParams) {
+		const { device, passEncoder, viewPort, scissorTest } = params;
 		if (!this.command) this.command = this.createDrawCommand();
 		(this.command as DrawCommand).render({
 			device,
-			passEncoder: <GPURenderPassEncoder>passEncoder
+			passEncoder: <GPURenderPassEncoder>passEncoder,
+			viewPort: viewPort ? ViewPort.fromViewPortProps(viewPort) : undefined,
+			scissorTest: scissorTest ? ScissorTest.fromScissorTestProps(scissorTest) : undefined
 		});
 	}
-	compute(params: ComputeModelParams) {
+	public compute(params: ComputeModelParams) {
 		const { device, passEncoder } = params;
 		if (!this.command) this.command = this.createComputeCommand();
 		(this.command as ComputeCommand).render({
@@ -75,7 +76,7 @@ export class Model {
 		this.modelParams = null;
 	}
 	private createDrawCommand() {
-		const { count, instances } = this.modelParams;
+		const { draw } = this.modelParams;
 		const vertexBuffers = this.createVertexBuffer();
 		this.shaderData = this.createShaderData();
 		const indexBuffer = this.createIndexBuffer();
@@ -87,8 +88,7 @@ export class Model {
 			indexBuffer,
 			shaderSource,
 			renderState,
-			count,
-			instances
+			drawParams: draw
 		});
 	}
 	private createComputeCommand() {
@@ -149,7 +149,7 @@ export class Model {
 		const { shaderId, uniformBuffers, uniformTextureAndSampler } = this.modelParams;
 		const shaderData = new ShaderData(shaderId);
 		// fill uniformBuffer
-		uniformBuffers.forEach((uniformBuffer) => this.createUniformBuffer(uniformBuffer, shaderData, shaderId));
+		uniformBuffers.forEach((uniformBuffer) => this.createUniformBuffer(uniformBuffer, shaderData));
 		// fill texture and sampler
 		this.addUniformToShaderData(uniformTextureAndSampler, shaderData, undefined);
 		return shaderData;
@@ -166,14 +166,12 @@ export class Model {
 			stencilReference
 		} = this.modelParams.renderState;
 		return new RenderState({
-			scissorTest: scissorTest
-				? new ScissorTest(scissorTest.x, scissorTest.y, scissorTest.width, scissorTest.height)
-				: undefined,
-			viewport: viewPort ? new ViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height) : undefined,
+			scissorTest: scissorTest ? ScissorTest.fromScissorTestProps(scissorTest) : undefined,
+			viewport: viewPort ? ViewPort.fromViewPortProps(viewPort) : undefined,
 			targets: targets?.map((target) => {
-				return new Target(target as any);
+				return new Target(target);
 			}),
-			depthStencil: depthStencil ? new DepthStencil(<DepthStencilProps>depthStencil) : undefined,
+			depthStencil: depthStencil ? new DepthStencil(depthStencil) : undefined,
 			blendConstant: blendConstant
 				? new BlendConstant(blendConstant.r, blendConstant.g, blendConstant.b, blendConstant.a)
 				: undefined,
@@ -203,7 +201,7 @@ export class Model {
 
 		return indexBuffer;
 	}
-	private createUniformBuffer(uniformBufferParams, shaderData: ShaderData, shaderId: string) {
+	private createUniformBuffer(uniformBufferParams, shaderData: ShaderData) {
 		const {
 			type = "uniform",
 			usage = BufferUsage.Uniform | BufferUsage.CopyDst,
@@ -234,12 +232,3 @@ export class Model {
 		});
 	}
 }
-
-export type RenderModelParams = {
-	device: GPUDevice;
-	passEncoder: GPURenderPassEncoder;
-};
-export type ComputeModelParams = {
-	device: GPUDevice;
-	passEncoder: GPUComputePassEncoder;
-};

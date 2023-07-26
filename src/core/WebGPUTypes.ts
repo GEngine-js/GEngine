@@ -5,6 +5,7 @@ import BindGroupEntity from "../render/BindGroupEntity";
 import BindGroupLayout from "../render/BindGroupLayout";
 import Buffer from "../render/Buffer";
 import IndexBuffer from "../render/IndexBuffer";
+import QuerySet from "../render/QuerySet";
 import { RenderState } from "../render/RenderState";
 import RenderTarget from "../render/RenderTarget";
 import Sampler from "../render/Sampler";
@@ -187,7 +188,7 @@ export type bufferLayoutType = {
 	minBindingSize?: number;
 };
 // renderstate
-export type DepthStencil = {
+export type DepthStencilProps = {
 	format: TextureFormat;
 	depthWriteEnabled: boolean;
 	depthCompare: CompareFunction;
@@ -209,19 +210,19 @@ export type DepthStencil = {
 	depthBiasSlopeScale?: number;
 	depthBiasClamp?: number;
 };
-export type PrimitiveState = {
+export type PrimitiveStateProps = {
 	frontFace?: FrontFace;
 	cullMode?: CullMode;
 	unclippedDepth?: boolean;
 	topology?: PrimitiveTopology;
 	stripIndexFormat?: IndexFormat;
 };
-export type MultiSample = {
+export type MultiSampleProps = {
 	count?: number;
 	mask?: number;
 	alphaToCoverageEnabled?: boolean;
 };
-export type Target = {
+export type TargetProps = {
 	format: TextureFormat;
 	blend?: {
 		color: {
@@ -237,36 +238,38 @@ export type Target = {
 	};
 	writeMask: ColorWriteFlags;
 };
-export type BlendConstant = {
+export type BlendConstantProp = {
 	r: number;
 	g: number;
 	b: number;
 	a: number;
 };
 export type RenderStateProps = {
-	depthStencil?: DepthStencil;
-	primitive?: PrimitiveState;
-	multisample?: MultiSample;
+	depthStencil?: DepthStencilProps;
+	primitive?: PrimitiveStateProps;
+	multisample?: MultiSampleProps;
 	stencilReference?: number;
-	targets?: Array<Target>;
-	viewport?: { x: number; y: number; width: number; height: number };
-	blendConstant?: BlendConstant;
+	targets?: Array<TargetProps>;
+	viewport?: ViewPortProps;
+	blendConstant?: BlendConstantProp;
 	scissorTestEnabled?: boolean;
 	stencilEnabled?: boolean;
 };
-export type ViewPort = {
+export type ViewPortProps = {
 	x?: number;
 	y?: number;
 	width?: number;
 	height?: number;
 	minDepth?: number;
 	maxDepth?: number;
+	variable?: boolean;
 };
-export type ScissorTest = {
+export type ScissorTestProps = {
 	x: number;
 	y: number;
 	width: number;
 	height: number;
+	variable?: boolean;
 };
 export type ShaderMaterialParms = {
 	type?: string;
@@ -368,6 +371,8 @@ export type DrawCommandParams = {
 	lightShaderData?: ShaderData;
 
 	useLight?: boolean;
+
+	drawParams?: DrawParmas;
 };
 
 export type ModelParams = {
@@ -381,8 +386,6 @@ export type ModelParams = {
 	};
 	uniformBuffers?: Array<UniformBufferProp>;
 	renderState?: RenderStateProp;
-	count?: number;
-	instances?: number;
 	indices?: Array<number>;
 	draw?: DrawParmas;
 	dispatch?: { x?: number; y?: number; z?: number };
@@ -413,66 +416,13 @@ export type AttributeProp = {
 };
 export type RenderStateProp = {
 	stencilReference: number;
-	blendConstant?: {
-		r: number;
-		g: number;
-		b: number;
-		a: number;
-	};
-	multiSample?: {
-		count: number;
-		mask: number;
-		alphaToCoverageEnabled: boolean;
-	};
-	scissorTest?: {
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-	};
-	viewPort?: {
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-		minDepth: number;
-		maxDepth: number;
-	};
-	primitive?: {
-		frontFace: string;
-		cullMode: string;
-		unclippedDepth: boolean;
-		topology: string;
-	};
-	depthStencil?: {
-		format: string;
-		depthWriteEnabled: boolean;
-		depthCompare: string;
-		stencilReadMask: number;
-		stencilWriteMask: number;
-		stencilFrontCompare: string;
-		stencilFrontFailOp: string;
-		stencilFrontDepthFailOp: string;
-		stencilFrontPassOp: string;
-
-		stencilBackCompare: string;
-		stencilBackFailOp: string;
-		stencilBackDepthFailOp: string;
-		stencilBackPassOp: string;
-		depthBias: number;
-		depthBiasSlopeScale: number;
-		depthBiasClamp: number;
-	};
-	targets?: Array<{
-		format?: string;
-		blendColorOperation?: string;
-		blendColorSrcFactor?: string;
-		blendColorDstFactor?: string;
-		blendAlphaOperation?: string;
-		blendAlphaSrcFactor?: string;
-		blendAlphaDstFactor?: string;
-		writeMask: GPUColorWrite;
-	}>;
+	blendConstant?: BlendConstantProp;
+	multiSample?: MultiSampleProps;
+	scissorTest?: ScissorTestProps;
+	viewPort?: ViewPortProps;
+	primitive?: PrimitiveStateProps;
+	depthStencil?: DepthStencilProps;
+	targets?: Array<TargetProps>;
 };
 export type DrawParmas = {
 	count?: number; // The number of indices to draw./The number of vertices to draw.
@@ -524,3 +474,14 @@ export enum ShaderMainStage {
 	FRAG = "fragment",
 	COMPUTE = "compute"
 }
+export type RenderModelParams = {
+	device: GPUDevice;
+	passEncoder: GPURenderPassEncoder;
+	querySet?: QuerySet;
+	viewPort?: ViewPortProps;
+	scissorTest?: ScissorTestProps;
+};
+export type ComputeModelParams = {
+	device: GPUDevice;
+	passEncoder: GPUComputePassEncoder;
+};
