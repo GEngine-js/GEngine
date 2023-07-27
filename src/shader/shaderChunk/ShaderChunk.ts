@@ -1,6 +1,5 @@
 import attributeChunks from "./attribute";
-import { SystemUniform } from "./common/SystemUniform";
-import { TextureAndSamplerDefine } from "./common/TextureAndSamplerDefine";
+import commonChunks from "./common";
 import environment from "./environment/environment";
 import { instanceVertHeader, instanceVertMain } from "./instance/Instance";
 import light from "./light/light";
@@ -36,10 +35,9 @@ const ShaderChunk = {
 	skinVertMain,
 	skinVertHeader,
 	PbrMaterialStruct,
-	SystemUniform,
 	instanceVertMain,
 	instanceVertHeader,
-	TextureAndSamplerDefine,
-	...attributeChunks
+	...attributeChunks,
+	...commonChunks
 };
 export default ShaderChunk;
