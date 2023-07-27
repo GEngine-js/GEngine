@@ -1,9 +1,4 @@
-import { FragInput } from "./attribute/FragInput";
-import { PointFragInput } from "./attribute/PointFragInput";
-import { PointVertInput } from "./attribute/PointVertInput";
-import { PointVertOutput } from "./attribute/PointVertOutput";
-import { VertexInput } from "./attribute/VertexInput";
-import { VertexOutput } from "./attribute/VertexOutput";
+import attributeChunks from "./attribute";
 import { SystemUniform } from "./common/SystemUniform";
 import { TextureAndSamplerDefine } from "./common/TextureAndSamplerDefine";
 import environment from "./environment/environment";
@@ -20,7 +15,6 @@ import pbrUtils from "./pbr/pbrUtils";
 import blinn_phong from "./phong/blinn_phong";
 import phongFunction from "./phong/phongFunction";
 import phongUtils from "./phong/phongUtils";
-// import getNormal from "./normal/getNormal";
 import { skinVertHeader, skinVertMain } from "./skin/SkinVert";
 import { PbrMaterialStruct } from "./struct/PbrMaterialStruct";
 const ShaderChunk = {
@@ -41,16 +35,11 @@ const ShaderChunk = {
 	ibl,
 	skinVertMain,
 	skinVertHeader,
-	FragInput,
-	VertexInput,
-	VertexOutput,
 	PbrMaterialStruct,
 	SystemUniform,
 	instanceVertMain,
 	instanceVertHeader,
 	TextureAndSamplerDefine,
-	PointVertInput,
-	PointVertOutput,
-	PointFragInput
+	...attributeChunks
 };
 export default ShaderChunk;

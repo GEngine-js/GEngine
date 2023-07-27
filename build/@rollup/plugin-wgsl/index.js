@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 
 export default function wgsl(options) {
 	options = {
-		...{ fileTypes: ["frag", "vert", "wgsl", "glsl"] },
+		...{ fileTypes: ["wgsl", "glsl"] }, //["frag", "vert", "wgsl", "glsl"]
 		...options
 	};
 
