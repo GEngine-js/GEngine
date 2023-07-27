@@ -1,4 +1,4 @@
-export default `
+
     struct FragInput {
         @location(0) uv: vec2<f32>,
     }
@@ -30,4 +30,4 @@ export default `
         diffuseSum/=weightSum;
       return vec4<f32>(diffuseSum,baseColor.a);
     }
-  `;
+
