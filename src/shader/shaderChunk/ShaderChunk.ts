@@ -9,10 +9,9 @@ import pbrChunks from "./pbr";
 import pbrFunction from "./pbr/pbrFunction";
 import phongChunks from "./phong";
 import skinChunks from "./skin";
-import { PbrMaterialStruct } from "./struct/PbrMaterialStruct";
+import structChunks from "./struct";
 
 const ShaderChunk = {
-	PbrMaterialStruct,
 	...attributeChunks,
 	...commonChunks,
 	environment,
@@ -23,7 +22,8 @@ const ShaderChunk = {
 	...pbrChunks,
 	pbrFunction,
 	...phongChunks,
-	...skinChunks
+	...skinChunks,
+	...structChunks
 };
 
 export default ShaderChunk;
