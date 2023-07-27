@@ -8,12 +8,10 @@ import normalChunks from "./normal";
 import pbrChunks from "./pbr";
 import pbrFunction from "./pbr/pbrFunction";
 import phongChunks from "./phong";
-import { skinVertHeader, skinVertMain } from "./skin/SkinVert";
+import skinChunks from "./skin";
 import { PbrMaterialStruct } from "./struct/PbrMaterialStruct";
 
 const ShaderChunk = {
-	skinVertMain,
-	skinVertHeader,
 	PbrMaterialStruct,
 	...attributeChunks,
 	...commonChunks,
@@ -24,7 +22,8 @@ const ShaderChunk = {
 	...normalChunks,
 	...pbrChunks,
 	pbrFunction,
-	...phongChunks
+	...phongChunks,
+	...skinChunks
 };
 
 export default ShaderChunk;
