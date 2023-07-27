@@ -19,10 +19,10 @@ import blendFrag from "./postProcess/blend/blendFrag";
 import Blur from "./postProcess/bloom/Blur";
 import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
 import ShaderChunk from "./shaderChunk/ShaderChunk";
-import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
-import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
-import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag";
-import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
+import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag.wgsl";
+import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert.wgsl";
+import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag.wgsl";
+import shadowMapVert from "./shaderChunk/shadow/shadowMapVert.wgsl";
 import { WGSLParseDefines } from "./WGSLParseDefines";
 
 function reduceComma(shader) {
