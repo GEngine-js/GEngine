@@ -4,7 +4,7 @@ import environment from "./environment/environment";
 import instanceChunks from "./instance";
 import light from "./light/light";
 import lightCommon from "./light/lightCommon";
-import { getNormalByNormalTexture, getTBN, getNormal } from "./normal/getNormalBackUp";
+import normalChunks from "./normal";
 import brdf from "./pbr/brdf";
 import ibl from "./pbr/ibl";
 import pbrFunction from "./pbr/pbrFunction";
@@ -17,19 +17,14 @@ import phongUtils from "./phong/phongUtils";
 import { skinVertHeader, skinVertMain } from "./skin/SkinVert";
 import { PbrMaterialStruct } from "./struct/PbrMaterialStruct";
 const ShaderChunk = {
-	light,
 	brdf,
 	phongFunction,
 	phongUtils,
-	lightCommon,
 	pbrStruct,
 	pbrFunction,
 	pbrTexture,
 	pbrUtils,
 	blinn_phong,
-	getNormal,
-	getTBN,
-	getNormalByNormalTexture,
 	ibl,
 	skinVertMain,
 	skinVertHeader,
@@ -37,6 +32,9 @@ const ShaderChunk = {
 	...attributeChunks,
 	...commonChunks,
 	environment,
-	...instanceChunks
+	...instanceChunks,
+	light,
+	lightCommon,
+	...normalChunks
 };
 export default ShaderChunk;
