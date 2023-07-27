@@ -1,7 +1,7 @@
 import attributeChunks from "./attribute";
 import commonChunks from "./common";
 import environment from "./environment/environment";
-import { instanceVertHeader, instanceVertMain } from "./instance/Instance";
+import instanceChunks from "./instance";
 import light from "./light/light";
 import lightCommon from "./light/lightCommon";
 import { getNormalByNormalTexture, getTBN, getNormal } from "./normal/getNormalBackUp";
@@ -26,7 +26,6 @@ const ShaderChunk = {
 	pbrFunction,
 	pbrTexture,
 	pbrUtils,
-	environment,
 	blinn_phong,
 	getNormal,
 	getTBN,
@@ -35,9 +34,9 @@ const ShaderChunk = {
 	skinVertMain,
 	skinVertHeader,
 	PbrMaterialStruct,
-	instanceVertMain,
-	instanceVertHeader,
 	...attributeChunks,
-	...commonChunks
+	...commonChunks,
+	environment,
+	...instanceChunks
 };
 export default ShaderChunk;
