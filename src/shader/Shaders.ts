@@ -1,8 +1,8 @@
 import colorFrag from "./material/colorFrag.wgsl";
 import colorVert from "./material/colorVert.wgsl";
 
-import pbr_fs from "./material/pbr_fs"; // TODO
-import pbr_vs from "./material/pbr_vs"; // TODO
+import pbr_fs from "./material/pbr_fs.wgsl"; // TODO
+import pbr_vs from "./material/pbr_vs.wgsl"; // TODO
 import pbrFrag from "./material/pbrFrag";
 import pbrVert from "./material/pbrVert";
 

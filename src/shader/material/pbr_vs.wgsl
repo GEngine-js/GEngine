@@ -1,4 +1,4 @@
-export default `
+
     #include <PbrMaterialStruct>
     #include <SystemUniform>
     #include <VertexInput>
@@ -26,4 +26,3 @@ export default `
         output.worldPos = modelPos.xyz/modelPos.w;
         return output;   
    }
-   `;

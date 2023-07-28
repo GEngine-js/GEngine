@@ -1,4 +1,3 @@
-export default ` 
     struct ReflectedLight {
         ambient: vec3<f32>,
         directDiffuse:vec3<f32>,
@@ -364,4 +363,4 @@ export default `
             }
         #endif
         return reflectedLight;
-    }`;
+    }

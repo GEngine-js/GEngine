@@ -1,5 +1,4 @@
-export default `
-        // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
+     // reference: https://github.com/KhronosGroup/glTF-WebGL-PBR/blob/master/shaders/pbr-frag.glsl
         #include <pbrUtils>
         #include <light>
         #include <brdf>
@@ -108,4 +107,3 @@ export default `
             #endif
        return vec4<f32>(color, baseColor.a);
     }
-   `;
