@@ -2,8 +2,8 @@ import attributeChunks from "./attribute";
 import commonChunks from "./common";
 import environment from "./environment/environment"; // TODO
 import instanceChunks from "./instance";
-import light from "./light/light.wgsl"; // TODO
-import lightCommon from "./light/lightCommon.wgsl"; // TODO
+import light from "./light/light.wgsl";
+import lightCommon from "./light/lightCommon.wgsl";
 import normalChunks from "./normal";
 import pbrChunks from "./pbr";
 import pbrFunction from "./pbr/pbrFunction";
