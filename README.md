@@ -196,8 +196,10 @@ $ yarn build
 					format: "depth24plus"
 				}
 			},
-			count: 36,
-			instances: 1
+                        draw: {
+                             count: 36,
+			     instanceCount: 1
+			}
 		});
 
 		function animate() {
