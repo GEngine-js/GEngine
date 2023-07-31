@@ -1,28 +1,33 @@
-// import colorFrag from "./material/colorFrag";
 import colorFrag from "./material/colorFrag.wgsl";
-import colorVert from "./material/colorVert";
-import pbr_fs from "./material/pbr_fs";
-import pbr_vs from "./material/pbr_vs";
+import colorVert from "./material/colorVert.wgsl";
+
+import pbr_fs from "./material/pbr_fs.wgsl";
+import pbr_vs from "./material/pbr_vs.wgsl";
 import pbrFrag from "./material/pbrFrag";
 import pbrVert from "./material/pbrVert";
-import phongFrag from "./material/phongFrag";
-import phongVert from "./material/phongVert";
-import { point_fs } from "./material/point_fs";
-import { point_vs } from "./material/point_vs";
-import quadFrag from "./material/quadFrag";
-import quadVert from "./material/quadVert";
-import skyBoxFrag from "./material/skyBoxFrag";
-import skyBoxVert from "./material/skyBoxVert";
-import { sprite_fs } from "./material/sprite_fs";
-import { sprite_vs } from "./material/sprite_vs";
-import blendFrag from "./postProcess/blend/blendFrag";
-import Blur from "./postProcess/bloom/Blur";
-import LuminosityHigh from "./postProcess/bloom/LuminosityHigh";
+
+import phongFrag from "./material/phongFrag.wgsl";
+import phongVert from "./material/phongVert.wgsl";
+import point_fs from "./material/point_fs.wgsl";
+import point_vs from "./material/point_vs.wgsl";
+import quadFrag from "./material/quadFrag.wgsl";
+import quadVert from "./material/quadVert.wgsl";
+import skyBoxFrag from "./material/skyBoxFrag.wgsl";
+import skyBoxVert from "./material/skyBoxVert.wgsl";
+import sprite_fs from "./material/sprite_fs.wgsl";
+import sprite_vs from "./material/sprite_vs.wgsl";
+
+import blendFrag from "./postProcess/blend/blendFrag.wgsl";
+import Blur from "./postProcess/bloom/Blur.wgsl";
+import LuminosityHigh from "./postProcess/bloom/LuminosityHigh.wgsl";
+
 import ShaderChunk from "./shaderChunk/ShaderChunk";
-import shadowMapDebuggerFrag from "./shaderChunk/shadow/shadowMapDebuggerFrag";
-import shadowMapDebuggerVert from "./shaderChunk/shadow/shadowMapDebuggerVert";
-import shadowMapFrag from "./shaderChunk/shadow/shadowMapFrag";
-import shadowMapVert from "./shaderChunk/shadow/shadowMapVert";
+
+import shadowMapDebuggerFrag from "./shadow/shadowMapDebuggerFrag.wgsl";
+import shadowMapDebuggerVert from "./shadow/shadowMapDebuggerVert.wgsl";
+import shadowMapFrag from "./shadow/shadowMapFrag.wgsl";
+import shadowMapVert from "./shadow/shadowMapVert.wgsl";
+
 import { WGSLParseDefines } from "./WGSLParseDefines";
 
 function reduceComma(shader) {
