@@ -1,3 +1,8 @@
 {
-	"recommendations": ["PolyMeilex.wgsl", "ritwickdey.LiveServer", "esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+	"recommendations": [
+		"clonecode.clonecode-wgsl",
+		"ritwickdey.LiveServer",
+		"esbenp.prettier-vscode",
+		"dbaeumer.vscode-eslint"
+	]
 }
