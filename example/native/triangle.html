@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			http-equiv="origin-trial"
+			content="Atzk/dTch1Tt8qYq/UwLn6aWawymlc3xOKy3xiuwsaj1HBK6eCTBb+EGOnv7LK+oSQ8Fr1l/qykGHhK64mAn+w4AAABjeyJvcmlnaW4iOiJodHRwczovL2hwdWdpcy5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+		/>
+		<title>gltf</title>
+		<!-- <link rel="stylesheet" href="./index.scss" /> -->
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				background: #692a84;
+				background: linear-gradient(316deg, #0e0f2a, #060913);
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			#app {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="app"></canvas>
+		<script type="module">
+			import { Model } from "../../dist/index.js";
+			const init = async () => {
+				const adapter = await navigator.gpu.requestAdapter();
+				const device = await adapter.requestDevice();
+				const canvas = document.getElementById("app");
+				const context = canvas.getContext("webgpu");
+
+				const devicePixelRatio = window.devicePixelRatio || 1;
+				canvas.width = canvas.clientWidth * devicePixelRatio;
+				canvas.height = canvas.clientHeight * devicePixelRatio;
+				const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+				context.configure({
+					device,
+					format: presentationFormat,
+					alphaMode: "premultiplied"
+				});
+				const depthTexture = device.createTexture({
+					size: [canvas.width, canvas.height],
+					format: "depth24plus",
+					usage: GPUTextureUsage.RENDER_ATTACHMENT
+				});
+				const renderPassDescriptor = {
+					colorAttachments: [
+						{
+							view: undefined, // Assigned later
+
+							clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+							loadOp: "clear",
+							storeOp: "store"
+						}
+					],
+					depthStencilAttachment: {
+						view: depthTexture.createView(),
+
+						depthClearValue: 1.0,
+						depthLoadOp: "clear",
+						depthStoreOp: "store"
+					}
+				};
+				const triangle = new Model({
+					shaderId: "triangle", //must and only
+					frag: `
+            @fragment
+            fn main() -> @location(0) vec4<f32> {
+              return vec4(1.0, 0.0, 0.0, 1.0);
+            }
+           `,
+					vert: `
+              @vertex fn main( @builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4<f32> {
+                  var pos = array<vec2<f32>, 3>(
+                    vec2(0.0, 0.5),
+                    vec2(-0.5, -0.5),
+                    vec2(0.5, -0.5)
+                  );
+
+                  return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+                }
+
+           `,
+					renderState: {
+						primitive: {
+							topology: "triangle-list"
+						},
+						targets: [
+							{
+								format: presentationFormat
+							}
+						],
+						depthStencil: {
+							depthWriteEnabled: true,
+							depthCompare: "less",
+							format: "depth24plus"
+						}
+					},
+					draw: {
+						count: 6,
+						instanceCount: 1
+					}
+				});
+				function animate() {
+					requestAnimationFrame(animate);
+					renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+					const commandEncoder = device.createCommandEncoder();
+					const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+					triangle.render({ device, passEncoder });
+					passEncoder.end();
+					device.queue.submit([commandEncoder.finish()]);
+				}
+				animate();
+			};
+			init();
+		</script>
+	</body>
+</html>

@@ -92,7 +92,10 @@ export default class Pipeline {
 		const { vertexBuffers, shaderSource } = drawComand;
 		const { vert, frag } = shaderSource.getShaderModule(device);
 		const pipelineDec = {
-			layout: PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout
+			layout:
+				groupLayouts.length > 0
+					? PipelineLayout.getPipelineLayoutFromCache(device, hashId, groupLayouts).gpuPipelineLayout
+					: "auto"
 		} as any;
 		if (vert)
 			pipelineDec.vertex = {
