@@ -1,4 +1,5 @@
 struct PointVertInput {
+    @location(inner_positionLocation) inner_position : vec3 <f32>,
     @location(positionLocation) position : vec3 <f32>,
     @location(uvLocation) uv : vec2 <f32>,
     #if HAS_COLOR

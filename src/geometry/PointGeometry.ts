@@ -15,16 +15,16 @@ export default class PointGeometry extends Geometry {
 		const uvs = [0, 0, 1, 0, 1, 1, 0, 1];
 		const indices = [0, 1, 2, 0, 2, 3];
 		this.computeBoundingSphere(positions);
-		this.setAttribute(new Float32Attribute("position", positions, 3));
+		this.setAttribute(new Float32Attribute("inner_positionLocation", positions, 3));
 		this.setAttribute(new Float32Attribute("uv", uvs, 2));
 		this.setIndice(indices);
 		this.count = indices.length;
-		this.instanceVertexBuffer = new VertexBuffer(
-			this.type,
-			this.vertexBufferCount,
-			this.currentLocationIndex,
-			InputStepMode.Instance
-		);
+		this.instanceVertexBuffer = new VertexBuffer({
+			label: this.type,
+			index: this.vertexBufferCount,
+			locationIndex: this.currentLocationIndex,
+			stepMode: InputStepMode.Instance
+		});
 		this.vertexBuffers.push(this.instanceVertexBuffer);
 	}
 	getAttribute(name: string) {
