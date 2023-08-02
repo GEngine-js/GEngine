@@ -42,6 +42,8 @@ export default class Attributes {
 	}
 	private setInterleavedAttribute(attribute: InterleavedAttribute) {
 		if (this._attributes.has(attribute.names.toString())) return;
+		attribute.shaderLocation = this.shaderLocation;
+		this.shaderLocation += attribute.names.length;
 		this._attributes.set(attribute.names.toString(), attribute);
 	}
 	getGPUAttributesDes() {
