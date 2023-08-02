@@ -115,18 +115,20 @@ export class InterleavedAttribute {
 	public byteSize: number;
 	public attributeType: AttributeType;
 	public dirty: boolean;
+	public shaderLocation: number;
 	constructor(names: string[], value: Array<number>, itemSizes: number[]) {
 		this.names = names;
 		this.itemSizes = itemSizes;
 		this.value = value;
 		this.attributeType = AttributeType.interleavedAttribute;
 		this.dirty = true;
+		this.shaderLocation = 0;
 	}
 	getGPUAttribute(): Array<GPUAttribute> {
 		const result = [];
 		this.itemSizes.reduce((total, current, index) => {
 			result.push({
-				shaderLocation: index,
+				shaderLocation: this.shaderLocation + index,
 				format: current == 1 ? `${this.format}` : `${this.format}x${current}`,
 				offset: total * this.byteSize
 			});

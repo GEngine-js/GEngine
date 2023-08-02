@@ -1,5 +1,5 @@
 import { InputStepMode } from "../core/WebGPUConstant";
-import { Attribute, Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
+import { Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import VertexBuffer from "../render/VertexBuffer";
 import Geometry from "./Geometry";
 export default class PointGeometry extends Geometry {
@@ -11,12 +11,10 @@ export default class PointGeometry extends Geometry {
 		this.init();
 	}
 	private init() {
-		const positions = [0, 0, 1, 0, 1, 1, 0, 1];
-		const uvs = [0, 0, 1, 0, 1, 1, 0, 1];
 		const indices = [0, 1, 2, 0, 2, 3];
-		this.computeBoundingSphere(positions);
-		this.setAttribute(new Float32Attribute("inner_positionLocation", positions, 3));
-		this.setAttribute(new Float32Attribute("uv", uvs, 2));
+		const vertices = [-0.5, -0.5, 0, 0, 0, 0.5, -0.5, 0, 1, 0, 0.5, 0.5, 0, 1, 1, -0.5, 0.5, 0, 0, 1];
+		this.computeBoundingSphere(vertices, 5);
+		super.setAttribute(new InterleavedFloat32Attribute(["vertexPoint", "uv"], vertices, [3, 2]));
 		this.setIndice(indices);
 		this.count = indices.length;
 		this.instanceVertexBuffer = new VertexBuffer({

@@ -10,6 +10,8 @@ export { Attribute } from "./render/Attribute";
 export { default as BindGroup } from "./render/BindGroup";
 export { default as BindGroupEntity } from "./render/BindGroupEntity";
 export { default as RenderTarget } from "./render/RenderTarget";
+export { InterleavedAttribute } from "./render/Attribute";
+export { InterleavedFloat32Attribute } from "./render/Attribute";
 // utils
 // helper
 export { ShadowMapDebugger } from "./helper/ShadowMapDebugger";
@@ -21,16 +23,19 @@ export { Instance } from "./mesh/Instance";
 export { InstanceMesh } from "./mesh/InstanceMesh";
 export { Model } from "./mesh/Model";
 export { Sprite } from "./mesh/Sprite";
+export { Points } from "./mesh/Points";
 
 // geometry
 export { default as SphereGeometry } from "./geometry/SphereGeometry";
 export { default as BoxGeometry } from "./geometry/BoxGeometry";
 export { default as TorusKnotGeometry } from "./geometry/TorusKnotGeometry";
 export { default as PlaneGeometry } from "./geometry/PlaneGeometry";
+export { default as PointGeometry } from "./geometry/PointGeometry";
 // Material
 export { default as BlinnPhongMaterial } from "./material/BlinnPhongMaterial";
 export { default as PbrMaterial } from "./material/PbrMaterial";
 export { default as ShaderMaterial } from "./material/ShaderMaterial";
+export { PointMaterial } from "./material/PointMaterial";
 export { Scene } from "./Scene";
 
 // post-process
