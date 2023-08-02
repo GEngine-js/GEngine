@@ -408,6 +408,7 @@ export type UniformBufferProp = {
 	uniforms?: { [uniform: string]: IUniform<any> };
 };
 export type AttributeProp = {
+	name?: string;
 	size?: number;
 	value?: [];
 	names?: Array<string>;

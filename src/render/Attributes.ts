@@ -1,4 +1,4 @@
-import { Attribute, AttributeType, BufferFloat32Attribute, InterleavedAttribute } from "./Attribute";
+import { Attribute, AttributeType, BufferInterleavedFloat32Attribute, InterleavedAttribute } from "./Attribute";
 import Buffer from "./Buffer";
 export default class Attributes {
 	public interleave: boolean;
@@ -42,6 +42,8 @@ export default class Attributes {
 	}
 	private setInterleavedAttribute(attribute: InterleavedAttribute) {
 		if (this._attributes.has(attribute.names.toString())) return;
+		attribute.shaderLocation = this.shaderLocation;
+		this.shaderLocation += attribute.names.length;
 		this._attributes.set(attribute.names.toString(), attribute);
 	}
 	getGPUAttributesDes() {
@@ -69,11 +71,12 @@ export default class Attributes {
 			} else {
 				if (!this.interleave) this.interleave = true;
 				values = values ?? attribute.value;
-				buffer = (attribute as BufferFloat32Attribute)?.buffer;
-				arrayStride = (attribute as InterleavedAttribute).itemSizes.reduce(
-					(total, current) => (total += current),
-					0
-				);
+				buffer = (<BufferInterleavedFloat32Attribute>attribute)?.buffer;
+				if (!buffer)
+					arrayStride = (<InterleavedAttribute>attribute).itemSizes.reduce(
+						(total, current) => (total += current),
+						0
+					);
 			}
 		});
 

@@ -114,8 +114,8 @@ class DrawCommand implements Command {
 
 		renderState?.bind?.({
 			passEncoder: currentPassEncoder,
-			viewPort: viewPort as ViewPort,
-			scissorTest: <ScissorTest>scissorTest
+			viewPort: viewPort,
+			scissorTest: scissorTest
 		});
 
 		vertexBuffers?.forEach?.((vertexBuffer: VertexBuffer) => vertexBuffer?.bind?.(device, currentPassEncoder));

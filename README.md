@@ -196,9 +196,9 @@ $ yarn build
 					format: "depth24plus"
 				}
 			},
-                        draw: {
-                             count: 36,
-			     instanceCount: 1
+			draw: {
+				count: 36,
+				instanceCount: 1
 			}
 		});
 

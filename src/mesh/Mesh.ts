@@ -46,9 +46,11 @@ export class Mesh extends RenderObject {
 		}
 		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
 
-		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
+		const visibility = !this.frustumCull
+			? Intersect.INSIDE
+			: frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		// 视锥剔除
-		if (visibility === Intersect.OUTSIDE || !this.frustumCull) return;
+		if (visibility === Intersect.OUTSIDE) return;
 		if (this.material.transparent) {
 			frameState.renderQueue.transparent.push(this);
 		} else {
