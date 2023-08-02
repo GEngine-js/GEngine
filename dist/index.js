@@ -463,7 +463,7 @@ class $ {
 	static getPipelineDescriptor(e, t, r, i, n) {
 		const { vertexBuffers: s, shaderSource: a } = t,
 			{ vert: o, frag: l } = a.getShaderModule(e),
-			c = { layout: H.getPipelineLayoutFromCache(e, n, i).gpuPipelineLayout };
+			c = { layout: i.length > 0 ? H.getPipelineLayoutFromCache(e, n, i).gpuPipelineLayout : "auto" };
 		return (
 			o &&
 				(c.vertex = {
@@ -5566,7 +5566,7 @@ class jt {
 				: (this.interleave || (this.interleave = !0),
 				  (i = i ?? s.value),
 				  (t = s?.buffer),
-				  (r = s.itemSizes.reduce((e, t) => e + t, 0)));
+				  t || (r = s.itemSizes.reduce((e, t) => e + t, 0)));
 		});
 		const s = this.interleave ? new Float32Array(i) : this.interleaveTypedArray(Float32Array, e, ...n);
 		return { arrayStride: r * s.BYTES_PER_ELEMENT, typeArray: s, buffer: t };
@@ -7276,9 +7276,13 @@ class Qr {
 	}
 	bind(e, t) {
 		this.uploadUniform(e),
-			this.groupLayout || (this.groupLayout = this.createBindGroupLayout(e, this.label, this.layoutIndex)),
-			this.bindGroup || (this.bindGroup = this.createBindGroup(e, this.label, this.groupIndex)),
-			this.bindGroup.bind(t);
+			!this.groupLayout &&
+				this._uniforms.size > 0 &&
+				(this.groupLayout = this.createBindGroupLayout(e, this.label, this.layoutIndex)),
+			!this.bindGroup &&
+				this._uniforms.size > 0 &&
+				(this.bindGroup = this.createBindGroup(e, this.label, this.groupIndex)),
+			this?.bindGroup?.bind?.(t);
 	}
 	destroy() {
 		this._uniforms.forEach((e) => {
@@ -7945,7 +7949,7 @@ class pi {
 	createShaderData() {
 		const { shaderId: e, uniformBuffers: t, uniformTextureAndSampler: r } = this.modelParams,
 			i = new Qr(e);
-		return t.forEach((e) => this.createUniformBuffer(e, i)), this.addUniformToShaderData(r, i, void 0), i;
+		return t?.forEach?.((e) => this.createUniformBuffer(e, i)), this.addUniformToShaderData(r, i, void 0), i;
 	}
 	createRenderState() {
 		const {

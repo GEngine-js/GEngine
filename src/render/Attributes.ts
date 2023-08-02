@@ -1,4 +1,4 @@
-import { Attribute, AttributeType, BufferFloat32Attribute, InterleavedAttribute } from "./Attribute";
+import { Attribute, AttributeType, BufferInterleavedFloat32Attribute, InterleavedAttribute } from "./Attribute";
 import Buffer from "./Buffer";
 export default class Attributes {
 	public interleave: boolean;
@@ -71,11 +71,12 @@ export default class Attributes {
 			} else {
 				if (!this.interleave) this.interleave = true;
 				values = values ?? attribute.value;
-				buffer = (attribute as BufferFloat32Attribute)?.buffer;
-				arrayStride = (attribute as InterleavedAttribute).itemSizes.reduce(
-					(total, current) => (total += current),
-					0
-				);
+				buffer = (<BufferInterleavedFloat32Attribute>attribute)?.buffer;
+				if (!buffer)
+					arrayStride = (<InterleavedAttribute>attribute).itemSizes.reduce(
+						(total, current) => (total += current),
+						0
+					);
 			}
 		});
 

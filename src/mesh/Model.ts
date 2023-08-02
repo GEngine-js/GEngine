@@ -7,7 +7,7 @@ import {
 	PrimitiveTopology
 } from "../core/WebGPUConstant";
 import { ComputeModelParams, ModelParams, RenderModelParams } from "../core/WebGPUTypes";
-import { BufferFloat32Attribute, Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
+import { BufferInterleavedFloat32Attribute, Float32Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import { ComputeCommand } from "../render/ComputeCommand";
 import DrawCommand from "../render/DrawCommand";
 import IndexBuffer from "../render/IndexBuffer";
@@ -120,7 +120,7 @@ export class Model {
 					vertexBuffer.setAttribute(
 						names?.length > 0
 							? buffer
-								? new BufferFloat32Attribute(names, buffer, itemSizes)
+								? new BufferInterleavedFloat32Attribute(names, buffer, itemSizes)
 								: new InterleavedFloat32Attribute(names, value, itemSizes)
 							: new Float32Attribute(key, value, size)
 					);
@@ -149,7 +149,7 @@ export class Model {
 		const { shaderId, uniformBuffers, uniformTextureAndSampler } = this.modelParams;
 		const shaderData = new ShaderData(shaderId);
 		// fill uniformBuffer
-		uniformBuffers.forEach((uniformBuffer) => this.createUniformBuffer(uniformBuffer, shaderData));
+		uniformBuffers?.forEach?.((uniformBuffer) => this.createUniformBuffer(uniformBuffer, shaderData));
 		// fill texture and sampler
 		this.addUniformToShaderData(uniformTextureAndSampler, shaderData, undefined);
 		return shaderData;

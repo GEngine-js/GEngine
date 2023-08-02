@@ -93,9 +93,11 @@ export default class ShaderData {
 	}
 	bind(device: GPUDevice, passEncoder: GPURenderPassEncoder | GPUComputePassEncoder) {
 		this.uploadUniform(device);
-		if (!this.groupLayout) this.groupLayout = this.createBindGroupLayout(device, this.label, this.layoutIndex);
-		if (!this.bindGroup) this.bindGroup = this.createBindGroup(device, this.label, this.groupIndex);
-		this.bindGroup.bind(passEncoder);
+		if (!this.groupLayout && this._uniforms.size > 0)
+			this.groupLayout = this.createBindGroupLayout(device, this.label, this.layoutIndex);
+		if (!this.bindGroup && this._uniforms.size > 0)
+			this.bindGroup = this.createBindGroup(device, this.label, this.groupIndex);
+		this?.bindGroup?.bind?.(passEncoder);
 	}
 	destroy() {
 		this._uniforms.forEach((uniform) => {

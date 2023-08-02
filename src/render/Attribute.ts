@@ -157,7 +157,7 @@ export class InterleavedFloat32Attribute extends InterleavedAttribute {
 		this.byteSize = Float32Array.BYTES_PER_ELEMENT;
 	}
 }
-export class BufferFloat32Attribute extends InterleavedFloat32Attribute {
+export class BufferInterleavedFloat32Attribute extends InterleavedFloat32Attribute {
 	public buffer: Buffer;
 	constructor(names: string[], buffer: Buffer, itemSizes: number[]) {
 		super(names, undefined, itemSizes);
