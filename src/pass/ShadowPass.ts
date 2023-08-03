@@ -11,7 +11,6 @@ import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import getVertFrag from "../shader/Shaders";
 import Pass from "./Pass";
 export class ShadowPass extends Pass {
 	public shadowMaterial: ShaderMaterial;

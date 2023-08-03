@@ -29,7 +29,7 @@ export class CascadedShadow extends BaseShadow {
 	_sceneAvtiveCamera: Camera;
 	isCascadedShadow: boolean;
 
-	static atlasBorderSize = 4;
+	static atlasBorderSize = 0;
 
 	constructor(options: CascadedShadowOptions) {
 		const { shadowMapSize, vpMatrixArray, lightInstance, cascadeMode } = options;
@@ -94,8 +94,8 @@ export class CascadedShadow extends BaseShadow {
 		subFrustum.updateBoundingSphere();
 		const center = subFrustum.boundingSphere.center;
 		const radius = subFrustum.boundingSphere.radius;
-		// const halfShadowMapSize = this.shadowMapSize.x / 2;
-		// const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
+		const halfShadowMapSize = this.shadowMapSize.x / 2;
+		const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
 
 		if (shadowCam instanceof OrthographicCamera) {
 			const position = new Vector3();
@@ -103,11 +103,12 @@ export class CascadedShadow extends BaseShadow {
 			Vector3.subtract(center, position, position);
 			shadowCam.position.copy(position);
 			shadowCam.lookAt(center.x, center.y, center.z);
-			shadowCam.left = -radius;
-			shadowCam.right = radius;
-			shadowCam.top = radius;
-			shadowCam.bottom = -radius;
-			shadowCam.far = radius * 2.0 + shadowCam.near;
+			shadowCam.left = -borderRadius;
+			shadowCam.right = borderRadius;
+			shadowCam.top = borderRadius;
+			shadowCam.bottom = -borderRadius;
+			shadowCam.far = borderRadius * 2.0 + shadowCam.near;
+			shadowCam.near = 0;
 		}
 		Matrix4.clone(shadowCam.vpMatrix, this.vpMatrixArray[this.currentViewportIndex]);
 	}

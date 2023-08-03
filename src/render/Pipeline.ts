@@ -43,10 +43,11 @@ export default class Pipeline {
 		const { renderState, shaderSource } = drawComand;
 		const rsStr = JSON.stringify(renderState);
 		const combineStr = shaderSource.uid.concat(rsStr);
-		const hashId = stringToHash(combineStr);
 		const combineLayouts = groupLayouts
 			?.filter((layout) => layout != undefined)
 			?.sort((layout1, layout2) => layout1.index - layout2.index);
+		const combineLayoutLabel = getCombineLayoutLabel(combineLayouts);
+		const hashId = stringToHash(combineStr + combineLayoutLabel);
 		let pipeline = renderPipelines.get(hashId);
 		if (!pipeline) {
 			const descriptor = Pipeline.getPipelineDescriptor(
@@ -61,6 +62,7 @@ export default class Pipeline {
 		}
 		return pipeline;
 	}
+
 	static getComputePipelineFromCache(
 		device: GPUDevice,
 		computeCommad: ComputeCommand,
@@ -127,4 +129,13 @@ function stringToHash(str) {
 		hash = hash & hash; // Convert to 32bit integer
 	}
 	return hash;
+}
+
+function getCombineLayoutLabel(layouts: BindGroupLayout[]) {
+	let result = "";
+	for (let i = 0; i < layouts.length; i++) {
+		const layout = layouts[i];
+		result += layout.label;
+	}
+	return result;
 }

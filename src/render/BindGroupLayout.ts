@@ -3,8 +3,10 @@ const layoutCache = new Map();
 class BindGroupLayout {
 	public gpuBindGroupLayout: GPUBindGroupLayout;
 	index: number;
+	public label: string;
 	private constructor(device: GPUDevice, label: string, public entries: BindGroupLayoutEntry[] = [], index = 0) {
 		this.index = index || 0;
+		this.label = label;
 		this.gpuBindGroupLayout = device.createBindGroupLayout({
 			label: label,
 			entries: entries.map(({ visibility, buffer, sampler, texture, storageTexture, binding }) => ({

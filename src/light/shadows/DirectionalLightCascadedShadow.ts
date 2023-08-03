@@ -36,8 +36,9 @@ export class DirectionalLightCascadedShadow extends CascadedShadow {
 		lightInstance: DirectionalLight,
 		cascadeMode: string
 	) {
+		const vpMatrixArrayLength = cascadeNumber > 8 ? 8 : cascadeNumber;
 		const vpMatrixArray = [];
-		for (let i = 0; i < cascadeNumber; i++) {
+		for (let i = 0; i < vpMatrixArrayLength; i++) {
 			vpMatrixArray.push(new Matrix4());
 		}
 		return {

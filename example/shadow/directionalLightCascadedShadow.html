@@ -74,7 +74,7 @@
 				});
 
 				const camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1500);
-				camera.position.set(-400, 600, -400);
+				camera.position.set(270, 60, -20);
 				camera.lookAt(0, 0, 0);
 				scene.setCamera(camera);
 				const control = new OrbitControl(camera, document.getElementById("app"));
@@ -109,21 +109,37 @@
 				const ground = new Mesh(groundGeometry, groundMaterial);
 				ground.rotateX(Math.PI / 2);
 
-				function addInstanceToScene(groundSize, totalNum, baseMesh) {
+				// function addInstanceToScene(groundSize, totalNum, baseMesh) {
+				// 	for (let i = 0; i < totalNum; i++) {
+				// 		const instance = new Instance();
+				// 		const x = (Math.random() - 0.5) * groundSize;
+				// 		const y = Math.random() * groundSize * 0.25 + 5;
+				// 		const z = (Math.random() - 0.5) * groundSize;
+				// 		instance.position.set(x, y, z);
+				// 		instance.rotateX(Math.random());
+				// 		baseMesh.addInstance(instance);
+				// 	}
+				// 	scene.add(baseMesh);
+				// }
+				// const instanceMeshOfTorusKnot = new InstanceMesh(torusKnotGeometry, torusKnotMaterial);
+				// addInstanceToScene(groundSize, 10, instanceMeshOfTorusKnot);
+
+				function addInstanceToScene(gap, totalNum, baseMesh, groundSize) {
 					for (let i = 0; i < totalNum; i++) {
-						const instance = new Instance();
-						const x = (Math.random() - 0.5) * groundSize;
-						const y = Math.random() * groundSize * 0.25 + 5;
-						const z = (Math.random() - 0.5) * groundSize;
+						const geo = new TorusKnotGeometry(10, 4, 200, 32);
+						const torusKnotMaterial = new BlinnPhongMaterial(Color.fromCssColorString("#ffffff"), 150);
+						torusKnotMaterial.color = new Color(1.0, 0.0, 0.0);
+
+						const instance = new Mesh(geo, torusKnotMaterial);
+						const x = gap * i - groundSize / 2.2;
+						const y = 20;
+						const z = 0;
 						instance.position.set(x, y, z);
 						instance.rotateX(Math.random());
-						baseMesh.addInstance(instance);
+						scene.add(instance);
 					}
-					scene.add(baseMesh);
 				}
-				const instanceMeshOfTorusKnot = new InstanceMesh(torusKnotGeometry, torusKnotMaterial);
-				addInstanceToScene(groundSize, 10, instanceMeshOfTorusKnot);
-
+				addInstanceToScene(40, 20, scene, groundSize);
 				// scene.add(torusKnotPrimitive);
 				scene.add(ground);
 				scene.add(skybox);
@@ -135,10 +151,10 @@
 				var i = 0;
 				function animate() {
 					i++;
-					var rad = (i * Math.PI) / 180;
-					var x = Math.sin(rad) * radiu;
-					var z = Math.cos(rad) * radiu;
-					directionalLight.position = new Vector3(x, 40, z);
+					// var rad = (i * Math.PI) / 180;
+					// var x = Math.sin(rad) * radiu;
+					// var z = Math.cos(rad) * radiu;
+					// directionalLight.position = new Vector3(x, 40, z);
 
 					requestAnimationFrame(animate);
 					control.update();
