@@ -7,6 +7,7 @@ import { Light } from "../Light";
 export class BaseShadow {
 	protected _shadowMapSize: Vector2;
 	protected _camera: Camera;
+	protected _cameraArray: Array<Camera>;
 	protected _shadowMap: Texture;
 	public type: string;
 	public _viewports: Array<Vector4>;
@@ -14,18 +15,22 @@ export class BaseShadow {
 	public currentViewportIndex: number;
 	public viewPortDirty: boolean;
 	public vpMatrixDirty: boolean;
+	isCascadedShadow: boolean;
 
-	constructor(shadowMapSize: Vector2, camera: Camera) {
+	constructor(shadowMapSize: Vector2, camera: Camera | Array<Camera>) {
 		this._shadowMapSize = shadowMapSize;
-		this._camera = camera;
+		this._camera = Array.isArray(camera) ? undefined : camera;
+		this._cameraArray = Array.isArray(camera) ? camera : undefined;
 		this.viewPortDirty = true;
 		this.vpMatrixDirty = true;
-
-		this._init();
 	}
 
 	get camera() {
 		return this._camera;
+	}
+
+	get cameraArray() {
+		return this._cameraArray;
 	}
 
 	get shadowMapSize() {
@@ -40,7 +45,7 @@ export class BaseShadow {
 		return this._shadowMap;
 	}
 
-	protected _init() {
+	init() {
 		this._initShadowMapTexture();
 	}
 
@@ -50,6 +55,7 @@ export class BaseShadow {
 
 	protected _createShadowMapTexture() {
 		this._shadowMap = new Texture({
+			label: `${this.type}Map`,
 			size: {
 				width: this._shadowMapSize.x,
 				height: this._shadowMapSize.y,
@@ -62,5 +68,5 @@ export class BaseShadow {
 		});
 	}
 
-	public update(light: Light) {}
+	public update(light) {}
 }

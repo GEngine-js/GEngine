@@ -6,6 +6,7 @@ import LightManger from "./core/LightManger";
 import MeshManger from "./core/MeshManger";
 import textureCache from "./core/TextureCache";
 import { Instance, RenderObjectType } from "./core/WebGPUTypes";
+import { DirectionalLight } from "./light/DirectionalLight";
 import { Light } from "./light/Light";
 import { Mesh } from "./mesh/Mesh";
 import Node from "./mesh/Node";
@@ -68,6 +69,7 @@ export class Scene extends EventDispatcher {
 		) {
 			this.meshManger.add(<Mesh>instance);
 		} else if (instance.type == RenderObjectType.Light) {
+			if (instance instanceof DirectionalLight) instance._setSceneInstance(this);
 			this.lightManger.add(<Light>instance);
 		} else if (instance.type == RenderObjectType.PostEffect) {
 			this.postEffectCollection.add(<PostEffect>instance);

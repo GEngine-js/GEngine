@@ -457,6 +457,7 @@ export enum UniformEnum {
 	SpotLightShadows = "spotLightShadows",
 	DirtectLights = "dirtectLights",
 	DirtectLightShadows = "dirtectLightShadows",
+	DirtectLightCascadedShadows = "dirtectLightCascadedShadows",
 	UniformStructArray = "StructArray"
 }
 export type VertexBufferParams = {

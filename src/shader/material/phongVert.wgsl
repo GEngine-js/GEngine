@@ -11,6 +11,7 @@ struct MaterialUniform {
 #include <VertexOutput>
 #include <SystemUniform>
 #include <VertexInput>
+#include <instanceVertHeader>
 @binding(phongBinding) @group(0) var<uniform> selfUniform : MaterialUniform;
 @binding(cameraBinding) @group(1) var<uniform> systemUniform : SystemUniform;
 @vertex
@@ -19,7 +20,10 @@ fn main(input : VertexInput) -> VertexOutput {
       #if HAS_UV
             output.uv = input.uv;
       #endif
-      let modelPos = selfUniform.modelMatrix * vec4 <f32> (input.position, 1.0);
+      var modelMatrix:mat4x4<f32>;
+      modelMatrix = selfUniform.modelMatrix;
+      #include <instanceVertMain>;
+      let modelPos = modelMatrix *vec4<f32>(input.position,1.0);
       output.worldPos = modelPos.xyz / modelPos.w;
       let vNormalView = selfUniform.normalMatrix * vec4 <f32> (input.normal, 0.0);
       output.normal = vNormalView.xyz;

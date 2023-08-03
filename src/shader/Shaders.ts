@@ -79,7 +79,7 @@ const shaders = {
 	},
 	shadowMap: {
 		vert: shadowMapVert,
-		frag: shadowMapFrag
+		frag: undefined
 	},
 	sprite: {
 		vert: sprite_vs,

@@ -2,6 +2,7 @@ import PointLightShadowCamera from "../../camera/PointLightShadowCamera";
 import Vector2 from "../../math/Vector2";
 import Vector3 from "../../math/Vector3";
 import Vector4 from "../../math/Vector4";
+import { Light } from "../Light";
 import { PointLight } from "../PointLight";
 import { BaseShadow } from "./BaseShadow";
 
@@ -55,10 +56,11 @@ export class PointLightShadow extends BaseShadow {
 			new Vector3(0, 0, 1),
 			new Vector3(0, 0, -1)
 		];
+		super.init();
 	}
 
-	public update(light: PointLight) {
-		this.updateMatrices(light);
+	public update(light: Light) {
+		if (light instanceof PointLight) this.updateMatrices(light);
 	}
 
 	updateMatrices(light: PointLight) {

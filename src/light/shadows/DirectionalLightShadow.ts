@@ -1,6 +1,7 @@
 import OrthographicCamera from "../../camera/OrthographicCamera";
 import Vector2 from "../../math/Vector2";
 import { DirectionalLight } from "../DirectionalLight";
+import { Light } from "../Light";
 import { BaseShadow } from "./BaseShadow";
 
 export class DirectionalLightShadow extends BaseShadow {
@@ -9,10 +10,11 @@ export class DirectionalLightShadow extends BaseShadow {
 		const camera = new OrthographicCamera(-50, 50, 50, -50, 0, 100);
 		super(new Vector2(1024, 1024), camera);
 		this.type = "directionalLightShadow";
+		super.init();
 	}
 
-	public update(light: DirectionalLight) {
-		this.updateMatrices(light);
+	public update(light: Light) {
+		if (light instanceof DirectionalLight) this.updateMatrices(light);
 	}
 
 	updateMatrices(light: DirectionalLight) {

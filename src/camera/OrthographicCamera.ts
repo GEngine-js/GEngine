@@ -1,13 +1,13 @@
 import Matrix4 from "../math/Matrix4";
 import Camera from "./Camera";
 export default class OrthographicCamera extends Camera {
-	right: number;
+	_right: number;
 	isOrthographicCamera: boolean;
-	bottom: number;
-	left: number;
-	near: number;
-	far: number;
-	top: number;
+	_bottom: number;
+	_left: number;
+	_near: number;
+	_far: number;
+	_top: number;
 	constructor(left = -1, right = 1, top = 1, bottom = -1, near = 0.1, far = 2000) {
 		super();
 		this.near = near;
@@ -18,6 +18,43 @@ export default class OrthographicCamera extends Camera {
 		this.right = right;
 		this.isOrthographicCamera = true;
 	}
+
+	set left(value: number) {
+		this._left = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get left() {
+		return this._left;
+	}
+
+	set right(value: number) {
+		this._right = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get right() {
+		return this._right;
+	}
+
+	set top(value: number) {
+		this._top = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get top() {
+		return this._top;
+	}
+
+	set bottom(value: number) {
+		this._bottom = value;
+		this.projectMatrixDirty = true;
+	}
+
+	get bottom() {
+		return this._bottom;
+	}
+
 	private updateCameraParms() {
 		const dx = (this.right - this.left) / 2;
 		const dy = (this.top - this.bottom) / 2;
