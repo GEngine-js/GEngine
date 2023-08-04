@@ -36,7 +36,7 @@
 				}
 			}
 		],
-		"no-console": "error",
+		"no-console": ["error", { "allow": ["warn", "error"] }],
 		"no-debugger": "error",
 		"@typescript-eslint/no-empty-interface": [
 			"error",
