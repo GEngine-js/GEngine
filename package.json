@@ -46,8 +46,10 @@
 		"lint": "eslint --ext .js,.jsx,.ts,.tsx ./src"
 	},
 	"devDependencies": {
+		"@commitlint/config-conventional": "^17.6.7",
 		"@rollup/plugin-terser": "^0.4.2",
 		"commitizen": "^4.3.0",
+		"commitlint": "^17.6.7",
 		"cz-conventional-changelog": "^3.3.0",
 		"cz-conventional-changelog-zh": "0.0.2",
 		"eslint": "^8.40.0",
@@ -74,6 +76,7 @@
 		"eslint-plugin-prettier": "^4.2.1",
 		"eslint-plugin-unused-imports": "^2.0.0",
 		"glob": "^8.0.3",
+		"lint-staged": "^13.0.3",
 		"mersenne-twister": "^1.1.0",
 		"prettier-eslint": "^15.0.1",
 		"primitive-geometry": "^2.9.0"
@@ -100,6 +103,13 @@
 				}
 			}
 		}
+	},
+	"lint-staged": {
+		"*.{js,ts}": [
+			"eslint --ext .js,.jsx,.vue,.ts,.tsx src --fix",
+			"prettier --write"
+		],
+		"*.{md,json,html}": "prettier --write"
 	},
 	"license": "ISC"
 }

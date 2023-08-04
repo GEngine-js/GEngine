@@ -3,3 +3,4 @@
 
 npm run check-keyword
 npm run pretty-quick
+npx lint-staged
