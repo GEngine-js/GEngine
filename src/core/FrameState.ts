@@ -1,9 +1,9 @@
-import { Scene } from "../Scene";
 import Camera from "../camera/Camera";
 import Color from "../math/Color";
 import Pass from "../pass/Pass";
 import Context from "../render/Context";
 import Texture from "../render/Texture";
+import { Scene } from "../Scene";
 import combine from "../utils/combine";
 import CullingVolume from "./CullingVolume";
 import LightManger from "./LightManger";
@@ -49,7 +49,7 @@ export class FrameState {
 		this.background = options.background;
 
 		this.renderQueue.reset();
-		this?.lightManger?.update?.(this, camera);
+		this?.lightManger?.update?.();
 		this.cullingVolume = camera.getCullingVolume();
 		this.frameNumber += 1;
 	}

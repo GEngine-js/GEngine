@@ -35,6 +35,7 @@ export default class Node extends RenderObject {
 		});
 		this?.children?.clear();
 	}
+	// eslint-disable-next-line @typescript-eslint/ban-types
 	traverse(traverseFunction: Function, param: { [prop: string]: any }): void {
 		for (let i = 0, len = this.children.size; i < len; i++) {
 			this.children.forEach((child) => {

@@ -153,7 +153,7 @@ export default class Texture {
 		});
 	}
 	private checkNeedCreateTexture() {
-		const { width, height, depth } = this.textureProp.size;
+		const { width, height } = this.textureProp.size;
 		if (this.gpuTexture) {
 			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
 				this._textureView = undefined;

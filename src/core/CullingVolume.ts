@@ -1,9 +1,9 @@
+import Plane from "../math/Plane";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
 import { Intersect } from "./WebGPUConstant";
-import Plane from "../math/Plane";
 
 /**
  * The culling volume defined by planes.
@@ -123,7 +123,5 @@ Vector3.clone(Vector3.UNIT_Z, faces[2]);
 
 const scratchPlaneCenter = new Vector3();
 const scratchPlaneNormal = new Vector3();
-const scratchPlanes = new Vector4();
-const scratchPlane = new Plane(new Vector3(1.0, 0.0, 0.0), 0.0);
 
 export default CullingVolume;

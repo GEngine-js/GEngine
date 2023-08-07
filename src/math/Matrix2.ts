@@ -315,7 +315,6 @@ class Matrix2 {
 	}
 }
 const scaleScratch1 = new Vector2();
-const scaleScratch2 = new Vector2();
 const scaleScratch3 = new Vector2();
 const scaleScratch4 = new Vector2();
 const scratchColumn = new Vector2();

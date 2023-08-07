@@ -1,6 +1,6 @@
 import { IndexFormat } from "../core/WebGPUConstant";
+import { TypedArray } from "../utils/gltfUtils";
 import Buffer from "./Buffer";
-import {TypedArray} from "../utils/gltfUtils";
 export default class IndexBuffer {
 	buffer: Buffer;
 	indices: TypedArray;
@@ -24,9 +24,12 @@ export default class IndexBuffer {
 			this.buffer = Buffer.createIndexBuffer(
 				this.label,
 				device,
-				this.indices instanceof Array ?
-					(IndexFormat.Uint16 ? new Uint16Array(this.indices) : new Uint32Array(this.indices)):
-					this.indices);
+				this.indices instanceof Array
+					? IndexFormat.Uint16
+						? new Uint16Array(this.indices)
+						: new Uint32Array(this.indices)
+					: this.indices
+			);
 		}
 		passEncoder.setIndexBuffer(this.buffer.gpuBuffer, this.indexFormat);
 	}

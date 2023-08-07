@@ -1,7 +1,7 @@
 import { wgslParseDefines } from "../WgslPreprocessor";
 
 export default function pbrVert(defines) {
-  return wgslParseDefines`
+	return wgslParseDefines`
     #include <pbrStruct>
     struct VertexOutput {
         @builtin(position) position: vec4<f32>,
@@ -36,23 +36,17 @@ export default function pbrVert(defines) {
     // @group(0) @binding(${defines.samplerBinding}) var baseSampler: sampler;
     #if ${defines.USE_SKINNING}
         //uniform highp sampler2D boneTexture;
-        @group(0) @binding(${
-          defines.boneTextureBinding
-        }) var boneTexture: texture_2d<f32>;
+        @group(0) @binding(${defines.boneTextureBinding}) var boneTexture: texture_2d<f32>;
     #endif
 
     #if ${defines.USE_DISPLACEMENTTEXTURE}
         //uniform sampler2D displacementMap;
-        @group(0) @binding(${
-          defines.displacementTextureBinding
-        }) var displacementMap: texture_2d<f32>;
+        @group(0) @binding(${defines.displacementTextureBinding}) var displacementMap: texture_2d<f32>;
     #endif
 
     #if ${defines.MORPHTARGETS_TEXTURE}
         //uniform sampler2DArray morphTargetsTexture;
-        @group(0) @binding(${
-          defines.morphTargetsTextureBinding
-        }) var morphTargetsTexture: texture_2d_array<f32>;
+        @group(0) @binding(${defines.morphTargetsTextureBinding}) var morphTargetsTexture: texture_2d_array<f32>;
     #endif
 
     struct VertexInput {
@@ -65,9 +59,7 @@ export default function pbrVert(defines) {
             @location(${defines.uv2Location}) uv2:vec2<f32>,
         #endif
         #if ${defines.USE_INSTANCING}
-            @location(${
-              defines.instanceMatrixLocation
-            }) instanceMatrix:mat4x4<f32>,
+            @location(${defines.instanceMatrixLocation}) instanceMatrix:mat4x4<f32>,
         #endif
         #if ${defines.USE_INSTANCING_COLOR}
             @location(${defines.instanceColorLocation}) instanceColor:vec3<f32>,
@@ -91,37 +83,21 @@ export default function pbrVert(defines) {
 
             @location(${defines.morphTarget3Location}) morphTarget3:vec3<f32>,
             #if ${defines.USE_MORPHNORMALS}
-                @location(${
-                  defines.morphNormal0Location
-                }) morphNormal0:vec3<f32>,
+                @location(${defines.morphNormal0Location}) morphNormal0:vec3<f32>,
 
-                @location(${
-                  defines.morphNormal1Location
-                }) morphNormal1:vec3<f32>,
+                @location(${defines.morphNormal1Location}) morphNormal1:vec3<f32>,
 
-                @location(${
-                  defines.morphNormal2Location
-                }) morphNormal2:vec3<f32>,
+                @location(${defines.morphNormal2Location}) morphNormal2:vec3<f32>,
 
-                @location(${
-                  defines.morphNormal3Location
-                }) morphNormal3:vec3<f32>,
+                @location(${defines.morphNormal3Location}) morphNormal3:vec3<f32>,
             #else
-                @location(${
-                  defines.morphTarget4Location
-                }) morphTarget4:vec3<f32>,
+                @location(${defines.morphTarget4Location}) morphTarget4:vec3<f32>,
 
-                @location(${
-                  defines.morphTarget5Location
-                }) morphTarget5:vec3<f32>,
+                @location(${defines.morphTarget5Location}) morphTarget5:vec3<f32>,
 
-                @location(${
-                  defines.morphTarget6Location
-                }) morphTarget6:vec3<f32>,
+                @location(${defines.morphTarget6Location}) morphTarget6:vec3<f32>,
 
-                @location(${
-                  defines.morphTarget7Location
-                }) morphTarget7:vec3<f32>,
+                @location(${defines.morphTarget7Location}) morphTarget7:vec3<f32>,
             #endif
         #endif
         #if ${defines.USE_SKINNING}
@@ -289,9 +265,7 @@ export default function pbrVert(defines) {
         mvPosition = globalUniform.viewMatrix*materialUniform.modelMatrix * mvPosition;
         vertexOutput.position = globalUniform.projectionMatrix * mvPosition;
         vertexOutput.vViewPosition = - mvPosition.xyz/mvPosition.w;
-        #if ${
-          defines.USE_ENVTEXTURE || defines.DISTANCE || defines.USE_TRANSMISSION
-        } 
+        #if ${defines.USE_ENVTEXTURE || defines.DISTANCE || defines.USE_TRANSMISSION} 
             var worldPosition:vec4<f32> = vec4<f32>( transformed, 1.0 );
             #if ${defines.USE_INSTANCING}
                 worldPosition = input.instanceMatrix * worldPosition;

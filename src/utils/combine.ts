@@ -44,8 +44,10 @@ function combine(object1, object2, deep) {
 	let object2Value;
 	if (object1Defined) {
 		for (property in object1) {
+			// eslint-disable-next-line no-prototype-builtins
 			if (object1.hasOwnProperty(property)) {
 				object1Value = object1[property];
+				// eslint-disable-next-line no-prototype-builtins
 				if (object2Defined && deep && typeof object1Value === "object" && object2.hasOwnProperty(property)) {
 					object2Value = object2[property];
 					if (typeof object2Value === "object") {
@@ -61,6 +63,7 @@ function combine(object1, object2, deep) {
 	}
 	if (object2Defined) {
 		for (property in object2) {
+			// eslint-disable-next-line no-prototype-builtins
 			if (object2.hasOwnProperty(property) && !result.hasOwnProperty(property)) {
 				object2Value = object2[property];
 				result[property] = object2Value;

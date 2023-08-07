@@ -1,0 +1,60 @@
+{
+	"root": true,
+	"env": {
+		"browser": true,
+		"es6": true,
+		"node": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:import/recommended",
+		"plugin:import/typescript",
+		"plugin:prettier/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"parser": "@typescript-eslint/parser",
+		"sourceType": "module"
+	},
+	"plugins": ["unused-imports"],
+	"rules": {
+		"import/no-named-as-default": "off",
+		"vue/no-deprecated-v-on-native-modifier": "off",
+		"vue/multi-word-component-names": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/ban-ts-comment": "off",
+		"unused-imports/no-unused-imports": "warn",
+		"spaced-comment": [
+			"error",
+			"always",
+			{
+				"block": {
+					"markers": ["!"],
+					"exceptions": ["*"],
+					"balanced": true
+				}
+			}
+		],
+		"no-console": ["error", { "allow": ["warn", "error"] }],
+		"no-debugger": "error",
+		"@typescript-eslint/no-empty-interface": [
+			"error",
+			{
+				"allowSingleExtends": true
+			}
+		],
+		"prettier/prettier": ["error", { "endOfLine": "auto" }],
+		"import/no-unresolved": "off",
+		"import/order": [
+			"warn",
+			{
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
+				"alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				}
+			}
+		]
+	}
+}
