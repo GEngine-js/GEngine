@@ -1,4 +1,3 @@
-import Camera from "../camera/Camera";
 import { LightMangerOptions, LightType, UniformEnum } from "../core/WebGPUTypes";
 import { AmbientLight } from "../light/AmbientLight";
 import { DirectionalLight } from "../light/DirectionalLight";
@@ -11,7 +10,6 @@ import Sampler from "../render/Sampler";
 import ShaderData from "../render/ShaderData";
 import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
-import { FrameState } from "./FrameState";
 import {
 	TextureUsage,
 	BufferUsage,
@@ -53,9 +51,9 @@ export default class LightManger {
 		this.lightCountDirty = true;
 		this.openShadow = options.openShadow;
 	}
-	update(frameState: FrameState, camera: Camera) {
+	update() {
 		this.checkLightShadowState();
-		this.updateLight(camera);
+		this.updateLight();
 	}
 	add(light: Light) {
 		this.lightCountDirty = true;
@@ -103,7 +101,7 @@ export default class LightManger {
 		if (this.directLightCascadedShadowMapTextureArray) this.directLightCascadedShadowMapTextureArray.dirty = true;
 	}
 
-	private updateLight(camera: Camera) {
+	private updateLight() {
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
 			if (this.lightShaderData) this.lightShaderData.destroy();

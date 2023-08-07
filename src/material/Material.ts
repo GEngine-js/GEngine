@@ -113,6 +113,7 @@ export class Material {
 	clone(): Material {
 		return null;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(frameState?: FrameState, mesh?: Mesh) {
 		// update material
 	}

@@ -357,5 +357,4 @@ class GMath {
 	}
 }
 const randomNumberGenerator = new MersenneTwister();
-const factorials = [1];
 export default GMath;

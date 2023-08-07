@@ -41,9 +41,11 @@ export default class PostEffect implements IClone {
 		this.isPostEffect = true;
 		this.type = RenderObjectType.PostEffect;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	render(context: Context, colorTexture: Texture): Texture {
 		return null;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	setSize(width: number, height: number): void {
 		// todo ;
 	}

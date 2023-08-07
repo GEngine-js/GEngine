@@ -456,16 +456,11 @@ export class Quaternion {
 
 let fromAxisAngleScratch = new Vector3();
 
-const fromRotationMatrixNext = [1, 2, 0];
-const fromRotationMatrixQuat = new Array(3);
-
 let lerpScratch = new Quaternion();
 
 let slerpEndNegated = new Quaternion();
 let slerpScaledP = new Quaternion();
 let slerpScaledR = new Quaternion();
 
-const squadScratchCartesian0 = new Vector3();
-const squadScratchCartesian1 = new Vector3();
 const squadScratchQuaternion0 = new Quaternion();
 const squadScratchQuaternion1 = new Quaternion();

@@ -106,6 +106,7 @@ function computePlane(
  * @property {number} [nz=nx]
  */
 export function createCube({ sx = 1, sy = 1, sz = 1, nx = 1, ny = 1, nz = 1 } = {}) {
+	// eslint-disable-next-line prefer-rest-params
 	checkArguments(arguments);
 
 	const size = (nx + 1) * (ny + 1) * 2 + (nx + 1) * (nz + 1) * 2 + (nz + 1) * (ny + 1) * 2;
