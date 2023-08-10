@@ -105,6 +105,11 @@ export class Attribute {
 		this.value[index + 3] = w;
 		return this;
 	}
+
+	setValue(value: number[]) {
+		this.value = value;
+		this.dirty = true;
+	}
 }
 
 export class InterleavedAttribute {

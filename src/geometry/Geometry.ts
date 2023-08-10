@@ -179,4 +179,6 @@ export default class Geometry {
 		this.tangents = null;
 		this.boundingSphere = undefined;
 	}
+
+	updateGeometry(options) {}
 }

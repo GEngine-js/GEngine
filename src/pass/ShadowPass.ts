@@ -82,7 +82,7 @@ export class ShadowPass extends Pass {
 	subRender(renderQueue: RenderQueue, shadow: BaseShadow, lightManger: LightManger) {
 		renderQueue.sort();
 		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-		renderQueue.transparentRender(
+		renderQueue.opaqueRender(
 			shadow.camera,
 			this.context,
 			this.passRenderEncoder,
@@ -90,7 +90,7 @@ export class ShadowPass extends Pass {
 			CommandSubType.Shadow,
 			lightManger
 		);
-		renderQueue.opaqueRender(
+		renderQueue.transparentRender(
 			shadow.camera,
 			this.context,
 			this.passRenderEncoder,
