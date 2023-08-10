@@ -78,6 +78,7 @@ class Matrix4 {
 		return Matrix4.equals(this, right);
 	}
 	compose(position: Vector3, quaternion: Quaternion, scale: Vector3): Matrix4 {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const te = this;
 
 		const x = quaternion.x,
@@ -127,6 +128,7 @@ class Matrix4 {
 		return Matrix4.equalsEpsilon(this, right, epsilon);
 	}
 	lookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix4 {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const matrix = this;
 		Vector3.subtract(eye, target, z);
 		if (z.length() === 0) {
@@ -1490,12 +1492,7 @@ class Matrix4 {
 
 const scratchTransposeMatrix = new Matrix4();
 
-const fromCameraF = new Vector3();
-const fromCameraR = new Vector3();
-const fromCameraU = new Vector3();
-
 const scaleScratch1 = new Vector3();
-const scaleScratch2 = new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();
 const scaleScratch4 = new Vector3();

@@ -64,6 +64,7 @@ export default class Camera extends RenderObject {
 		this.updateMatrix();
 		return this.modelMatrix;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public updateProjectionMatrix() {}
 	/**
 	 * get a culling volume for this frustum.

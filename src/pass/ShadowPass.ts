@@ -19,6 +19,7 @@ export class ShadowPass extends Pass {
 		super(context);
 		this.init(context);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	render(frameState: FrameState, camera?: Camera) {
 		const { renderQueue, context, lightManger } = frameState;
 		const lights = lightManger.getAllLights();
@@ -119,6 +120,7 @@ export class ShadowPass extends Pass {
 		this.createRenderTarget(context);
 		this.createShadowMaterial();
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private createRenderTarget(context: Context) {
 		const depthAttachment = new Attachment(1.0, { texture: undefined });
 		this.renderTarget = new RenderTarget("render", [], depthAttachment);

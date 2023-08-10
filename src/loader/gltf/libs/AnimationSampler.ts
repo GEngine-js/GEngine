@@ -13,10 +13,11 @@ export class AnimationSampler {
 	inputMax: number;
 	private inputType: string;
 	private outputType: string;
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	constructor() {}
 	formGltf(gltf, sampler) {
-		this.input = gltf.accessors[sampler.input].values; //required, accessor object
-		this.output = gltf.accessors[sampler.output].values; //required, accessor object
+		this.input = gltf.accessors[sampler.input].values; // required, accessor object
+		this.output = gltf.accessors[sampler.output].values; // required, accessor object
 		this.interpolation = sampler.interpolation !== undefined ? sampler.interpolation : "LINEAR";
 		this.currentIndex = 0;
 		// this.currentValue=new Vector4();

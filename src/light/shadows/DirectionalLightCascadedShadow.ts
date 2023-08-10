@@ -1,4 +1,3 @@
-import OrthographicCamera from "../../camera/OrthographicCamera";
 import Matrix4 from "../../math/Matrix4";
 import Vector2 from "../../math/Vector2";
 import { DirectionalLight } from "../DirectionalLight";
@@ -24,6 +23,7 @@ export class DirectionalLightCascadedShadow extends CascadedShadow {
 		super.init();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	public update(light: Light) {
 		this.updateCascadeFrustumArray();
 		this.updateCameraMatrixBySubFrustum();

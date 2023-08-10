@@ -25,7 +25,6 @@ import ShaderChunk from "./shaderChunk/ShaderChunk";
 
 import shadowMapDebuggerFrag from "./shadow/shadowMapDebuggerFrag.wgsl";
 import shadowMapDebuggerVert from "./shadow/shadowMapDebuggerVert.wgsl";
-import shadowMapFrag from "./shadow/shadowMapFrag.wgsl";
 import shadowMapVert from "./shadow/shadowMapVert.wgsl";
 
 import { WGSLParseDefines } from "./WGSLParseDefines";

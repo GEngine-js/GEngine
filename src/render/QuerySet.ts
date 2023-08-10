@@ -1,5 +1,4 @@
 import Buffer from "./Buffer";
-const queryIndex = 0;
 export default class QuerySet {
 	public gpuQuerySet: GPUQuerySet;
 	public queryBuffer: Buffer;
