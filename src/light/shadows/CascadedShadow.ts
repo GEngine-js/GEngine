@@ -123,6 +123,7 @@ export class CascadedShadow extends BaseShadow {
 			shadowCam.far = borderRadius * 2.0 + shadowCam.near;
 			shadowCam.near = 0;
 		}
+
 		Matrix4.clone(shadowCam.vpMatrix, this.vpMatrixArray[this.currentViewportIndex]);
 		if (this._debugModel && this._debugSubFrustumBoundingSphereMeshArray.length != this.cascadeNumber)
 			this.#createSubFrustumBoundingSphere();
