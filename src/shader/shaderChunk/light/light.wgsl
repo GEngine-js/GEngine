@@ -165,7 +165,11 @@ struct Geometry {
         if (z >= cascadedBreakVSArray[0] && z < cascadedBreakVSArray[1]) {
             return 1;
         }
-        return 0;
+
+        if (z >= 0 && z < cascadedBreakVSArray[0]) {
+            return 0;
+        }
+        return -1;
     }
 
     fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:u32, isPointLight: bool, near: f32, far: f32)->f32 {
@@ -426,6 +430,9 @@ struct Geometry {
                     if directionalLight.isOpenShadow == 1.0 && directionalLight.isCascadedShadow == 1.0 {
                         var directLightCascadedShadow:DirectLightCascadedShadow = shadowUniforms.directLightCascadedShadows[cascadedShadowMapIndex];
                         var cascadedIndex = getCascadedIndex(geometry.viewPosition.z, directLightCascadedShadow.cascadedBreakVSArray);
+                        if (cascadedIndex == -1) {
+                            discard;
+                        }
                         var lightPos: vec4<f32> = directLightCascadedShadow.shadowCameraVPMatrixArray[cascadedIndex] * vec4<f32>(geometry.position,1.0);
                         var lightInfo:LightInfo;
                         lightInfo.direction = directionalLight.direction;
@@ -439,7 +446,7 @@ struct Geometry {
                         // } else {
                         //     reflectedLight.testColor = vec3(f32(cascadedIndex), 0.0, 0.0);
                         // }
-                        // reflectedLight.testColor = vec3(f32(cascadedIndex * 10) / 255, (geometry.viewPosition.z) / 3000, 0.0);
+                        // reflectedLight.testColor = vec3(f32(cascadedIndex * 85) / 255, (geometry.viewPosition.z) / 1500, 0.0);
                     }
                 #endif
                 

@@ -1,10 +1,14 @@
 import Camera from "../../camera/Camera";
 import OrthographicCamera from "../../camera/OrthographicCamera";
+import SphereGeometry from "../../geometry/SphereGeometry";
+import BlinnPhongMaterial from "../../material/BlinnPhongMaterial";
+import Color from "../../math/Color";
 import GMath from "../../math/Math";
 import Matrix4 from "../../math/Matrix4";
 import Vector2 from "../../math/Vector2";
 import Vector3 from "../../math/Vector3";
 import Vector4 from "../../math/Vector4";
+import { Mesh } from "../../mesh/Mesh";
 import { DirectionalLight } from "../DirectionalLight";
 import { BaseShadow } from "./BaseShadow";
 import { CascadedFrustum } from "./CascadedFrustum";
@@ -28,8 +32,10 @@ export class CascadedShadow extends BaseShadow {
 	_lightInstance: DirectionalLight;
 	_sceneAvtiveCamera: Camera;
 	isCascadedShadow: boolean;
+	_debugSubFrustumBoundingSphereMeshArray: Mesh[];
+	_debugModel: boolean;
 
-	static atlasBorderSize = 0;
+	static atlasBorderSize = 1;
 
 	constructor(options: CascadedShadowOptions) {
 		const { shadowMapSize, vpMatrixArray, lightInstance, cascadeMode } = options;
@@ -47,6 +53,8 @@ export class CascadedShadow extends BaseShadow {
 		this._viewports = [];
 		this.viewportSize = shadowMapSize;
 		this.currentViewportIndex = 0;
+		this._debugSubFrustumBoundingSphereMeshArray = [];
+		this._debugModel = false;
 	}
 
 	set cascadeNumber(value: number) {
@@ -57,6 +65,10 @@ export class CascadedShadow extends BaseShadow {
 
 	get cascadeNumber() {
 		return this._cascadeNumber;
+	}
+
+	set debugModel(value: boolean) {
+		this._debugModel = value;
 	}
 
 	initSetting(light: DirectionalLight) {
@@ -91,6 +103,7 @@ export class CascadedShadow extends BaseShadow {
 		const frustums = this.cascadeSubFrustumArray;
 		const shadowCam = this.camera;
 		const subFrustum = frustums[this.currentViewportIndex];
+		subFrustum.updateWorldVertices(this._sceneAvtiveCamera.modelMatrix);
 		subFrustum.updateBoundingSphere();
 		const center = subFrustum.boundingSphere.center;
 		const radius = subFrustum.boundingSphere.radius;
@@ -99,7 +112,7 @@ export class CascadedShadow extends BaseShadow {
 
 		if (shadowCam instanceof OrthographicCamera) {
 			const position = new Vector3();
-			Vector3.multiplyByScalar(this._lightInstance.directional, radius + shadowCam.near, position);
+			Vector3.multiplyByScalar(this._lightInstance.directional, borderRadius + shadowCam.near, position);
 			Vector3.subtract(center, position, position);
 			shadowCam.position.copy(position);
 			shadowCam.lookAt(center.x, center.y, center.z);
@@ -110,7 +123,11 @@ export class CascadedShadow extends BaseShadow {
 			shadowCam.far = borderRadius * 2.0 + shadowCam.near;
 			shadowCam.near = 0;
 		}
+
 		Matrix4.clone(shadowCam.vpMatrix, this.vpMatrixArray[this.currentViewportIndex]);
+		if (this._debugModel && this._debugSubFrustumBoundingSphereMeshArray.length != this.cascadeNumber)
+			this.#createSubFrustumBoundingSphere();
+		if (this._debugModel) this.#updateSubFrustumBoundingSphereArray();
 	}
 
 	updateCascadeFrustumArray() {
@@ -119,6 +136,36 @@ export class CascadedShadow extends BaseShadow {
 		this.sceneActiveCameraFrustum.setFromProjectionMatrix(camera.projectionMatrix, maxFar);
 		this.sceneActiveCameraFrustum.splitedByBreaks(this.breaks, this.cascadeSubFrustumArray);
 		this.sceneActiveCameraFrustum.getBreakVSArray(this.breaks, this.breakVSArray);
+	}
+
+	#createSubFrustumBoundingSphere() {
+		createMesh: {
+			for (let i = 0; i < this.cascadeSubFrustumArray.length; i++) {
+				const subFrustum = this.cascadeSubFrustumArray[i];
+				if (!subFrustum.boundingSphere) break createMesh;
+			}
+			const material = new BlinnPhongMaterial();
+			material.color = new Color(0.0, 1.0, 0.0);
+			material.opacity = 0.2;
+			material.transparent = true;
+			this.cascadeSubFrustumArray.forEach((subFrustum) => {
+				const sphere = subFrustum.boundingSphere;
+				const geo = new SphereGeometry(sphere.radius);
+				const sphereMesh = new Mesh(geo, material);
+				sphereMesh.position.set(sphere.center.x, sphere.center.y, sphere.center.z);
+				this._debugSubFrustumBoundingSphereMeshArray.push(sphereMesh);
+				this._lightInstance._scene.add(sphereMesh);
+			});
+		}
+	}
+
+	#updateSubFrustumBoundingSphereArray() {
+		if (this._debugSubFrustumBoundingSphereMeshArray.length != this.cascadeNumber) return;
+		this._debugSubFrustumBoundingSphereMeshArray.forEach((sphereMesh, index) => {
+			const sphere = this.cascadeSubFrustumArray[index].boundingSphere;
+			sphereMesh.geometry.updateGeometry(sphere.radius);
+			sphereMesh.position.set(sphere.center.x, sphere.center.y, sphere.center.z);
+		});
 	}
 
 	getBreaks() {

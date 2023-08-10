@@ -38,7 +38,7 @@ fn main(input : FragInput) -> @location(0) vec4 <f32> {
         //var finnalColor:vec3<f32>=color.xyz + (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
     var finnalColor : vec3 <f32>= color.xyz * (lightColor.directDiffuse + lightColor.directSpecular + lightColor.ambient);
 
-        //finnalColor = lightColor.testColor.xyz;
+        // finnalColor = lightColor.testColor.xyz;
 
     return vec4 <f32> (finnalColor, color.a);
 }
