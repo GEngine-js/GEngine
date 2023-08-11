@@ -15,7 +15,7 @@ import { CascadedFrustum } from "./CascadedFrustum";
 
 export const defaultCascadedShadowOptions = {
 	shadowMapSize: new Vector2(1024, 1024),
-	cascadeNumber: 4,
+	cascadeNumber: 8,
 	cascadeMode: "practical"
 };
 

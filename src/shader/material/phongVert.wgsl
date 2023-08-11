@@ -29,7 +29,7 @@ fn main(input : VertexInput) -> VertexOutput {
       output.normal = vNormalView.xyz;
       output.view = systemUniform.cameraPosition.xyz - modelPos.xyz;
       let viewPosition = systemUniform.viewMatrix * modelPos;
-      output.viewPosition = -viewPosition.xyz;
+      output.viewPosition = -(viewPosition.xyz / viewPosition.w);
       output.position = systemUniform.projectionMatrix * systemUniform.viewMatrix * modelPos;
       return output;
 }

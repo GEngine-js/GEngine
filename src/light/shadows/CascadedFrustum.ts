@@ -70,8 +70,12 @@ export class CascadedFrustum {
 
 	getBreakVSArray(breaks: number[], breakVSArray: number[]) {
 		breakVSArray.length = 0;
-		for (let i = 0; i < breaks.length; i++) {
-			breakVSArray[i] = -1 * breaks[i] * this.vertices.far[0].z;
+		breakVSArray[0] = 0;
+		for (let i = 1; i < breaks.length + 1; i++) {
+			breakVSArray[i] = -1 * breaks[i - 1] * this.vertices.far[0].z;
+		}
+		while (breakVSArray.length < 9) {
+			breakVSArray.push(-100);
 		}
 	}
 
