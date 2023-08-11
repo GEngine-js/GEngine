@@ -14,8 +14,8 @@ import { BaseShadow } from "./BaseShadow";
 import { CascadedFrustum } from "./CascadedFrustum";
 
 export const defaultCascadedShadowOptions = {
-	shadowMapSize: new Vector2(1024, 1024),
-	cascadeNumber: 8,
+	shadowMapSize: new Vector2(2048, 2048),
+	cascadeNumber: 4,
 	cascadeMode: "practical"
 };
 
@@ -34,6 +34,9 @@ export class CascadedShadow extends BaseShadow {
 	isCascadedShadow: boolean;
 	_debugSubFrustumBoundingSphereMeshArray: Mesh[];
 	_debugModel: boolean;
+	maxCascadeNumber: number;
+	alignViewportArray: Array<Vector4>;
+	alignVpMatrixArray: Array<Matrix4>;
 
 	static atlasBorderSize = 1;
 
@@ -44,6 +47,7 @@ export class CascadedShadow extends BaseShadow {
 		this.isCascadedShadow = true;
 		this._cascadeNumber = vpMatrixArray.length;
 		this.vpMatrixArray = vpMatrixArray;
+		this.alignVpMatrixArray = [];
 		this.cascadeMode = cascadeMode;
 		this._lightInstance = lightInstance;
 		this.sceneActiveCameraFrustum = new CascadedFrustum();
@@ -51,10 +55,12 @@ export class CascadedShadow extends BaseShadow {
 		this.breaks = [];
 		this.breakVSArray = [];
 		this._viewports = [];
+		this.alignViewportArray = [];
 		this.viewportSize = shadowMapSize;
 		this.currentViewportIndex = 0;
 		this._debugSubFrustumBoundingSphereMeshArray = [];
 		this._debugModel = false;
+		this.maxCascadeNumber = 8;
 	}
 
 	set cascadeNumber(value: number) {
@@ -99,16 +105,46 @@ export class CascadedShadow extends BaseShadow {
 		);
 	}
 
+	getAlignVpMatrixArray() {
+		this.alignVpMatrixArray = [...this.vpMatrixArray];
+		while (this.alignVpMatrixArray.length < this.maxCascadeNumber) {
+			this.alignVpMatrixArray.push(new Matrix4());
+		}
+		return this.alignVpMatrixArray;
+	}
+
+	getAlignViewportArray() {
+		this.alignViewportArray = [...this._viewports];
+		while (this.alignViewportArray.length < this.maxCascadeNumber) {
+			this.alignViewportArray.push(new Vector4());
+		}
+		return this.alignViewportArray;
+	}
+
 	updateCameraMatrixBySubFrustum() {
 		const frustums = this.cascadeSubFrustumArray;
 		const shadowCam = this.camera;
 		const subFrustum = frustums[this.currentViewportIndex];
-		subFrustum.updateWorldVertices(this._sceneAvtiveCamera.modelMatrix);
+		const shadowCamModelMatrix = new Matrix4()
+			.identity()
+			.lookAt(new Vector3(), this._lightInstance.directional, new Vector3(0, 1, 0));
+		const shadowCamViewMatrix = Matrix4.inverse(shadowCamModelMatrix, new Matrix4());
+		const sceneCamToShadowCamMatrix = Matrix4.multiply(
+			shadowCamViewMatrix,
+			this._sceneAvtiveCamera.modelMatrix,
+			new Matrix4()
+		);
+		subFrustum.updateWorldVertices(sceneCamToShadowCamMatrix);
 		subFrustum.updateBoundingSphere();
-		const center = subFrustum.boundingSphere.center;
+		const center = Vector3.clone(subFrustum.boundingSphere.center, new Vector3());
 		const radius = subFrustum.boundingSphere.radius;
 		const halfShadowMapSize = this.shadowMapSize.x / 2;
 		const borderRadius = (radius * halfShadowMapSize) / (halfShadowMapSize - CascadedShadow.atlasBorderSize);
+
+		const texelUnit = (borderRadius * 2) / this.viewportSize.x;
+		center.x = Math.floor(center.x / texelUnit) * texelUnit;
+		center.y = Math.floor(center.y / texelUnit) * texelUnit;
+		center.applyMatrix4(shadowCamModelMatrix);
 
 		if (shadowCam instanceof OrthographicCamera) {
 			const position = new Vector3();
