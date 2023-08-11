@@ -958,7 +958,7 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 
 			if (directionalLight.shadow.vpMatrixArrayDirty) {
 				directionalLight.shadow.vpMatrixArrayDirty = false;
-				const vpMatrixArray = directionalLight.shadow.vpMatrixArray;
+				const vpMatrixArray = directionalLight.shadow.getAlignVpMatrixArray();
 				for (let i = 0; i < vpMatrixArray.length; i++) {
 					const vpMatrix = vpMatrixArray[i];
 					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // 64f32
@@ -967,12 +967,12 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 
 			if (directionalLight.shadow.viewPortDirty) {
 				directionalLight.shadow.viewPortDirty = false;
-				const viewports = directionalLight.shadow.viewports;
+				const viewports = directionalLight.shadow.getAlignViewportArray();
 				for (let i = 0; i < viewports.length; i++) {
 					this.dirty = setDataToTypeArray(
 						this.buffer,
 						viewports[i].toArray(),
-						offset + directionalLight.shadow.vpMatrixArray.length * 16 + 4 * i
+						offset + directionalLight.shadow.alignVpMatrixArray.length * 16 + 4 * i
 					); // 16f32;
 				}
 			}
@@ -981,8 +981,8 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 				this.buffer,
 				directionalLight.shadow.breakVSArray,
 				offset +
-					directionalLight.shadow.vpMatrixArray.length * 16 +
-					directionalLight.shadow.viewports.length * 4
+					directionalLight.shadow.alignVpMatrixArray.length * 16 +
+					directionalLight.shadow.alignViewportArray.length * 4
 			); // byteOffset=16;
 		}
 	}

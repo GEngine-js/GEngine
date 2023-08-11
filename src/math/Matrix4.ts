@@ -66,6 +66,33 @@ class Matrix4 {
 		this[14] = column3Row2;
 		this[15] = column3Row3;
 	}
+
+	identity() {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const te = this;
+
+		te[0] = 1;
+		te[1] = 0;
+		te[2] = 0;
+		te[3] = 0;
+
+		te[4] = 0;
+		te[5] = 1;
+		te[6] = 0;
+		te[7] = 0;
+
+		te[8] = 0;
+		te[9] = 0;
+		te[10] = 1;
+		te[11] = 0;
+
+		te[12] = 0;
+		te[13] = 0;
+		te[14] = 0;
+		te[15] = 1;
+
+		return this;
+	}
 	// ????
 	clone(result: Matrix4 = new Matrix4()): Matrix4 {
 		return Matrix4.clone(this, result);

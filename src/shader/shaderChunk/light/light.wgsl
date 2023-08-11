@@ -207,12 +207,13 @@ struct Geometry {
 
     fn getCascadedShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:i32)->f32 {
         var visibility = 0.0;
-        let cascadeNumber = 8.0;
+        let viewportSize = 2048.0;
+        let cascadeNumber = 4.0;
         var projectPos: vec3<f32> = lightPos.xyz / lightPos.w;
         var shadowPos: vec3<f32> = vec3(projectPos.xy * vec2(0.5, -0.5) + vec2(0.5), projectPos.z);
         var d:f32 = dot(geometry.normal, -lightInfo.direction);
         var bias = max(0.012 * (1.0 - d), 0.001) / lightPos.w;
-        let oneOverShadowDepthTextureSize = vec2(1 / (1024.0 * cascadeNumber), 1 / 1024.0);
+        let oneOverShadowDepthTextureSize = vec2(1 / (viewportSize * cascadeNumber), 1 / viewportSize);
         // var depth = select(shadowPos.z, (linearizeDepth(shadowPos.z, near, far) - near) / (far- near), isPerspectiveCamera);
         var depth = shadowPos.z;
 
@@ -220,8 +221,8 @@ struct Geometry {
         shadowPos.y = shadowPos.y * lightInfo.viewport.w;
         var viewportX = lightInfo.viewport.x * lightInfo.viewport.z;
         var viewportY = lightInfo.viewport.y * lightInfo.viewport.w;
-        var uvOffsetX = 1.5 / (1024.0 * cascadeNumber);
-        var uvOffsetY = 1.5 / 1024.0;
+        var uvOffsetX = 1.5 / (viewportSize * cascadeNumber);
+        var uvOffsetY = 1.5 / viewportSize;
         shadowPos.x = clamp(shadowPos.x + viewportX, viewportX + uvOffsetX, viewportX + lightInfo.viewport.z - uvOffsetX);
         shadowPos.y = clamp(shadowPos.y + viewportY, viewportY + uvOffsetY, viewportY + lightInfo.viewport.w - uvOffsetY);
 
