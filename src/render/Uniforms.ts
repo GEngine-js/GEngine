@@ -923,7 +923,7 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 
 export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight> {
 	static align = 16;
-	static uniformSize = 84; // force breaks.length === 4, if need dynamic breaks, need dynamic uniformSize
+	static uniformSize = 176; // force breaks.length === 4, if need dynamic breaks, need dynamic uniformSize
 	lights: Array<DirectionalLight>;
 	private _subDataSize: number;
 
@@ -953,7 +953,7 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 			// this._subDataSize =
 			// 	directionalLight.shadow.vpMatrixArray.length * 16 +
 			// 	directionalLight.shadow.viewports.length * 4 +
-			// 	directionalLight.shadow.breaks.length;
+			// 	directionalLight.shadow.breakVSArray.length;
 			const offset = index * this._subDataSize;
 
 			if (directionalLight.shadow.vpMatrixArrayDirty) {
@@ -961,7 +961,7 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 				const vpMatrixArray = directionalLight.shadow.vpMatrixArray;
 				for (let i = 0; i < vpMatrixArray.length; i++) {
 					const vpMatrix = vpMatrixArray[i];
-					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // byteOffset=98 * 4;
+					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // 64f32
 				}
 			}
 
@@ -973,7 +973,7 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 						this.buffer,
 						viewports[i].toArray(),
 						offset + directionalLight.shadow.vpMatrixArray.length * 16 + 4 * i
-					); // byteOffset=0;
+					); // 16f32;
 				}
 			}
 

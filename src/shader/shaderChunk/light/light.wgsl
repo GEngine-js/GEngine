@@ -155,21 +155,17 @@ struct Geometry {
         return 0;
     }
 
-    fn getCascadedIndex(z: f32, cascadedBreakVSArray: array<f32, 4>) -> i32 {
-        if (z >= cascadedBreakVSArray[2] && z <= cascadedBreakVSArray[3]) {
-            return 3;
+    fn getCascadedIndex(z: f32, cascadedBreakVSArray: array<f32, 9>, cascadeNumber: i32) -> i32 {
+        var index = -1;
+        var arrayIndex = cascadeNumber;
+        while arrayIndex > 0 {
+            if (z > cascadedBreakVSArray[arrayIndex - 1] && z <= cascadedBreakVSArray[arrayIndex]) {
+                index = arrayIndex - 1;
+                break;
+            }
+            arrayIndex = arrayIndex - 1;
         }
-        if (z >= cascadedBreakVSArray[1] && z < cascadedBreakVSArray[2]) {
-            return 2;
-        }
-        if (z >= cascadedBreakVSArray[0] && z < cascadedBreakVSArray[1]) {
-            return 1;
-        }
-
-        if (z >= 0 && z < cascadedBreakVSArray[0]) {
-            return 0;
-        }
-        return -1;
+        return index;
     }
 
     fn getShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:u32, isPointLight: bool, near: f32, far: f32)->f32 {
@@ -211,11 +207,12 @@ struct Geometry {
 
     fn getCascadedShadowValue(shadowMapArray:texture_depth_2d_array, shadowSampler:sampler_comparison, lightPos:vec4<f32>, geometry:Geometry, lightInfo:LightInfo, index:i32)->f32 {
         var visibility = 0.0;
+        let cascadeNumber = 8.0;
         var projectPos: vec3<f32> = lightPos.xyz / lightPos.w;
         var shadowPos: vec3<f32> = vec3(projectPos.xy * vec2(0.5, -0.5) + vec2(0.5), projectPos.z);
         var d:f32 = dot(geometry.normal, -lightInfo.direction);
         var bias = max(0.012 * (1.0 - d), 0.001) / lightPos.w;
-        let oneOverShadowDepthTextureSize = vec2(1 / (1024.0 * 4), 1 / 1024.0);
+        let oneOverShadowDepthTextureSize = vec2(1 / (1024.0 * cascadeNumber), 1 / 1024.0);
         // var depth = select(shadowPos.z, (linearizeDepth(shadowPos.z, near, far) - near) / (far- near), isPerspectiveCamera);
         var depth = shadowPos.z;
 
@@ -223,7 +220,7 @@ struct Geometry {
         shadowPos.y = shadowPos.y * lightInfo.viewport.w;
         var viewportX = lightInfo.viewport.x * lightInfo.viewport.z;
         var viewportY = lightInfo.viewport.y * lightInfo.viewport.w;
-        var uvOffsetX = 1.5 / (1024.0 * 4);
+        var uvOffsetX = 1.5 / (1024.0 * cascadeNumber);
         var uvOffsetY = 1.5 / 1024.0;
         shadowPos.x = clamp(shadowPos.x + viewportX, viewportX + uvOffsetX, viewportX + lightInfo.viewport.z - uvOffsetX);
         shadowPos.y = clamp(shadowPos.y + viewportY, viewportY + uvOffsetY, viewportY + lightInfo.viewport.w - uvOffsetY);
@@ -290,9 +287,9 @@ struct Geometry {
         #endif
         #if USE_DIRECTLIGHT_CASCADEDSHADOWMAP
             struct DirectLightCascadedShadow {
-                shadowCameraVPMatrixArray: array<mat4x4<f32>, 4>,
-                shadowCameraViewportArray: array<vec4<f32>, 4>,
-                cascadedBreakVSArray: array<f32, 4>
+                shadowCameraVPMatrixArray: array<mat4x4<f32>, 8>,
+                shadowCameraViewportArray: array<vec4<f32>, 8>,
+                cascadedBreakVSArray: array<f32, 9>
             }
         #endif
         struct ShadowUniforms{
@@ -429,7 +426,7 @@ struct Geometry {
                 #if USE_DIRECTLIGHT_CASCADEDSHADOWMAP
                     if directionalLight.isOpenShadow == 1.0 && directionalLight.isCascadedShadow == 1.0 {
                         var directLightCascadedShadow:DirectLightCascadedShadow = shadowUniforms.directLightCascadedShadows[cascadedShadowMapIndex];
-                        var cascadedIndex = getCascadedIndex(geometry.viewPosition.z, directLightCascadedShadow.cascadedBreakVSArray);
+                        var cascadedIndex = getCascadedIndex(geometry.viewPosition.z, directLightCascadedShadow.cascadedBreakVSArray, 8);
                         if (cascadedIndex == -1) {
                             discard;
                         }
@@ -446,7 +443,8 @@ struct Geometry {
                         // } else {
                         //     reflectedLight.testColor = vec3(f32(cascadedIndex), 0.0, 0.0);
                         // }
-                        // reflectedLight.testColor = vec3(f32(cascadedIndex * 85) / 255, (geometry.viewPosition.z) / 1500, 0.0);
+                        // reflectedLight.testColor = vec3(f32(cascadedIndex * (255 / 7 )) / 255, (geometry.viewPosition.z) / 1500, 0.0);
+                        // reflectedLight.testColor = vec3(directLightCascadedShadow.cascadedBreakVSArray[4] / 1500, 0.0, 0.0);
                     }
                 #endif
                 
