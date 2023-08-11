@@ -25,7 +25,8 @@ import {
 	UniformVec2Array,
 	UniformVec3Array,
 	UniformVec4Array,
-	UniformStructArray
+	UniformStructArray,
+	UniformDirtectLightCascadedShadows
 } from "./Uniforms";
 export default class UniformBuffer {
 	public type: string;
@@ -66,6 +67,7 @@ export default class UniformBuffer {
 		[UniformEnum.PointLightShadows]: UniformPointLightShadows,
 		[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
 		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows,
+		[UniformEnum.DirtectLightCascadedShadows]: UniformDirtectLightCascadedShadows,
 		[UniformEnum.UniformStructArray]: UniformStructArray
 	};
 	constructor(options: UniformBufferParams) {

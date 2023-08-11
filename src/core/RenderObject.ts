@@ -15,6 +15,9 @@ export default class RenderObject implements IClone {
 	parent: RenderObject;
 	type: RenderObjectType;
 	name: string;
+	castShadow: boolean;
+	receiveShadow: boolean;
+
 	constructor() {
 		this._position = new Vector3();
 		this._scale = new Vector3(1, 1, 1);
@@ -23,6 +26,9 @@ export default class RenderObject implements IClone {
 		this._normalMatrix = Matrix4.clone(Matrix4.IDENTITY, new Matrix4());
 		this.up = new Vector3(0, 1, 0);
 		this._target = new Vector3(0, 0, 0);
+
+		this.castShadow = false;
+		this.receiveShadow = false;
 	}
 	public get normalMatrix(): Matrix4 {
 		return this._normalMatrix;

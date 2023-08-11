@@ -11,8 +11,6 @@ export default class PerspectiveCamera extends Camera {
 	height: number;
 	width: number;
 	isPerspectiveCamera: boolean;
-	near: number;
-	far: number;
 	top: number;
 	left: number;
 	constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) {

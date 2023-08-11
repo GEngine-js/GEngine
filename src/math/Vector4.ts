@@ -275,14 +275,8 @@ class Vector4 {
 }
 
 // scratchU8Array and scratchF32Array are views into the same buffer
-const scratchF32Array = new Float32Array(1);
-const scratchU8Array = new Uint8Array(scratchF32Array.buffer);
 
-const testU32 = new Uint32Array([0x11223344]);
-const testU8 = new Uint8Array(testU32.buffer);
-const littleEndian = testU8[0] === 0x44;
 const distanceScratch = new Vector4();
 const lerpScratch = new Vector4();
-const mostOrthogonalAxisScratch = new Vector4();
 
 export default Vector4;

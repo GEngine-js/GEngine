@@ -1,8 +1,8 @@
-export function requestWasmFile(url): Promise<Object> {
-	return fetch(url, { method: "get", responseType: "arraybuffer" }).then((res) => {
-		return res.arrayBuffer();
-	});
-}
+// export function requestWasmFile(url): Promise<Object> {
+// 	return fetch(url, { method: "get", responseType: "arraybuffer" }).then((res) => {
+// 		return res.arrayBuffer();
+// 	});
+// }
 export function getIamge(url: string) {
 	return new Promise((resolve, reject) => {
 		const image = new Image();

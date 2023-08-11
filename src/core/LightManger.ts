@@ -1,16 +1,15 @@
-import Camera from "../camera/Camera";
 import { LightMangerOptions, LightType, UniformEnum } from "../core/WebGPUTypes";
 import { AmbientLight } from "../light/AmbientLight";
 import { DirectionalLight } from "../light/DirectionalLight";
 import { Light } from "../light/Light";
 import { PointLight } from "../light/PointLight";
+import { DirectionalLightCascadedShadow } from "../light/shadows/DirectionalLightCascadedShadow";
 import { SpotLight } from "../light/SpotLight";
 import Vector3 from "../math/Vector3";
 import Sampler from "../render/Sampler";
 import ShaderData from "../render/ShaderData";
 import Texture from "../render/Texture";
 import UniformBuffer from "../render/UniformBuffer";
-import { FrameState } from "./FrameState";
 import {
 	TextureUsage,
 	BufferUsage,
@@ -41,6 +40,7 @@ export default class LightManger {
 	spotLightShadowMapTextureArray: Texture;
 	pointLightShadowMapTextureArray: Texture;
 	directLightShadowMapTextureArray: Texture;
+	directLightCascadedShadowMapTextureArray: Texture;
 	_testTexture: Texture;
 
 	constructor(options: LightMangerOptions) {
@@ -51,15 +51,17 @@ export default class LightManger {
 		this.lightCountDirty = true;
 		this.openShadow = options.openShadow;
 	}
-	update(frameState: FrameState, camera: Camera) {
+	update() {
 		this.checkLightShadowState();
-		this.updateLight(camera);
+		this.updateLight();
 	}
 	add(light: Light) {
 		this.lightCountDirty = true;
 		if (light.lightType == LightType.AmbientLight) {
 			this.ambientLight = <AmbientLight>light;
 		} else if (light.lightType == LightType.DirectionalLight) {
+			if (light instanceof DirectionalLight && light.shadow instanceof DirectionalLightCascadedShadow)
+				light.shadow.initSetting(light);
 			this.directLights.push(<DirectionalLight>light);
 		} else if (light.lightType == LightType.PointLight) {
 			this.pointLights.push(<PointLight>light);
@@ -96,9 +98,10 @@ export default class LightManger {
 		if (this.pointLightShadowMapTextureArray) this.pointLightShadowMapTextureArray.dirty = true;
 
 		if (this.directLightShadowMapTextureArray) this.directLightShadowMapTextureArray.dirty = true;
+		if (this.directLightCascadedShadowMapTextureArray) this.directLightCascadedShadowMapTextureArray.dirty = true;
 	}
 
-	private updateLight(camera: Camera) {
+	private updateLight() {
 		if (this.lightCountDirty) {
 			this.lightCountDirty = false;
 			if (this.lightShaderData) this.lightShaderData.destroy();
@@ -172,10 +175,13 @@ export default class LightManger {
 					this.createShadowMapTextureArray(this.pointLights));
 				const directLightShadowMapTextureArray = (this.directLightShadowMapTextureArray =
 					this.createShadowMapTextureArray(this.directLights));
+				const directLightCascadedShadowMapTextureArray = (this.directLightCascadedShadowMapTextureArray =
+					this.createShadowMapTextureArray(this.directLights, true));
 				if (
 					!spotLightShadowMapTextureArray &&
 					!pointLightShadowMapTextureArray &&
-					!directLightShadowMapTextureArray
+					!directLightShadowMapTextureArray &&
+					!directLightCascadedShadowMapTextureArray
 				)
 					break shadowShaderData;
 
@@ -206,15 +212,26 @@ export default class LightManger {
 					this.directLights,
 					UniformEnum.DirtectLightShadows
 				);
+				const directLightWithCascadedShadowCount = this.setShadowUniform(
+					"directLightCascadedShadows",
+					this.directLights,
+					UniformEnum.DirtectLightCascadedShadows,
+					true
+				);
 				this.lightShaderData.setUniformBuffer("shadow", this.shadowUniformBuffer);
 
 				this.lightShaderData.setDefine("spotLightShadowMapsCount", spotLightWithShadowCount);
 				this.lightShaderData.setDefine("pointLightShadowMapsCount", pointLightWithShadowCount);
 				this.lightShaderData.setDefine("directLightShadowMapsCount", directLightWithShadowCount);
+				this.lightShaderData.setDefine(
+					"directLightCascadedShadowMapsCount",
+					directLightWithCascadedShadowCount
+				);
 
 				this.lightShaderData.setDefine("USE_SPOTLIGHT_SHADOWMAP", spotLightWithShadowCount);
 				this.lightShaderData.setDefine("USE_POINTLIGHT_SHADOWMAP", pointLightWithShadowCount);
 				this.lightShaderData.setDefine("USE_DIRECTLIGHT_SHADOWMAP", directLightWithShadowCount);
+				this.lightShaderData.setDefine("USE_DIRECTLIGHT_CASCADEDSHADOWMAP", directLightWithCascadedShadowCount);
 				// texture,sample
 				if (spotLightShadowMapTextureArray !== undefined) {
 					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
@@ -240,6 +257,17 @@ export default class LightManger {
 					this.lightShaderData.setDefine("DIRECTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = directLightShadowMapTextureArray
 				}
+				if (directLightCascadedShadowMapTextureArray !== undefined) {
+					if (
+						directLightCascadedShadowMapTextureArray.textureProp.size.depth !=
+						directLightWithCascadedShadowCount
+					)
+						console.warn("directLightCascadedShadowMap align has problem");
+					this.lightShaderData.setTexture(
+						"directLightCascadedShadowMapTextureArray",
+						directLightCascadedShadowMapTextureArray
+					);
+				}
 				this.lightShaderData.setSampler(
 					"shadowSampler",
 					new Sampler({ compare: CompareFunction.Less }, { type: SamplerBindingType.Comparison })
@@ -261,12 +289,13 @@ export default class LightManger {
 		this.lightUniformBuffer.destroy();
 	}
 
-	createShadowMapTextureArray(lights: Array<Light>) {
+	createShadowMapTextureArray(lights: Array<Light>, onlyPickCascadedShadow = false) {
 		if (lights.length <= 0) return undefined;
 		const shadowMapSources = [];
 		for (let i = 0; i < lights.length; i++) {
 			const light = lights[i];
 			if (light.shadow) {
+				if (light.shadow.isCascadedShadow && !onlyPickCascadedShadow) continue;
 				const shadowMapTexture = light.shadow.getShadowMapTexture();
 				const shadowMapSource = {
 					source: shadowMapTexture,
@@ -284,6 +313,7 @@ export default class LightManger {
 		if (shadowMapSources.length <= 0) return undefined;
 
 		const shadowMapTextureArray = new Texture({
+			label: `${shadowMapSources[0].source?.textureProp?.label}TextureArray`,
 			size: {
 				width: shadowMapSources[0].width,
 				height: shadowMapSources[0].height,
@@ -300,14 +330,25 @@ export default class LightManger {
 		return shadowMapTextureArray;
 	}
 
-	setShadowUniform(uniformName: string, lights: Array<Light>, uniformType: UniformEnum) {
+	setShadowUniform(
+		uniformName: string,
+		lights: Array<Light>,
+		uniformType: UniformEnum,
+		onlyPickCascadedShadow = false
+	) {
 		if (lights.length) {
 			const lightWithShadowArray = [];
 			for (let i = 0; i < lights.length; i++) {
 				const light = lights[i];
 				if (!light.shadow) continue;
-				lightWithShadowArray.push(light);
+				if (onlyPickCascadedShadow) {
+					if (light.shadow.isCascadedShadow) lightWithShadowArray.push(light);
+				} else {
+					if (!light.shadow.isCascadedShadow) lightWithShadowArray.push(light);
+				}
 			}
+
+			if (lightWithShadowArray.length === 0) return 0;
 
 			this.shadowUniformBuffer.setUniform(
 				uniformName,

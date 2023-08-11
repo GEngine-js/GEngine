@@ -27,8 +27,8 @@ export class BasicPass extends Pass {
 
 		renderQueue.sort();
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
 		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
 		renderQueue.debugQueueRender(camera, this.context, this.passRenderEncoder);
 	}
 	private init(context: Context) {

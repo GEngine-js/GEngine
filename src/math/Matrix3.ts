@@ -648,91 +648,10 @@ class Matrix3 {
 }
 
 const scaleScratch1 = new Vector3();
-const scaleScratch2 = new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();
 const scaleScratch4 = new Vector3();
 const scaleScratch5 = new Vector3();
 
-function computeFrobeniusNorm(matrix) {
-	let norm = 0.0;
-	for (let i = 0; i < 9; ++i) {
-		const temp = matrix[i];
-		norm += temp * temp;
-	}
-
-	return Math.sqrt(norm);
-}
-
-const rowVal = [1, 0, 0];
-const colVal = [2, 2, 1];
-
-function offDiagonalFrobeniusNorm(matrix) {
-	// Computes the "off-diagonal" Frobenius norm.
-	// Assumes matrix is symmetric.
-
-	let norm = 0.0;
-	for (let i = 0; i < 3; ++i) {
-		const temp = matrix[Matrix3.getElementIndex(colVal[i], rowVal[i])];
-		norm += 2.0 * temp * temp;
-	}
-
-	return Math.sqrt(norm);
-}
-
-function shurDecomposition(matrix, result) {
-	// This routine was created based upon Matrix Computations, 3rd ed., by Golub and Van Loan,
-	// section 8.4.2 The 2by2 Symmetric Schur Decomposition.
-	//
-	// The routine takes a matrix, which is assumed to be symmetric, and
-	// finds the largest off-diagonal term, and then creates
-	// a matrix (result) which can be used to help reduce it
-
-	const tolerance = GMath.EPSILON15;
-
-	let maxDiagonal = 0.0;
-	let rotAxis = 1;
-
-	// find pivot (rotAxis) based on max diagonal of matrix
-	for (let i = 0; i < 3; ++i) {
-		const temp = Math.abs(matrix[Matrix3.getElementIndex(colVal[i], rowVal[i])]);
-		if (temp > maxDiagonal) {
-			rotAxis = i;
-			maxDiagonal = temp;
-		}
-	}
-
-	let c = 1.0;
-	let s = 0.0;
-
-	const p = rowVal[rotAxis];
-	const q = colVal[rotAxis];
-
-	if (Math.abs(matrix[Matrix3.getElementIndex(q, p)]) > tolerance) {
-		const qq = matrix[Matrix3.getElementIndex(q, q)];
-		const pp = matrix[Matrix3.getElementIndex(p, p)];
-		const qp = matrix[Matrix3.getElementIndex(q, p)];
-
-		const tau = (qq - pp) / 2.0 / qp;
-		let t;
-
-		if (tau < 0.0) {
-			t = -1.0 / (-tau + Math.sqrt(1.0 + tau * tau));
-		} else {
-			t = 1.0 / (tau + Math.sqrt(1.0 + tau * tau));
-		}
-
-		c = 1.0 / Math.sqrt(1.0 + t * t);
-		s = t * c;
-	}
-
-	result = Matrix3.clone(Matrix3.IDENTITY, result);
-
-	result[Matrix3.getElementIndex(p, p)] = result[Matrix3.getElementIndex(q, q)] = c;
-	result[Matrix3.getElementIndex(q, p)] = s;
-	result[Matrix3.getElementIndex(p, q)] = -s;
-
-	return result;
-}
 const scratchTransposeMatrix = new Matrix3();
 export default Matrix3;

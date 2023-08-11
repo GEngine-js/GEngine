@@ -16,7 +16,7 @@ for FILE in $(git diff --name-only --cached); do
   # -i 查找时不区分大小写
   # -w 全字匹配
   if [ -f $FILE ]; then
-    grep -n -i -w -e 'debugger' -e 'debugger;' -e 'console.log' -e 'console.log;' $FILE 2>&1
+    grep -n -i -w -w 'debugger' -w 'debugger;' -w 'console.log' -w 'console.log;' $FILE 2>&1
   fi
 
   if [ $? -eq 0 ]; then

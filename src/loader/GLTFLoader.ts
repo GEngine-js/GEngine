@@ -302,6 +302,7 @@ export class GLTF {
 		let uv1s = null;
 		if (primitive.attributes.TEXCOORD_1 !== undefined) {
 			accessor = this.getAccessor(primitive.attributes.TEXCOORD_1);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			uv1s = accessor.getArray();
 			defines.HAS_UV1 = true;
 		}
@@ -309,6 +310,7 @@ export class GLTF {
 		let tangents = null;
 		if (primitive.attributes.TANGENT !== undefined && primitive.attributes.NORMAL !== undefined) {
 			accessor = this.getAccessor(primitive.attributes.TANGENT);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			tangents = accessor.getArray();
 			// defines.HAS_TANGENT = true;
 		} else if (material.normalTexture) {
@@ -416,6 +418,7 @@ export class GLTF {
 					if (index !== 0) {
 						throw new Error("buffer uri undefined");
 					}
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					buffers[index] = this.glbBin!;
 					return Promise.resolve();
 				}
@@ -462,6 +465,7 @@ export class GLTF {
 		});
 	}
 	private parseNodeTRS(node: Node, gltfNode: GLTFNodeParms): Node {
+		// eslint-disable-next-line prefer-const
 		let { matrix, rotation, translation, scale } = gltfNode;
 		if (matrix) {
 			const tempMatrix4 = new Matrix4(),

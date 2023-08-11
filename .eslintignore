@@ -4,4 +4,4 @@
 /*.js
 /static/
 /node_modules/
-.eslintrc.cjs
+.eslintrc.json

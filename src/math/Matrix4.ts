@@ -66,6 +66,33 @@ class Matrix4 {
 		this[14] = column3Row2;
 		this[15] = column3Row3;
 	}
+
+	identity() {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const te = this;
+
+		te[0] = 1;
+		te[1] = 0;
+		te[2] = 0;
+		te[3] = 0;
+
+		te[4] = 0;
+		te[5] = 1;
+		te[6] = 0;
+		te[7] = 0;
+
+		te[8] = 0;
+		te[9] = 0;
+		te[10] = 1;
+		te[11] = 0;
+
+		te[12] = 0;
+		te[13] = 0;
+		te[14] = 0;
+		te[15] = 1;
+
+		return this;
+	}
 	// ????
 	clone(result: Matrix4 = new Matrix4()): Matrix4 {
 		return Matrix4.clone(this, result);
@@ -78,6 +105,7 @@ class Matrix4 {
 		return Matrix4.equals(this, right);
 	}
 	compose(position: Vector3, quaternion: Quaternion, scale: Vector3): Matrix4 {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const te = this;
 
 		const x = quaternion.x,
@@ -127,6 +155,7 @@ class Matrix4 {
 		return Matrix4.equalsEpsilon(this, right, epsilon);
 	}
 	lookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix4 {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const matrix = this;
 		Vector3.subtract(eye, target, z);
 		if (z.length() === 0) {
@@ -1490,12 +1519,7 @@ class Matrix4 {
 
 const scratchTransposeMatrix = new Matrix4();
 
-const fromCameraF = new Vector3();
-const fromCameraR = new Vector3();
-const fromCameraU = new Vector3();
-
 const scaleScratch1 = new Vector3();
-const scaleScratch2 = new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();
 const scaleScratch4 = new Vector3();

@@ -127,8 +127,8 @@ export default class Texture {
 			);
 		}
 	}
-	setSize(width: number, height: number, depth?: number) {
-		if (this.fixedSize) return;
+	setSize(width: number, height: number, depth?: number, force?: boolean) {
+		if (this.fixedSize && !force) return;
 		this.textureProp.size.width = width;
 		this.textureProp.size.height = height;
 		if (depth) this.textureProp.size.depth = depth;
@@ -143,7 +143,7 @@ export default class Texture {
 		}
 		const { width, height, depth } = this.textureProp.size;
 		return this.device.createTexture({
-			label: this.textureProp?.label || "undefined",
+			label: `${this.textureProp?.label || "undefined"}-size{${width},${height},${depth}}`,
 			size: [width, height, depth],
 			dimension: this.textureProp.dimension || "2d",
 			format: this.textureProp.format as GPUTextureFormat,
@@ -153,7 +153,7 @@ export default class Texture {
 		});
 	}
 	private checkNeedCreateTexture() {
-		const { width, height, depth } = this.textureProp.size;
+		const { width, height } = this.textureProp.size;
 		if (this.gpuTexture) {
 			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
 				this._textureView = undefined;

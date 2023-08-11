@@ -88,6 +88,7 @@ export default class RenderQueue {
 			mesh.afterRender();
 		});
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	preRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
 		this.pre.map((mesh) => {
 			if (!mesh.ready) return;
@@ -123,11 +124,14 @@ export default class RenderQueue {
 		return a.priority - b.priority || b.distanceToCamera - a.distanceToCamera;
 	}
 	// according to camera distance
+	// eslint-disable-next-line @typescript-eslint/ban-types
 	static sort<T>(insatnce: T[], from: number, to: number, compareFunc: Function): void {
 		RenderQueue._quickSort(insatnce, from, to, compareFunc);
 	}
 	// from https://github.com/oasis-engine/engine/blob/main/packages/core/src/RenderPipeline/RenderQueue.ts
+	// eslint-disable-next-line @typescript-eslint/ban-types
 	private static _quickSort<T>(a: T[], from: number, to: number, compareFunc: Function): void {
+		// eslint-disable-next-line no-constant-condition
 		while (true) {
 			// Insertion sort is faster for short arrays.
 			if (to - from <= 10) {
@@ -207,6 +211,7 @@ export default class RenderQueue {
 			}
 		}
 	}
+	// eslint-disable-next-line @typescript-eslint/ban-types
 	private static _insertionSort<T>(a: T[], from: number, to: number, compareFunc: Function): void {
 		for (let i = from + 1; i < to; i++) {
 			let j;

@@ -2,6 +2,7 @@ import { ShaderStage } from "../core/WebGPUConstant";
 import { UniformFunc, UniformEnum, UniformStruct } from "../core/WebGPUTypes";
 import { DirectionalLight } from "../light/DirectionalLight";
 import { PointLight } from "../light/PointLight";
+import { DirectionalLightCascadedShadow } from "../light/shadows/DirectionalLightCascadedShadow";
 import { SpotLight } from "../light/SpotLight";
 import Color from "../math/Color";
 import Matrix2 from "../math/Matrix2";
@@ -835,6 +836,8 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 export class UniformDirtectLights extends Uniform<DirectionalLight> {
 	static align = 16;
 	lights: Array<DirectionalLight>;
+	private _isCascadedShadow: boolean;
+	private _isOpenShadow: boolean;
 	constructor(
 		uniformName: string,
 		buffer: Float32Array,
@@ -847,6 +850,7 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 		this.byteSize = count * 32;
 		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
 		this.type = "dirtectLights";
+		this._isCascadedShadow = undefined;
 	}
 	set() {
 		this.lights = this.getValue();
@@ -861,9 +865,22 @@ export class UniformDirtectLights extends Uniform<DirectionalLight> {
 			directionalLight.dirtectDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, directionalLight.directional.toArray(), offset + 0); // byteOffset=16;
 		}
+
+		if (this._isOpenShadow != Boolean(directionalLight.shadow)) {
+			this._isOpenShadow = Boolean(directionalLight.shadow);
+			const boolToNum = this._isOpenShadow === true ? 1 : 0;
+			this.dirty = setDataToTypeArray(this.buffer, boolToNum, offset + 3); // byteOffset=32;
+		}
+
 		if (directionalLight.colorDirty) {
 			directionalLight.colorDirty = false;
 			this.dirty = setDataToTypeArray(this.buffer, directionalLight.color.toArray(), offset + 4); // byteOffset=32;
+		}
+
+		if (directionalLight.shadow && this._isCascadedShadow != directionalLight.shadow.isCascadedShadow) {
+			this._isCascadedShadow = directionalLight.shadow.isCascadedShadow;
+			const boolToNum = this._isCascadedShadow === true ? 1 : 0;
+			this.dirty = setDataToTypeArray(this.buffer, boolToNum, offset + 7); // byteOffset=32;
 		}
 	}
 }
@@ -903,6 +920,74 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 		}
 	}
 }
+
+export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight> {
+	static align = 16;
+	static uniformSize = 176; // force breaks.length === 4, if need dynamic breaks, need dynamic uniformSize
+	lights: Array<DirectionalLight>;
+	private _subDataSize: number;
+
+	constructor(
+		uniformName: string,
+		buffer: Float32Array,
+		byteOffset: number,
+		cb: UniformFunc | number | object,
+		count?: number
+	) {
+		super(uniformName, cb, 0);
+		const bytesPerElement = Float32Array.BYTES_PER_ELEMENT;
+		this._subDataSize = UniformDirtectLightCascadedShadows.uniformSize;
+		this.byteSize = count * bytesPerElement * this._subDataSize;
+		this.buffer = new Float32Array(buffer.buffer, byteOffset, this.byteSize / 4);
+		this.type = "dirtectLightCascadedShadows";
+	}
+	set() {
+		this.lights = this.getValue();
+		this.lights.forEach((directionalLight, index) => {
+			this.setSubData(directionalLight, index);
+		});
+		return this.dirty;
+	}
+	private setSubData(directionalLight: DirectionalLight, index: number) {
+		if (directionalLight.shadow instanceof DirectionalLightCascadedShadow) {
+			// this._subDataSize =
+			// 	directionalLight.shadow.vpMatrixArray.length * 16 +
+			// 	directionalLight.shadow.viewports.length * 4 +
+			// 	directionalLight.shadow.breakVSArray.length;
+			const offset = index * this._subDataSize;
+
+			if (directionalLight.shadow.vpMatrixArrayDirty) {
+				directionalLight.shadow.vpMatrixArrayDirty = false;
+				const vpMatrixArray = directionalLight.shadow.getAlignVpMatrixArray();
+				for (let i = 0; i < vpMatrixArray.length; i++) {
+					const vpMatrix = vpMatrixArray[i];
+					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // 64f32
+				}
+			}
+
+			if (directionalLight.shadow.viewPortDirty) {
+				directionalLight.shadow.viewPortDirty = false;
+				const viewports = directionalLight.shadow.getAlignViewportArray();
+				for (let i = 0; i < viewports.length; i++) {
+					this.dirty = setDataToTypeArray(
+						this.buffer,
+						viewports[i].toArray(),
+						offset + directionalLight.shadow.alignVpMatrixArray.length * 16 + 4 * i
+					); // 16f32;
+				}
+			}
+
+			this.dirty = setDataToTypeArray(
+				this.buffer,
+				directionalLight.shadow.breakVSArray,
+				offset +
+					directionalLight.shadow.alignVpMatrixArray.length * 16 +
+					directionalLight.shadow.alignViewportArray.length * 4
+			); // byteOffset=16;
+		}
+	}
+}
+
 function setDataToTypeArray(buffer, data, offset) {
 	if (Array.isArray(data)) {
 		data.forEach((value, index) => {

@@ -53,7 +53,9 @@ class Context {
 	}
 
 	public async init(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		requestAdapter = {},
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		deviceDescriptor = {},
 		presentationContextDescriptor = {}
 	): Promise<boolean> {

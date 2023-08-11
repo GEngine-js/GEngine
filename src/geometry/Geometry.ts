@@ -68,6 +68,7 @@ export default class Geometry {
 		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer(this.type + "IndexBuffer");
 		this.indexBuffer.setIndices(indices);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(frameState: FrameState) {
 		// todo
 	}
@@ -179,4 +180,7 @@ export default class Geometry {
 		this.tangents = null;
 		this.boundingSphere = undefined;
 	}
+
+	// eslint-disable-next-line
+	updateGeometry(options) {}
 }

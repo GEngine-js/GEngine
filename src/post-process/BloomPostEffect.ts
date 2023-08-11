@@ -223,7 +223,7 @@ export default class BloomPostEffect extends PostEffect {
                 `;
 			},
 
-			frag: (defines) => {
+			frag: () => {
 				return `
                 struct FragInput {
                     @location(0) uv: vec2<f32>,

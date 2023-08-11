@@ -16,12 +16,15 @@ class Pass {
 	constructor(context: Context) {
 		this.context = context;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(frameState: FrameState): void {
 		// todo;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	setSize(width: number, height: number): void {
 		// todo ;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	beforeRender(options?: any) {
 		this.passRenderEncoder = this.renderTarget.beginRenderPass(this.context.device);
 		if (this.computeTarget)
