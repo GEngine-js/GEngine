@@ -1,12 +1,13 @@
 import BoundingBox from "../core/BoundingBox";
 import BoundingSphere from "../core/BoundingSphere";
-import { FrameState } from "../core/FrameState";
+import { Intersect } from "../core/WebGPUConstant";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import { Attribute, InterleavedFloat32Attribute } from "../render/Attribute";
 import IndexBuffer from "../render/IndexBuffer";
 import VertexBuffer from "../render/VertexBuffer";
+import { GeometryUpdateParams } from "../type/UpdateParams";
 import combine from "../utils/combine";
 export default class Geometry {
 	normals: number[];
@@ -21,6 +22,8 @@ export default class Geometry {
 	count: number;
 	boundingSphere?: BoundingSphere;
 	boundingBox?: BoundingBox;
+	intersect?: Intersect;
+	distanceToCamera?: number;
 	private _defines: { [prop: string]: boolean | number };
 	public vertexBuffers: Array<VertexBuffer>;
 	definesDirty: boolean;
@@ -56,6 +59,7 @@ export default class Geometry {
 		this.positions = [];
 		this.indices = [];
 		this.tangents = [];
+		this.intersect = Intersect.INSIDE;
 	}
 	getAttribute(name: string) {
 		return this.defaultVertexBuffer.getAttribute(name);
@@ -68,9 +72,15 @@ export default class Geometry {
 		if (!this.indexBuffer) this.indexBuffer = new IndexBuffer(this.type + "IndexBuffer");
 		this.indexBuffer.setIndices(indices);
 	}
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	update(frameState: FrameState) {
-		// todo
+
+	update(params?: GeometryUpdateParams) {
+		const { matrix, frameState, camera } = params;
+		if (matrix) this?.boundingSphere?.update(matrix);
+		if (matrix) this?.boundingBox?.update(matrix);
+		this.intersect = frameState.frustum.computeVisibility(this.boundingSphere ?? this?.boundingBox);
+		this.distanceToCamera = this.boundingSphere
+			? this.boundingSphere.distanceToCamera(camera)
+			: this.boundingBox.distanceToCamera(camera);
 	}
 	computeBoundingSphere(positions: number[], stride = 3) {
 		this.boundingSphere = BoundingSphere.fromVertices(positions, new Vector3(0, 0, 0), stride);

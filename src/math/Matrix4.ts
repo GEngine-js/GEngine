@@ -77,6 +77,52 @@ class Matrix4 {
 	equals(right: Matrix4): boolean {
 		return Matrix4.equals(this, right);
 	}
+	fromArray(array, offset = 0) {
+		for (let i = 0; i < 16; i++) {
+			this[i] = array[i + offset];
+		}
+
+		return this;
+	}
+	decompose(position, quaternion, scale) {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const te = this;
+
+		let sx = scaleScratch1.set(te[0], te[1], te[2]).length();
+		const sy = scaleScratch1.set(te[4], te[5], te[6]).length();
+		const sz = scaleScratch1.set(te[8], te[9], te[10]).length();
+
+		// if determine is negative, we need to invert one scale
+		const det = this.determinant();
+		if (det < 0) sx = -sx;
+
+		position.x = te[12];
+		position.y = te[13];
+		position.z = te[14];
+
+		// scale the rotation part
+		Matrix4.clone(this, _m1);
+		const invSX = 1 / sx;
+		const invSY = 1 / sy;
+		const invSZ = 1 / sz;
+
+		_m1[0] *= invSX;
+		_m1[1] *= invSX;
+		_m1[2] *= invSX;
+
+		_m1[4] *= invSY;
+		_m1[5] *= invSY;
+		_m1[6] *= invSY;
+
+		_m1[8] *= invSZ;
+		_m1[9] *= invSZ;
+		_m1[10] *= invSZ;
+		quaternion.setFromRotationMatrix(_m1);
+		scale.x = sx;
+		scale.y = sy;
+		scale.z = sz;
+		return this;
+	}
 	compose(position: Vector3, quaternion: Quaternion, scale: Vector3): Matrix4 {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const te = this;
@@ -168,6 +214,61 @@ class Matrix4 {
 			`(${this[1]}, ${this[5]}, ${this[9]}, ${this[13]})\n` +
 			`(${this[2]}, ${this[6]}, ${this[10]}, ${this[14]})\n` +
 			`(${this[3]}, ${this[7]}, ${this[11]}, ${this[15]})`
+		);
+	}
+	determinant() {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const te = this;
+
+		const n11 = te[0],
+			n12 = te[4],
+			n13 = te[8],
+			n14 = te[12];
+		const n21 = te[1],
+			n22 = te[5],
+			n23 = te[9],
+			n24 = te[13];
+		const n31 = te[2],
+			n32 = te[6],
+			n33 = te[10],
+			n34 = te[14];
+		const n41 = te[3],
+			n42 = te[7],
+			n43 = te[11],
+			n44 = te[15];
+
+		// TODO: make this more efficient
+		// ( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
+
+		return (
+			n41 *
+				(+n14 * n23 * n32 -
+					n13 * n24 * n32 -
+					n14 * n22 * n33 +
+					n12 * n24 * n33 +
+					n13 * n22 * n34 -
+					n12 * n23 * n34) +
+			n42 *
+				(+n11 * n23 * n34 -
+					n11 * n24 * n33 +
+					n14 * n21 * n33 -
+					n13 * n21 * n34 +
+					n13 * n24 * n31 -
+					n14 * n23 * n31) +
+			n43 *
+				(+n11 * n24 * n32 -
+					n11 * n22 * n34 -
+					n14 * n21 * n32 +
+					n12 * n21 * n34 +
+					n14 * n22 * n31 -
+					n12 * n24 * n31) +
+			n44 *
+				(-n13 * n22 * n31 -
+					n11 * n23 * n32 +
+					n11 * n22 * n33 +
+					n13 * n21 * n32 -
+					n12 * n21 * n33 +
+					n12 * n23 * n31)
 		);
 	}
 	static clone(matrix: Matrix4 | number[], result: Matrix4): Matrix4 {
@@ -1491,7 +1592,7 @@ class Matrix4 {
 }
 
 const scratchTransposeMatrix = new Matrix4();
-
+const _m1 = new Matrix4();
 const scaleScratch1 = new Vector3();
 const scratchColumn = new Vector3();
 const scaleScratch3 = new Vector3();

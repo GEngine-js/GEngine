@@ -21,7 +21,6 @@ export class InstanceMesh extends Mesh {
 	update(frameState: FrameState, camera?: Camera) {
 		// update instances visiblity
 		this.checkInstancesVisiblity({ frameState, camera });
-		this.geometry.update(frameState);
 		this.material.update(frameState, this);
 		if (!this.hasAddInstances) this.addUniformsToMaterial();
 		this.instanceCount = this.renderInstances.length;
@@ -57,10 +56,9 @@ export class InstanceMesh extends Mesh {
 	}
 	private getInstanceVisiblity(options: { instance: Instance; frameState: FrameState; camera: Camera }): boolean {
 		const { instance, frameState, camera } = options;
-		this.geometry.boundingSphere.update(instance.modelMatrix);
-		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
-		const visibility = frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
-		return visibility === Intersect.INTERSECTING || visibility === Intersect.INSIDE;
+		this.geometry.update({ frameState, camera, matrix: instance.modelMatrix });
+		const intersect = this.geometry.intersect;
+		return intersect === Intersect.INTERSECTING || intersect === Intersect.INSIDE;
 	}
 	private addUniformsToMaterial() {
 		if (!this.material.shaderData) return;

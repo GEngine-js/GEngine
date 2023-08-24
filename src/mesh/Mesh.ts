@@ -18,7 +18,6 @@ export class Mesh extends RenderObject {
 	instanceCount?: number;
 	priority?: number;
 	drawCommand?: DrawCommand;
-	distanceToCamera?: number;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
@@ -28,6 +27,9 @@ export class Mesh extends RenderObject {
 		this.uid = createGuid();
 		this.subCommands = {};
 	}
+	get distanceToCamera(): number {
+		return this?.geometry?.distanceToCamera;
+	}
 	get ready() {
 		return this.material.ready;
 	}
@@ -35,20 +37,15 @@ export class Mesh extends RenderObject {
 		// update matrix
 		this.updateMatrix(this?.parent?.modelMatrix);
 		// create
-		this.geometry.update(frameState);
+		this.geometry.update({ frameState, matrix: this.modelMatrix, camera });
 		this.material.update(frameState, this);
-		// update boundingSphere
-		this.geometry.boundingSphere.update(this.modelMatrix);
 		this.material.shaderSource.setDefines(frameState.defines);
 		if (this.type == RenderObjectType.Debug) {
 			frameState.renderQueue.debugQueue.push(this);
 			return;
 		}
-		this.distanceToCamera = this.geometry.boundingSphere.distanceToCamera(camera);
+		const visibility = !this.frustumCull ? Intersect.INSIDE : this.geometry?.intersect;
 
-		const visibility = !this.frustumCull
-			? Intersect.INSIDE
-			: frameState.cullingVolume.computeVisibility(this.geometry.boundingSphere);
 		// 视锥剔除
 		if (visibility === Intersect.OUTSIDE) return;
 		if (this.material.transparent) {

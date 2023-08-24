@@ -168,6 +168,23 @@ class Vector3 {
 		this.z = attribute.getZ(index);
 		return this;
 	}
+	static max(left: Vector3, right: Vector3, out: Vector3): void {
+		out.x = Math.max(left.x, right.x);
+		out.y = Math.max(left.y, right.y);
+		out.z = Math.max(left.z, right.z);
+	}
+
+	/**
+	 * Calculate a vector containing the smallest components of the specified vectors.
+	 * @param left - The first vector
+	 * @param right - The second vector
+	 * @param out - The vector containing the smallest components of the specified vectors
+	 */
+	static min(left: Vector3, right: Vector3, out: Vector3): void {
+		out.x = Math.min(left.x, right.x);
+		out.y = Math.min(left.y, right.y);
+		out.z = Math.min(left.z, right.z);
+	}
 	static fromVector4(vec4: Vector4, result: Vector3): Vector3 {
 		result.x = vec4.x;
 		result.y = vec4.y;

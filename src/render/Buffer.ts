@@ -1,17 +1,12 @@
 import { BufferUsage } from "../core/WebGPUConstant";
+import { TypedArray } from "../core/WebGPUTypes";
 class Buffer {
 	public gpuBuffer: GPUBuffer;
 	device: GPUDevice;
 	usage: number;
 	data: ArrayBufferView;
 	size: number;
-	constructor(
-		label: string,
-		device: GPUDevice,
-		usage: GPUBufferUsageFlags,
-		data: ArrayBufferView | null,
-		size?: number
-	) {
+	constructor(label: string, device: GPUDevice, usage: GPUBufferUsageFlags, data: TypedArray | null, size?: number) {
 		this.device = device;
 		this.usage = usage;
 		this.data = data;
@@ -27,16 +22,16 @@ class Buffer {
 		label: string,
 		device: GPUDevice,
 		usage: GPUBufferUsageFlags,
-		data: ArrayBufferView | null,
+		data: TypedArray | null,
 		size?: number
 	) {
 		return new Buffer(label, device, usage, data, size);
 	}
-	static createVertexBuffer(label: string, device: GPUDevice, data: ArrayBufferView): Buffer {
+	static createVertexBuffer(label: string, device: GPUDevice, data: TypedArray): Buffer {
 		return new Buffer(label, device, BufferUsage.Vertex | BufferUsage.CopyDst, data, data.byteLength);
 	}
 
-	static createIndexBuffer(label: string, device: GPUDevice, data: ArrayBufferView): Buffer {
+	static createIndexBuffer(label: string, device: GPUDevice, data: TypedArray): Buffer {
 		return new Buffer(label, device, BufferUsage.Index | BufferUsage.CopyDst, data);
 	}
 
@@ -48,7 +43,7 @@ class Buffer {
 		return new Buffer(label, device, usage, null, size);
 	}
 	// https://github.com/gpuweb/gpuweb/blob/main/design/BufferOperations.md
-	public setSubData(offset: number, data: ArrayBufferView, size?: number): void {
+	public setSubData(offset: number, data: TypedArray, size?: number): void {
 		const srcArrayBuffer = data.buffer;
 		const byteCount = size ?? srcArrayBuffer.byteLength;
 		const srcBuffer = this.device.createBuffer({
@@ -56,9 +51,9 @@ class Buffer {
 			size: byteCount,
 			usage: GPUBufferUsage.COPY_SRC
 		});
-		const arrayBuffer = srcBuffer.getMappedRange();
-
-		new Uint16Array(arrayBuffer).set(new Uint16Array(srcArrayBuffer)); // memcpy
+		// @ts-ignore
+		new data.constructor(srcBuffer.getMappedRange()).set(data);
+		// new Uint16Array(arrayBuffer).set(new Uint16Array(srcArrayBuffer)); // memcpy
 		srcBuffer.unmap();
 
 		this.copyToBuffer(srcBuffer, offset, byteCount);

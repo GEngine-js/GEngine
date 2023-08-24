@@ -9,10 +9,12 @@ export default class Axes extends Mesh {
 	constructor() {
 		super();
 		this.type = RenderObjectType.Axes;
-		this.distanceToCamera = 10;
 		this.material = new ColorMaterial();
 		this.material.wireframe = true;
 		this.init();
+	}
+	get distanceToCamera(): number {
+		return 20;
 	}
 	update(frameState: FrameState) {
 		this.updateMatrix();
