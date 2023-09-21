@@ -15,6 +15,7 @@ export default class Texture {
 	public dirty: boolean;
 	public fixedSize: boolean;
 	public static mipmapTools: MipmapGenerator;
+	private _textureViewDirty: boolean;
 	constructor(textureProp: WebGPUTextureProps) {
 		this.textureProp = Object.assign(
 			{
@@ -25,6 +26,7 @@ export default class Texture {
 			textureProp
 		);
 		this.dirty = true;
+		this._textureViewDirty = true;
 		this.fixedSize = textureProp.fixedSize || false;
 	}
 	get layoutType() {
@@ -45,10 +47,11 @@ export default class Texture {
 		};
 	}
 	get textureView() {
-		if (!this._textureView)
+		if (!this._textureView || this._textureViewDirty)
 			this._textureView = this.gpuTexture.createView({
 				dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
 			});
+		this._textureViewDirty = false;
 		return this._textureView;
 	}
 	update(device: GPUDevice) {
@@ -56,6 +59,7 @@ export default class Texture {
 		if (this.dirty) {
 			this.checkNeedCreateTexture();
 			this.dirty = false;
+			this._textureViewDirty = true;
 			if (this.textureProp.data) {
 				if (Array.isArray(this.textureProp.data)) {
 					this.textureProp.data.forEach((imageData) => {

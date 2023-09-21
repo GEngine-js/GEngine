@@ -26,11 +26,14 @@ import {
 	ShaderStage,
 	StencilOperation,
 	StorageTextureAccess,
+	TextureAspect,
+	TextureDimension,
 	TextureFormat,
+	TextureViewDimension,
 	VertexFormat
 } from "./WebGPUConstant";
 export const GPUCanvasCompositingAlphaMode: {
-	[key: string]: GPUCanvasCompositingAlphaMode;
+	[key: string]: any;
 } = {
 	Opaque: "opaque",
 	Premultiplied: "premultiplied"
@@ -142,9 +145,38 @@ export type ImageData = {
 	x?: number;
 	y?: number;
 	z?: number;
-	aspect?: "all" | "stencil-only" | "depth-only";
-	colorSpace?: "srgb";
+	aspect?: TextureAspect;
+	colorSpace?: PredefinedColorSpace;
 	premultipliedAlpha?: boolean;
+};
+export type TextureParams = {
+	label?: string;
+	data?: ImageData | Array<ImageData>;
+	sampleType?: string;
+	fixedSize?: boolean;
+	generateMipmap?: boolean;
+	access?: StorageTextureAccess;
+	flipY?: boolean;
+	textureDescriptor?: TextureDescriptor;
+	textureViewDescriptor?: TextureViewDescriptor;
+};
+export type TextureDescriptor = {
+	format?: string;
+	size: textureSize;
+	sampleCount?: number;
+	dimension: TextureDimension;
+	mipLevelCount?: number;
+	usage?: number;
+	viewFormats?: Array<string>;
+};
+export type TextureViewDescriptor = {
+	format?: string;
+	mipLevelCount?: number;
+	dimension?: TextureViewDimension;
+	aspect?: string;
+	baseMipLevel?: number;
+	baseArrayLayer?: number;
+	arrayLayerCount?: number;
 };
 export type WebGPUTextureProps = {
 	size: textureSize;
@@ -161,12 +193,10 @@ export type WebGPUTextureProps = {
 
 	data?: ImageData | Array<ImageData>;
 
-	mipLevelCount?: number;
-
 	sampleCount?: number;
 
 	dimension?: dimension;
-
+	mipLevelCount?: number;
 	viewFormats?: string;
 
 	sampleType?: string;
@@ -519,4 +549,40 @@ export const TypeArrayConstruct = {
 	[VertexFormat.Uint32x2]: Uint32Array,
 	[VertexFormat.Uint32x3]: Uint32Array,
 	[VertexFormat.Uint32x4]: Uint32Array
+};
+export type Origin3D = {
+	x: number;
+	y: number;
+	z: number;
+};
+export type Origin2D = {
+	x: number;
+	y: number;
+};
+export type ImageCopyTexture = {
+	texture: GPUTexture;
+	mipLevel: number;
+	origin: Origin3D;
+	aspect: TextureAspect;
+};
+export type Extent3D = {
+	width: number;
+	height: number;
+	depthOrArrayLayers: number;
+};
+export type ImageCopyTextureTagged = ImageCopyTexture & {
+	colorSpace: PredefinedColorSpace; // "srgb"
+	premultipliedAlpha: boolean;
+};
+export type ImageSource =
+	| ImageBitmap
+	| ImageData
+	| HTMLImageElement
+	| HTMLVideoElement
+	| HTMLCanvasElement
+	| OffscreenCanvas;
+export type ImageCopyExternalImage = {
+	source: ImageSource;
+	origin?: Origin2D;
+	flipY?: boolean;
 };
