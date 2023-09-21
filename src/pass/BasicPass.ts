@@ -38,15 +38,19 @@ export class BasicPass extends Pass {
 		const { width, height, depth } = context.presentationSize;
 		const colorTexture = new Texture({
 			label: "basicPassColor",
-			size: { width, height, depth },
-			format: this.context.presentationFormat,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: this.context.presentationFormat,
+				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			}
 		});
 		const depthTexture = new Texture({
 			label: "basicPassDepth",
-			size: { width, height, depth },
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.Depth24Plus,
+				usage: TextureUsage.RenderAttachment
+			}
 		});
 		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });

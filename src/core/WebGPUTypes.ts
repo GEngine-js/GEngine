@@ -164,7 +164,7 @@ export type TextureDescriptor = {
 	format?: string;
 	size: textureSize;
 	sampleCount?: number;
-	dimension: TextureDimension;
+	dimension?: TextureDimension;
 	mipLevelCount?: number;
 	usage?: number;
 	viewFormats?: Array<string>;

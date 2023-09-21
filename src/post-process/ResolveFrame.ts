@@ -72,9 +72,11 @@ export default class ResolveFrame {
 		);
 		const depthTexture = new Texture({
 			label: "resolveDepth",
-			size: { width, height, depth },
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.Depth24Plus,
+				usage: TextureUsage.RenderAttachment
+			}
 		});
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 		this.canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);

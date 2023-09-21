@@ -64,19 +64,25 @@
 				const imageBitmap = await createImageBitmap(await response.blob());
 				const depthTexture = new Texture({
 					label: "resolveDepth",
-					size: { width, height, depth },
-					format: "depth24plus",
-					usage: GPUTextureUsage.RENDER_ATTACHMENT
+					textureDescriptor: {
+						size: { width, height, depth },
+						format: "depth24plus",
+						usage: GPUTextureUsage.RENDER_ATTACHMENT
+					}
 				});
 				const texture = new Texture({
-					size: {
-						width: imageBitmap.width,
-						height: imageBitmap.height,
-						depth: 1
+					textureDescriptor: {
+						size: {
+							width: imageBitmap.width,
+							height: imageBitmap.height,
+							depth: 1
+						},
+						format: "rgba8unorm",
+						usage:
+							GPUTextureUsage.TEXTURE_BINDING |
+							GPUTextureUsage.COPY_DST |
+							GPUTextureUsage.RENDER_ATTACHMENT
 					},
-					format: "rgba8unorm",
-					usage:
-						GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
 					data: {
 						source: imageBitmap,
 						width: imageBitmap.width,

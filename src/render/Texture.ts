@@ -1,85 +1,138 @@
-import { StorageTextureAccess, TextureFormat } from "../core/WebGPUConstant";
-import { WebGPUTextureProps, ImageData } from "../core/WebGPUTypes";
-import defaultValue from "../utils/defaultValue";
+import { StorageTextureAccess, TextureAspect, TextureSampleType, TextureViewDimension } from "../core/WebGPUConstant";
+import {
+	TextureParams,
+	ImageData,
+	TextureDescriptor,
+	TextureViewDescriptor,
+	Extent3D,
+	ImageCopyExternalImage,
+	ImageCopyTextureTagged,
+	Origin3D
+} from "../core/WebGPUTypes";
 import { MipmapGenerator } from "../utils/MipmapGenerator";
-import Context from "./Context";
+import { isTexture } from "../utils/TypeInfer";
+import Buffer from "./Buffer";
 
 export default class Texture {
 	[x: string]: any;
 	private _textureView: GPUTextureView;
 	public gpuTexture?: GPUTexture;
-	public mipLevelCount?: number;
-	public context?: Context;
 	public device?: GPUDevice;
-	public textureProp?: WebGPUTextureProps;
+	public textureDescriptor?: TextureDescriptor;
+	public textureViewDescriptor?: TextureViewDescriptor;
+	public label?: string;
+	public data?: ImageData | Array<ImageData>;
+	public sampleType?: string;
 	public dirty: boolean;
 	public fixedSize: boolean;
+	public generateMipmap: boolean;
+	public flipY: boolean;
 	public static mipmapTools: MipmapGenerator;
 	private _textureViewDirty: boolean;
-	constructor(textureProp: WebGPUTextureProps) {
-		this.textureProp = Object.assign(
-			{
-				format: TextureFormat.RGBA8Unorm,
-				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-				dataIsTexture: false
-			},
-			textureProp
-		);
+	constructor(params: TextureParams) {
 		this.dirty = true;
 		this._textureViewDirty = true;
-		this.fixedSize = textureProp.fixedSize || false;
+		this.label = params?.label ?? "";
+		this.data = params.data;
+		this.sampleType = params.sampleType;
+		this.fixedSize = params?.fixedSize ?? false;
+		this.textureDescriptor = params?.textureDescriptor;
+		this.textureViewDescriptor = params?.textureViewDescriptor;
+		this.generateMipmap = params?.generateMipmap ?? false;
+		this.flipY = params?.flipY ?? false;
 	}
 	get layoutType() {
-		const { viewFormats, sampleType, sampleCount } = this.textureProp;
-		// const
+		const { dimension = TextureViewDimension.E2d } = this.textureViewDescriptor || {};
+		const { sampleType = TextureSampleType.Float } = this;
+		const sampleCount = this?.textureDescriptor?.sampleCount ?? 1;
 		return {
-			sampleType: defaultValue(sampleType, "float"),
-			viewDimension: defaultValue(viewFormats, "2d"),
-			multisampled: sampleCount && sampleCount > 1 ? true : false
+			sampleType,
+			viewDimension: dimension,
+			multisampled: sampleCount > 1 ? true : false
 		};
 	}
 	get storageTextureLayoutType() {
-		const { access = StorageTextureAccess.WriteOnly, viewFormats, format } = this.textureProp;
+		const { format = this.textureDescriptor.format, dimension = TextureViewDimension.E2d } =
+			this.textureViewDescriptor || {};
 		return {
-			viewDimension: defaultValue(viewFormats, "2d"),
-			access,
+			viewDimension: dimension,
+			access: StorageTextureAccess.WriteOnly,
 			format
 		};
 	}
 	get textureView() {
-		if (!this._textureView || this._textureViewDirty)
+		if (!this._textureView || this._textureViewDirty) {
+			const {
+				format = this?.textureDescriptor?.format ?? "rgba8unorm",
+				mipLevelCount,
+				dimension = "2d",
+				aspect = "all",
+				baseMipLevel = 0,
+				baseArrayLayer = 0,
+				arrayLayerCount
+			} = this.textureViewDescriptor || {};
 			this._textureView = this.gpuTexture.createView({
-				dimension: <GPUTextureViewDimension>defaultValue(this.textureProp.viewFormats, "2d")
+				format: <GPUTextureFormat>format,
+				mipLevelCount,
+				dimension,
+				aspect: <GPUTextureAspect>aspect,
+				baseMipLevel,
+				baseArrayLayer,
+				arrayLayerCount
 			});
-		this._textureViewDirty = false;
+			this._textureViewDirty = false;
+		}
 		return this._textureView;
 	}
-	update(device: GPUDevice) {
+	public update(device: GPUDevice) {
 		if (!this.device) this.device = device;
-		if (this.dirty) {
-			this.checkNeedCreateTexture();
-			this.dirty = false;
-			this._textureViewDirty = true;
-			if (this.textureProp.data) {
-				if (Array.isArray(this.textureProp.data)) {
-					this.textureProp.data.forEach((imageData) => {
-						this.setData(imageData);
-					});
-				} else {
-					this.setData(this.textureProp.data);
-				}
-			}
-			if (this.textureProp.needMipMap) {
-				if (!Texture.mipmapTools) Texture.mipmapTools = new MipmapGenerator(this.device);
-				this.gpuTexture = Texture.mipmapTools.generateMipmap(this);
+		if (!this.dirty) return;
+		this.checkNeedCreateTexture();
+		this.dirty = false;
+		this._textureViewDirty = true;
+		if (this.data) {
+			if (Array.isArray(this.data)) {
+				this.data.forEach((imageData) => {
+					this.setData(imageData);
+				});
+			} else {
+				this.setData(this.data);
 			}
 		}
+		if (!this?.generateMipmap) return;
+		if (!Texture.mipmapTools) Texture.mipmapTools = new MipmapGenerator(this.device);
+		Texture.mipmapTools.generateMipmap(this);
 	}
-	private setData(options: ImageData) {
+	public getTextureViewByViewDescriptor(viewDescriptor: {
+		format: string;
+		mipLevelCount: number;
+		dimension: string;
+		aspect: string;
+		baseMipLevel: number;
+		baseArrayLayer: number;
+		arrayLayerCount: number;
+	}): GPUTextureView {
 		const {
-			source,
-			width = options.source.width,
-			height = options.source.height,
+			format,
+			mipLevelCount,
+			arrayLayerCount,
+			dimension = "2d",
+			aspect = "all",
+			baseMipLevel = 0,
+			baseArrayLayer = 0
+		} = viewDescriptor;
+		return this.gpuTexture.createView({
+			format: <GPUTextureFormat>format,
+			mipLevelCount,
+			dimension: <GPUTextureViewDimension>dimension,
+			aspect: <GPUTextureAspect>aspect,
+			baseMipLevel,
+			baseArrayLayer,
+			arrayLayerCount
+		});
+	}
+	private setData(imageData: ImageData) {
+		const {
 			depth = 1,
 			sourceX = 0,
 			sourceY = 0,
@@ -87,77 +140,169 @@ export default class Texture {
 			x = 0,
 			y = 0,
 			z = 0,
-			aspect = "all",
+			aspect = TextureAspect.All,
 			colorSpace = "srgb",
 			premultipliedAlpha = false
-		} = options;
-		if (source instanceof Texture) {
-			let commandEncoder = this.device.createCommandEncoder();
-			commandEncoder.copyTextureToTexture(
-				{
-					texture: <GPUTexture>source.gpuTexture,
+		} = imageData;
+		if (isTexture(imageData.source)) {
+			const size = imageData?.source?.textureDescriptor?.size;
+			const { width = size.width, height = size.height } = imageData;
+			Texture.copyTextureToTexture({
+				device: this.device,
+				source: {
+					texture: imageData.source,
 					origin: [sourceX, sourceY]
-					// aspect
 				},
-				{
-					texture: this.gpuTexture,
-					origin: { x: 0, y: 0, z },
-					mipLevel
-					// aspect
+				destination: {
+					texture: this,
+					origin: { x: 0, y: 0, z }
 				},
-				{
-					width,
-					height,
-					depthOrArrayLayers: 1
-				}
-			);
-			this.device.queue.submit([commandEncoder.finish()]);
-			commandEncoder = null;
+				width,
+				height,
+				depth,
+				mipLevel,
+				aspect
+			});
 		} else {
-			this.device.queue.copyExternalImageToTexture(
-				{
-					source,
-					origin: [sourceX, sourceY]
-				},
-				{
-					texture: this.gpuTexture,
-					origin: [x, y, z],
-					mipLevel,
-					aspect,
-					colorSpace,
-					premultipliedAlpha
-				},
-				[width, height, depth]
-			);
+			const { source, width = imageData.source.width, height = imageData.source.height } = imageData;
+			const sourceData = {
+				source: source,
+				origin: { x: sourceX, y: sourceY }
+			};
+			const destination = {
+				texture: this.gpuTexture,
+				origin: { x, y, z },
+				mipLevel,
+				aspect: <TextureAspect>aspect,
+				colorSpace,
+				premultipliedAlpha
+			};
+			const copySize = { width, height, depthOrArrayLayers: depth };
+			Texture.copyExternalImageToTexture({
+				device: this.device,
+				source: sourceData,
+				destination,
+				copySize
+			});
 		}
 	}
-	setSize(width: number, height: number, depth?: number, force?: boolean) {
+	public setSize(width: number, height: number, depth?: number, force?: boolean) {
 		if (this.fixedSize && !force) return;
-		this.textureProp.size.width = width;
-		this.textureProp.size.height = height;
-		if (depth) this.textureProp.size.depth = depth;
+		this.textureDescriptor.size.width = width;
+		this.textureDescriptor.size.height = height;
+		if (depth) this.textureDescriptor.size.depth = depth;
 		this.dirty = true;
+	}
+	static copyTextureToBuffer(params: {
+		device: GPUDevice;
+		texture: Texture;
+		buffer: Buffer;
+		mipLevel?: number;
+		origin?: Origin3D;
+	}): void {
+		const { device, texture, buffer, origin = { x: 0, y: 0, z: 0 }, mipLevel = 0 } = params;
+		const { width, height, depth = 1 } = texture?.textureDescriptor?.size || {};
+		const { aspect = TextureAspect.All } = texture?.textureViewDescriptor || {};
+		let commandEncoder = device.createCommandEncoder();
+		commandEncoder.copyTextureToBuffer(
+			{
+				texture: texture.gpuTexture,
+				mipLevel,
+				origin,
+				aspect: <GPUTextureAspect>aspect
+			},
+			{ buffer: buffer.gpuBuffer },
+			{ width, height, depthOrArrayLayers: depth }
+		);
+		device.queue.submit([commandEncoder.finish()]);
+		commandEncoder = null;
+	}
+	static copyTextureToTexture(params: {
+		device: GPUDevice;
+		source: {
+			texture: Texture;
+			origin: Array<number>;
+		};
+		destination: {
+			texture: Texture;
+			origin: { x: number; y: number; z: number };
+		};
+		mipLevel?: number;
+		aspect?: TextureAspect;
+		width?: number;
+		height?: number;
+		depth?: number;
+	}): void {
+		const {
+			device,
+			source,
+			destination,
+			mipLevel = 0,
+			aspect = TextureAspect.All,
+			width,
+			height,
+			depth = 1
+		} = params;
+		let commandEncoder = device.createCommandEncoder();
+		commandEncoder.copyTextureToTexture(
+			{
+				texture: source?.texture?.gpuTexture,
+				mipLevel,
+				origin: source?.origin,
+				aspect: <GPUTextureAspect>aspect
+			},
+			{
+				texture: destination?.texture?.gpuTexture,
+				mipLevel,
+				origin: destination?.origin,
+				aspect: <GPUTextureAspect>aspect
+			},
+			{ width, height, depthOrArrayLayers: depth }
+		);
+		device.queue.submit([commandEncoder.finish()]);
+		commandEncoder = null;
+	}
+	static copyExternalImageToTexture(params: {
+		device: GPUDevice;
+		source: ImageCopyExternalImage;
+		destination: ImageCopyTextureTagged;
+		copySize?: Extent3D;
+	}) {
+		const { device, source, destination, copySize } = params;
+		device.queue.copyExternalImageToTexture(source, destination, copySize);
 	}
 	destroy(): void {
 		this.gpuTexture.destroy();
 	}
 	private createGPUTexture() {
-		if (typeof this.textureProp.format === "number") {
-			throw new Error("number format");
-		}
-		const { width, height, depth } = this.textureProp.size;
+		if (typeof this.textureDescriptor.format === "number") throw new Error("number format");
+		const {
+			format,
+			size,
+			dimension = "2d",
+			usage,
+			mipLevelCount = 1,
+			sampleCount = 1,
+			viewFormats = []
+		} = this?.textureDescriptor || {};
+		const { width, height, depth } = size;
 		return this.device.createTexture({
-			label: `${this.textureProp?.label || "undefined"}-size{${width},${height},${depth}}`,
-			size: [width, height, depth],
-			dimension: this.textureProp.dimension || "2d",
-			format: this.textureProp.format as GPUTextureFormat,
-			usage: this.textureProp.usage,
-			mipLevelCount: this.textureProp.mipLevelCount || 1,
-			sampleCount: this.textureProp.sampleCount || 1
+			label: `${this?.label || "undefined"}-size{${width},${height},${depth}}`,
+			size: {
+				width,
+				height,
+				depthOrArrayLayers: depth
+			},
+			dimension,
+			format: <GPUTextureFormat>format,
+			usage: usage,
+			mipLevelCount,
+			sampleCount,
+			viewFormats: <Iterable<GPUTextureFormat>>viewFormats
 		});
 	}
 	private checkNeedCreateTexture() {
-		const { width, height } = this.textureProp.size;
+		const { width, height } = this.textureDescriptor.size;
 		if (this.gpuTexture) {
 			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
 				this._textureView = undefined;

@@ -1,3 +1,4 @@
+import { TextureDimension, TextureViewDimension } from "../core/WebGPUConstant";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 
@@ -25,17 +26,24 @@ export default async function CubeTextureLoader(urls) {
 		};
 	});
 	const baseTexture = new Texture({
-		size: {
-			width: images[0].width,
-			height: images[0].height,
-			depth: 6
+		label: "cubeTexture",
+		generateMipmap: true,
+		textureDescriptor: {
+			dimension: TextureDimension.E2d,
+			size: {
+				width: images[0].width,
+				height: images[0].height,
+				depth: 6
+			},
+			format: "rgba8unorm",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+			mipLevelCount: 6
 		},
-		format: "rgba8unorm",
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
 		data,
-		viewFormats: "cube",
-		mipLevelCount: 6,
-		needMipMap: true
+		textureViewDescriptor: {
+			dimension: TextureViewDimension.Cube,
+			mipLevelCount: 6
+		}
 	});
 	return {
 		texture: baseTexture,

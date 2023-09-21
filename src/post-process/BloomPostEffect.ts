@@ -162,9 +162,11 @@ export default class BloomPostEffect extends PostEffect {
 	}
 	private createColorAttachment(width: number, height: number): Attachment {
 		const colorTexture = new Texture({
-			size: { width, height, depth: 1 },
-			format: TextureFormat.BGRA8Unorm,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			textureDescriptor: {
+				size: { width, height, depth: 1 },
+				format: TextureFormat.BGRA8Unorm,
+				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			}
 		});
 		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		return colorAttachment;

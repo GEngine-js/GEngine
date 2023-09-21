@@ -366,16 +366,18 @@ export class GLTF {
 	}
 	private createTexture(source: number) {
 		return new Texture({
-			size: {
-				width: this.images[source].width,
-				height: this.images[source].height,
-				depth: 1
-			},
 			data: {
 				source: this.images[source]
 			},
-			format: "rgba8unorm",
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+			textureDescriptor: {
+				format: "rgba8unorm",
+				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+				size: {
+					width: this.images[source].width,
+					height: this.images[source].height,
+					depth: 1
+				}
+			}
 		});
 	}
 	private async loadImages() {
