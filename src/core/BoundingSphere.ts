@@ -356,6 +356,17 @@ export default class BoundingSphere {
 	distanceToCamera(camera: Camera) {
 		return Math.max(0.0, Vector3.distance(this.center, camera.position) - this.radius);
 	}
+
+	copy(sphere) {
+		this.center.copy(sphere.center);
+		this.radius = sphere.radius;
+
+		return this;
+	}
+
+	clone() {
+		return new BoundingSphere().copy(this);
+	}
 }
 const fromPointsXMin = new Vector3();
 const fromPointsYMin = new Vector3();

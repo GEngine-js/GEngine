@@ -923,7 +923,7 @@ export class UniformDirtectLightShadows extends Uniform<DirectionalLight> {
 
 export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight> {
 	static align = 16;
-	static uniformSize = 84; // force breaks.length === 4, if need dynamic breaks, need dynamic uniformSize
+	static uniformSize = 176; // force breaks.length === 4, if need dynamic breaks, need dynamic uniformSize
 	lights: Array<DirectionalLight>;
 	private _subDataSize: number;
 
@@ -953,27 +953,27 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 			// this._subDataSize =
 			// 	directionalLight.shadow.vpMatrixArray.length * 16 +
 			// 	directionalLight.shadow.viewports.length * 4 +
-			// 	directionalLight.shadow.breaks.length;
+			// 	directionalLight.shadow.breakVSArray.length;
 			const offset = index * this._subDataSize;
 
 			if (directionalLight.shadow.vpMatrixArrayDirty) {
 				directionalLight.shadow.vpMatrixArrayDirty = false;
-				const vpMatrixArray = directionalLight.shadow.vpMatrixArray;
+				const vpMatrixArray = directionalLight.shadow.getAlignVpMatrixArray();
 				for (let i = 0; i < vpMatrixArray.length; i++) {
 					const vpMatrix = vpMatrixArray[i];
-					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // byteOffset=98 * 4;
+					this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // 64f32
 				}
 			}
 
 			if (directionalLight.shadow.viewPortDirty) {
 				directionalLight.shadow.viewPortDirty = false;
-				const viewports = directionalLight.shadow.viewports;
+				const viewports = directionalLight.shadow.getAlignViewportArray();
 				for (let i = 0; i < viewports.length; i++) {
 					this.dirty = setDataToTypeArray(
 						this.buffer,
 						viewports[i].toArray(),
-						offset + directionalLight.shadow.vpMatrixArray.length * 16 + 4 * i
-					); // byteOffset=0;
+						offset + directionalLight.shadow.alignVpMatrixArray.length * 16 + 4 * i
+					); // 16f32;
 				}
 			}
 
@@ -981,8 +981,8 @@ export class UniformDirtectLightCascadedShadows extends Uniform<DirectionalLight
 				this.buffer,
 				directionalLight.shadow.breakVSArray,
 				offset +
-					directionalLight.shadow.vpMatrixArray.length * 16 +
-					directionalLight.shadow.viewports.length * 4
+					directionalLight.shadow.alignVpMatrixArray.length * 16 +
+					directionalLight.shadow.alignViewportArray.length * 4
 			); // byteOffset=16;
 		}
 	}

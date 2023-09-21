@@ -190,4 +190,7 @@ export default class Geometry {
 		this.tangents = null;
 		this.boundingSphere = undefined;
 	}
+
+	// eslint-disable-next-line
+	updateGeometry(options) {}
 }

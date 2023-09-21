@@ -7,10 +7,18 @@ export class CascadedFrustum {
 		near: Vector3[];
 		far: Vector3[];
 	};
+	worldVertices: {
+		near: Vector3[];
+		far: Vector3[];
+	};
 	boundingSphere: BoundingSphere;
 
 	constructor() {
 		this.vertices = {
+			near: [new Vector3(), new Vector3(), new Vector3(), new Vector3()],
+			far: [new Vector3(), new Vector3(), new Vector3(), new Vector3()]
+		};
+		this.worldVertices = {
 			near: [new Vector3(), new Vector3(), new Vector3(), new Vector3()],
 			far: [new Vector3(), new Vector3(), new Vector3(), new Vector3()]
 		};
@@ -62,8 +70,12 @@ export class CascadedFrustum {
 
 	getBreakVSArray(breaks: number[], breakVSArray: number[]) {
 		breakVSArray.length = 0;
-		for (let i = 0; i < breaks.length; i++) {
-			breakVSArray[i] = -1 * breaks[i] * this.vertices.far[0].z;
+		breakVSArray[0] = 0;
+		for (let i = 1; i < breaks.length + 1; i++) {
+			breakVSArray[i] = -1 * breaks[i - 1] * this.vertices.far[0].z;
+		}
+		while (breakVSArray.length < 9) {
+			breakVSArray.push(-100);
 		}
 	}
 
@@ -102,6 +114,13 @@ export class CascadedFrustum {
 	}
 
 	updateBoundingSphere() {
-		this.boundingSphere = BoundingSphere.fromPoints([...this.vertices.near, ...this.vertices.far]);
+		this.boundingSphere = BoundingSphere.fromPoints([...this.worldVertices.near, ...this.worldVertices.far]);
+	}
+
+	updateWorldVertices(cameraMatrix: Matrix4) {
+		for (let i = 0; i < 4; i++) {
+			this.worldVertices.near[i].copy(this.vertices.near[i]).applyMatrix4(cameraMatrix);
+			this.worldVertices.far[i].copy(this.vertices.far[i]).applyMatrix4(cameraMatrix);
+		}
 	}
 }
