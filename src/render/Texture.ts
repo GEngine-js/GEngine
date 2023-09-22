@@ -28,6 +28,8 @@ export default class Texture {
 	public generateMipmap: boolean;
 	public flipY: boolean;
 	public static mipmapTools: MipmapGenerator;
+	public uploaded?: boolean;
+	public dynamic?: boolean;
 	private _textureViewDirty: boolean;
 	constructor(params: TextureParams) {
 		this.dirty = true;
@@ -40,6 +42,8 @@ export default class Texture {
 		this.textureViewDescriptor = params?.textureViewDescriptor;
 		this.generateMipmap = params?.generateMipmap ?? false;
 		this.flipY = params?.flipY ?? false;
+		this.uploaded = false;
+		this.dynamic = params?.dynamic ?? false;
 	}
 	get layoutType() {
 		const { dimension = TextureViewDimension.E2d } = this.textureViewDescriptor || {};
@@ -86,18 +90,19 @@ export default class Texture {
 	}
 	public update(device: GPUDevice) {
 		if (!this.device) this.device = device;
-		if (!this.dirty) return;
 		this.checkNeedCreateTexture();
-		this.dirty = false;
-		this._textureViewDirty = true;
-		if (this.data) {
-			if (Array.isArray(this.data)) {
-				this.data.forEach((imageData) => {
-					this.setData(imageData);
-				});
-			} else {
-				this.setData(this.data);
-			}
+		if (!this.data) return;
+		if (!this.uploaded || this.dynamic) this.upload();
+	}
+	public upload() {
+		this.uploaded = true;
+		if (!this.data) return;
+		if (Array.isArray(this.data)) {
+			this.data.forEach((imageData) => {
+				this.setData(imageData);
+			});
+		} else {
+			this.setData(this.data);
 		}
 		if (!this?.generateMipmap) return;
 		if (!Texture.mipmapTools) Texture.mipmapTools = new MipmapGenerator(this.device);
@@ -144,9 +149,8 @@ export default class Texture {
 			colorSpace = "srgb",
 			premultipliedAlpha = false
 		} = imageData;
+		const { width, height } = this.textureDescriptor.size;
 		if (isTexture(imageData.source)) {
-			const size = imageData?.source?.textureDescriptor?.size;
-			const { width = size.width, height = size.height } = imageData;
 			Texture.copyTextureToTexture({
 				device: this.device,
 				source: {
@@ -164,9 +168,8 @@ export default class Texture {
 				aspect
 			});
 		} else {
-			const { source, width = imageData.source.width, height = imageData.source.height } = imageData;
 			const sourceData = {
-				source: source,
+				source: imageData.source,
 				origin: { x: sourceX, y: sourceY }
 			};
 			const destination = {
@@ -302,6 +305,7 @@ export default class Texture {
 		});
 	}
 	private checkNeedCreateTexture() {
+		if (!this.dirty) return;
 		const { width, height } = this.textureDescriptor.size;
 		if (this.gpuTexture) {
 			if (width != this.gpuTexture.width || height != this.gpuTexture.height) {
@@ -312,5 +316,7 @@ export default class Texture {
 		} else {
 			this.gpuTexture = this.createGPUTexture();
 		}
+		this.dirty = false;
+		this._textureViewDirty = true;
 	}
 }

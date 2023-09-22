@@ -135,7 +135,7 @@ export type BindGroupCacheOptions = {
 	dynamic?: boolean;
 };
 export type ImageData = {
-	source: ImageBitmap | HTMLCanvasElement | Texture;
+	source: ImageBitmap | HTMLCanvasElement | Texture | HTMLVideoElement;
 	width?: number;
 	height?: number;
 	depth?: number;
@@ -152,6 +152,7 @@ export type ImageData = {
 export type TextureParams = {
 	label?: string;
 	data?: ImageData | Array<ImageData>;
+	dynamic?: boolean;
 	sampleType?: string;
 	fixedSize?: boolean;
 	generateMipmap?: boolean;
