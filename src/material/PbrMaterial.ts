@@ -77,6 +77,9 @@ export default class PbrMaterial extends Material {
 		});
 		this.dirty = true;
 	}
+	public get IBLRender() {
+		return this._IBLRender;
+	}
 	constructor() {
 		super();
 		this.type = "pbr_mat";

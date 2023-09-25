@@ -587,3 +587,19 @@ export type ImageCopyExternalImage = {
 	origin?: Origin2D;
 	flipY?: boolean;
 };
+export enum ShaderDataEnum {
+	COLOR = "color",
+	POINT = "point",
+	CUSTOM = "custom",
+	SPRITE = "sprite",
+	PBR = "pbr",
+	SKYBOX = "skybox",
+	BLINNPHONG = "BlinnPhong"
+}
+export enum PassEnum {
+	RENDER = 0,
+	SHADOW = 1,
+	PICK = 2,
+	DEPTH = 3,
+	NORMAL = 4
+}

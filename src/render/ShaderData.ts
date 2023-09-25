@@ -46,12 +46,13 @@ export default class ShaderData {
 	getSampler(name: string): Sampler {
 		return this._uniforms.get(name);
 	}
-	setUniformBuffer(name: string, uniformBuffer: UniformBuffer, binding?: number) {
+	setUniformBuffer(name: string, uniformBuffer: UniformBuffer, binding?: number): ShaderData {
 		if (this._uniforms.get(name)) return;
 		uniformBuffer.binding = this.currentBinding;
 		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniformBuffer);
+		return this;
 	}
 	setTexture(
 		name: string,
@@ -60,19 +61,22 @@ export default class ShaderData {
 		type?: string,
 		visibility?: ShaderStage,
 		textureView?: GPUTextureView
-	) {
+	): ShaderData {
 		if (this._uniforms.get(name)) return;
 		const uniform = new UniformTexture(name, binding ?? this.currentBinding, value, type, visibility, textureView);
 		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
+		this.setDefine(`USE_${name.toLocaleUpperCase()}`, true);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
+		return this;
 	}
-	setSampler(name: string, value: UniformFunc | Sampler, binding?: number, visibility?: ShaderStage) {
+	setSampler(name: string, value: UniformFunc | Sampler, binding?: number, visibility?: ShaderStage): ShaderData {
 		if (this._uniforms.get(name)) return;
 		const uniform = new UniformSampler(name, binding ?? this.currentBinding, value, visibility);
 		this.setDefine(name.concat("Binding"), binding ?? this.currentBinding);
 		this.currentBinding += 1;
 		this._uniforms.set(name, uniform);
+		return this;
 	}
 	setDefine(name: string, value: boolean | number) {
 		if (this.defines[name] === undefined) {
