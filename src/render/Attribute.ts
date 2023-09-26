@@ -1,4 +1,5 @@
 import { VertexFormat } from "../core/WebGPUConstant";
+import { TypeArrayConstruct, TypeArrayFormatSize } from "../core/WebGPUTypes";
 import Vector2 from "../math/Vector2";
 import Vector3 from "../math/Vector3";
 import Buffer from "../render/Buffer";
@@ -150,7 +151,7 @@ export class InterleavedAttribute {
 export class Float32Attribute extends Attribute {
 	constructor(name: string, value: Array<number>, itemSize: number) {
 		super(name, value, itemSize);
-		const { format, totalByteSize } = getAttributeFormat(VertexFormat.Float32, itemSize);
+		const { format, totalByteSize } = getAttributeFormat(<VertexFormat>`${VertexFormat.Float32}x${itemSize}`);
 		this.format = format;
 		this.attributeByteSize = totalByteSize;
 	}
@@ -158,8 +159,9 @@ export class Float32Attribute extends Attribute {
 export class InterleavedFloat32Attribute extends InterleavedAttribute {
 	constructor(names: string[], value: Array<number>, itemSizes: number[]) {
 		super(names, value, itemSizes);
-		this.format = VertexFormat.Float32;
-		this.byteSize = Float32Array.BYTES_PER_ELEMENT;
+		const { format, byteSize } = getAttributeFormat(VertexFormat.Float32);
+		this.format = format;
+		this.byteSize = byteSize;
 	}
 }
 export class BufferInterleavedFloat32Attribute extends InterleavedFloat32Attribute {
@@ -178,28 +180,10 @@ export type GPUAttribute = {
 	format: string;
 	offset: number;
 };
-function getAttributeFormat(type: string, itemSize: number) {
-	const key = `${type}x${itemSize}`;
+export const getAttributeFormat = (format: VertexFormat) => {
 	return {
-		[VertexFormat.Float32]: {
-			format: "float32",
-			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
-			byteSize: Float32Array.BYTES_PER_ELEMENT
-		},
-		[VertexFormat.Float32x2]: {
-			format: "float32x2",
-			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
-			byteSize: Float32Array.BYTES_PER_ELEMENT
-		},
-		[VertexFormat.Float32x3]: {
-			format: "float32x3",
-			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
-			byteSize: Float32Array.BYTES_PER_ELEMENT
-		},
-		[VertexFormat.Float32x4]: {
-			format: "float32x4",
-			totalByteSize: Float32Array.BYTES_PER_ELEMENT * itemSize,
-			byteSize: Float32Array.BYTES_PER_ELEMENT
-		}
-	}[key];
-}
+		format,
+		totalByteSize: TypeArrayConstruct[format].BYTES_PER_ELEMENT * TypeArrayFormatSize[format],
+		byteSize: TypeArrayConstruct[format].BYTES_PER_ELEMENT
+	};
+};

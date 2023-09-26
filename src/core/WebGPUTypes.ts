@@ -26,10 +26,14 @@ import {
 	ShaderStage,
 	StencilOperation,
 	StorageTextureAccess,
-	TextureFormat
+	TextureAspect,
+	TextureDimension,
+	TextureFormat,
+	TextureViewDimension,
+	VertexFormat
 } from "./WebGPUConstant";
 export const GPUCanvasCompositingAlphaMode: {
-	[key: string]: GPUCanvasCompositingAlphaMode;
+	[key: string]: any;
 } = {
 	Opaque: "opaque",
 	Premultiplied: "premultiplied"
@@ -131,7 +135,7 @@ export type BindGroupCacheOptions = {
 	dynamic?: boolean;
 };
 export type ImageData = {
-	source: ImageBitmap | HTMLCanvasElement | Texture;
+	source: ImageBitmap | HTMLCanvasElement | Texture | HTMLVideoElement;
 	width?: number;
 	height?: number;
 	depth?: number;
@@ -141,9 +145,39 @@ export type ImageData = {
 	x?: number;
 	y?: number;
 	z?: number;
-	aspect?: "all" | "stencil-only" | "depth-only";
-	colorSpace?: "srgb";
+	aspect?: TextureAspect;
+	colorSpace?: PredefinedColorSpace;
 	premultipliedAlpha?: boolean;
+};
+export type TextureParams = {
+	label?: string;
+	data?: ImageData | Array<ImageData>;
+	dynamic?: boolean;
+	sampleType?: string;
+	fixedSize?: boolean;
+	generateMipmap?: boolean;
+	access?: StorageTextureAccess;
+	flipY?: boolean;
+	textureDescriptor?: TextureDescriptor;
+	textureViewDescriptor?: TextureViewDescriptor;
+};
+export type TextureDescriptor = {
+	format?: string;
+	size: textureSize;
+	sampleCount?: number;
+	dimension?: TextureDimension;
+	mipLevelCount?: number;
+	usage?: number;
+	viewFormats?: Array<string>;
+};
+export type TextureViewDescriptor = {
+	format?: string;
+	mipLevelCount?: number;
+	dimension?: TextureViewDimension;
+	aspect?: string;
+	baseMipLevel?: number;
+	baseArrayLayer?: number;
+	arrayLayerCount?: number;
 };
 export type WebGPUTextureProps = {
 	size: textureSize;
@@ -160,12 +194,10 @@ export type WebGPUTextureProps = {
 
 	data?: ImageData | Array<ImageData>;
 
-	mipLevelCount?: number;
-
 	sampleCount?: number;
 
 	dimension?: dimension;
-
+	mipLevelCount?: number;
 	viewFormats?: string;
 
 	sampleType?: string;
@@ -487,3 +519,87 @@ export type ComputeModelParams = {
 	device: GPUDevice;
 	passEncoder: GPUComputePassEncoder;
 };
+export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+
+export const TypeArrayFormatSize = {
+	[VertexFormat.Float32]: 1,
+	[VertexFormat.Float32x2]: 2,
+	[VertexFormat.Float32x3]: 3,
+	[VertexFormat.Float32x4]: 4,
+	[VertexFormat.Float16x2]: 2,
+	[VertexFormat.Float16x4]: 4,
+	[VertexFormat.Uint8x2]: 2,
+	[VertexFormat.Uint8x4]: 4,
+	[VertexFormat.Uint16x2]: 2,
+	[VertexFormat.Uint16x4]: 4,
+	[VertexFormat.Uint32]: 1,
+	[VertexFormat.Uint32x2]: 2,
+	[VertexFormat.Uint32x3]: 3,
+	[VertexFormat.Uint32x4]: 4
+};
+export const TypeArrayConstruct = {
+	[VertexFormat.Float32]: Float32Array,
+	[VertexFormat.Float32x2]: Float32Array,
+	[VertexFormat.Float32x3]: Float32Array,
+	[VertexFormat.Float32x4]: Float32Array,
+	[VertexFormat.Uint8x2]: Uint8Array,
+	[VertexFormat.Uint8x4]: Uint8Array,
+	[VertexFormat.Uint16x2]: Uint16Array,
+	[VertexFormat.Uint16x4]: Uint16Array,
+	[VertexFormat.Uint32]: Uint32Array,
+	[VertexFormat.Uint32x2]: Uint32Array,
+	[VertexFormat.Uint32x3]: Uint32Array,
+	[VertexFormat.Uint32x4]: Uint32Array
+};
+export type Origin3D = {
+	x: number;
+	y: number;
+	z: number;
+};
+export type Origin2D = {
+	x: number;
+	y: number;
+};
+export type ImageCopyTexture = {
+	texture: GPUTexture;
+	mipLevel: number;
+	origin: Origin3D;
+	aspect: TextureAspect;
+};
+export type Extent3D = {
+	width: number;
+	height: number;
+	depthOrArrayLayers: number;
+};
+export type ImageCopyTextureTagged = ImageCopyTexture & {
+	colorSpace: PredefinedColorSpace; // "srgb"
+	premultipliedAlpha: boolean;
+};
+export type ImageSource =
+	| ImageBitmap
+	| ImageData
+	| HTMLImageElement
+	| HTMLVideoElement
+	| HTMLCanvasElement
+	| OffscreenCanvas;
+export type ImageCopyExternalImage = {
+	source: ImageSource;
+	origin?: Origin2D;
+	flipY?: boolean;
+};
+export enum ShaderDataEnum {
+	COLOR = "color",
+	POINT = "point",
+	CUSTOM = "custom",
+	SPRITE = "sprite",
+	PBR = "pbr",
+	SKYBOX = "skybox",
+	BLINNPHONG = "BlinnPhong"
+}
+export enum PassEnum {
+	RENDER = 0,
+	SHADOW = 1,
+	PICK = 2,
+	DEPTH = 3,
+	NORMAL = 4
+}

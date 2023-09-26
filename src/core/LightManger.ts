@@ -234,21 +234,21 @@ export default class LightManger {
 				this.lightShaderData.setDefine("USE_DIRECTLIGHT_CASCADEDSHADOWMAP", directLightWithCascadedShadowCount);
 				// texture,sample
 				if (spotLightShadowMapTextureArray !== undefined) {
-					if (spotLightShadowMapTextureArray.textureProp.size.depth != spotLightWithShadowCount)
+					if (spotLightShadowMapTextureArray.textureDescriptor.size.depth != spotLightWithShadowCount)
 						console.warn("spotLightShadowMap align has problem");
 					this.lightShaderData.setTexture("spotLightShadowMapTextureArray", spotLightShadowMapTextureArray);
 					this.lightShaderData.setDefine("SPOTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = spotLightShadowMapTextureArray
 				}
 				if (pointLightShadowMapTextureArray !== undefined) {
-					if (pointLightShadowMapTextureArray.textureProp.size.depth != pointLightWithShadowCount)
+					if (pointLightShadowMapTextureArray.textureDescriptor.size.depth != pointLightWithShadowCount)
 						console.warn("pointLightShadowMap align has problem");
 					this.lightShaderData.setTexture("pointLightShadowMapTextureArray", pointLightShadowMapTextureArray);
 					this.lightShaderData.setDefine("POINTLIGHT_SHADOWMAP_TEXTUREARRAY", true);
 					// this._testTexture = pointLightShadowMapTextureArray;
 				}
 				if (directLightShadowMapTextureArray !== undefined) {
-					if (directLightShadowMapTextureArray.textureProp.size.depth != directLightWithShadowCount)
+					if (directLightShadowMapTextureArray.textureDescriptor.size.depth != directLightWithShadowCount)
 						console.warn("directLightShadowMap align has problem");
 					this.lightShaderData.setTexture(
 						"directLightShadowMapTextureArray",
@@ -259,7 +259,7 @@ export default class LightManger {
 				}
 				if (directLightCascadedShadowMapTextureArray !== undefined) {
 					if (
-						directLightCascadedShadowMapTextureArray.textureProp.size.depth !=
+						directLightCascadedShadowMapTextureArray.textureDescriptor.size.depth !=
 						directLightWithCascadedShadowCount
 					)
 						console.warn("directLightCascadedShadowMap align has problem");
@@ -299,8 +299,8 @@ export default class LightManger {
 				const shadowMapTexture = light.shadow.getShadowMapTexture();
 				const shadowMapSource = {
 					source: shadowMapTexture,
-					width: shadowMapTexture.textureProp.size.width,
-					height: shadowMapTexture.textureProp.size.height,
+					width: shadowMapTexture.textureDescriptor.size.width,
+					height: shadowMapTexture.textureDescriptor.size.height,
 					depth: 1,
 					x: 0,
 					y: 0,
@@ -313,18 +313,22 @@ export default class LightManger {
 		if (shadowMapSources.length <= 0) return undefined;
 
 		const shadowMapTextureArray = new Texture({
-			label: `${shadowMapSources[0].source?.textureProp?.label}TextureArray`,
-			size: {
-				width: shadowMapSources[0].width,
-				height: shadowMapSources[0].height,
-				depth: shadowMapSources.length
-			},
+			label: `${shadowMapSources[0].source?.label}TextureArray`,
 			fixedSize: true,
 			sampleType: TextureSampleType.Depth,
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.TextureBinding | TextureUsage.CopyDst,
 			data: shadowMapSources,
-			viewFormats: TextureViewDimension.E2dArray
+			textureDescriptor: {
+				size: {
+					width: shadowMapSources[0].width,
+					height: shadowMapSources[0].height,
+					depth: shadowMapSources.length
+				},
+				format: TextureFormat.Depth24Plus,
+				usage: TextureUsage.TextureBinding | TextureUsage.CopyDst | TextureUsage.CopySrc
+			},
+			textureViewDescriptor: {
+				dimension: TextureViewDimension.E2dArray
+			}
 		});
 
 		return shadowMapTextureArray;

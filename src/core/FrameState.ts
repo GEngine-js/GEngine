@@ -5,7 +5,7 @@ import Context from "../render/Context";
 import Texture from "../render/Texture";
 import { Scene } from "../Scene";
 import combine from "../utils/combine";
-import CullingVolume from "./CullingVolume";
+import { Frustum } from "./Frustum";
 import LightManger from "./LightManger";
 import RenderQueue from "./RenderQueue";
 
@@ -26,7 +26,7 @@ export class FrameState {
 	public geometryMemory: number;
 	public textureMemory: number;
 	public frameNumber: number;
-	public cullingVolume: CullingVolume;
+	public frustum: Frustum;
 	public definesDirty: boolean;
 	private _defines: object;
 	constructor(public context: Context, public lightManger?: LightManger, options: FrameStateOptions = {}) {
@@ -36,6 +36,7 @@ export class FrameState {
 		this.textureMemory = 0;
 		this.frameNumber = 0;
 		this._defines = {};
+		this.frustum = new Frustum();
 		this.definesDirty = true;
 	}
 	get defines() {
@@ -50,14 +51,9 @@ export class FrameState {
 
 		this.renderQueue.reset();
 		this?.lightManger?.update?.();
-		this.cullingVolume = camera.getCullingVolume();
+		this.frustum.update(camera);
 		this.frameNumber += 1;
 	}
-
-	resetCullingVolume(camera: Camera) {
-		this.cullingVolume = camera.getCullingVolume();
-	}
-
 	static getFrameStateOptionsByScene(sceneInstance: Scene) {
 		return {
 			background: sceneInstance.background

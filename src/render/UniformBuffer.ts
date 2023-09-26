@@ -169,7 +169,12 @@ export default class UniformBuffer {
 	// uniformBuffer.setFloatArray('test1',()=>{return [0.5,0.5,1.0]},3);
 	// uniformBuffer.setVec4Array('test4',()=>{return [new Vector4(0.5,0.6,0.2,1.0),new Vector4(0.5,0.8,0.8,1.0)]},2);
 	// uniformBuffer.setVec2Array('test2',()=>{return [new Vector2(0.5,0.6),new Vector2(0.5,0.8,)]},2);
-	setUniform(name: string, value: UniformFunc | number | object, uniformType: UniformEnum, count?: number) {
+	setUniform(
+		name: string,
+		value: UniformFunc | number | object,
+		uniformType: UniformEnum,
+		count?: number
+	): UniformBuffer {
 		if (this._uniformStruct.get(name)) return;
 		const TypeUniform = UniformBuffer.UniformType[uniformType];
 		this.byteOffset += UniformBuffer.checkUniformOffset(this.byteOffset, TypeUniform.align);
@@ -179,6 +184,7 @@ export default class UniformBuffer {
 				: new TypeUniform(name, this.dataBuffer, this.byteOffset, value);
 		this._uniformStruct.set(name, uniform);
 		this.byteOffset += uniform.byteSize;
+		return this;
 	}
 	setUniformsFromUniformBuffer(uniformBuffer: UniformBuffer) {
 		this._uniformStruct.forEach((value, key) => {

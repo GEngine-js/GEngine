@@ -34,7 +34,6 @@ class Plane {
 	public static ORIGIN_ZX_PLANE = Object.freeze(new Plane(Vector3.UNIT_Y, 0.0));
 	constructor(normal: Vector3, distance: number) {
 		this.normal = Vector3.clone(normal);
-
 		this.distance = distance;
 	}
 	normalize() {

@@ -66,7 +66,7 @@ export class MipmapGenerator {
 	 */
 	generateMipmap(sourceTexture: Texture) {
 		const texture = sourceTexture.gpuTexture;
-		const textureDescriptor = sourceTexture.textureProp;
+		const textureDescriptor = sourceTexture.textureDescriptor;
 		// TODO: Does this need to handle sRGB formats differently?
 		const pipeline = this.getMipmapPipeline(textureDescriptor.format);
 

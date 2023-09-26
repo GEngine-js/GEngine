@@ -1,11 +1,9 @@
-import CullingVolume from "../core/CullingVolume";
 import GMath from "../math/Math";
 import Matrix4 from "../math/Matrix4";
 import Camera from "./Camera";
 export default class PerspectiveCamera extends Camera {
 	xOffset: number;
 	yOffset: number;
-	cullingVolume: CullingVolume;
 	private _aspect: number;
 	private _fov: number;
 	height: number;
@@ -23,7 +21,6 @@ export default class PerspectiveCamera extends Camera {
 		this.yOffset = 0;
 		this.projectMatrixDirty = true;
 		this.updateCameraParms();
-		this.cullingVolume = new CullingVolume();
 		this.isPerspectiveCamera = true;
 	}
 	get aspect(): number {

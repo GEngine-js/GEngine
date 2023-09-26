@@ -7,7 +7,7 @@
 			http-equiv="origin-trial"
 			content="Atzk/dTch1Tt8qYq/UwLn6aWawymlc3xOKy3xiuwsaj1HBK6eCTBb+EGOnv7LK+oSQ8Fr1l/qykGHhK64mAn+w4AAABjeyJvcmlnaW4iOiJodHRwczovL2hwdWdpcy5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9"
 		/>
-		<title>gltf</title>
+		<title>Video</title>
 		<!-- <link rel="stylesheet" href="./index.scss" /> -->
 		<style>
 			* {
@@ -60,6 +60,16 @@
 						}
 					}
 				);
+				const video = document.createElement("video");
+				video.loop = true;
+				video.autoplay = true;
+				video.muted = true;
+				video.src = new URL("../asset/video/big.mp4", import.meta.url).toString();
+				await video.play();
+				// videoHeight
+				//  videoWidth
+
+				debugger;
 				const response = await fetch(new URL("../textures/Di-3d.png", import.meta.url).toString());
 				const imageBitmap = await createImageBitmap(await response.blob());
 				const depthTexture = new Texture({
@@ -73,8 +83,8 @@
 				const texture = new Texture({
 					textureDescriptor: {
 						size: {
-							width: imageBitmap.width,
-							height: imageBitmap.height,
+							width: video.videoWidth,
+							height: video.videoHeight,
 							depth: 1
 						},
 						format: "rgba8unorm",
@@ -84,10 +94,9 @@
 							GPUTextureUsage.RENDER_ATTACHMENT
 					},
 					data: {
-						source: imageBitmap,
-						width: imageBitmap.width,
-						height: imageBitmap.height
-					}
+						source: video
+					},
+					dynamic: true
 				});
 				const sampler = new Sampler({
 					magFilter: "linear",
@@ -111,7 +120,7 @@
                 @location(0) fragUV: vec2<f32>,
                 @location(1) fragPosition: vec4<f32>
               ) -> @location(0) vec4<f32> {
-                   return textureSample(myTexture, mySampler, fragUV) * fragPosition;
+                   return textureSample(myTexture, mySampler, fragUV);
               }
               `,
 					vert: `
@@ -201,113 +210,11 @@
 						instanceCount: 1
 					}
 				});
-				const model1 = new Model({
-					shaderId: "model",
-					frag: `
-              @group(0) @binding(2) var mySampler: sampler;
-              @group(0) @binding(1) var myTexture: texture_2d<f32>;
-
-              @fragment
-              fn main(
-                @location(0) fragUV: vec2<f32>,
-                @location(1) fragPosition: vec4<f32>
-              ) -> @location(0) vec4<f32> {
-                   return textureSample(myTexture, mySampler, fragUV) * fragPosition;
-              }
-              `,
-					vert: `
-            struct Uniforms {
-              modelViewProjectionMatrix : mat4x4<f32>,
-            }
-            @binding(0) @group(0) var<uniform> uniforms : Uniforms;
-
-            struct VertexOutput {
-              @builtin(position) Position : vec4<f32>,
-              @location(0) fragUV : vec2<f32>,
-              @location(1) fragPosition: vec4<f32>,
-            }
-
-            @vertex
-            fn main(
-              @location(0) position : vec4<f32>,
-              @location(1) color : vec4<f32>,
-              @location(2) uv : vec2<f32>
-            ) -> VertexOutput {
-              var output : VertexOutput;
-              output.Position = uniforms.modelViewProjectionMatrix * position;
-              output.fragUV = uv;
-              output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
-              return output;
-            }
-               `,
-					vertexBuffers: [
-						{
-							stepMode: "vertex",
-							uid: "vertAttr",
-							attributes: {
-								interleaved: {
-									names: ["position", "color", "uv"],
-									value: cubeVertexArray,
-									itemSizes: [4, 4, 2]
-								} //interleaved buffer
-							}
-						}
-					],
-					uniformBuffers: [
-						{
-							type: "uniform",
-							uid: "systemMatrix",
-							uniforms: {
-								modelViewProjectionMatrix: {
-									type: "mat4x4<f32>",
-									value: () => {
-										let viewMatrix = mat4.identity([]);
-										mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, -4, -8));
-										const now = Date.now() / 1000;
-										mat4.rotate(
-											viewMatrix,
-											viewMatrix,
-											1,
-											vec3.fromValues(Math.sin(now), Math.cos(now), 0)
-										);
-										mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
-										return modelViewProjectionMatrix;
-									}
-								}
-							}
-						}
-					],
-					uniformTextureAndSampler: {
-						myTexture: { type: "texture", value: texture },
-						mySampler: { type: "sampler", value: sampler }
-					},
-					renderState: {
-						targets: [
-							{
-								format: presentationFormat
-							}
-						],
-						primitive: {
-							topology: "triangle-list",
-							cullMode: "back"
-						},
-						depthStencil: {
-							depthWriteEnabled: true,
-							depthCompare: "less",
-							format: "depth24plus"
-						}
-					},
-					draw: {
-						count: 36,
-						instanceCount: 1
-					}
-				});
 
 				function animate() {
 					requestAnimationFrame(animate);
 					const passEncoder = canvasRenderTarget.beginRenderPass(context.device);
 					model.render({ device: context.device, passEncoder });
-					model1.render({ device: context.device, passEncoder });
 					canvasRenderTarget.endRenderPass();
 				}
 				animate();

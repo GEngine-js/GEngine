@@ -1,5 +1,6 @@
 import { FrameState } from "../core/FrameState";
 import { CullMode, PrimitiveTopology } from "../core/WebGPUConstant";
+import { ShaderDefine } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import { DepthStencil, RenderState, Target, Primitive } from "../render/RenderState";
@@ -9,6 +10,8 @@ import Texture from "../render/Texture";
 import { ShaderSource } from "../shader/ShaderSource";
 export class Material {
 	public shaderData: ShaderData;
+
+	private _defines: ShaderDefine;
 
 	color?: Color;
 
@@ -59,6 +62,12 @@ export class Material {
 		this.light = false;
 		this.ready = false;
 		this.init();
+	}
+	public set defines(defines) {
+		this._defines = Object.assign({}, defines, this._defines);
+	}
+	public get defines() {
+		return this._defines;
 	}
 	public set wireframe(value: boolean) {
 		this.renderState.primitive.topology = value ? PrimitiveTopology.LineList : PrimitiveTopology.TriangleList;

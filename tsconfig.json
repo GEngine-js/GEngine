@@ -1,34 +1,24 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": false,
-    // "declarationDir": "types",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
-    "lib": ["DOM", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020","ES2021"],
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "outDir": "lib",
-    "sourceMap": true,
-    "strictFunctionTypes": true,
-    "target": "ES2020",
-    "noEmit": false,
-    // "declaration": true,   
-    "typeRoots": [ "./node_modules/@webgpu/types", "./node_modules/@types"]
-  },
-  "include": [
-    "src/**/*.ts"
-, "src/shader/material/pbrFrag.ts"  ],
-  "exclude": [
-    "node_modules",
-    "public",
-    "dist",
-    "example",
-    "**/*.spec.ts"
-  ],
-  "typeRoots": [
-    "./node_modules/@webgpu/types/"
-  ]
+	"compilerOptions": {
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"declaration": false,
+		// "declarationDir": "types",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"importHelpers": true,
+		"lib": ["DOM", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ES2021", "ES2022"],
+		"module": "ES2020",
+		"moduleResolution": "node",
+		"outDir": "lib",
+		"sourceMap": true,
+		"strictFunctionTypes": true,
+		"target": "ES2020",
+		"noEmit": false,
+		// "declaration": true,
+		"typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"]
+	},
+	"include": ["src/**/*.ts", "src/shader/material/pbrFrag.ts"],
+	"exclude": ["node_modules", "public", "dist", "example", "**/*.spec.ts"],
+	"typeRoots": ["./node_modules/@webgpu/types/"]
 }

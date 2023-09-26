@@ -17,7 +17,7 @@ export default class SkyBox extends Mesh {
 	}
 	update(frameState: FrameState) {
 		this.updateMatrix();
-		this.geometry.update(frameState);
+		this.geometry.update({ frameState });
 		this.material.update(frameState, this);
 		if (this.visibility) frameState.renderQueue.pre.push(this);
 	}

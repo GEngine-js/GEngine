@@ -3,6 +3,8 @@ import Vector3 from "../math/Vector3";
 import Vector4 from "../math/Vector4";
 import defaultValue from "../utils/defaultValue";
 import defined from "../utils/defined";
+import BoundingBox from "./BoundingBox";
+import BoundingSphere from "./BoundingSphere";
 import { Intersect } from "./WebGPUConstant";
 
 /**
@@ -97,7 +99,7 @@ class CullingVolume {
 	 * @param {Object} boundingVolume The bounding volume whose intersection with the culling volume is to be tested.
 	 * @returns {Intersect}  Intersect.OUTSIDE, Intersect.INTERSECTING, or Intersect.INSIDE.
 	 */
-	computeVisibility(boundingVolume) {
+	computeVisibility(boundingVolume: BoundingBox | BoundingSphere) {
 		if (!defined(boundingVolume)) {
 			throw new Error("boundingVolume is required.");
 		}
