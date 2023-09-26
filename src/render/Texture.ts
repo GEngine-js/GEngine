@@ -91,7 +91,6 @@ export default class Texture {
 	public update(device: GPUDevice) {
 		if (!this.device) this.device = device;
 		this.checkNeedCreateTexture();
-		if (!this.data) return;
 		if (!this.uploaded || this.dynamic) this.upload();
 	}
 	public upload() {
@@ -317,6 +316,7 @@ export default class Texture {
 			this.gpuTexture = this.createGPUTexture();
 		}
 		this.dirty = false;
+		this.uploaded = false;
 		this._textureViewDirty = true;
 	}
 }
