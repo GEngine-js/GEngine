@@ -4,7 +4,6 @@ import { ShaderMaterialParms, Uniforms } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
-import defaultValue from "../utils/defaultValue";
 import { addUniformToShaderData } from "../utils/uniformUtils";
 import { Material } from "./Material";
 
@@ -13,7 +12,8 @@ export default class ShaderMaterial extends Material {
 	public shaderMaterialParms: ShaderMaterialParms;
 	constructor(options: ShaderMaterialParms) {
 		super();
-		const { type, frag, vert, defines, light, shaderId } = options;
+		const { type, frag, vert, defines = {}, light, shaderId } = options;
+		this.defines = defines;
 		this.type = shaderId ?? type;
 		this.shaderMaterialParms = options;
 		this.shaderSource = new ShaderSource({
@@ -22,7 +22,7 @@ export default class ShaderMaterial extends Material {
 				fragShader: frag,
 				vertShader: vert
 			},
-			defines: defaultValue(defines, {})
+			defines: this.defines
 		});
 		this.uniforms = options.uniforms;
 		this.light = light || false;

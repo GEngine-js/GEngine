@@ -10,14 +10,15 @@ export class PointMaterial extends Material {
 	constructor() {
 		super();
 		this.type = "point";
+		this.defines = {
+			HAS_UV: true,
+			HAS_COLOR: true,
+			VERTEX_COLOR: false,
+			VERTEX_SIZE: false
+		};
 		this.shaderSource = new ShaderSource({
 			shaderId: this.type,
-			defines: {
-				HAS_UV: true,
-				HAS_COLOR: true,
-				VERTEX_COLOR: false,
-				VERTEX_SIZE: false
-			}
+			defines: this.defines
 		});
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {

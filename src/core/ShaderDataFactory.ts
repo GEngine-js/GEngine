@@ -20,15 +20,15 @@ export class ShaderDataFactory {
 		const { shaderDataEnum, label, mesh, material } = params;
 		switch (shaderDataEnum) {
 			case ShaderDataEnum.COLOR:
-				return ShaderDataFactory.createColorShaderData(label, mesh);
+				return ShaderDataFactory.createColorShaderData(mesh);
 			case ShaderDataEnum.PBR:
-				return ShaderDataFactory.createPbrShaderData(label, mesh, <PbrMaterial>material);
+				return ShaderDataFactory.createPbrShaderData(mesh, <PbrMaterial>material);
 			case ShaderDataEnum.BLINNPHONG:
-				return ShaderDataFactory.createBlinnPhongShaderData(label, mesh, material);
+				return ShaderDataFactory.createBlinnPhongShaderData(mesh, material);
 			case ShaderDataEnum.POINT:
-				return ShaderDataFactory.createPointShaderData(label, mesh, material);
+				return ShaderDataFactory.createPointShaderData(mesh, material);
 			case ShaderDataEnum.SKYBOX:
-				return ShaderDataFactory.createSkyBoxShaderData(label, mesh, material);
+				return ShaderDataFactory.createSkyBoxShaderData(mesh, material);
 			case ShaderDataEnum.CUSTOM:
 				return ShaderDataFactory.createCustomShaderData(label, mesh, <ShaderMaterial>material);
 			default:
@@ -47,7 +47,7 @@ export class ShaderDataFactory {
 	}
 	static createPointUniformBuffer(label: string, mesh?: Mesh, material?: Material) {
 		return new UniformBuffer({ label })
-			.setUniform(
+			?.setUniform(
 				"modelMatrix",
 				() => {
 					return mesh.modelMatrix;
@@ -151,15 +151,17 @@ export class ShaderDataFactory {
 		if (!buffer) ShaderDataFactory.addUniformToShaderData(uniforms, shaderData, uniformBuffer, mesh);
 	}
 	/** ******************************ShaderData********************************************/
-	static createColorShaderData(label: string, mesh?: Mesh) {
+	static createColorShaderData(mesh?: Mesh) {
+		const label = "color";
 		return new ShaderData(label, 0)?.setUniformBuffer(
 			label,
 			ShaderDataFactory.createColorUniformBuffer(label, mesh)
 		);
 	}
-	static createPointShaderData(label: string, mesh?: Mesh, material?: Material) {
+	static createPointShaderData(mesh?: Mesh, material?: Material) {
+		const label = "point";
 		const shaderData = new ShaderData(label, 0)
-			?.setUniformBuffer(label, ShaderDataFactory.createPointShaderData(label, mesh, material))
+			?.setUniformBuffer(label, ShaderDataFactory.createPointUniformBuffer(label, mesh, material))
 			?.setDefine("USE_INSTANCE", true);
 		if (material.baseTexture)
 			shaderData
@@ -167,7 +169,8 @@ export class ShaderDataFactory {
 				?.setSampler("baseColorSampler", material.baseSampler || textureCache.defaultSampler);
 		return shaderData;
 	}
-	static createBlinnPhongShaderData(label: string, mesh?: Mesh, material?: Material) {
+	static createBlinnPhongShaderData(mesh?: Mesh, material?: Material) {
+		const label = "phong";
 		const shaderData = new ShaderData(label, 0)?.setUniformBuffer(
 			label,
 			ShaderDataFactory.createBlinnPhongUniformBuffer(label, mesh, material)
@@ -187,7 +190,8 @@ export class ShaderDataFactory {
 
 		return shaderData;
 	}
-	static createPbrShaderData(label: string, mesh?: Mesh, material?: PbrMaterial) {
+	static createPbrShaderData(mesh?: Mesh, material?: PbrMaterial) {
+		const label = "pbr_mat";
 		const shaderData = new ShaderData(label, 0)?.setUniformBuffer(
 			label,
 			ShaderDataFactory.createPBRUniformBuffer(label, mesh, material)
@@ -226,19 +230,20 @@ export class ShaderDataFactory {
 
 		return shaderData;
 	}
-	static createSpriteShaderData(label: string, mesh?: Mesh, material?: Material) {
+	static createSpriteShaderData(mesh?: Mesh, material?: Material) {
+		const label = "sprite";
 		const shaderData = new ShaderData(label, 0)?.setUniformBuffer(
 			label,
 			ShaderDataFactory.createSpriteUniformBuffer(label, mesh)
 		);
 		if (material.baseTexture)
-			// this.shaderData.setDefine("USE_COLORTEXTURE", true);
 			shaderData
 				?.setTexture("baseColorTexture", material.baseTexture)
 				?.setSampler("baseColorSampler", material.baseSampler || textureCache.defaultSampler);
 		return shaderData;
 	}
-	static createSkyBoxShaderData(label: string, mesh?: Mesh, material?: Material) {
+	static createSkyBoxShaderData(mesh?: Mesh, material?: Material) {
+		const label = "skybox";
 		return new ShaderData(label, 0)
 			?.setUniformBuffer(label, ShaderDataFactory.createColorUniformBuffer(label, mesh))
 			?.setTexture("baseTexture", material.baseTexture)

@@ -9,8 +9,7 @@ export default class ColorMaterial extends Material {
 		super();
 		this.type = "color";
 		this.shaderSource = new ShaderSource({
-			shaderId: this.type,
-			defines: {}
+			shaderId: this.type
 		});
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {

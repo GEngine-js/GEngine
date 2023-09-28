@@ -594,7 +594,9 @@ export enum ShaderDataEnum {
 	SPRITE = "sprite",
 	PBR = "pbr",
 	SKYBOX = "skybox",
-	BLINNPHONG = "BlinnPhong"
+	BLINNPHONG = "BlinnPhong",
+	DEPTH = "depth",
+	NORMAL = "normal"
 }
 export enum PassEnum {
 	RENDER = 0,

@@ -13,8 +13,7 @@ export default class SkyBoxMaterial extends Material {
 		super();
 		this.type = "skybox";
 		this.shaderSource = new ShaderSource({
-			shaderId: this.type,
-			defines: {}
+			shaderId: this.type
 		});
 		this.loadFish = false;
 		this.renderState.depthStencil.depthWriteEnabled = false;

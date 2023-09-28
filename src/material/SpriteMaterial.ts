@@ -10,11 +10,12 @@ export class SpriteMaterial extends Material {
 	constructor() {
 		super();
 		this.type = "sprite";
+		this.defines = {
+			HAS_UV: true
+		};
 		this.shaderSource = new ShaderSource({
 			shaderId: this.type,
-			defines: {
-				HAS_UV: true
-			}
+			defines: this.defines
 		});
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {

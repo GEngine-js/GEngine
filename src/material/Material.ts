@@ -61,6 +61,7 @@ export class Material {
 		this._doubleSided = true;
 		this.light = false;
 		this.ready = false;
+		this._defines = {};
 		this.init();
 	}
 	public set defines(defines) {

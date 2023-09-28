@@ -90,6 +90,7 @@ export default class ShaderData {
 				this.defines[name] = value;
 			}
 		}
+		return this;
 	}
 	setUniformBufferValue(uniformBuffer: UniformBuffer) {
 		const distUbo = this._uniforms.get(uniformBuffer.name);

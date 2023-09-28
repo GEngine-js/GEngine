@@ -17,12 +17,13 @@ export default class BlinnPhongMaterial extends Material {
 		super();
 		this.type = "phong";
 		this.color = new Color(1.0, 0.0, 0.0);
+		this.defines = {
+			materialPhong: true,
+			MATERIAL_PHONG: true
+		};
 		this.shaderSource = new ShaderSource({
 			shaderId: this.type,
-			defines: {
-				materialPhong: true,
-				MATERIAL_PHONG: true
-			}
+			defines: this.defines
 		});
 		this.light = true;
 		this.specular = new Color(1.0, 1.0, 1.0);

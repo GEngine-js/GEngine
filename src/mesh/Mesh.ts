@@ -3,7 +3,7 @@ import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderObject from "../core/RenderObject";
 import { CommandSubType, Intersect } from "../core/WebGPUConstant";
-import { RenderObjectType } from "../core/WebGPUTypes";
+import { PassEnum, RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
@@ -18,6 +18,7 @@ export class Mesh extends RenderObject {
 	instanceCount?: number;
 	priority?: number;
 	drawCommand?: DrawCommand;
+	passCommands?: Map<number | string, DrawCommand>;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
@@ -96,6 +97,10 @@ export class Mesh extends RenderObject {
 			return this.subCommands[commandSubType];
 		}
 		return this.drawCommand;
+	}
+	public getPassCommand(pass: PassEnum, lightManger?: LightManger) {
+		const passCommand = this.passCommands.get(pass);
+		if (passCommand) return passCommand;
 	}
 	destroy() {
 		this.geometry.destroy();

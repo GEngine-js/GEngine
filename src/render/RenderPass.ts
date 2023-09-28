@@ -1,8 +1,8 @@
 import { ShaderDataFactory } from "../core/ShaderDataFactory";
 import { PassEnum, ShaderDataEnum } from "../core/WebGPUTypes";
-import { Material } from "../material/Material";
 import { Mesh } from "../mesh/Mesh";
 import { ShaderSource } from "../shader/ShaderSource";
+import { RenderState } from "./RenderState";
 import ShaderData from "./ShaderData";
 
 export class RenderPass {
@@ -11,6 +11,7 @@ export class RenderPass {
 	private _shaderData: ShaderData;
 	private _label: string;
 	private _shaderDataEnum: ShaderDataEnum;
+	private _renderState: RenderState;
 	get shaderSource() {
 		return this._shaderSource;
 	}
@@ -20,14 +21,22 @@ export class RenderPass {
 	set defines(defines) {
 		this._shaderSource.setDefines(Object.assign({}, defines));
 	}
-	constructor(params: { label: string; passType: PassEnum; shaderDataEnum: ShaderDataEnum }) {
-		const { label, passType, shaderDataEnum } = params;
+	constructor(params: { shaderDataEnum: ShaderDataEnum; passType?: PassEnum; label?: string }) {
+		const { label, passType = PassEnum.RENDER, shaderDataEnum } = params;
 		this._label = label;
 		this.passType = passType;
 		this._shaderDataEnum = shaderDataEnum;
 	}
-	update(mesh?: Mesh, material?: Material) {
-		if (!this._shaderData || material.dirty)
+	get renderState() {
+		return this._renderState;
+	}
+	set renderState(value) {
+		this._renderState = value;
+	}
+	update(mesh?: Mesh) {
+		const { material, geometry } = mesh;
+		const defines = Object.assign({}, geometry?.defines, material?.defines, this?.shaderData?.defines) ?? {};
+		if (!this._shaderData || material?.dirty)
 			this._shaderData = ShaderDataFactory.createShaderData({
 				label: this._label,
 				mesh,
@@ -36,9 +45,9 @@ export class RenderPass {
 			});
 		if (!this._shaderSource)
 			this._shaderSource = new ShaderSource({
-				shaderId: this._label
+				shaderId: this._label ?? material?.type
 			});
-		this._shaderSource.setDefines(Object.assign({}, material?.defines, this?.shaderData?.defines));
+		this._shaderSource.setDefines(defines);
 	}
 	destroy() {
 		this?._shaderData?.destroy();
