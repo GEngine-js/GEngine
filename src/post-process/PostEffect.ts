@@ -16,8 +16,6 @@ export default class PostEffect implements IClone {
 
 	defaultSampler: Sampler;
 
-	resolveToCanvas: boolean;
-
 	currentRenderTarget: RenderTarget;
 
 	fullScreenQuad: Mesh;

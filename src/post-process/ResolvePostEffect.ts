@@ -1,25 +1,16 @@
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
-import Geometry from "../geometry/Geometry";
 import ShaderMaterial from "../material/ShaderMaterial";
-import { Mesh } from "../mesh/Mesh";
 import Attachment from "../render/Attachment";
-import { Float32Attribute } from "../render/Attribute";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
 import getVertFrag from "../shader/Shaders";
-export default class ResolveFrame {
-	canvasRenderTarget: RenderTarget;
+import PostEffect from "./PostEffect";
+export default class ResolvePostEffect extends PostEffect {
 	material: ShaderMaterial;
-	geometry: Geometry;
-	quadMesh: Mesh;
 	constructor() {
-		this.geometry = new Geometry({});
-		this.geometry.setAttribute(
-			new Float32Attribute("position", [-1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0], 2)
-		);
-		this.geometry.count = 6;
+		super(1024, 1024, "resolve");
 		const shader = getVertFrag("resolve", { positionLocation: 0 });
 		this.material = new ShaderMaterial({
 			shaderId: "resolve",
@@ -39,26 +30,19 @@ export default class ResolveFrame {
 				}
 			}
 		});
-		this.quadMesh = new Mesh(this.geometry, this.material);
+		this.fullScreenQuad.material = this.material;
 	}
 	setSize(width: number, height: number) {
-		this.canvasRenderTarget.setSize(width, height);
+		this.currentRenderTarget.setSize(width, height);
 		this.material.dirty = true;
 	}
-	render(context: Context, colorTexture?: Texture) {
-		if (!this.canvasRenderTarget) this.initRenderTarget(context);
+	render(context: Context, colorTexture: Texture) {
+		if (!this.currentRenderTarget) this.initRenderTarget(context);
 		// this.material
 		this.material.shaderMaterialParms.uniformTextureAndSampler.texture.value = colorTexture;
-
-		this.material.update(undefined, this.quadMesh);
-
-		const drawComand = this.quadMesh.getPassCommand();
-
-		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPass(context.device);
-
-		drawComand.render({ device: context.device, passEncoder: currentRenderPassEncoder });
-
-		this.canvasRenderTarget.endRenderPass();
+		this.material.update(undefined, this.fullScreenQuad);
+		this.renderMesh(context);
+		return null;
 	}
 	private initRenderTarget(context: Context) {
 		const { width, height, depth } = context.presentationSize;
@@ -79,6 +63,6 @@ export default class ResolveFrame {
 			}
 		});
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });
-		this.canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
+		this.currentRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);
 	}
 }
