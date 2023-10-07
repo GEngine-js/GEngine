@@ -37,7 +37,6 @@ export class SpriteMaterial extends Material {
 		uniformBuffer.setUniform("opacity", mesh, UniformEnum.Float);
 		this.shaderData.setUniformBuffer("sprite", uniformBuffer);
 		if (this.baseTexture) {
-			this.shaderData.setDefine("USE_COLORTEXTURE", true);
 			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
 			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}

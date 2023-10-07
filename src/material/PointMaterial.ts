@@ -14,7 +14,8 @@ export class PointMaterial extends Material {
 			HAS_UV: true,
 			HAS_COLOR: true,
 			VERTEX_COLOR: false,
-			VERTEX_SIZE: false
+			VERTEX_SIZE: false,
+			USE_INSTANCE: true
 		};
 		this.shaderSource = new ShaderSource({
 			shaderId: this.type,
@@ -37,9 +38,7 @@ export class PointMaterial extends Material {
 		uniformBuffer.setUniform("color", this, UniformEnum.Color);
 		uniformBuffer.setUniform("size", mesh, UniformEnum.Float);
 		this.shaderData.setUniformBuffer("point", uniformBuffer);
-		this.shaderData.setDefine("USE_INSTANCE", true);
 		if (this.baseTexture) {
-			this.shaderData.setDefine("USE_COLORTEXTURE", true);
 			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
 			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}

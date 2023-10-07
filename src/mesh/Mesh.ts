@@ -1,4 +1,5 @@
 import Camera from "../camera/Camera";
+import { DerivedCommands } from "../core/DerivedCommands";
 import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderObject from "../core/RenderObject";
@@ -18,7 +19,7 @@ export class Mesh extends RenderObject {
 	instanceCount?: number;
 	priority?: number;
 	drawCommand?: DrawCommand;
-	passCommands?: Map<number | string, DrawCommand>;
+	derivedCommands?: DerivedCommands;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
@@ -27,6 +28,7 @@ export class Mesh extends RenderObject {
 		this.frustumCull = true;
 		this.uid = createGuid();
 		this.subCommands = {};
+		this.derivedCommands = new DerivedCommands();
 	}
 	get distanceToCamera(): number {
 		return this?.geometry?.distanceToCamera;
@@ -40,7 +42,6 @@ export class Mesh extends RenderObject {
 		// create
 		this.geometry.update({ frameState, matrix: this.modelMatrix, camera });
 		this.material.update(frameState, this);
-		this.material.shaderSource.setDefines(frameState.defines);
 		if (this.type == RenderObjectType.Debug) {
 			frameState.renderQueue.debugQueue.push(this);
 			return;
@@ -63,9 +64,10 @@ export class Mesh extends RenderObject {
 	}
 	public getDrawCommand(overrideMaterial?: Material, commandSubType?: CommandSubType, lightManger?: LightManger) {
 		if (!this.drawCommand || this.material.dirty) {
-			this.material.shaderSource.setDefines(
-				Object.assign({}, this.material.shaderData.defines, this.geometry.defines)
-			);
+			// this.material.shaderSource.setDefines(
+			// 	Object.assign({}, this.material.shaderData.defines, this.geometry.defines)
+			// );
+			this.material.shaderData.defines = Object.assign({}, this.material.defines, this.geometry.defines);
 			if (this.material.dirty) this.material.dirty = false;
 			this.drawCommand = new DrawCommand({
 				vertexBuffers: this.geometry.vertexBuffers,
@@ -98,9 +100,8 @@ export class Mesh extends RenderObject {
 		}
 		return this.drawCommand;
 	}
-	public getPassCommand(pass: PassEnum, lightManger?: LightManger) {
-		const passCommand = this.passCommands.get(pass);
-		if (passCommand) return passCommand;
+	public getPassCommand(pass = PassEnum.RENDER, lightManger?: LightManger) {
+		return this?.derivedCommands?.getDerivedCommand({ pass, lightManger, mesh: this });
 	}
 	destroy() {
 		this.geometry.destroy();

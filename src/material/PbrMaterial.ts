@@ -133,12 +133,10 @@ export default class PbrMaterial extends Material {
 		this.shaderData.setUniformBuffer("pbr", uniformBuffer);
 		this.specularEnvTexture = textureCache.getTexture("specular");
 		if (this.baseTexture) {
-			this.shaderData.setDefine("USE_TEXTURE", true);
 			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
 			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}
 		if (this.metalnessRoughnessTexture) {
-			this.shaderData.setDefine("USE_METALNESSTEXTURE", true);
 			this.shaderData.setTexture("metalnessRoughnessTexture", this.metalnessRoughnessTexture);
 			this.shaderData.setSampler(
 				"metalnessRoughnessSampler",
@@ -147,18 +145,15 @@ export default class PbrMaterial extends Material {
 		}
 		if (this.normalTexture) {
 			uniformBuffer.setUniform("normalScale", this, UniformEnum.FloatVec2);
-			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
 			this.shaderData.setTexture("normalTexture", this.normalTexture);
 			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
 		}
 		if (this.aoTexture) {
-			this.shaderData.setDefine("USE_AOTEXTURE", true);
 			this.shaderData.setTexture("aoTexture", this.aoTexture);
 			this.shaderData.setSampler("aoSampler", this.aoSampler || textureCache.defaultSampler);
 			uniformBuffer.setUniform("aoTextureIntensity", this, UniformEnum.Float);
 		}
 		if (this.emissiveTexture) {
-			this.shaderData.setDefine("USE_EMISSIVETEXTURE", true);
 			this.shaderData.setTexture("emissiveTexture", this.emissiveTexture);
 			this.shaderData.setSampler("emissiveSampler", this.emissiveSampler || textureCache.defaultSampler);
 		}

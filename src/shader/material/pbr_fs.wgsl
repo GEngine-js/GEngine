@@ -55,7 +55,7 @@ fn main(input:FragInput) -> @location(0) vec4<f32>
     var perceptualRoughness:f32 = materialUniform.roughness;
     var metallic:f32 = materialUniform.metallic;
 
-    #if USE_METALNESSTEXTURE
+    #if USE_METALNESSROUGHNESSTEXTURE
         let mrSample:vec4<f32> = textureSample(metalnessRoughnessTexture,metalnessRoughnessSampler, input.uv);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic = mrSample.b * metallic;
@@ -66,7 +66,7 @@ fn main(input:FragInput) -> @location(0) vec4<f32>
 
 
     // The albedo may be defined from a base texture or a flat color
-    #if USE_TEXTURE
+    #if USE_BASECOLORTEXTURE
         let baseColor:vec4<f32> = textureSample(baseColorTexture,baseColorSampler, input.uv) ;
     #else
         let baseColor:vec4<f32> = vec4<f32>(materialUniform.color,1.0);

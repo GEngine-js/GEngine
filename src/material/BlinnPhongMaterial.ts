@@ -58,12 +58,10 @@ export default class BlinnPhongMaterial extends Material {
 		uniformBuffer.setUniform("specular", this, UniformEnum.Color);
 		this.shaderData.setUniformBuffer("phong", uniformBuffer);
 		if (this.baseTexture) {
-			this.shaderData.setDefine("USE_COLORTEXTURE", true);
 			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
 			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
 		}
 		if (this.normalTexture) {
-			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
 			this.shaderData.setTexture("normalTexture", this.normalTexture);
 			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
 		}
