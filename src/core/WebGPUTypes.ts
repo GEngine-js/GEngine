@@ -598,7 +598,7 @@ export enum ShaderDataEnum {
 	DEPTH = "depth",
 	NORMAL = "normal"
 }
-export enum PassEnum {
+export enum Pass {
 	RENDER = 0,
 	SHADOW = 1,
 	PICK = 2,

@@ -4,7 +4,7 @@ import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderObject from "../core/RenderObject";
 import { Intersect } from "../core/WebGPUConstant";
-import { PassEnum, RenderObjectType } from "../core/WebGPUTypes";
+import { Pass, RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
@@ -61,7 +61,7 @@ export class Mesh extends RenderObject {
 	afterRender() {
 		// after render
 	}
-	public getPassCommand(pass = PassEnum.RENDER, lightManger?: LightManger) {
+	public getPassCommand(pass = Pass.RENDER, lightManger?: LightManger) {
 		return this?.derivedCommands?.getDerivedCommand({ pass, lightManger, mesh: this });
 	}
 	destroy() {

@@ -2,7 +2,7 @@ import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderQueue from "../core/RenderQueue";
-import { PassEnum } from "../core/WebGPUTypes";
+import { Pass } from "../core/WebGPUTypes";
 import { Light } from "../light/Light";
 import { PointLight } from "../light/PointLight";
 import { BaseShadow } from "../light/shadows/BaseShadow";
@@ -81,14 +81,8 @@ export class ShadowPass extends RenderPass {
 	subRender(renderQueue: RenderQueue, shadow: BaseShadow, lightManger: LightManger) {
 		renderQueue.sort();
 		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, lightManger, PassEnum.SHADOW);
-		renderQueue.transparentRender(
-			shadow.camera,
-			this.context,
-			this.passRenderEncoder,
-			lightManger,
-			PassEnum.SHADOW
-		);
+		renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, lightManger, Pass.SHADOW);
+		renderQueue.transparentRender(shadow.camera, this.context, this.passRenderEncoder, lightManger, Pass.SHADOW);
 	}
 
 	// getDepthTexture(): Texture {

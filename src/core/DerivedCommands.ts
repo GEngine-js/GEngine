@@ -3,7 +3,7 @@ import ShaderMaterial from "../material/ShaderMaterial";
 import { Mesh } from "../mesh/Mesh";
 import DrawCommand from "../render/DrawCommand";
 import LightManger from "./LightManger";
-import { PassEnum } from "./WebGPUTypes";
+import { Pass } from "./WebGPUTypes";
 
 export class DerivedCommands {
 	private _commands: Map<string | number, DrawCommand>;
@@ -12,16 +12,16 @@ export class DerivedCommands {
 		this._commands = new Map();
 		this._initDerivedMaterial();
 	}
-	public getDerivedCommand(params: { pass: PassEnum; mesh?: Mesh; lightManger?: LightManger }): DrawCommand {
+	public getDerivedCommand(params: { pass: Pass; mesh?: Mesh; lightManger?: LightManger }): DrawCommand {
 		const { pass, mesh, lightManger } = params;
 		const { material } = mesh || {};
 		let command = this._commands.get(pass);
 		if (!command || material?.dirty) {
 			switch (pass) {
-				case PassEnum.RENDER:
+				case Pass.RENDER:
 					command = DerivedCommands.createRenderCommand(mesh, lightManger);
 					break;
-				case PassEnum.SHADOW:
+				case Pass.SHADOW:
 					command = DerivedCommands.createShadowCommand(mesh, this);
 					break;
 				default:

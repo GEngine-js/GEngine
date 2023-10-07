@@ -5,7 +5,7 @@ import { ComputeCommand } from "../render/ComputeCommand";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
 import LightManger from "./LightManger";
-import { PassEnum } from "./WebGPUTypes";
+import { Pass } from "./WebGPUTypes";
 export default class RenderQueue {
 	public pre: Array<Mesh>;
 	public opaque: Array<Mesh>;
@@ -28,7 +28,7 @@ export default class RenderQueue {
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
 		lightManger?: LightManger,
-		pass?: PassEnum
+		pass?: Pass
 	) {
 		this.opaque.map((mesh) => {
 			if (!mesh.ready) return;
@@ -42,7 +42,7 @@ export default class RenderQueue {
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
 		lightManger?: LightManger,
-		pass?: PassEnum
+		pass?: Pass
 	) {
 		this.transparent.map((mesh) => {
 			if (!mesh.ready) return;
@@ -56,7 +56,7 @@ export default class RenderQueue {
 			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
-	debugQueueRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, pass?: PassEnum) {
+	debugQueueRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, pass?: Pass) {
 		this.debugQueue.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();

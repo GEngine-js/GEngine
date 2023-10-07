@@ -1,12 +1,12 @@
 import { ShaderDataFactory } from "../core/ShaderDataFactory";
-import { PassEnum, ShaderDataEnum } from "../core/WebGPUTypes";
+import { Pass, ShaderDataEnum } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
 import { ShaderSource } from "../shader/ShaderSource";
 import { RenderState } from "./RenderState";
 import ShaderData from "./ShaderData";
 
 export class RenderPass {
-	public passType: PassEnum;
+	public passType: Pass;
 	private _shaderSource: ShaderSource;
 	private _shaderData: ShaderData;
 	private _label: string;
@@ -21,8 +21,8 @@ export class RenderPass {
 	set defines(defines) {
 		this._shaderSource.setDefines(Object.assign({}, defines));
 	}
-	constructor(params: { shaderDataEnum: ShaderDataEnum; passType?: PassEnum; label?: string }) {
-		const { label, passType = PassEnum.RENDER, shaderDataEnum } = params;
+	constructor(params: { shaderDataEnum: ShaderDataEnum; passType?: Pass; label?: string }) {
+		const { label, passType = Pass.RENDER, shaderDataEnum } = params;
 		this._label = label;
 		this.passType = passType;
 		this._shaderDataEnum = shaderDataEnum;
