@@ -10,8 +10,8 @@ import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
-export class ShadowPass extends Pass {
+import RenderPass from "./RenderPass";
+export class ShadowPass extends RenderPass {
 	_testTexture: Texture;
 	constructor(context: Context) {
 		super(context);

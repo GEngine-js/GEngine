@@ -8,9 +8,9 @@ import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
+import RenderPass from "./RenderPass";
 
-export class BasicPass extends Pass {
+export class BasicPass extends RenderPass {
 	skyboxDrawComand: DrawCommand;
 	constructor(context: Context) {
 		super(context);

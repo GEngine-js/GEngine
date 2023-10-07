@@ -1,10 +1,10 @@
 import { FrameState } from "../core/FrameState.js";
 import Context from "../render/Context.js";
-import { Target } from "../render/RenderState";
+import { Target } from "../render/RenderState.js";
 import RenderTarget from "../render/RenderTarget.js";
 import Texture from "../render/Texture.js";
 
-class Pass {
+class RenderPass {
 	public renderTarget: RenderTarget;
 	public context: Context;
 	public colorTargets?: Array<Target>;
@@ -36,4 +36,4 @@ class Pass {
 	}
 }
 
-export default Pass;
+export default RenderPass;
