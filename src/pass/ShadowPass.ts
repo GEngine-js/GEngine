@@ -2,18 +2,16 @@ import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderQueue from "../core/RenderQueue";
-import { CommandSubType } from "../core/WebGPUConstant";
+import { PassEnum } from "../core/WebGPUTypes";
 import { Light } from "../light/Light";
 import { PointLight } from "../light/PointLight";
 import { BaseShadow } from "../light/shadows/BaseShadow";
-import ShaderMaterial from "../material/ShaderMaterial";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
 import Pass from "./Pass";
 export class ShadowPass extends Pass {
-	public shadowMaterial: ShaderMaterial;
 	_testTexture: Texture;
 	constructor(context: Context) {
 		super(context);
@@ -83,21 +81,13 @@ export class ShadowPass extends Pass {
 	subRender(renderQueue: RenderQueue, shadow: BaseShadow, lightManger: LightManger) {
 		renderQueue.sort();
 		// renderQueue.preRender(shadow.camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(
-			shadow.camera,
-			this.context,
-			this.passRenderEncoder,
-			this.shadowMaterial,
-			CommandSubType.Shadow,
-			lightManger
-		);
+		renderQueue.opaqueRender(shadow.camera, this.context, this.passRenderEncoder, lightManger, PassEnum.SHADOW);
 		renderQueue.transparentRender(
 			shadow.camera,
 			this.context,
 			this.passRenderEncoder,
-			this.shadowMaterial,
-			CommandSubType.Shadow,
-			lightManger
+			lightManger,
+			PassEnum.SHADOW
 		);
 	}
 
@@ -118,31 +108,10 @@ export class ShadowPass extends Pass {
 
 	private init(context: Context) {
 		this.createRenderTarget(context);
-		this.createShadowMaterial();
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private createRenderTarget(context: Context) {
 		const depthAttachment = new Attachment(1.0, { texture: undefined });
 		this.renderTarget = new RenderTarget("render", [], depthAttachment);
-	}
-
-	private createShadowMaterial() {
-		this.shadowMaterial = new ShaderMaterial({
-			shaderId: "shadowMap",
-			uniformBuffers: [
-				{
-					uid: "shadow",
-					uniforms: {
-						modelMatrix: { type: "mat4x4<f32>", value: null }
-					}
-				}
-			],
-			defines: {
-				selfBinding: 0,
-				cameraBinding: 0,
-				positionLocation: 0
-			},
-			light: false // TODO:先true，false有显示bug
-		});
 	}
 }

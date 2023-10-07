@@ -56,6 +56,7 @@ export class DerivedCommands {
 	static createRenderCommand(mesh?: Mesh, lightManger?: LightManger) {
 		const { geometry, material } = mesh;
 		material.dirty = false;
+		material.shaderData.defines = Object.assign({}, geometry.defines);
 		return new DrawCommand({
 			vertexBuffers: geometry.vertexBuffers,
 			indexBuffer: geometry.indexBuffer,

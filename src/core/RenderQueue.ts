@@ -1,12 +1,11 @@
 import Camera from "../camera/Camera";
 import { Compute } from "../compute/Compute";
-import { Material } from "../material/Material";
 import { Mesh } from "../mesh/Mesh";
 import { ComputeCommand } from "../render/ComputeCommand";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
 import LightManger from "./LightManger";
-import { CommandSubType } from "./WebGPUConstant";
+import { PassEnum } from "./WebGPUTypes";
 export default class RenderQueue {
 	public pre: Array<Mesh>;
 	public opaque: Array<Mesh>;
@@ -28,19 +27,13 @@ export default class RenderQueue {
 		camera: Camera,
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
-		replaceMaterial?: Material,
-		commandSubType?: CommandSubType,
-		lightManger?: LightManger
+		lightManger?: LightManger,
+		pass?: PassEnum
 	) {
 		this.opaque.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(
-				mesh.getDrawCommand(replaceMaterial, commandSubType, lightManger),
-				context,
-				passEncoder,
-				camera
-			);
+			RenderQueue.excuteCommand(mesh.getPassCommand(pass, lightManger), context, passEncoder, camera);
 			mesh.afterRender();
 		});
 	}
@@ -48,19 +41,13 @@ export default class RenderQueue {
 		camera: Camera,
 		context: Context,
 		passEncoder?: GPURenderPassEncoder,
-		replaceMaterial?: Material,
-		commandSubType?: CommandSubType,
-		lightManger?: LightManger
+		lightManger?: LightManger,
+		pass?: PassEnum
 	) {
 		this.transparent.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(
-				mesh.getDrawCommand(replaceMaterial, commandSubType, lightManger),
-				context,
-				passEncoder,
-				camera
-			);
+			RenderQueue.excuteCommand(mesh.getPassCommand(pass, lightManger), context, passEncoder, camera);
 			mesh.afterRender();
 		});
 	}
@@ -69,31 +56,19 @@ export default class RenderQueue {
 			RenderQueue.excuteCompute(compute.getCommand(), context, passEncoder);
 		});
 	}
-	debugQueueRender(
-		camera: Camera,
-		context: Context,
-		passEncoder?: GPURenderPassEncoder,
-		replaceMaterial?: Material,
-		commandSubType?: CommandSubType
-	) {
+	debugQueueRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, pass?: PassEnum) {
 		this.debugQueue.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(
-				mesh.getDrawCommand(replaceMaterial, commandSubType),
-				context,
-				passEncoder,
-				camera
-			);
+			RenderQueue.excuteCommand(mesh.getPassCommand(pass), context, passEncoder, camera);
 			mesh.afterRender();
 		});
 	}
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	preRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder, replaceMaterial?: Material) {
+	preRender(camera: Camera, context: Context, passEncoder?: GPURenderPassEncoder) {
 		this.pre.map((mesh) => {
 			if (!mesh.ready) return;
 			mesh.beforeRender();
-			RenderQueue.excuteCommand(mesh.getDrawCommand(), context, passEncoder, camera);
+			RenderQueue.excuteCommand(mesh.getPassCommand(), context, passEncoder, camera);
 			mesh.afterRender();
 		});
 	}

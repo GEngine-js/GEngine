@@ -52,7 +52,7 @@ export default class ResolveFrame {
 
 		this.material.update(undefined, this.quadMesh);
 
-		const drawComand = this.quadMesh.getDrawCommand();
+		const drawComand = this.quadMesh.getPassCommand();
 
 		const currentRenderPassEncoder = this.canvasRenderTarget.beginRenderPass(context.device);
 
