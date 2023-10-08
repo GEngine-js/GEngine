@@ -9,7 +9,6 @@ class RenderPass {
 	public context: Context;
 	public colorTargets?: Array<Target>;
 	public passRenderEncoder: GPURenderPassEncoder | null;
-	public passComputeEncoder: GPUComputePassEncoder;
 	constructor(context: Context) {
 		this.context = context;
 	}
