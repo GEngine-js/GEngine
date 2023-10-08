@@ -1,11 +1,10 @@
 import { FrameState } from "../core/FrameState";
-import textureCache from "../core/TextureCache";
-import { UniformEnum } from "../core/WebGPUTypes";
+import { ShaderDataFactory } from "../core/ShaderDataFactory";
+import { ShaderDataEnum } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 export default class BlinnPhongMaterial extends Material {
@@ -32,39 +31,12 @@ export default class BlinnPhongMaterial extends Material {
 		this.baseSampler = undefined;
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
-		if (!this.shaderData || this.dirty) this.createShaderData(mesh);
-	}
-	protected createShaderData(mesh?: Mesh) {
-		super.createShaderData();
-		const uniformBuffer = new UniformBuffer({ label: "phong" });
-		uniformBuffer.setUniform(
-			"modelMatrix",
-			() => {
-				return mesh.modelMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		uniformBuffer.setUniform("color", this, UniformEnum.Color);
-		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
-		uniformBuffer.setUniform(
-			"normalMtrix",
-			() => {
-				return mesh.normalMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		uniformBuffer.setUniform("emissive", this, UniformEnum.Color);
-		uniformBuffer.setUniform("shininess", this, UniformEnum.Float);
-		uniformBuffer.setUniform("specular", this, UniformEnum.Color);
-		this.shaderData.setUniformBuffer("phong", uniformBuffer);
-		if (this.baseTexture) {
-			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
-			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
-		}
-		if (this.normalTexture) {
-			this.shaderData.setTexture("normalTexture", this.normalTexture);
-			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
-		}
+		if (!this.shaderData || this.dirty)
+			this.shaderData = ShaderDataFactory.createShaderData({
+				mesh,
+				material: this,
+				shaderDataEnum: ShaderDataEnum.BLINNPHONG
+			});
 	}
 	destroy() {
 		this?.baseTexture?.destroy();

@@ -13,11 +13,12 @@ import { ShaderDataEnum, UniformEnum } from "./WebGPUTypes";
 export class ShaderDataFactory {
 	static createShaderData(params: {
 		shaderDataEnum?: ShaderDataEnum;
-		label: string;
+		label?: string;
 		mesh?: Mesh;
 		material?: Material;
 	}) {
 		const { shaderDataEnum, label, mesh, material } = params;
+		material.ready = true;
 		switch (shaderDataEnum) {
 			case ShaderDataEnum.COLOR:
 				return ShaderDataFactory.createColorShaderData(mesh);
@@ -123,8 +124,8 @@ export class ShaderDataFactory {
 			?.setUniform("emissive", material, UniformEnum.Color)
 			?.setUniform("metalness", material, UniformEnum.Float)
 			?.setUniform("roughness", material, UniformEnum.Float);
-		if (material?.normalTexture) uniformBuffer.setUniform("normalScale", this, UniformEnum.FloatVec2);
-		if (material?.aoTexture) uniformBuffer.setUniform("aoTextureIntensity", this, UniformEnum.Float);
+		if (material?.normalTexture) uniformBuffer.setUniform("normalScale", material, UniformEnum.FloatVec2);
+		if (material?.aoTexture) uniformBuffer.setUniform("aoTextureIntensity", material, UniformEnum.Float);
 		return uniformBuffer;
 	}
 	static createCustomUniformBuffer(shaderData: ShaderData, uniformBufferParams, mesh?: Mesh) {
@@ -191,7 +192,7 @@ export class ShaderDataFactory {
 		return shaderData;
 	}
 	static createPbrShaderData(mesh?: Mesh, material?: PbrMaterial) {
-		const label = "pbr_mat";
+		const label = "pbr";
 		const shaderData = new ShaderData(label, 0)?.setUniformBuffer(
 			label,
 			ShaderDataFactory.createPBRUniformBuffer(label, mesh, material)
@@ -245,7 +246,7 @@ export class ShaderDataFactory {
 	static createSkyBoxShaderData(mesh?: Mesh, material?: Material) {
 		const label = "skybox";
 		return new ShaderData(label, 0)
-			?.setUniformBuffer(label, ShaderDataFactory.createColorUniformBuffer(label, mesh))
+			?.setUniformBuffer(label, ShaderDataFactory.createSkyBoxUniformBuffer(label, mesh))
 			?.setTexture("baseTexture", material.baseTexture)
 			?.setSampler("baseSampler", material.baseSampler);
 	}

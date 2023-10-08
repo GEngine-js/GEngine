@@ -55,6 +55,7 @@ export class DerivedCommands {
 	}
 	static createRenderCommand(mesh?: Mesh, lightManger?: LightManger) {
 		const { geometry, material } = mesh;
+		if (!material.shaderData) return undefined;
 		material.dirty = false;
 		material.shaderData.defines = Object.assign({}, geometry.defines);
 		return new DrawCommand({
@@ -74,6 +75,7 @@ export class DerivedCommands {
 	static createShadowCommand(mesh?: Mesh, derivedCommands?: DerivedCommands) {
 		const { geometry, material } = mesh;
 		const { shadowMaterial } = derivedCommands;
+		if (!material.shaderData) return undefined;
 		shadowMaterial.update(undefined, mesh);
 		if (mesh.instanceCount > 1)
 			shadowMaterial.shaderData.setUniformBuffer(

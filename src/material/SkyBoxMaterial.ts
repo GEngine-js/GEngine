@@ -1,10 +1,10 @@
 import { FrameState } from "../core/FrameState";
+import { ShaderDataFactory } from "../core/ShaderDataFactory";
 import textureCache from "../core/TextureCache";
 import { CompareFunction } from "../core/WebGPUConstant";
-import { UniformEnum } from "../core/WebGPUTypes";
+import { ShaderDataEnum } from "../core/WebGPUTypes";
 import CubeTextureLoader from "../loader/CubeTextureLoader";
 import { Mesh } from "../mesh/Mesh";
-import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 export default class SkyBoxMaterial extends Material {
@@ -28,22 +28,11 @@ export default class SkyBoxMaterial extends Material {
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!this.loadFish) return;
-		if (!this.shaderData) {
-			this.createShaderData(mesh);
-		}
-	}
-	protected createShaderData(mesh?: Mesh) {
-		super.createShaderData();
-		const uniformBuffer = new UniformBuffer({ label: "skybox" });
-		uniformBuffer.setUniform(
-			"modelMatrix",
-			() => {
-				return mesh.modelMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		this.shaderData.setUniformBuffer("skybox", uniformBuffer);
-		this.shaderData.setTexture("baseTexture", this.baseTexture);
-		this.shaderData.setSampler("baseSampler", this.baseSampler);
+		if (!this.shaderData)
+			this.shaderData = ShaderDataFactory.createShaderData({
+				mesh,
+				material: this,
+				shaderDataEnum: ShaderDataEnum.SKYBOX
+			});
 	}
 }

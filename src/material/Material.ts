@@ -127,11 +127,6 @@ export class Material {
 	update(frameState?: FrameState, mesh?: Mesh) {
 		// update material
 	}
-	protected createShaderData() {
-		if (this.shaderData) this.shaderData.destroy();
-		this.shaderData = new ShaderData(this.type, 0);
-		this.ready = true;
-	}
 	private init() {
 		// 默认渲染状态
 		const primitive = new Primitive();
