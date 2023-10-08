@@ -4,7 +4,6 @@ import LightManger from "../core/LightManger";
 import RenderQueue from "../core/RenderQueue";
 import { CommandSubType } from "../core/WebGPUConstant";
 import { Light } from "../light/Light";
-import { PointLight } from "../light/PointLight";
 import { BaseShadow } from "../light/shadows/BaseShadow";
 import ShaderMaterial from "../material/ShaderMaterial";
 import Attachment from "../render/Attachment";
@@ -26,7 +25,7 @@ export class ShadowPass extends Pass {
 		if (lights.length === 0) return;
 
 		for (let i = 0; i < lights.length; i++) {
-			const light: PointLight | Light = lights[i];
+			const light: Light = lights[i];
 			const shadow = light.shadow;
 			if (!shadow) continue;
 			// this._testTexture = context.lightManger._testTexture

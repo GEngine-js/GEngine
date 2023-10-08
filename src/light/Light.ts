@@ -12,7 +12,7 @@ export class Light extends RenderObject {
 	shadowDirty: boolean;
 	intensityDirty: boolean;
 	positionDirty: boolean;
-	public _shadow: BaseShadow;
+	private _shadow: BaseShadow | null;
 	public targetDirty: boolean;
 	public lightType: LightType;
 

@@ -801,17 +801,17 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 	private setSubData(pointLight: PointLight, index: number) {
 		const offset = index * this._subDataSize;
 
-		if (pointLight.shadow.vpMatrixArrayDirty) {
-			pointLight.shadow.vpMatrixArrayDirty = false;
-			const vpMatrixArray = pointLight.shadow.camera.vpMatrixArray;
+		if (pointLight.pointLightShadow?.vpMatrixArrayDirty) {
+			pointLight.pointLightShadow.vpMatrixArrayDirty = false;
+			const vpMatrixArray = pointLight.pointLightShadow.camera.vpMatrixArray;
 			for (let i = 0; i < vpMatrixArray.length; i++) {
 				const vpMatrix = vpMatrixArray[i];
 				this.dirty = setDataToTypeArray(this.buffer, vpMatrix.toArray(), offset + 0 + 16 * i); // byteOffset=98 * 4;
 			}
 		}
 
-		if (pointLight.shadow.viewPortDirty) {
-			pointLight.shadow.viewPortDirty = false;
+		if (pointLight.pointLightShadow?.viewPortDirty) {
+			pointLight.pointLightShadow.viewPortDirty = false;
 			for (let i = 0; i < 6; i++) {
 				this.dirty = setDataToTypeArray(
 					this.buffer,
@@ -821,12 +821,12 @@ export class UniformPointLightShadows extends Uniform<PointLight> {
 			}
 		}
 
-		const nearValue = pointLight.shadow.camera.near;
+		const nearValue = pointLight.pointLightShadow?.camera.near;
 		if (nearValue != this._nearValue) {
 			this._nearValue = nearValue;
 			this.dirty = setDataToTypeArray(this.buffer, this._nearValue, offset + 120); // byteOffset=0;
 		}
-		const farValue = pointLight.shadow.camera.far;
+		const farValue = pointLight.pointLightShadow?.camera.far;
 		if (farValue != this._farValue) {
 			this._farValue = farValue;
 			this.dirty = setDataToTypeArray(this.buffer, this._farValue, offset + 121); // byteOffset=1;

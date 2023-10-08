@@ -9,13 +9,12 @@ export class PointLight extends Light {
 	distanceDirty: boolean;
 	decayDirty: boolean;
 
-	get shadow(): PointLightShadow {
-		return this._shadow as PointLightShadow;
-	}
+	get pointLightShadow(): PointLightShadow | null {
+		if (this.shadow instanceof PointLightShadow) {
+			return this.shadow;
+		}
 
-	set shadow(value: PointLightShadow) {
-		this.shadowDirty = true;
-		this._shadow = value;
+		return null;
 	}
 
 	constructor(color: Vector3, intensity: number, distance = 0, decay = 4, openShadow = true) {
