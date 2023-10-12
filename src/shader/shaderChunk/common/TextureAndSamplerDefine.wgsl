@@ -2,7 +2,7 @@
   @group(0) @binding(specularEnvTextureBinding) var specularEnvTexture : texture_cube <f32>;
   @group(0) @binding(specularEnvSamplerBinding) var specularEnvSampler : sampler;
 #endif
-#if USE_TEXTURE
+#if USE_BASECOLORTEXTURE
   @group(0) @binding(baseColorTextureBinding) var baseColorTexture : texture_2d<f32>;
   @group(0) @binding(baseColorSamplerBinding) var baseColorSampler : sampler;
 #endif
@@ -18,7 +18,7 @@
 #endif
 
     //metal roughness
-#if USE_METALNESSTEXTURE
+#if USE_METALNESSROUGHNESSTEXTURE
   @group(0) @binding(metalnessRoughnessTextureBinding) var metalnessRoughnessTexture : texture_2d<f32>;
   @group(0) @binding(metalnessRoughnessSamplerBinding) var metalnessRoughnessSampler : sampler;
 #endif

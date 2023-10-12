@@ -61,6 +61,7 @@ export class Material {
 		this._doubleSided = true;
 		this.light = false;
 		this.ready = false;
+		this._defines = {};
 		this.init();
 	}
 	public set defines(defines) {
@@ -125,11 +126,6 @@ export class Material {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(frameState?: FrameState, mesh?: Mesh) {
 		// update material
-	}
-	protected createShaderData() {
-		if (this.shaderData) this.shaderData.destroy();
-		this.shaderData = new ShaderData(this.type, 0);
-		this.ready = true;
 	}
 	private init() {
 		// 默认渲染状态

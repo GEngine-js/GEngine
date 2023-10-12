@@ -1,9 +1,10 @@
 import Camera from "../camera/Camera";
+import { DerivedCommands } from "../core/DerivedCommands";
 import { FrameState } from "../core/FrameState";
 import LightManger from "../core/LightManger";
 import RenderObject from "../core/RenderObject";
-import { CommandSubType, Intersect } from "../core/WebGPUConstant";
-import { RenderObjectType } from "../core/WebGPUTypes";
+import { Intersect } from "../core/WebGPUConstant";
+import { Pass, RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import { Material } from "../material/Material";
 import DrawCommand from "../render/DrawCommand";
@@ -17,7 +18,7 @@ export class Mesh extends RenderObject {
 	material?: Material;
 	instanceCount?: number;
 	priority?: number;
-	drawCommand?: DrawCommand;
+	derivedCommands?: DerivedCommands;
 	constructor(geometry?: Geometry, material?: Material) {
 		super();
 		this.geometry = geometry;
@@ -26,6 +27,7 @@ export class Mesh extends RenderObject {
 		this.frustumCull = true;
 		this.uid = createGuid();
 		this.subCommands = {};
+		this.derivedCommands = new DerivedCommands();
 	}
 	get distanceToCamera(): number {
 		return this?.geometry?.distanceToCamera;
@@ -39,7 +41,6 @@ export class Mesh extends RenderObject {
 		// create
 		this.geometry.update({ frameState, matrix: this.modelMatrix, camera });
 		this.material.update(frameState, this);
-		this.material.shaderSource.setDefines(frameState.defines);
 		if (this.type == RenderObjectType.Debug) {
 			frameState.renderQueue.debugQueue.push(this);
 			return;
@@ -60,42 +61,8 @@ export class Mesh extends RenderObject {
 	afterRender() {
 		// after render
 	}
-	public getDrawCommand(overrideMaterial?: Material, commandSubType?: CommandSubType, lightManger?: LightManger) {
-		if (!this.drawCommand || this.material.dirty) {
-			this.material.shaderSource.setDefines(
-				Object.assign({}, this.material.shaderData.defines, this.geometry.defines)
-			);
-			if (this.material.dirty) this.material.dirty = false;
-			this.drawCommand = new DrawCommand({
-				vertexBuffers: this.geometry.vertexBuffers,
-				indexBuffer: this.geometry.indexBuffer,
-				shaderData: this.material.shaderData,
-				drawParams: {
-					count: this.geometry.count,
-					instanceCount: this.instanceCount
-				},
-				renderState: this.material.renderState,
-				shaderSource: this.material.shaderSource,
-				lightShaderData: this.material.light ? lightManger?.lightShaderData : undefined,
-				useLight: this.material.light
-			});
-		}
-		if (overrideMaterial) {
-			if (!this.subCommands[commandSubType]) {
-				const copyMat = overrideMaterial.clone();
-				copyMat.update(undefined, this);
-				copyMat.shaderSource.setDefines(Object.assign({}, this.material.shaderData.defines));
-				if (this.instanceCount > 1)
-					copyMat.shaderData.setUniformBuffer(
-						"instanceMatrixsBuffer",
-						this.material.shaderData.getUniformBuffer("instanceMatrixsBuffer")
-					);
-				if (copyMat.dirty) copyMat.dirty = false;
-				this.subCommands[commandSubType] = this.drawCommand.shallowClone(copyMat);
-			}
-			return this.subCommands[commandSubType];
-		}
-		return this.drawCommand;
+	public getPassCommand(pass = Pass.RENDER, lightManger?: LightManger) {
+		return this?.derivedCommands?.getDerivedCommand({ pass, lightManger, mesh: this });
 	}
 	destroy() {
 		this.geometry.destroy();

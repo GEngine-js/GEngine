@@ -5,9 +5,9 @@ import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
+import RenderPass from "./RenderPass";
 
-export class DeferredPass extends Pass {
+export class DeferredPass extends RenderPass {
 	render(frameState: FrameState, camera?: Camera): void {
 		const { renderQueue } = frameState;
 		renderQueue.sort();

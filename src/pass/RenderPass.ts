@@ -1,17 +1,14 @@
 import { FrameState } from "../core/FrameState.js";
-import { Material } from "../material/Material.js";
 import Context from "../render/Context.js";
-import { Target } from "../render/RenderState";
+import { Target } from "../render/RenderState.js";
 import RenderTarget from "../render/RenderTarget.js";
 import Texture from "../render/Texture.js";
 
-class Pass {
+class RenderPass {
 	public renderTarget: RenderTarget;
 	public context: Context;
-	public overrideMaterial?: Material;
 	public colorTargets?: Array<Target>;
 	public passRenderEncoder: GPURenderPassEncoder | null;
-	public passComputeEncoder: GPUComputePassEncoder;
 	constructor(context: Context) {
 		this.context = context;
 	}
@@ -38,4 +35,4 @@ class Pass {
 	}
 }
 
-export default Pass;
+export default RenderPass;

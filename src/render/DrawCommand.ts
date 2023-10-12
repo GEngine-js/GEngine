@@ -104,7 +104,12 @@ class DrawCommand implements Command {
 
 		const currentPassEncoder = renderTarget?.beginRenderPass?.(device) ?? passEncoder;
 
-		const defines = Object.assign({}, lightShaderData?.defines ?? {}, camera?.shaderData?.defines ?? {});
+		const defines = Object.assign(
+			{},
+			lightShaderData?.defines ?? {},
+			camera?.shaderData?.defines ?? {},
+			shaderData?.defines ?? {}
+		);
 
 		shaderData?.bind?.(device, currentPassEncoder);
 

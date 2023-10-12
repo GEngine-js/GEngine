@@ -12,7 +12,7 @@ import { UniformSampler, UniformTexture } from "./Uniforms";
 export default class ShaderData {
 	currentBinding: number;
 
-	defines: ShaderDefine;
+	private _defines: ShaderDefine;
 
 	defineDirty: boolean;
 
@@ -32,10 +32,17 @@ export default class ShaderData {
 		this.label = label;
 		this.currentBinding = 0;
 		this.defineDirty = true;
-		this.defines = {};
+		this._defines = {};
 		this._uniforms = new Map();
 		this.groupIndex = defaultValue(groupIndex, 0);
 		this.layoutIndex = defaultValue(layoutIndex, 0);
+	}
+	get defines() {
+		return this._defines;
+	}
+	set defines(value) {
+		if (!value) return;
+		this._defines = Object.assign({}, this._defines, value);
 	}
 	getUniformBuffer(name: string): UniformBuffer {
 		return this._uniforms.get(name);
@@ -79,17 +86,18 @@ export default class ShaderData {
 		return this;
 	}
 	setDefine(name: string, value: boolean | number) {
-		if (this.defines[name] === undefined) {
+		if (this._defines[name] === undefined) {
 			this.defineDirty = true;
-			this.defines[name] = value;
+			this._defines[name] = value;
 		} else {
-			if (this.defines[name] === value) {
+			if (this._defines[name] === value) {
 				return;
 			} else {
 				this.defineDirty = true;
-				this.defines[name] = value;
+				this._defines[name] = value;
 			}
 		}
+		return this;
 	}
 	setUniformBufferValue(uniformBuffer: UniformBuffer) {
 		const distUbo = this._uniforms.get(uniformBuffer.name);
@@ -110,7 +118,7 @@ export default class ShaderData {
 		this.label = undefined;
 		this.currentBinding = 1;
 		this.defineDirty = true;
-		this.defines = undefined;
+		this._defines = undefined;
 		this._uniforms.clear();
 		BindGroupLayout.removeBindGroupLayoutFromCache(this.groupLayout);
 		this.bindGroup = undefined;

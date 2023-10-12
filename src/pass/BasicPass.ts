@@ -1,15 +1,16 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
+import { Pass } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
+import RenderPass from "./RenderPass";
 
-export class BasicPass extends Pass {
+export class BasicPass extends RenderPass {
 	skyboxDrawComand: DrawCommand;
 	constructor(context: Context) {
 		super(context);
@@ -27,8 +28,8 @@ export class BasicPass extends Pass {
 
 		renderQueue.sort();
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
-		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
+		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, lightManger, Pass.RENDER);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, lightManger, Pass.RENDER);
 		renderQueue.debugQueueRender(camera, this.context, this.passRenderEncoder);
 	}
 	private init(context: Context) {

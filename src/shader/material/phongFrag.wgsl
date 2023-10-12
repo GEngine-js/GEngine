@@ -18,7 +18,7 @@ struct MaterialUniform {
 fn main(input : FragInput) -> @location(0) vec4 <f32> {
     var totalEmissiveRadiance : vec3 <f32> = materialUniform.emissive;
     var color : vec4 <f32>;
-    #if USE_COLORTEXTURE
+    #if USE_BASECOLORTEXTURE
         color = vec4 <f32> (textureSample(baseColorTexture, baseColorSampler, input.uv).rgb + materialUniform.color, materialUniform.opacity);
     #else
         color = vec4 <f32> (materialUniform.color, materialUniform.opacity);

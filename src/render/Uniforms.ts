@@ -998,3 +998,27 @@ function setDataToTypeArray(buffer, data, offset) {
 	}
 	return true;
 }
+export const UniformType = {
+	[UniformEnum.UniformUint]: UniformUint,
+	[UniformEnum.Float]: UniformFloat,
+	[UniformEnum.FloatVec2]: UniformFloatVec2,
+	[UniformEnum.FloatVec3]: UniformFloatVec3,
+	[UniformEnum.FloatVec4]: UniformFloatVec4,
+	[UniformEnum.Mat2]: UniformMat2,
+	[UniformEnum.Mat3]: UniformMat3,
+	[UniformEnum.Mat4]: UniformMat4,
+	[UniformEnum.Color]: UniformColor,
+	[UniformEnum.FloatArray]: UniformFloatArray,
+	[UniformEnum.Vec2Array]: UniformVec2Array,
+	[UniformEnum.Vec3Array]: UniformVec3Array,
+	[UniformEnum.Vec4Array]: UniformVec4Array,
+	[UniformEnum.Mat4Array]: UniformMatrix4Array,
+	[UniformEnum.PointLights]: UniformPointLights,
+	[UniformEnum.SpotLights]: UniformSpotLights,
+	[UniformEnum.DirtectLights]: UniformDirtectLights,
+	[UniformEnum.PointLightShadows]: UniformPointLightShadows,
+	[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
+	[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows,
+	[UniformEnum.DirtectLightCascadedShadows]: UniformDirtectLightCascadedShadows,
+	[UniformEnum.UniformStructArray]: UniformStructArray
+};

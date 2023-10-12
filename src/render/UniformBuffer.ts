@@ -3,31 +3,7 @@ import { UniformFunc, UniformEnum } from "../core/WebGPUTypes";
 import defaultValue from "../utils/defaultValue";
 import Buffer from "./Buffer";
 
-import {
-	Uniform,
-	UniformColor,
-	UniformDirtectLights,
-	UniformDirtectLightShadows,
-	UniformFloat,
-	UniformFloatArray,
-	UniformFloatVec2,
-	UniformFloatVec3,
-	UniformFloatVec4,
-	UniformMat2,
-	UniformMat3,
-	UniformMat4,
-	UniformMatrix4Array,
-	UniformPointLights,
-	UniformPointLightShadows,
-	UniformSpotLights,
-	UniformSpotLightShadows,
-	UniformUint,
-	UniformVec2Array,
-	UniformVec3Array,
-	UniformVec4Array,
-	UniformStructArray,
-	UniformDirtectLightCascadedShadows
-} from "./Uniforms";
+import { Uniform, UniformType } from "./Uniforms";
 export default class UniformBuffer {
 	public type: string;
 	public hasDynamicOffset: boolean;
@@ -46,30 +22,30 @@ export default class UniformBuffer {
 	public maxOffset: number;
 	public isUniformBuffer: boolean;
 	public name: string;
-	private static UniformType = {
-		[UniformEnum.UniformUint]: UniformUint,
-		[UniformEnum.Float]: UniformFloat,
-		[UniformEnum.FloatVec2]: UniformFloatVec2,
-		[UniformEnum.FloatVec3]: UniformFloatVec3,
-		[UniformEnum.FloatVec4]: UniformFloatVec4,
-		[UniformEnum.Mat2]: UniformMat2,
-		[UniformEnum.Mat3]: UniformMat3,
-		[UniformEnum.Mat4]: UniformMat4,
-		[UniformEnum.Color]: UniformColor,
-		[UniformEnum.FloatArray]: UniformFloatArray,
-		[UniformEnum.Vec2Array]: UniformVec2Array,
-		[UniformEnum.Vec3Array]: UniformVec3Array,
-		[UniformEnum.Vec4Array]: UniformVec4Array,
-		[UniformEnum.Mat4Array]: UniformMatrix4Array,
-		[UniformEnum.PointLights]: UniformPointLights,
-		[UniformEnum.SpotLights]: UniformSpotLights,
-		[UniformEnum.DirtectLights]: UniformDirtectLights,
-		[UniformEnum.PointLightShadows]: UniformPointLightShadows,
-		[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
-		[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows,
-		[UniformEnum.DirtectLightCascadedShadows]: UniformDirtectLightCascadedShadows,
-		[UniformEnum.UniformStructArray]: UniformStructArray
-	};
+	// private static UniformType = {
+	// 	[UniformEnum.UniformUint]: UniformUint,
+	// 	[UniformEnum.Float]: UniformFloat,
+	// 	[UniformEnum.FloatVec2]: UniformFloatVec2,
+	// 	[UniformEnum.FloatVec3]: UniformFloatVec3,
+	// 	[UniformEnum.FloatVec4]: UniformFloatVec4,
+	// 	[UniformEnum.Mat2]: UniformMat2,
+	// 	[UniformEnum.Mat3]: UniformMat3,
+	// 	[UniformEnum.Mat4]: UniformMat4,
+	// 	[UniformEnum.Color]: UniformColor,
+	// 	[UniformEnum.FloatArray]: UniformFloatArray,
+	// 	[UniformEnum.Vec2Array]: UniformVec2Array,
+	// 	[UniformEnum.Vec3Array]: UniformVec3Array,
+	// 	[UniformEnum.Vec4Array]: UniformVec4Array,
+	// 	[UniformEnum.Mat4Array]: UniformMatrix4Array,
+	// 	[UniformEnum.PointLights]: UniformPointLights,
+	// 	[UniformEnum.SpotLights]: UniformSpotLights,
+	// 	[UniformEnum.DirtectLights]: UniformDirtectLights,
+	// 	[UniformEnum.PointLightShadows]: UniformPointLightShadows,
+	// 	[UniformEnum.SpotLightShadows]: UniformSpotLightShadows,
+	// 	[UniformEnum.DirtectLightShadows]: UniformDirtectLightShadows,
+	// 	[UniformEnum.DirtectLightCascadedShadows]: UniformDirtectLightCascadedShadows,
+	// 	[UniformEnum.UniformStructArray]: UniformStructArray
+	// };
 	constructor(options: UniformBufferParams) {
 		this.type = defaultValue(options.type, "uniform");
 		this.label = defaultValue(options.label, "");
@@ -176,7 +152,7 @@ export default class UniformBuffer {
 		count?: number
 	): UniformBuffer {
 		if (this._uniformStruct.get(name)) return;
-		const TypeUniform = UniformBuffer.UniformType[uniformType];
+		const TypeUniform = UniformType[uniformType];
 		this.byteOffset += UniformBuffer.checkUniformOffset(this.byteOffset, TypeUniform.align);
 		const uniform =
 			count != undefined
