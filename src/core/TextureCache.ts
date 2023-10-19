@@ -64,7 +64,7 @@ class TextureCache {
 		this._texturesToRelease.clear();
 	}
 	destroy() {
-		this._textures.forEach((cachedTexture) => {
+		this._textures?.forEach?.((cachedTexture) => {
 			cachedTexture.texture?.finalDestroy();
 		});
 		return destroyObject(this);

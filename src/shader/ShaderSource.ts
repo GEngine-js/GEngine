@@ -22,11 +22,11 @@ export class ShaderSource {
 	private _shaderModule: ShaderModule;
 	private _shaderLanguage: ShaderLanguage;
 	constructor(options: ShaderSourceParams) {
-		this.shaderId = options.shaderId;
-		this.defines = options.defines || {};
-		this.render = options.render;
-		this.compute = options.compute;
-		this._shaderLanguage = options.language;
+		this.shaderId = options?.shaderId;
+		this.defines = options?.defines || {};
+		this.render = options?.render;
+		this.compute = options?.compute;
+		this._shaderLanguage = options?.language;
 		this.dirty = true;
 	}
 	get uid() {

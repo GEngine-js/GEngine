@@ -67,18 +67,20 @@
 					numMipLevels++;
 				}
 				texture = new Texture({
-					size: {
-						width: imageBitmap.width,
-						height: imageBitmap.height,
-						depth: 1
+					textureDescriptor: {
+						format: "rgba8unorm",
+						usage:
+							GPUTextureUsage.TEXTURE_BINDING |
+							GPUTextureUsage.STORAGE_BINDING |
+							GPUTextureUsage.COPY_DST |
+							GPUTextureUsage.RENDER_ATTACHMENT,
+						size: {
+							width: imageBitmap.width,
+							height: imageBitmap.height,
+							depth: 1
+						},
+						mipLevelCount: numMipLevels
 					},
-					mipLevelCount: numMipLevels,
-					format: "rgba8unorm",
-					usage:
-						GPUTextureUsage.TEXTURE_BINDING |
-						GPUTextureUsage.STORAGE_BINDING |
-						GPUTextureUsage.COPY_DST |
-						GPUTextureUsage.RENDER_ATTACHMENT,
 					data: {
 						source: imageBitmap,
 						width: imageBitmap.width,
@@ -117,9 +119,11 @@
 				);
 				const depthTexture = new Texture({
 					label: "resolveDepth",
-					size: { width, height, depth },
-					format: "depth24plus",
-					usage: GPUTextureUsage.RENDER_ATTACHMENT
+					textureDescriptor: {
+						size: { width, height, depth },
+						format: "depth24plus",
+						usage: GPUTextureUsage.RENDER_ATTACHMENT
+					}
 				});
 				const depthAttachment = new Attachment(1.0, { texture: depthTexture });
 				const canvasRenderTarget = new RenderTarget("render", [colorAttachment], depthAttachment);

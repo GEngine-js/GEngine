@@ -16,8 +16,6 @@ export default class PostEffect implements IClone {
 
 	defaultSampler: Sampler;
 
-	resolveToCanvas: boolean;
-
 	currentRenderTarget: RenderTarget;
 
 	fullScreenQuad: Mesh;
@@ -53,9 +51,9 @@ export default class PostEffect implements IClone {
 		this?.currentRenderTarget?.destroy();
 	}
 	protected renderMesh(context: Context) {
-		this.fullScreenQuad.material.dirty = true;
+		// this.fullScreenQuad.material.dirty = true;
 		this.fullScreenQuad.material.update();
-		const drawComand = this.fullScreenQuad.getDrawCommand();
+		const drawComand = this.fullScreenQuad.getPassCommand();
 		const currentRenderPassEncoder = this.currentRenderTarget.beginRenderPass(context.device);
 		drawComand.render({ device: context.device, passEncoder: currentRenderPassEncoder });
 		this.currentRenderTarget.endRenderPass();

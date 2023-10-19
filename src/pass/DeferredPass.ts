@@ -5,9 +5,9 @@ import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
+import RenderPass from "./RenderPass";
 
-export class DeferredPass extends Pass {
+export class DeferredPass extends RenderPass {
 	render(frameState: FrameState, camera?: Camera): void {
 		const { renderQueue } = frameState;
 		renderQueue.sort();
@@ -22,28 +22,36 @@ export class DeferredPass extends Pass {
 		const { width, height, depth } = context.presentationSize;
 		const positionTexture = new Texture({
 			label: "positionTexture",
-			size: { width, height, depth },
-			format: TextureFormat.RGBA32Float,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.RGBA32Float,
+				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			}
 		});
 		const normalTexture = new Texture({
 			label: "normalTexture",
-			size: { width, height, depth },
-			format: TextureFormat.RGBA32Float,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.RGBA32Float,
+				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			}
 		});
 
 		const albedoTexture = new Texture({
 			label: "albedoTexture",
-			size: { width, height, depth },
-			format: TextureFormat.BGRA8Unorm,
-			usage: TextureUsage.RenderAttachment
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.BGRA8Unorm,
+				usage: TextureUsage.RenderAttachment
+			}
 		});
 		const depthTexture = new Texture({
 			label: "deferredPassDepth",
-			size: { width, height, depth },
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.Depth24Plus,
+				usage: TextureUsage.RenderAttachment
+			}
 		});
 		const positionAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: positionTexture });
 		const normalAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: normalTexture });

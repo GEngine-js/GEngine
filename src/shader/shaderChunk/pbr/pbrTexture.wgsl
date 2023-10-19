@@ -64,7 +64,7 @@
     #endif
 #endif
 
-#if USE_TEXTURE
+#if USE_BASECOLORTEXTURE
     @group(0) @binding(baseSamplerBinding) var baseSampler : sampler;
     @group(0) @binding(baseTextureBinding) var baseTexture : texture_2d<f32>;
 #endif

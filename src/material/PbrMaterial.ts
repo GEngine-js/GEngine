@@ -1,12 +1,12 @@
 import { FrameState } from "../core/FrameState";
+import { ShaderDataFactory } from "../core/ShaderDataFactory";
 import textureCache from "../core/TextureCache";
 import { CullMode } from "../core/WebGPUConstant";
-import { UniformEnum } from "../core/WebGPUTypes";
+import { ShaderDataEnum } from "../core/WebGPUTypes";
 import Vector2 from "../math/Vector2";
 import { Mesh } from "../mesh/Mesh";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 
@@ -77,6 +77,9 @@ export default class PbrMaterial extends Material {
 		});
 		this.dirty = true;
 	}
+	public get IBLRender() {
+		return this._IBLRender;
+	}
 	constructor() {
 		super();
 		this.type = "pbr_mat";
@@ -89,79 +92,24 @@ export default class PbrMaterial extends Material {
 		this.light = true;
 		this._normalScale = new Vector2(1, 1);
 		this._IBLRender = true;
+		this.defines = {
+			materialPbr: true,
+			USE_IBL: this._IBLRender,
+			MATERIAL_PBR: true
+		};
 		this.shaderSource = new ShaderSource({
 			shaderId: this.type,
-			defines: {
-				materialPbr: true,
-				USE_IBL: this._IBLRender,
-				MATERIAL_PBR: true
-			}
+			defines: this.defines
 		});
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
 		if (!textureCache.getTexture("specular")) return;
-		if (!this.shaderData || this.dirty) {
-			this.createShaderData(mesh);
-		}
-	}
-	protected createShaderData(mesh?: Mesh) {
-		super.createShaderData();
-		const uniformBuffer = new UniformBuffer({ label: "pbr" });
-		uniformBuffer.setUniform(
-			"modelMatrix",
-			() => {
-				return mesh.modelMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		uniformBuffer.setUniform("color", this, UniformEnum.Color);
-		uniformBuffer.setUniform("opacity", this, UniformEnum.Float);
-		uniformBuffer.setUniform(
-			"normalMtrix",
-			() => {
-				return mesh.normalMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		uniformBuffer.setUniform("emissive", this, UniformEnum.Color);
-		uniformBuffer.setUniform("metalness", this, UniformEnum.Float);
-		uniformBuffer.setUniform("roughness", this, UniformEnum.Float);
-		this.shaderData.setUniformBuffer("pbr", uniformBuffer);
-		this.specularEnvTexture = textureCache.getTexture("specular");
-		if (this.baseTexture) {
-			this.shaderData.setDefine("USE_TEXTURE", true);
-			this.shaderData.setTexture("baseColorTexture", this.baseTexture);
-			this.shaderData.setSampler("baseColorSampler", this.baseSampler || textureCache.defaultSampler);
-		}
-		if (this.metalnessRoughnessTexture) {
-			this.shaderData.setDefine("USE_METALNESSTEXTURE", true);
-			this.shaderData.setTexture("metalnessRoughnessTexture", this.metalnessRoughnessTexture);
-			this.shaderData.setSampler(
-				"metalnessRoughnessSampler",
-				this.metalnessRoughnessSampler || textureCache.defaultSampler
-			);
-		}
-		if (this.normalTexture) {
-			uniformBuffer.setUniform("normalScale", this, UniformEnum.FloatVec2);
-			this.shaderData.setDefine("USE_NORMALTEXTURE", true);
-			this.shaderData.setTexture("normalTexture", this.normalTexture);
-			this.shaderData.setSampler("normalSampler", this.normalSampler || textureCache.defaultSampler);
-		}
-		if (this.aoTexture) {
-			this.shaderData.setDefine("USE_AOTEXTURE", true);
-			this.shaderData.setTexture("aoTexture", this.aoTexture);
-			this.shaderData.setSampler("aoSampler", this.aoSampler || textureCache.defaultSampler);
-			uniformBuffer.setUniform("aoTextureIntensity", this, UniformEnum.Float);
-		}
-		if (this.emissiveTexture) {
-			this.shaderData.setDefine("USE_EMISSIVETEXTURE", true);
-			this.shaderData.setTexture("emissiveTexture", this.emissiveTexture);
-			this.shaderData.setSampler("emissiveSampler", this.emissiveSampler || textureCache.defaultSampler);
-		}
-		if (this.specularEnvTexture && this._IBLRender) {
-			this.shaderData.setTexture("specularEnvTexture", this.specularEnvTexture);
-			this.shaderData.setSampler("specularEnvSampler", this.specularEnvSampler || textureCache.defaultSampler);
-		}
+		if (!this.shaderData || this.dirty)
+			this.shaderData = ShaderDataFactory.createShaderData({
+				mesh,
+				material: this,
+				shaderDataEnum: ShaderDataEnum.PBR
+			});
 	}
 	destroy() {
 		this?.aoTexture?.destroy();

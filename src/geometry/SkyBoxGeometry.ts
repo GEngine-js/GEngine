@@ -1,4 +1,5 @@
 import { Float32Attribute } from "../render/Attribute";
+import { GeometryUpdateParams } from "../type/UpdateParams";
 import Geometry from "./Geometry";
 export default class SkyBoxGeometry extends Geometry {
 	constructor() {
@@ -57,4 +58,6 @@ export default class SkyBoxGeometry extends Geometry {
 		this.setIndice(indices);
 		this.count = indices.length;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	update(params?: GeometryUpdateParams): void {}
 }

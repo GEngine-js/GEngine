@@ -55,15 +55,21 @@ export class BaseShadow {
 	protected _createShadowMapTexture() {
 		this._shadowMap = new Texture({
 			label: `${this.type}Map`,
-			size: {
-				width: this._shadowMapSize.x,
-				height: this._shadowMapSize.y,
-				depth: 1
-			},
 			fixedSize: true,
 			sampleType: TextureSampleType.Depth,
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding | TextureUsage.CopySrc
+			textureDescriptor: {
+				size: {
+					width: this._shadowMapSize.x,
+					height: this._shadowMapSize.y,
+					depth: 1
+				},
+				format: TextureFormat.Depth24Plus,
+				usage:
+					TextureUsage.RenderAttachment |
+					TextureUsage.TextureBinding |
+					TextureUsage.CopySrc |
+					TextureUsage.CopyDst
+			}
 		});
 	}
 

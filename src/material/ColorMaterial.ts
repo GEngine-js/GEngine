@@ -1,7 +1,7 @@
 import { FrameState } from "../core/FrameState";
-import { UniformEnum } from "../core/WebGPUTypes";
+import { ShaderDataFactory } from "../core/ShaderDataFactory";
+import { ShaderDataEnum } from "../core/WebGPUTypes";
 import { Mesh } from "../mesh/Mesh";
-import UniformBuffer from "../render/UniformBuffer";
 import { ShaderSource } from "../shader/ShaderSource";
 import { Material } from "./Material";
 export default class ColorMaterial extends Material {
@@ -9,20 +9,15 @@ export default class ColorMaterial extends Material {
 		super();
 		this.type = "color";
 		this.shaderSource = new ShaderSource({
-			shaderId: this.type,
-			defines: {}
+			shaderId: this.type
 		});
 	}
 	update(frameState?: FrameState, mesh?: Mesh) {
-		if (!this.shaderData || this.dirty) this.createShaderData();
-		const uniformBuffer = new UniformBuffer({ label: "color" });
-		uniformBuffer.setUniform(
-			"modelMatrix",
-			() => {
-				return mesh.modelMatrix;
-			},
-			UniformEnum.Mat4
-		);
-		this.shaderData.setUniformBuffer("color", uniformBuffer);
+		if (!this.shaderData || this.dirty)
+			this.shaderData = ShaderDataFactory.createShaderData({
+				mesh,
+				material: this,
+				shaderDataEnum: ShaderDataEnum.COLOR
+			});
 	}
 }

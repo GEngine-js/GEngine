@@ -1,15 +1,16 @@
 import Camera from "../camera/Camera";
 import { FrameState } from "../core/FrameState";
 import { TextureFormat, TextureUsage } from "../core/WebGPUConstant";
+import { Pass } from "../core/WebGPUTypes";
 import Color from "../math/Color";
 import Attachment from "../render/Attachment";
 import Context from "../render/Context";
 import DrawCommand from "../render/DrawCommand";
 import RenderTarget from "../render/RenderTarget";
 import Texture from "../render/Texture";
-import Pass from "./Pass";
+import RenderPass from "./RenderPass";
 
-export class BasicPass extends Pass {
+export class BasicPass extends RenderPass {
 	skyboxDrawComand: DrawCommand;
 	constructor(context: Context) {
 		super(context);
@@ -27,8 +28,8 @@ export class BasicPass extends Pass {
 
 		renderQueue.sort();
 		renderQueue.preRender(camera, this.context, this.passRenderEncoder);
-		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
-		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, undefined, undefined, lightManger);
+		renderQueue.opaqueRender(camera, this.context, this.passRenderEncoder, lightManger, Pass.RENDER);
+		renderQueue.transparentRender(camera, this.context, this.passRenderEncoder, lightManger, Pass.RENDER);
 		renderQueue.debugQueueRender(camera, this.context, this.passRenderEncoder);
 	}
 	private init(context: Context) {
@@ -38,15 +39,19 @@ export class BasicPass extends Pass {
 		const { width, height, depth } = context.presentationSize;
 		const colorTexture = new Texture({
 			label: "basicPassColor",
-			size: { width, height, depth },
-			format: this.context.presentationFormat,
-			usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: this.context.presentationFormat,
+				usage: TextureUsage.RenderAttachment | TextureUsage.TextureBinding
+			}
 		});
 		const depthTexture = new Texture({
 			label: "basicPassDepth",
-			size: { width, height, depth },
-			format: TextureFormat.Depth24Plus,
-			usage: TextureUsage.RenderAttachment
+			textureDescriptor: {
+				size: { width, height, depth },
+				format: TextureFormat.Depth24Plus,
+				usage: TextureUsage.RenderAttachment
+			}
 		});
 		const colorAttachment = new Attachment({ r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, { texture: colorTexture });
 		const depthAttachment = new Attachment(1.0, { texture: depthTexture });

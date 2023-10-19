@@ -1,3 +1,4 @@
+import { TypedArray } from "../core/WebGPUTypes";
 import { Attribute, AttributeType, BufferInterleavedFloat32Attribute, InterleavedAttribute } from "./Attribute";
 import Buffer from "./Buffer";
 export default class Attributes {
@@ -55,7 +56,7 @@ export default class Attributes {
 	}
 	getAtrributeValues(): {
 		arrayStride: number;
-		typeArray: Float32Array;
+		typeArray: TypedArray;
 		buffer?: Buffer;
 	} {
 		const arrayStrides = [];

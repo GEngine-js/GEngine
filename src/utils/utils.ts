@@ -1,3 +1,4 @@
+import { TextureViewDimension } from "../core/WebGPUConstant";
 import Texture from "../render/Texture";
 export async function loadPbrTexture(brdf, diffuse, specular) {
 	if (!brdf) return;
@@ -30,17 +31,21 @@ export async function loadCubeTexture(urls) {
 		};
 	});
 	return new Texture({
-		size: {
-			width: images[0].width,
-			height: images[0].height,
-			depth: 6
+		generateMipmap: true,
+		textureDescriptor: {
+			// mipLevelCount: 6,
+			size: {
+				width: images[0].width,
+				height: images[0].height,
+				depth: 6
+			},
+			format: "rgba8unorm",
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
 		},
-		format: "rgba8unorm",
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
 		data,
-		viewFormats: "cube",
-		mipLevelCount: 6,
-		needMipMap: true
+		textureViewDescriptor: {
+			dimension: TextureViewDimension.Cube
+		}
 	});
 }
 export async function loadTexture(url) {
@@ -49,11 +54,13 @@ export async function loadTexture(url) {
 	await img.decode();
 	const imageBitmap = await createImageBitmap(img);
 	const baseTexture = new Texture({
-		size: { width: imageBitmap.width, height: imageBitmap.height, depth: 1 },
 		data: {
 			source: imageBitmap
 		},
-		format: "rgba8unorm"
+		textureDescriptor: {
+			size: { width: imageBitmap.width, height: imageBitmap.height, depth: 1 },
+			format: "rgba8unorm"
+		}
 	});
 	return baseTexture;
 }

@@ -1,3 +1,4 @@
+import BoundingBox from "../core/BoundingBox";
 import { RenderObjectType } from "../core/WebGPUTypes";
 import Geometry from "../geometry/Geometry";
 import PbrMaterial from "../material/PbrMaterial";
@@ -11,7 +12,8 @@ import { SKinMesh } from "../mesh/SKinMesh";
 import { Float32Attribute } from "../render/Attribute";
 import Sampler from "../render/Sampler";
 import Texture from "../render/Texture";
-import { generateNormals, gltfEnum, newTypedArray, toIndices, TypedArray } from "../utils/gltfUtils";
+import { generateNormals, newTypedArray, toIndices, TypedArray } from "../utils/gltfUtils";
+import { ComponentType, CompononentCount, WebGPUSampler } from "./gltf/enum/GLTFEnum";
 import { Accessor } from "./gltf/libs/Accessor";
 import { Animation } from "./gltf/libs/Animation";
 import { AnimationChannel } from "./gltf/libs/AnimationChannel";
@@ -164,35 +166,36 @@ export class GLTF {
 	}
 	private parseAccessors() {
 		this.accessors = (this.json.accessors as Array<any>).map((accessor, index) => {
-			const n = gltfEnum[accessor.type] as number;
+			const compononentCount = CompononentCount[accessor.type];
+			const componentType = ComponentType[accessor.componentType];
 			let array;
 			if (accessor.bufferView === undefined) {
 				array = newTypedArray(
 					accessor.componentType,
-					new ArrayBuffer(n * accessor.count * (gltfEnum[accessor.componentType] as number)),
+					new ArrayBuffer(compononentCount * accessor.count * componentType),
 					0,
-					accessor.count * n
+					accessor.count * compononentCount
 				);
 			} else {
-				array = this.getBufferView(accessor, n);
+				array = this.getBufferView(accessor);
 			}
 
 			if (accessor.sparse) {
 				accessor.sparse.indices.count = accessor.sparse.count;
 				accessor.sparse.values.count = accessor.sparse.count;
 				accessor.sparse.values.componentType = accessor.componentType;
-				const indices = this.getBufferView(accessor.sparse.indices, 1);
-				const values = this.getBufferView(accessor.sparse.values, n);
+				const indices = this.getBufferView(accessor.sparse.indices);
+				const values = this.getBufferView(accessor.sparse.values);
 				for (let i = 0; i < accessor.sparse.count; i += 1) {
-					for (let j = 0; j < n; j += 1) {
-						array[indices[i] * n + j] = values[i * n + j];
+					for (let j = 0; j < compononentCount; j += 1) {
+						array[indices[i] * compononentCount + j] = values[i * compononentCount + j];
 					}
 				}
 			}
 			return new Accessor({
-				componentType: <number>gltfEnum[accessor.componentType],
+				componentType,
 				count: accessor.count,
-				type: n,
+				type: compononentCount,
 				values: array,
 				id: index,
 				min: accessor?.min,
@@ -239,34 +242,36 @@ export class GLTF {
 	}
 	private getSampler(samplerJson: any) {
 		return new Sampler({
-			magFilter: gltfEnum[samplerJson.magFilter || 9729] as GPUFilterMode,
-			minFilter: gltfEnum[samplerJson.minFilter || 9729] as GPUFilterMode,
-			addressModeU: gltfEnum[samplerJson.wrapS || 10497] as GPUAddressMode,
-			addressModeV: gltfEnum[samplerJson.wrapT || 10497] as GPUAddressMode
+			magFilter: WebGPUSampler[samplerJson.magFilter || 9729] as GPUFilterMode,
+			minFilter: WebGPUSampler[samplerJson.minFilter || 9729] as GPUFilterMode,
+			addressModeU: WebGPUSampler[samplerJson.wrapS || 10497] as GPUAddressMode,
+			addressModeV: WebGPUSampler[samplerJson.wrapT || 10497] as GPUAddressMode
 		});
 	}
-	private getBufferView(accessor: any, n: number) {
+	private getBufferView(accessor: any) {
 		const bufferView = this.bufferViews[accessor.bufferView];
-		const offset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
-		const stride = Math.max(bufferView.byteStride / 4 || 0, n);
-		let array = newTypedArray(
-			accessor.componentType,
-			this.buffers[bufferView.buffer],
-			bufferView.buffer === 0 ? offset + this.glbOffset : offset,
-			(accessor.count - 1) * stride + n
-		);
-		if (stride > n) {
-			const TypedArrayConstructor = array.constructor as {
-				new (...args: any): TypedArray;
-			};
-			const strided = new TypedArrayConstructor(accessor.count * n);
-			for (let i = 0, j = 0; i < strided.length; i += n, j += stride) {
-				for (let k = 0; k < n; k += 1) {
-					strided[i + k] = array[j + k];
-				}
+		const buffer = this.buffers[bufferView.buffer];
+		const byteOffset = (accessor?.byteOffset ?? 0) + (bufferView.byteOffset ?? 0);
+
+		const componentSize = ComponentType[accessor.componentType];
+		const componentCount = CompononentCount[accessor.type];
+
+		let arrayLength = 0;
+		if (bufferView.byteStride !== undefined && bufferView.byteStride != 0) {
+			if (componentSize !== 0) {
+				arrayLength = (bufferView.byteStride / componentSize) * (accessor.count - 1) + componentCount;
+			} else {
+				console.warn("Invalid component type in accessor '");
 			}
-			array = strided;
+		} else {
+			arrayLength = accessor.count * componentCount;
 		}
+
+		if (arrayLength * componentSize > buffer.byteLength - byteOffset) {
+			arrayLength = (buffer.byteLength - byteOffset) / componentSize;
+			console.warn("Count in accessor is too large.");
+		}
+		const array = newTypedArray(accessor.componentType, buffer, byteOffset, arrayLength);
 		return array;
 	}
 	private createGeometry(primitive, material) {
@@ -276,9 +281,16 @@ export class GLTF {
 		let vertexCount;
 		accessor = this.getAccessor(primitive.attributes.POSITION);
 		const positions = accessor.getArray();
+
 		vertexCount = accessor.count;
-		// const { max, min } = accessor;
-		// const boundingBox = { max, min };
+		const { max, min } = accessor;
+		let boundingBox;
+		if (min && max)
+			boundingBox = new BoundingBox(new Vector3(min[0], min[1], min[2]), new Vector3(max[0], max[1], max[2]));
+		// if (accessor.normalized) {
+		// 	const boxScale = getNormalizedComponentScale(WEBGL_COMPONENT_TYPES[accessor.componentType]);
+		// 	vector.multiplyScalar(boxScale);
+		// }
 		if (primitive.indices !== undefined) {
 			accessor = this.getAccessor(primitive.indices);
 			indices = toIndices(accessor.getArray());
@@ -344,22 +356,28 @@ export class GLTF {
 		if (joints) geo.setAttribute(new Float32Attribute("joint0", Array.from(joints), 4));
 		if (weights) geo.setAttribute(new Float32Attribute("weight0", Array.from(weights), 4));
 		geo.defines = defines;
-		geo.computeBoundingSphere(Array.from(positions));
+		if (boundingBox) {
+			geo.boundingBox = boundingBox;
+		} else {
+			geo.computeBoundingSphere(Array.from(positions));
+		}
 		geo.count = vertexCount;
 		return geo;
 	}
 	private createTexture(source: number) {
 		return new Texture({
-			size: {
-				width: this.images[source].width,
-				height: this.images[source].height,
-				depth: 1
-			},
 			data: {
 				source: this.images[source]
 			},
-			format: "rgba8unorm",
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+			textureDescriptor: {
+				format: "rgba8unorm",
+				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+				size: {
+					width: this.images[source].width,
+					height: this.images[source].height,
+					depth: 1
+				}
+			}
 		});
 	}
 	private async loadImages() {
@@ -468,14 +486,11 @@ export class GLTF {
 		// eslint-disable-next-line prefer-const
 		let { matrix, rotation, translation, scale } = gltfNode;
 		if (matrix) {
-			const tempMatrix4 = new Matrix4(),
+			const tempMatrix4 = new Matrix4().fromArray(matrix),
 				tempScale = new Vector3(),
 				tempTranslation = new Vector3(),
 				tempRotation = new Quaternion();
-			Matrix4.fromColumnMajorArray(matrix, tempMatrix4);
-			Matrix4.getScale(tempMatrix4, tempScale);
-			Matrix4.getTranslation(tempMatrix4, tempTranslation);
-			Matrix4.getRotation(tempMatrix4, tempRotation);
+			tempMatrix4.decompose(tempTranslation, tempRotation, tempScale);
 			rotation = tempRotation.toArray();
 			translation = tempTranslation.toArray();
 			scale = tempScale.toArray();
