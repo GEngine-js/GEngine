@@ -137,7 +137,7 @@ function splitShaderStrsByDefine(shader: string, defines: Array<string>): Array<
 		defines?.map((define) => {
 			const length = currentShaderStr.indexOf(define);
 			const sliceStr = currentShaderStr.slice(0, length);
-			currentShaderStr = currentShaderStr.slice(length + 1 + define.length);
+			currentShaderStr = currentShaderStr.slice(length + define.length);
 			return sliceStr;
 		}) || [];
 	if (shaderStrs?.length) shaderStrs.push(currentShaderStr);
